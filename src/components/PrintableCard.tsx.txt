@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import type { Match, FontSizeSetting, OutlineSizeSetting, FontTheme } from '../types';
 
