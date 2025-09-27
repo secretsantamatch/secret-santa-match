@@ -1,2 +1,11 @@
+# This tells Netlify where to find your serverless function (for the blog posts).
 [functions]
   directory = "netlify/functions/"
+
+# This is the rule for Single-Page Applications (SPAs) like React.
+# It fixes the "Page not found" error by sending all visitors to your
+# main index.html file, allowing your app's code to handle what to show.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
