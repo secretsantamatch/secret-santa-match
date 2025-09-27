@@ -18,8 +18,22 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path Aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "vite.config.ts",
+    "App.tsx",
+    "types.ts",
+    "components",
+    "services",
+    "netlify"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
