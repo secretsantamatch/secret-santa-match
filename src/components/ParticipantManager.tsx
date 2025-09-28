@@ -17,7 +17,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
   };
 
   const addParticipant = () => {
-    setParticipants([...participants, { id: crypto.randomUUID(), name: '', notes: '', budget: '' }]);
+    setParticipants([...participants, { id: crypto.randomUUID(), name: '', email: '', notes: '', budget: '' }]);
   };
 
   const removeParticipant = (index: number) => {
@@ -31,16 +31,19 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
     <div className="space-y-6">
       {/* Table Headers */}
       <div className="grid grid-cols-12 gap-x-4 text-sm font-semibold text-gray-700">
-        <div className="col-span-12 sm:col-span-4">Name <span className="text-[var(--primary-color)]">*</span></div>
+        <div className="col-span-12 sm:col-span-3">Name <span className="text-[var(--primary-color)]">*</span></div>
         <div className="col-span-12 sm:col-span-4 flex items-center gap-1">
+          Email
+          <Tooltip text="Optional. If you add an email, you can send this person their match result directly after generating." />
+        </div>
+        <div className="col-span-12 sm:col-span-3 flex items-center gap-1">
             Gift Ideas / Notes
             <Tooltip text="Notes for the gift giver, like wishlist items, clothing sizes, or favorite things. These will appear on the card." />
         </div>
-        <div className="col-span-12 sm:col-span-3 flex items-center gap-1">
+        <div className="col-span-12 sm:col-span-2 flex items-center gap-1">
             Budget
              <Tooltip text="Set a spending limit for this person's gift. This will appear on the card." />
         </div>
-        <div className="col-span-12 sm:col-span-1"></div>
       </div>
 
       {/* Participant Rows */}
@@ -48,7 +51,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
         {participants.map((participant, index) => (
           <div key={participant.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-center animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
             
-            <div className="col-span-12 sm:col-span-4">
+            <div className="col-span-12 sm:col-span-3">
               <input
                 type="text"
                 aria-label={`Name for participant ${index + 1}`}
@@ -61,6 +64,17 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
 
             <div className="col-span-12 sm:col-span-4">
               <input
+                type="email"
+                aria-label={`Email for participant ${index + 1}`}
+                placeholder="Email (Optional)"
+                value={participant.email || ''}
+                onChange={(e) => handleParticipantChange(index, 'email', e.target.value)}
+                className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-focus-ring-color)] transition"
+              />
+            </div>
+
+            <div className="col-span-12 sm:col-span-3">
+              <input
                 type="text"
                 aria-label={`Gift ideas for participant ${index + 1}`}
                 placeholder="e.g., Loves books, size M"
@@ -70,8 +84,8 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
               />
             </div>
             
-            <div className="col-span-10 sm:col-span-3">
-              <div className="relative">
+            <div className="col-span-10 sm:col-span-2 relative">
+               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
                 <input
                     type="text"
@@ -84,17 +98,20 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
               </div>
             </div>
 
-            <div className="col-span-2 sm:col-span-1 flex items-center justify-end">
-              <button
-                onClick={() => removeParticipant(index)}
-                disabled={participants.length <= 1}
-                className="p-1 text-gray-400 hover:text-red-600 rounded-full disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-gray-400 transition-colors"
-                aria-label={`Remove participant ${index + 1}`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+            <div className="col-span-2 sm:col-span-12 sm:grid sm:grid-cols-12 sm:gap-x-4">
+                <div className="col-span-10 sm:col-span-11"></div>
+                <div className="col-span-2 sm:col-span-1 flex items-center justify-end">
+                    <button
+                        onClick={() => removeParticipant(index)}
+                        disabled={participants.length <= 1}
+                        className="p-1 text-gray-400 hover:text-red-600 rounded-full disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-gray-400 transition-colors"
+                        aria-label={`Remove participant ${index + 1}`}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
           </div>
         ))}
