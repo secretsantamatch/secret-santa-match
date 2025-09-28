@@ -39,8 +39,7 @@ const Footer: React.FC<FooterProps> = ({ theme, setTheme }) => {
             
             <div className="mt-8 text-xs text-gray-400">
                  <p>
-                    Organize your next family, friend, or office gift exchange with our free Secret Santa generator.
-                    You can instantly draw names for any event, create beautiful printable cards, and add custom rules—all without needing any signups or emails.
+                    Organize your next gift exchange with the ultimate free Secret Santa generator. Instantly draw names online for any event, create beautiful printable cards, add custom rules, and optionally send results directly via email—all with no signups or registration required.
                 </p>
             </div>
 
