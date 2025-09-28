@@ -154,19 +154,32 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
           {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label="Clear search"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 hover:text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg></button>}
         </div>
         {uploadError && <p className="text-red-600 text-sm mb-4">{uploadError}</p>}
-        <div ref={gridRef} onKeyDown={handleGridKeyDown} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div ref={gridRef} onKeyDown={handleGridKeyDown} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {filteredOptions.map(option => (
             <div key={option.id} className="relative group">
-              <button onClick={() => handleThemeClick(option.id)} onMouseEnter={() => setHoveredId(option.id)} onMouseLeave={() => setHoveredId(null)} className={`relative w-full aspect-square rounded-lg overflow-hidden border-4 transition-all duration-200 bg-gray-100 focus:outline-none focus:ring-4 focus:ring-offset-0 focus:ring-[var(--primary-focus-ring-color)] ${selectedBackground === option.id ? 'border-[var(--primary-color)] scale-105 shadow-lg' : 'border-transparent hover:border-gray-300'}`}>
+              <button 
+                onClick={() => handleThemeClick(option.id)} 
+                onMouseEnter={() => setHoveredId(option.id)} 
+                onMouseLeave={() => setHoveredId(null)} 
+                aria-label={option.name}
+                className={`relative w-full aspect-square rounded-lg overflow-hidden border-4 transition-all duration-200 bg-gray-100 focus:outline-none focus:ring-4 focus:ring-offset-0 focus:ring-[var(--primary-focus-ring-color)] ${selectedBackground === option.id ? 'border-[var(--primary-color)] scale-105 shadow-lg' : 'border-transparent hover:border-gray-300'}`}>
                 {option.imageUrl ? <img src={getProxiedUrl(option.imageUrl)} alt={option.name} className="w-full h-full object-contain" /> : <div className="w-full h-full bg-white flex items-center justify-center p-2"><span className="text-gray-500 text-3xl">{option.icon}</span></div>}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2 pointer-events-none"><p className="text-white text-xs font-bold truncate">{option.name}</p></div>
               </button>
+              <p className="text-center text-xs font-semibold text-gray-700 mt-1.5 truncate w-full">{option.name}</p>
               {option.imageUrl && <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-64 p-1 bg-white rounded-lg shadow-2xl border border-gray-200 z-30 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none transform group-hover:scale-100 scale-95"><img src={getProxiedUrl(option.imageUrl)} alt={`${option.name} Preview`} className="w-full h-auto rounded-md" /><div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-white drop-shadow-lg"></div></div>}
             </div>
           ))}
           {searchTerm.length === 0 && (
             <div className="relative group">
-              <button onClick={handleCustomImageSelect} onMouseEnter={() => setHoveredId('custom-image')} onMouseLeave={() => setHoveredId(null)} className={`w-full aspect-square flex flex-col items-center justify-center text-center p-2 bg-slate-50 rounded-lg border-4 border-dashed transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-offset-0 focus:ring-[var(--primary-focus-ring-color)] ${selectedBackground === 'custom-image' ? 'border-[var(--primary-color)] scale-105 shadow-lg' : 'border-slate-300 hover:border-slate-400'}`}><svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg><span className="text-gray-600 font-semibold text-sm">Upload Image</span></button>
+               <button 
+                onClick={handleCustomImageSelect} 
+                onMouseEnter={() => setHoveredId('custom-image')} 
+                onMouseLeave={() => setHoveredId(null)}
+                aria-label="Upload custom image"
+                className={`w-full aspect-square flex flex-col items-center justify-center text-center p-2 bg-slate-50 rounded-lg border-4 border-dashed transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-offset-0 focus:ring-[var(--primary-focus-ring-color)] ${selectedBackground === 'custom-image' ? 'border-[var(--primary-color)] scale-105 shadow-lg' : 'border-slate-300 hover:border-slate-400'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+               </button>
+               <p className="text-center text-xs font-semibold text-gray-700 mt-1.5 truncate w-full">Upload Image</p>
                <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-72 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-30"><p className="font-bold text-sm mb-2 text-center">Custom Image Guidelines</p><ul className="list-disc list-inside space-y-1 text-left"><li>Max file size: 3MB. Accepted types: JPG, PNG.</li><li>For best results, use a portrait-oriented image (3:4 aspect ratio).</li><li>Ideal size is approx. 4.25" x 5.5" at 300 DPI (1275x1650 pixels).</li><li>Larger images will be automatically scaled to fit the card.</li></ul><div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-800"></div></div>
             </div>
           )}

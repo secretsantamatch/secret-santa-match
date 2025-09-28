@@ -151,10 +151,9 @@ const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusio
     <div className="space-y-6 p-4 bg-gray-50 rounded-lg border">
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <h3 className="font-semibold text-gray-800">Event Details <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
+          <h3 className="font-semibold text-gray-800">Event Details</h3>
           <Tooltip text="This note will appear on every individual card and at the top of the organizer's master list." />
         </div>
-        <p className="text-sm text-gray-500 mb-3">Add a short note to appear on every letter, like the date and time of the exchange.</p>
         <textarea
             value={eventDetails}
             onChange={(e) => setEventDetails(e.target.value)}
@@ -166,10 +165,10 @@ const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusio
 
       <div className="pt-6 border-t">
         <div className="flex items-center gap-2 mb-2">
-          <h3 className="font-semibold text-gray-800">Set required matches <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
+          <h3 className="font-semibold text-gray-800">Set a Specific Match</h3>
           <Tooltip text="Use this to set a specific gift assignment. For example, 'Alice' MUST be the Secret Santa for 'Bob'." />
         </div>
-        <p className="text-sm text-gray-500 mb-3">Force a specific person to be matched with another.</p>
+        <p className="text-sm text-gray-500 mb-3">e.g., Make sure Alice is the Secret Santa for Bob.</p>
         <div className="flex flex-col sm:flex-row items-center gap-2">
             <select value={mustMatchGiver} onChange={e => {setMustMatchGiver(e.target.value); setMustMatchReceiver('')}} className="w-full p-2 border border-gray-300 rounded-md">
                 <option value="">Select giver</option>
@@ -214,10 +213,10 @@ const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusio
 
       <div className="pt-6 border-t">
         <div className="flex items-center gap-2 mb-2">
-          <h3 className="font-semibold text-gray-800">Add exclusion rules <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
+          <h3 className="font-semibold text-gray-800">Add Drawing Restrictions</h3>
           <Tooltip text="Use this to prevent specific matches. For example, add a rule so 'Mom' cannot be matched with 'Dad'." />
         </div>
-        <p className="text-sm text-gray-500 mb-3">Prevent certain people from being matched, e.g., spouses.</p>
+        <p className="text-sm text-gray-500 mb-3">e.g., Prevent spouses or partners from drawing each other.</p>
         <div className="flex flex-col sm:flex-row items-center gap-2">
           <select value={p1} onChange={e => { setP1(e.target.value); setP2(''); }} className="w-full p-2 border border-gray-300 rounded-md">
             <option value="">Select person 1</option>
