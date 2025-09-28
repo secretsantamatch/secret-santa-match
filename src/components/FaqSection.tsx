@@ -3,7 +3,11 @@ import React, { useEffect } from 'react';
 const faqData = [
     {
         question: "How do I do Secret Santa without email?",
-        answer: "You're in the right place! Unlike other sites, this is a free Secret Santa generator with no email or signups required. Simply enter participant names, generate matches, and download printable cards instantly. It's the easiest way to draw names online without needing registration."
+        answer: "This site is perfect for you! The core of our generator is 100% free and requires no emails or signups. You can enter names, generate matches, and download printable cards instantly. We now offer an OPTIONAL feature to email results for convenience, but it's not required. Your privacy is our priority; any emails you provide are only used to send the match results for that single event and are never stored or used for marketing."
+    },
+    {
+        question: "Can I email the results to participants?",
+        answer: "Yes! You can now optionally add an email address for each participant. After generating matches, you'll have the option to send each person their Secret Santa assignment directly to their inbox. It’s a fast and convenient way to share the results, especially for remote groups. The tool remains 100% free and registration-free, whether you use this feature or not."
     },
     {
         question: "Does Secret Santa work with an odd number of people?",
@@ -34,17 +38,13 @@ const faqData = [
         answer: "Yes, our generator makes it easy to set rules. You can add exclusions to prevent specific people from drawing each other—perfect for couples in a family gift exchange or managers and direct reports in an office secret santa. This ensures everyone gets a fun and appropriate match."
     },
     {
-        question: "Can I upload my own background for the cards?",
-        answer: "Yes, you can! Our generator lets you upload a custom image (like a company logo or family photo) to use as the background for your printable cards. For best results, we recommend using a PNG image with dimensions of 3.19 x 4.13 inches (a quarter of a standard page). This feature allows you to fully personalize your gift exchange. Just select the 'Upload Image' option in the 'Style Your Cards' step."
-    },
-    {
         question: "Are the printable cards customizable?",
         answer: "Absolutely. You have full control over the look of your cards. You can change the text, choose different fonts, adjust colors, and even add a text outline for better visibility on busy backgrounds. All your edits are reflected in a live preview, so you see exactly what you'll get."
     }
 ];
 
 const ArrowRightIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+    <svg xmlns="http://www.w.org/2000/svg" className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
     </svg>
 );
