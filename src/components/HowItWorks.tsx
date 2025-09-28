@@ -2,47 +2,46 @@ import React from 'react';
 
 const IconStep1 = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 14h6m-6 4h4" />
     </svg>
 );
 
 const IconStep2 = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20 12v10H4V12" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2 7h20v5H2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 22V7" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" />
     </svg>
 );
 
 const IconStep3 = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
     </svg>
 );
 
-// FIX: Changed component definition to use React.FC and a named interface for props.
-// This correctly types the component, allowing TypeScript to recognize special React props like 'key'.
 interface StepProps {
     icon: React.ReactNode;
-    step: number;
     title: string;
-    description: string;
 }
 
-const Step: React.FC<StepProps> = ({ icon, step, title, description }) => (
+const Step: React.FC<StepProps> = ({ icon, title }) => (
     <div className="flex flex-col items-center p-4 relative z-10">
         <div className="bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-color-hover)] h-16 w-16 rounded-full flex items-center justify-center shadow-lg mb-4">
             {icon}
         </div>
-        <p className="text-sm font-bold text-[var(--primary-color)] tracking-wider">STEP {step}</p>
-        <h3 className="font-bold text-xl text-slate-800 mt-1 mb-2">{title}</h3>
-        <p className="text-gray-600 text-sm max-w-xs">{description}</p>
+        <h3 className="font-bold text-xl text-slate-800 mt-1">{title}</h3>
     </div>
 );
 
 const HowItWorks: React.FC = () => {
     const steps = [
-        { icon: <IconStep1 />, title: 'Add Participants', description: "Enter the names, gift notes, and budget for everyone in your gift exchange." },
-        { icon: <IconStep2 />, title: 'Set Rules & Style Cards', description: "Add exclusions to prevent people from drawing each other and choose a festive theme for your cards." },
-        { icon: <IconStep3 />, title: 'Generate & Download', description: "Instantly generate your matches and download the printable cards and organizer's master list." },
+        { icon: <IconStep1 />, title: '1. Add Names' },
+        { icon: <IconStep2 />, title: '2. Generate Matches' },
+        { icon: <IconStep3 />, title: '3. Download, Print & Send' },
     ];
 
     return (
@@ -57,14 +56,14 @@ const HowItWorks: React.FC = () => {
                     </svg>
                 </div>
                 {steps.map((step, index) => (
-                    <Step key={index} icon={step.icon} step={index + 1} title={step.title} description={step.description} />
+                    <Step key={index} icon={step.icon} title={step.title} />
                 ))}
             </div>
 
             {/* Mobile View */}
             <div className="md:hidden flex flex-col items-center text-center -space-y-4">
                  {steps.flatMap((step, index) => {
-                    const elements = [<Step key={`step-${index}`} icon={step.icon} step={index + 1} title={step.title} description={step.description} />];
+                    const elements = [<Step key={`step-${index}`} icon={step.icon} title={step.title} />];
                     if (index < steps.length - 1) {
                         elements.push(<div key={`line-${index}`} className="h-16 w-px border-l-2 border-dashed border-gray-300"></div>);
                     }
