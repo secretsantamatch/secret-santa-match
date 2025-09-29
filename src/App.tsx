@@ -277,7 +277,7 @@ function App() {
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
-                Customize <span className="text-[var(--primary-color)] ml-2">*</span>
+                Customize Printable Cards <span className="text-[var(--primary-color)] ml-2">*</span>
             </h2>
              <BackgroundSelector participants={participants} eventDetails={eventDetails} backgroundOptions={backgroundOptions} selectedBackground={background} setSelectedBackground={setBackground} customBackground={customBackground} setCustomBackground={setCustomBackground} textColor={textColor} setTextColor={setTextColor} useTextOutline={useTextOutline} setUseTextOutline={setUseTextOutline} outlineColor={outlineColor} setOutlineColor={setOutlineColor} outlineSize={outlineSize} setOutlineSize={setOutlineSize} fontSizeSetting={fontSizeSetting} setFontSizeSetting={setFontSizeSetting} fontTheme={fontTheme} setFontTheme={setFontTheme} lineSpacing={lineSpacing} setLineSpacing={setLineSpacing} greetingText={greetingText} setGreetingText={setGreetingText} introText={introText} setIntroText={setIntroText} wishlistLabelText={wishlistLabelText} setWishlistLabelText={setWishlistLabelText} />
           </div>
@@ -299,7 +299,7 @@ function App() {
                 <div className={`p-8 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center transition-all ${participantsWithEmail > 0 ? 'bg-gradient-to-br from-indigo-500 to-blue-600' : 'bg-gradient-to-br from-gray-400 to-gray-500'}`}>
                     <div className="mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div>
                     <h3 className="text-3xl font-bold font-serif mb-2">Send Results via Email</h3>
-                    <p className="text-blue-100 max-w-xs mb-6 text-lg">Notify participants of their match instantly and securely.</p>
+                    <p className="text-blue-100 max-w-xs mb-6 text-lg">Send results to each person's inbox using our standard festive email template.</p>
                     <button onClick={handleSendEmails} disabled={isSendingEmails || participantsWithEmail === 0} className="bg-white text-blue-700 font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-all disabled:bg-gray-200 disabled:text-gray-500 disabled:scale-100">
                         {isSendingEmails ? 'Sending...' : `Send (${participantsWithEmail}) Emails`}
                     </button>
@@ -308,8 +308,8 @@ function App() {
                 </div>
                 <div className="p-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
                     <div className="mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
-                    <h3 className="text-3xl font-bold font-serif mb-2">Download for Organizer</h3>
-                    <p className="text-green-100 max-w-xs mb-6 text-lg">Get printable gift tags and a master list for your records.</p>
+                    <h3 className="text-3xl font-bold font-serif mb-2">Download & Print Files</h3>
+                    <p className="text-green-100 max-w-xs mb-6 text-lg">Get the customized printable gift tags and a master list for your records.</p>
                     <button onClick={() => setShowDownloadOptionsModal(true)} className="bg-white text-green-700 font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-all">Download Now</button>
                 </div>
                 <div className="p-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
