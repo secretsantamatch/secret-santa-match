@@ -1,7 +1,7 @@
 import React from 'react';
 
 const IconStep1 = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg xmlns="http://www.w.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 14h6m-6 4h4" />
     </svg>
@@ -26,26 +26,28 @@ const IconStep3 = () => (
 interface StepProps {
     icon: React.ReactNode;
     title: string;
+    description: string;
 }
 
-const Step: React.FC<StepProps> = ({ icon, title }) => (
+const Step: React.FC<StepProps> = ({ icon, title, description }) => (
     <div className="flex flex-col items-center p-4 relative z-10">
         <div className="bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-color-hover)] h-16 w-16 rounded-full flex items-center justify-center shadow-lg mb-4">
             {icon}
         </div>
         <h3 className="font-bold text-xl text-slate-800 mt-1">{title}</h3>
+        <p className="text-gray-600 text-sm mt-2 max-w-[250px]">{description}</p>
     </div>
 );
 
 const HowItWorks: React.FC = () => {
     const steps = [
-        { icon: <IconStep1 />, title: '1. Add Names' },
-        { icon: <IconStep2 />, title: '2. Generate Matches' },
-        { icon: <IconStep3 />, title: '3. Download, Print & Send' },
+        { icon: <IconStep1 />, title: '1. Add Names', description: "Quickly enter participants' names, gift ideas, and optional emails." },
+        { icon: <IconStep2 />, title: '2. Generate Matches', description: "Set rules like exclusions, then instantly create fair, random pairings." },
+        { icon: <IconStep3 />, title: '3. Share the Results', description: "Send matches secretly via email or download beautiful, printable cards to share." },
     ];
 
     return (
-        <div className="my-12 bg-slate-50/70 backdrop-blur-sm rounded-2xl p-8 md:p-12 border border-slate-200">
+        <div className="my-12 bg-white rounded-2xl p-8 md:p-12 border border-slate-200 shadow-lg">
             <h2 className="text-3xl font-bold text-center text-slate-800 mb-8 font-serif">How It Works in 3 Easy Steps</h2>
             
             {/* Desktop View */}
@@ -56,14 +58,14 @@ const HowItWorks: React.FC = () => {
                     </svg>
                 </div>
                 {steps.map((step, index) => (
-                    <Step key={index} icon={step.icon} title={step.title} />
+                    <Step key={index} icon={step.icon} title={step.title} description={step.description} />
                 ))}
             </div>
 
             {/* Mobile View */}
             <div className="md:hidden flex flex-col items-center text-center -space-y-4">
                  {steps.flatMap((step, index) => {
-                    const elements = [<Step key={`step-${index}`} icon={step.icon} title={step.title} />];
+                    const elements = [<Step key={`step-${index}`} icon={step.icon} title={step.title} description={step.description} />];
                     if (index < steps.length - 1) {
                         elements.push(<div key={`line-${index}`} className="h-16 w-px border-l-2 border-dashed border-gray-300"></div>);
                     }

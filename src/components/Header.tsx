@@ -12,7 +12,7 @@ const Header: React.FC = () => {
           The Easiest Way to Draw Names Online
         </p>
         <p className="max-w-2xl text-gray-600 mt-2">
-          The best free Secret Santa generator for your gift exchange! Instantly draw names, add exclusions, download printable cards, and now optionally send results via email—all with no sign-ups required. Perfect for office, family, and friends.
+          The best free Secret Santa generator for your gift exchange! Instantly draw names, add exclusions, download printable cards, and send results secretly via email—all with no sign-ups required. Perfect for office, family, and friends.
         </p>
       </div>
     </header>
