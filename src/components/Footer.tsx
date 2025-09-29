@@ -39,7 +39,7 @@ const Footer: React.FC<FooterProps> = ({ theme, setTheme }) => {
             
             <div className="mt-8 text-xs text-gray-400">
                  <p>
-                    Organize your next gift exchange with the ultimate free Secret Santa generator. Instantly draw names online for any event, create beautiful printable cards, add custom rules, and optionally send results directly via email—all with no signups or registration required.
+                    The ultimate free Secret Santa generator for any occasion! Whether you're organizing an office party, a family gift exchange, or a fun get-together with friends, our tool makes it simple. Instantly draw names online, add exclusions to prevent specific matches (like couples), and even handle odd numbers of people with ease. The best part? No emails or signups are required. Generate your matches, then download beautiful, customizable printable cards or send results secretly via email. It's the fastest, easiest, and most private way to manage your Secret Santa.
                 </p>
             </div>
 
@@ -57,6 +57,8 @@ const Footer: React.FC<FooterProps> = ({ theme, setTheme }) => {
                         <option value="christmas">Christmas</option>
                         <option value="halloween">Halloween</option>
                         <option value="valentines">Valentine's</option>
+                        <option value="birthday">Birthday</option>
+                        <option value="celebration">Celebration</option>
                     </select>
                 </div>
                 <p className="text-gray-500 text-center order-first md:order-none">
