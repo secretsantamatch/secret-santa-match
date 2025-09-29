@@ -147,8 +147,8 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     <div className="space-y-8">
        <input type="file" ref={fileInputRef} onChange={handleCustomImageUpload} className="hidden" accept="image/png, image/jpeg, image/gif" />
       <div className="bg-slate-50 p-4 sm:p-6 rounded-xl border border-slate-200">
-        <h3 className="font-semibold text-gray-800 text-lg">Choose a Card Theme <span className="text-[var(--primary-color)]">*</span></h3>
-        <p className="text-sm text-gray-500 mb-4">Hover over a theme for a larger preview, then click to select.</p>
+        <h3 className="font-semibold text-gray-800 text-lg">1. Choose a Theme</h3>
+        <p className="text-sm text-gray-500 mb-4">This styling only applies to printable files, not emails. Hover to preview, then click to select.</p>
         <div className="relative">
           <input type="text" placeholder="Search themes (e.g., 'village', 'festive')" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2 pr-10 mb-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)]" />
           {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label="Clear search"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 hover:text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg></button>}
@@ -189,7 +189,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         <div className="space-y-8">
             <div>
-                 <h4 className="font-semibold text-gray-800 text-lg mb-4">Text Style</h4>
+                 <h4 className="font-semibold text-gray-800 text-lg mb-4">2. Customize Text Style</h4>
                 <div className="p-4 sm:p-6 bg-white rounded-xl shadow-md border border-slate-200">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div><label htmlFor="text-color" className="block text-sm font-medium text-gray-700">Text Color</label><div className="mt-1 flex items-center gap-2"><input id="text-color" type="color" value={textColor} onChange={e => setTextColor(e.target.value)} className="h-10 w-10 p-1 border border-gray-300 rounded-md cursor-pointer"/><input type="text" value={textColor} onChange={e => setTextColor(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)]"/></div></div>
@@ -203,7 +203,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                 </div>
             </div>
              <div>
-                <h4 className="font-semibold text-gray-800 text-lg mb-4 flex items-center gap-2">Customize Card Text<Tooltip text="Use {secret_santa} to automatically insert the gift-giver's name. This is useful for the greeting." /></h4>
+                <h4 className="font-semibold text-gray-800 text-lg mb-4 flex items-center gap-2">3. Edit Card Text<Tooltip text="Use {secret_santa} to automatically insert the gift-giver's name. This is useful for the greeting." /></h4>
                 <div className="p-4 sm:p-6 bg-white rounded-xl shadow-md border border-slate-200 space-y-4">
                     <div><label htmlFor="greeting-text" className="block text-sm font-medium text-gray-700">Greeting</label><input id="greeting-text" type="text" maxLength={40} value={greetingText} onChange={e => setGreetingText(e.target.value)} className="mt-1 w-full p-2 border border-gray-300 rounded-md" />{showGiverWarning && <p className="text-xs text-amber-600 mt-1">Warning: Don't forget to include <code className="bg-amber-100 p-0.5 rounded">{"{secret_santa}"}</code> so their name appears!</p>}</div>
                     <div><label htmlFor="intro-text" className="block text-sm font-medium text-gray-700">Introductory Line</label><input id="intro-text" type="text" maxLength={60} value={introText} onChange={e => setIntroText(e.target.value)} className="mt-1 w-full p-2 border border-gray-300 rounded-md" /></div>
@@ -213,7 +213,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
             </div>
         </div>
         <div>
-           <h4 className="font-semibold text-gray-800 text-lg mb-4 text-center md:text-left">Live Preview</h4>
+           <h4 className="font-semibold text-gray-800 text-lg mb-4 text-center md:text-left">4. Live Preview</h4>
            <div className="sticky top-6">
                  <PrintableCard
                     match={previewMatch}
