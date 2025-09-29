@@ -6,6 +6,8 @@ const getThemeColors = (theme: string) => {
         case 'halloween': return { primary: '#f97316' }; // Orange
         case 'valentines': return { primary: '#ec4899' }; // Pink
         case 'christmas': return { primary: '#c62828' }; // Red
+        case 'birthday': return { primary: '#0ea5e9' }; // Sky Blue
+        case 'celebration': return { primary: '#4f46e5' }; // Indigo
         default: return { primary: '#c62828' }; // Default to Red
     }
 };
