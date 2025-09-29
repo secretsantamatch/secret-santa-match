@@ -1,0 +1,116 @@
+import sgMail from '@sendgrid/mail';
+import type { Match } from '../../src/types';
+
+// --- Email HTML Template ---
+const createMasterListHtml = (matches: Match[], eventDetails: string): string => {
+    const eventDetailsHtml = eventDetails
+        ? `<div style="margin-top: 25px; padding: 15px; background-color: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0;">
+             <h3 style="margin: 0; font-size: 16px; color: #1e293b;">Event Details</h3>
+             <p style="margin: 5px 0 0; font-size: 14px; color: #475569;">${eventDetails.replace(/\n/g, '<br>')}</p>
+           </div>`
+        : '';
+    
+    const tableRows = matches.map(match => `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 10px; font-weight: bold; color: #334155;">${match.giver.name}</td>
+            <td style="padding: 10px; color: #16a34a;">${match.receiver.name}</td>
+            <td style="padding: 10px; color: #475569; font-size: 13px;">${match.receiver.notes || ''}</td>
+            <td style="padding: 10px; color: #475569; font-size: 13px;">${match.receiver.budget ? (match.receiver.budget.startsWith('$') ? '' : '$') + match.receiver.budget : ''}</td>
+        </tr>
+    `).join('');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+          body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
+          .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e2e8f0; }
+          .header { background-color: #475569; color: white; padding: 30px; text-align: center; }
+          .content { padding: 30px; }
+          .footer { font-size: 12px; color: #94a3b8; text-align: center; padding: 20px; }
+          table { width: 100%; border-collapse: collapse; text-align: left; }
+          th { padding: 10px; background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin: 0; font-size: 28px;">Secret Santa Master List</h1>
+          </div>
+          <div class="content">
+            <h2 style="font-size: 20px; color: #1e293b; margin-top: 0;">Here is the complete list of matches for your event.</h2>
+            <p style="font-size: 16px; color: #334155; line-height: 1.6;">Keep this list handy for your reference.</p>
+            <table style="margin-top: 20px;">
+              <thead>
+                <tr>
+                  <th>Giver</th>
+                  <th>Receiver</th>
+                  <th>Notes</th>
+                  <th>Budget</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRows}
+              </tbody>
+            </table>
+            ${eventDetailsHtml}
+          </div>
+          <div class="footer">
+            <p>Sent via SecretSantaMatch.com</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+};
+
+// --- Netlify Function Handler ---
+export async function handler(event: any, context: any) {
+    if (event.httpMethod !== 'POST') {
+        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+    }
+
+    const { SENDGRID_API_KEY, SENDGRID_FROM_EMAIL } = process.env;
+
+    if (!SENDGRID_API_KEY || !SENDGRID_FROM_EMAIL) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: "Server configuration error: SendGrid API key or 'From' email is not set." })
+        };
+    }
+    sgMail.setApiKey(SENDGRID_API_KEY);
+
+    try {
+        const { matches, eventDetails, recipientEmail } = JSON.parse(event.body || '{}') as { matches: Match[], eventDetails: string, recipientEmail: string };
+
+        if (!matches || !Array.isArray(matches) || matches.length === 0 || !recipientEmail) {
+            return { statusCode: 400, body: JSON.stringify({ error: 'Missing required data (matches and recipientEmail).' }) };
+        }
+
+        const message = {
+            to: recipientEmail,
+            from: {
+                name: 'Secret Santa Match Organizer',
+                email: SENDGRID_FROM_EMAIL,
+            },
+            subject: `Your Secret Santa Master List`,
+            html: createMasterListHtml(matches, eventDetails),
+        };
+
+        await sgMail.send(message);
+        
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: `Master list sent successfully.` }),
+        };
+
+    } catch (error: any) {
+        console.error('Error sending master list:', error.response?.body || error.message);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Failed to send master list.' }),
+        };
+    }
+}
