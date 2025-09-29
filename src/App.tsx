@@ -90,7 +90,9 @@ function App() {
   const [isRulesExpanded, setIsRulesExpanded] = useState(false);
 
   const resultsRef = useRef<HTMLDivElement>(null);
-  const downloadModalRef = useRef<HTMLDivElement>(null);
+  const participantsRef = useRef<HTMLDivElement>(null);
+  const rulesRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     localStorage.setItem('ssm_theme', theme);
@@ -167,6 +169,25 @@ function App() {
       setModalAnimating(false);
     }
   }, [showDownloadOptionsModal]);
+
+  const handleStepClick = (stepNumber: number) => {
+    let targetRef: React.RefObject<HTMLDivElement> | null = null;
+    if (stepNumber === 1) targetRef = participantsRef;
+    if (stepNumber === 2) targetRef = rulesRef;
+    if (stepNumber === 3) targetRef = cardsRef;
+
+    if (targetRef?.current) {
+      if (stepNumber === 2) {
+        setIsRulesExpanded(true);
+      }
+      
+      targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetRef.current.classList.add('highlight-section');
+      setTimeout(() => {
+        targetRef.current?.classList.remove('highlight-section');
+      }, 1200);
+    }
+  };
 
   const handleGenerateMatches = () => {
     setError('');
@@ -301,10 +322,10 @@ function App() {
     <div className="bg-slate-50 min-h-screen">
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
         <Header />
-        <HowItWorks />
+        <HowItWorks onStepClick={handleStepClick} />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div ref={participantsRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 mb-6 flex items-center">
               <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
               Add Names <span className="text-[var(--primary-color)] ml-2">*</span>
@@ -317,7 +338,7 @@ function App() {
             />
           </div>
           
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div ref={rulesRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
             <button onClick={() => setIsRulesExpanded(!isRulesExpanded)} className="w-full text-left flex justify-between items-center">
                 <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center">
                     <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
@@ -330,7 +351,7 @@ function App() {
             </div>
           </div>
           
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div ref={cardsRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
              <h2 className="text-lg md:text-xl font-bold text-slate-800 mb-6 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
                 Customize Printable Cards <span className="text-[var(--primary-color)] ml-2">*</span>
@@ -460,7 +481,7 @@ function App() {
       </div>
       <FaqSection /> <BlogPromo /> <Footer theme={theme} setTheme={setTheme} />
       {isPdfLoading && ( <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60]"><div className="text-white text-center"><svg className="animate-spin h-12 w-12 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75" fill="currentColor"></path></svg><p className="text-xl font-semibold mt-4">Generating your PDF...</p><p className="text-sm opacity-80">This may take a moment for custom images.</p></div></div> )}
-      {showDownloadOptionsModal && ( <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${modalAnimating ? 'opacity-100' : 'opacity-0'}`} onClick={() => setShowDownloadOptionsModal(false)}> <div ref={downloadModalRef} onClick={e => e.stopPropagation()} tabIndex={-1} className={`bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-lg w-full outline-none transition-all duration-300 ${modalAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}> <div className="text-center"><h2 className="text-3xl font-bold text-slate-800 font-serif mb-2">Download Options</h2><p className="text-gray-600 mb-8">What would you like to download?</p></div><div className="space-y-4"><button onClick={() => handleDownload('cards')} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold p-4 rounded-xl shadow-lg transition-all text-left flex items-center gap-4 group"><div className="p-3 bg-white/20 rounded-lg transition-transform group-hover:scale-110"><svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg></div><div><span className="text-xl">Printable Gift Tags</span><span className="font-normal text-sm block opacity-90">Individual cards for each person.</span></div></button><button onClick={() => handleDownload('list')} className="w-full bg-slate-500 hover:bg-slate-600 text-white font-bold p-4 rounded-xl shadow-lg transition-all text-left flex items-center gap-4 group"><div className="p-3 bg-white/20 rounded-lg transition-transform group-hover:scale-110"><svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg></div><div><span className="text-xl">Organizer's Master List</span><span className="font-normal text-sm block opacity-90">A single page showing all matches.</span></div></button></div><div className="text-center"><button onClick={() => setShowDownloadOptionsModal(false)} className="mt-8 text-gray-500 hover:bg-gray-100 font-semibold py-2 px-4 rounded-full text-sm">Cancel</button></div></div></div> )}
+      {showDownloadOptionsModal && ( <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${modalAnimating ? 'opacity-100' : 'opacity-0'}`} onClick={() => setShowDownloadOptionsModal(false)}> <div onClick={e => e.stopPropagation()} tabIndex={-1} className={`bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-lg w-full outline-none transition-all duration-300 ${modalAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}> <div className="text-center"><h2 className="text-3xl font-bold text-slate-800 font-serif mb-2">Download Options</h2><p className="text-gray-600 mb-8">What would you like to download?</p></div><div className="space-y-4"><button onClick={() => handleDownload('cards')} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold p-4 rounded-xl shadow-lg transition-all text-left flex items-center gap-4 group"><div className="p-3 bg-white/20 rounded-lg transition-transform group-hover:scale-110"><svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg></div><div><span className="text-xl">Printable Gift Tags</span><span className="font-normal text-sm block opacity-90">Individual cards for each person.</span></div></button><button onClick={() => handleDownload('list')} className="w-full bg-slate-500 hover:bg-slate-600 text-white font-bold p-4 rounded-xl shadow-lg transition-all text-left flex items-center gap-4 group"><div className="p-3 bg-white/20 rounded-lg transition-transform group-hover:scale-110"><svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg></div><div><span className="text-xl">Organizer's Master List</span><span className="font-normal text-sm block opacity-90">A single page showing all matches.</span></div></button></div><div className="text-center"><button onClick={() => setShowDownloadOptionsModal(false)} className="mt-8 text-gray-500 hover:bg-gray-100 font-semibold py-2 px-4 rounded-full text-sm">Cancel</button></div></div></div> )}
       {showBulkAddModal && <BulkAddModal onClose={() => setShowBulkAddModal(false)} onConfirm={handleBulkAdd} />}
       {showEmailPreviewModal && <EmailPreviewModal theme={emailTheme} onClose={() => setShowEmailPreviewModal(false)} />}
       {showClearConfirmation && ( <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4"><div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center"><div className="mx-auto bg-red-100 rounded-full h-16 w-16 flex items-center justify-center"><svg className="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div><h2 className="text-3xl font-bold text-slate-800 font-serif mt-5 mb-2">Are you sure?</h2><p className="text-gray-600 mb-6">This will permanently clear all participants, rules, and matches. This action cannot be undone.</p><div className="flex justify-center gap-4"><button onClick={() => setShowClearConfirmation(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">Cancel</button><button onClick={confirmClear} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Yes, Clear Everything</button></div></div></div> )}
