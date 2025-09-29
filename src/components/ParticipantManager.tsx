@@ -6,9 +6,10 @@ interface ParticipantManagerProps {
   participants: Participant[];
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
   onBulkAddClick: () => void;
+  duplicateNameIds: Set<string>;
 }
 
-const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick }) => {
+const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, duplicateNameIds }) => {
 
   const handleParticipantChange = (index: number, field: keyof Omit<Participant, 'id'>, value: string) => {
     const newParticipants = [...participants];
@@ -25,6 +26,11 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
     if (participants.length <= 1) return;
     const newParticipants = participants.filter((_, i) => i !== index);
     setParticipants(newParticipants);
+  };
+
+  const isValidEmail = (email: string): boolean => {
+      // Simple regex, not fully RFC 5322 compliant, but good enough for UI feedback.
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   return (
@@ -48,74 +54,88 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
 
       {/* Participant Rows */}
       <div className="space-y-3">
-        {participants.map((participant, index) => (
-          <div key={participant.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-center animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
-            
-            <div className="col-span-12 sm:col-span-3">
-              <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Name *</label>
-              <input
-                type="text"
-                aria-label={`Name for participant ${index + 1}`}
-                placeholder="Participant's Name"
-                value={participant.name}
-                onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-focus-ring-color)] transition"
-              />
-            </div>
+        {participants.map((participant, index) => {
+          const isDuplicate = participant.name.trim() !== '' && duplicateNameIds.has(participant.id);
+          const isEmailInvalid = participant.email ? !isValidEmail(participant.email) : false;
 
-            <div className="col-span-12 sm:col-span-3">
-              <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Email (Optional)</label>
-              <input
-                type="email"
-                aria-label={`Email for participant ${index + 1}`}
-                placeholder="participant@email.com"
-                value={participant.email || ''}
-                onChange={(e) => handleParticipantChange(index, 'email', e.target.value)}
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-focus-ring-color)] transition"
-              />
-            </div>
-
-            <div className="col-span-12 sm:col-span-3">
-              <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Gift Ideas / Notes</label>
-              <input
-                type="text"
-                aria-label={`Gift ideas for participant ${index + 1}`}
-                placeholder="e.g., Loves books, size M"
-                value={participant.notes}
-                onChange={(e) => handleParticipantChange(index, 'notes', e.target.value)}
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-focus-ring-color)] transition"
-              />
-            </div>
-            
-            <div className="col-span-9 sm:col-span-2 relative">
-              <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Budget</label>
-               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+          return (
+            <div key={participant.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
+              <div className="col-span-12 sm:col-span-3">
+                <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Name *</label>
                 <input
-                    type="text"
-                    aria-label={`Budget for participant ${index + 1}`}
-                    placeholder="25"
-                    value={participant.budget}
-                    onChange={(e) => handleParticipantChange(index, 'budget', e.target.value)}
-                    className="w-full p-2.5 pl-7 border border-gray-300 rounded-lg focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-focus-ring-color)] transition"
+                  type="text"
+                  aria-label={`Name for participant ${index + 1}`}
+                  placeholder="Participant's Name"
+                  value={participant.name}
+                  onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
+                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${
+                    isDuplicate 
+                      ? 'border-red-500 focus:ring-red-300' 
+                      : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'
+                  }`}
+                />
+                {isDuplicate && <p className="text-xs text-red-600 mt-1">Duplicate name.</p>}
+              </div>
+
+              <div className="col-span-12 sm:col-span-3">
+                <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Email (Optional)</label>
+                <input
+                  type="email"
+                  aria-label={`Email for participant ${index + 1}`}
+                  placeholder="participant@email.com"
+                  value={participant.email || ''}
+                  onChange={(e) => handleParticipantChange(index, 'email', e.target.value)}
+                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${
+                    isEmailInvalid
+                      ? 'border-amber-500 focus:ring-amber-300'
+                      : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'
+                  }`}
+                />
+                {isEmailInvalid && <p className="text-xs text-amber-600 mt-1">Invalid email format.</p>}
+              </div>
+
+              <div className="col-span-12 sm:col-span-3">
+                <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Gift Ideas / Notes</label>
+                <input
+                  type="text"
+                  aria-label={`Gift ideas for participant ${index + 1}`}
+                  placeholder="e.g., Loves books, size M"
+                  value={participant.notes}
+                  onChange={(e) => handleParticipantChange(index, 'notes', e.target.value)}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-focus-ring-color)] transition"
                 />
               </div>
-            </div>
+              
+              <div className="col-span-9 sm:col-span-2 relative">
+                <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Budget</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                  <input
+                      type="text"
+                      aria-label={`Budget for participant ${index + 1}`}
+                      placeholder="25"
+                      value={participant.budget}
+                      onChange={(e) => handleParticipantChange(index, 'budget', e.target.value)}
+                      className="w-full p-2.5 pl-7 border border-gray-300 rounded-lg focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-focus-ring-color)] transition"
+                  />
+                </div>
+              </div>
 
-            <div className="col-span-3 sm:col-span-1 flex items-end sm:items-center h-full justify-end">
-                <button
-                    onClick={() => removeParticipant(index)}
-                    disabled={participants.length <= 1}
-                    className="p-1 text-gray-400 hover:text-red-600 rounded-full disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-gray-400 transition-colors"
-                    aria-label={`Remove participant ${index + 1}`}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+              <div className="col-span-3 sm:col-span-1 flex items-start sm:items-center h-full justify-end pt-1 sm:pt-0">
+                  <button
+                      onClick={() => removeParticipant(index)}
+                      disabled={participants.length <= 1}
+                      className="p-1 text-gray-400 hover:text-red-600 rounded-full disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-gray-400 transition-colors"
+                      aria-label={`Remove participant ${index + 1}`}
+                  >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                  </button>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
       
       {/* Action Buttons */}
