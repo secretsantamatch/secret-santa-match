@@ -7,10 +7,12 @@ interface EmailPreviewModalProps {
 
 const getThemeColors = (theme: string) => {
     switch (theme) {
-        case 'halloween': return { primary: '#f97316' }; // Orange
-        case 'valentines': return { primary: '#ec4899' }; // Pink
-        case 'christmas': return { primary: '#c62828' }; // Red
-        default: return { primary: '#c62828' }; // Default to Red
+        case 'halloween': return { primary: '#f97316', secondary: '#1f2937' }; // Orange to Black
+        case 'valentines': return { primary: '#dc2626', secondary: '#ec4899' }; // Red to Pink
+        case 'christmas': return { primary: '#c62828', secondary: '#16a34a' }; // Red to Green
+        case 'birthday': return { primary: '#0ea5e9', secondary: '#f59e0b' }; // Sky Blue to Amber
+        case 'celebration': return { primary: '#4f46e5', secondary: '#d946ef' }; // Indigo to Fuchsia
+        default: return { primary: '#c62828', secondary: '#16a34a' }; // Default to Christmas gradient
     }
 };
 
@@ -43,12 +45,12 @@ const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({ onClose, theme })
         className={`bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-2xl w-full transition-all duration-300 ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
       >
         <h2 id="email-preview-title" className="text-2xl font-bold text-slate-800 font-serif mb-2">Email Preview</h2>
-        <p className="text-gray-600 mb-6">This is a preview of the standard, festive email your participants will receive. The color scheme automatically matches the site's theme.</p>
+        <p className="text-gray-600 mb-6">This is a preview of the standard, festive email your participants will receive. The color scheme automatically matches the chosen email theme.</p>
         
         <div className="w-full border border-gray-200 rounded-lg overflow-hidden bg-[#f8fafc]">
             {/* Mock Email Body */}
             <div style={{ fontFamily: "'Montserrat', sans-serif" }} className="text-sm">
-                <div style={{ backgroundColor: themeColors.primary }} className="text-white p-6 text-center">
+                <div style={{ background: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.secondary})` }} className="text-white p-6 text-center">
                     <h1 className="text-xl font-bold m-0">You're a Secret Santa!</h1>
                 </div>
                 <div className="p-6">
