@@ -13,6 +13,7 @@ import BlogPromo from './components/BlogPromo';
 import FaqSection from './components/FaqSection';
 import BackToTopButton from './components/BackToTopButton';
 import BulkAddModal from './components/BulkAddModal';
+import EmailPreviewModal from './components/EmailPreviewModal';
 
 const RerollIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M5.52 15.88A8.01 8.01 0 0012 20a8 8 0 100-16 7.92 7.92 0 00-6.48 3.52M20 20v-5h-5" /></svg>;
 const ClearIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>;
@@ -78,14 +79,21 @@ function App() {
   const [modalAnimating, setModalAnimating] = useState(false);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [showBulkAddModal, setShowBulkAddModal] = useState(false);
-  const [theme, setTheme] = useState(getSeasonalTheme());
+  const [showEmailPreviewModal, setShowEmailPreviewModal] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('ssm_theme') || getSeasonalTheme();
+  });
+  const [emailTheme, setEmailTheme] = useState(theme);
   const [isRulesExpanded, setIsRulesExpanded] = useState(false);
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const downloadModalRef = useRef<HTMLDivElement>(null);
-
+  
   useEffect(() => {
+    localStorage.setItem('ssm_theme', theme);
     document.documentElement.dataset.theme = theme;
+    // Keep email theme in sync with site theme by default
+    setEmailTheme(theme);
   }, [theme]);
   
   useEffect(() => { localStorage.setItem('ssm_participants', JSON.stringify(participants)); }, [participants]);
@@ -228,7 +236,7 @@ function App() {
         const response = await fetch('/.netlify/functions/send-emails', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matches, eventDetails })
+            body: JSON.stringify({ matches, eventDetails, theme: emailTheme })
         });
         if (!response.ok) throw new Error('Failed to send emails.');
         setEmailSendStatus('success');
@@ -250,32 +258,28 @@ function App() {
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6 flex items-center">
               <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
               Add Names <span className="text-[var(--primary-color)] ml-2">*</span>
             </h2>
             <ParticipantManager participants={participants} setParticipants={setParticipants} onBulkAddClick={() => setShowBulkAddModal(true)} />
           </div>
           
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200">
-            <button onClick={() => setIsRulesExpanded(!isRulesExpanded)} className="p-6 md:p-8 w-full text-left">
-                <div className="flex justify-between items-center">
-                    <h2 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center">
-                        <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
-                        Details &amp; Rules <span className="text-gray-500 font-normal text-lg ml-2">(Optional)</span>
-                    </h2>
-                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-gray-500 transition-transform duration-300 ${isRulesExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
+          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+            <button onClick={() => setIsRulesExpanded(!isRulesExpanded)} className="w-full text-left flex justify-between items-center">
+                <h2 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center">
+                    <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
+                    Details &amp; Rules <span className="text-gray-500 font-normal text-lg ml-2">(Optional)</span>
+                </h2>
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-gray-500 transition-transform duration-300 ${isRulesExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
-            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isRulesExpanded ? 'max-h-[1000px]' : 'max-h-0'}`}>
-                <div className="p-6 md:p-8 pt-0">
-                    <Options participants={participants.filter(p => p.name.trim() !== '')} exclusions={exclusions} setExclusions={setExclusions} assignments={assignments} setAssignments={setAssignments} eventDetails={eventDetails} setEventDetails={setEventDetails} />
-                </div>
+            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isRulesExpanded ? 'max-h-[1000px] pt-6' : 'max-h-0'}`}>
+                <Options participants={participants.filter(p => p.name.trim() !== '')} exclusions={exclusions} setExclusions={setExclusions} assignments={assignments} setAssignments={setAssignments} eventDetails={eventDetails} setEventDetails={setEventDetails} />
             </div>
           </div>
           
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center">
+             <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
                 Customize Printable Cards <span className="text-[var(--primary-color)] ml-2">*</span>
             </h2>
@@ -299,12 +303,56 @@ function App() {
                 <div className={`p-8 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center transition-all ${participantsWithEmail > 0 ? 'bg-gradient-to-br from-indigo-500 to-blue-600' : 'bg-gradient-to-br from-gray-400 to-gray-500'}`}>
                     <div className="mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div>
                     <h3 className="text-3xl font-bold font-serif mb-2">Send Results via Email</h3>
-                    <p className="text-blue-100 max-w-xs mb-6 text-lg">Send results to each person's inbox using our standard festive email template.</p>
+                    <p className="text-blue-100 max-w-xs mb-4 text-lg">Send results to each person's inbox using our standard festive email template.</p>
+                    <div className="mb-4 w-full max-w-xs">
+                        <label htmlFor="email-theme-selector" className="text-sm font-semibold text-blue-100 mb-1 block">Email Theme:</label>
+                        <select
+                            id="email-theme-selector"
+                            value={emailTheme}
+                            onChange={(e) => setEmailTheme(e.target.value)}
+                            disabled={participantsWithEmail === 0}
+                            className="w-full bg-white/20 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-white/50 border border-white/30 disabled:opacity-50"
+                        >
+                            <option value="default" className="text-black">Festive (Default)</option>
+                            <option value="christmas" className="text-black">Christmas</option>
+                            <option value="halloween" className="text-black">Halloween</option>
+                            <option value="valentines" className="text-black">Valentine's</option>
+                        </select>
+                    </div>
                     <button onClick={handleSendEmails} disabled={isSendingEmails || participantsWithEmail === 0} className="bg-white text-blue-700 font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-all disabled:bg-gray-200 disabled:text-gray-500 disabled:scale-100">
-                        {isSendingEmails ? 'Sending...' : `Send (${participantsWithEmail}) Emails`}
+                        {isSendingEmails ? 'Sending...' : (emailSendStatus === 'success' ? 'Send Again' : `Send (${participantsWithEmail}) Emails`)}
                     </button>
-                    {emailSendStatus === 'success' && <p className="text-sm mt-3 text-green-200">Emails sent successfully!</p>}
-                    {emailSendStatus === 'error' && <p className="text-sm mt-3 text-red-200">Failed to send emails.</p>}
+                    <button onClick={() => setShowEmailPreviewModal(true)} className="mt-4 text-white underline opacity-80 hover:opacity-100 text-sm">
+                      Preview Email
+                    </button>
+                    
+                    {emailSendStatus === 'success' && (
+                        <div className="text-sm mt-4 text-left bg-green-500/50 p-3 rounded-lg max-w-xs w-full">
+                            <p className="font-semibold text-green-50 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                Emails sent successfully!
+                            </p>
+                            <p className="text-green-100 mt-1 text-xs pl-7">
+                                Tell participants to check their spam/promotions folder and add santa@secretsantamatch.com to their safe list.
+                            </p>
+                        </div>
+                    )}
+
+                    {emailSendStatus === 'error' && (
+                        <div className="text-sm mt-4 text-left bg-red-500/50 p-3 rounded-lg max-w-xs w-full">
+                            <p className="font-semibold text-red-50 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                                Failed to send emails.
+                            </p>
+                             <p className="text-red-100 mt-1 text-xs pl-7">
+                                Please try again in a few moments.
+                            </p>
+                        </div>
+                    )}
                 </div>
                 <div className="p-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
                     <div className="mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
@@ -327,6 +375,7 @@ function App() {
       {isPdfLoading && ( <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60]"><div className="text-white text-center"><svg className="animate-spin h-12 w-12 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75" fill="currentColor"></path></svg><p className="text-xl font-semibold mt-4">Generating your PDF...</p><p className="text-sm opacity-80">This may take a moment for custom images.</p></div></div> )}
       {showDownloadOptionsModal && ( <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${modalAnimating ? 'opacity-100' : 'opacity-0'}`} onClick={() => setShowDownloadOptionsModal(false)}> <div ref={downloadModalRef} onClick={e => e.stopPropagation()} tabIndex={-1} className={`bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-lg w-full outline-none transition-all duration-300 ${modalAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}> <div className="text-center"><h2 className="text-3xl font-bold text-slate-800 font-serif mb-2">Download Options</h2><p className="text-gray-600 mb-8">What would you like to download?</p></div><div className="space-y-4"><button onClick={() => handleDownload('cards')} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold p-4 rounded-xl shadow-lg transition-all text-left flex items-center gap-4"><div className="p-3 bg-white/20 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg></div><div><span className="text-xl">Printable Gift Tags</span><span className="font-normal text-sm block opacity-90">Individual cards for each person.</span></div></button><button onClick={() => handleDownload('list')} className="w-full bg-slate-500 hover:bg-slate-600 text-white font-bold p-4 rounded-xl shadow-lg transition-all text-left flex items-center gap-4"><div className="p-3 bg-white/20 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg></div><div><span className="text-xl">Organizer's Master List</span><span className="font-normal text-sm block opacity-90">A single page showing all matches.</span></div></button></div><div className="text-center"><button onClick={() => setShowDownloadOptionsModal(false)} className="mt-8 text-gray-500 hover:bg-gray-100 font-semibold py-2 px-4 rounded-full text-sm">Cancel</button></div></div></div> )}
       {showBulkAddModal && <BulkAddModal onClose={() => setShowBulkAddModal(false)} onConfirm={handleBulkAdd} />}
+      {showEmailPreviewModal && <EmailPreviewModal theme={emailTheme} onClose={() => setShowEmailPreviewModal(false)} />}
       {showClearConfirmation && ( <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4"><div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center"><div className="mx-auto bg-red-100 rounded-full h-16 w-16 flex items-center justify-center"><svg className="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div><h2 className="text-3xl font-bold text-slate-800 font-serif mt-5 mb-2">Are you sure?</h2><p className="text-gray-600 mb-6">This will permanently clear all participants, rules, and matches. This action cannot be undone.</p><div className="flex justify-center gap-4"><button onClick={() => setShowClearConfirmation(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">Cancel</button><button onClick={confirmClear} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Yes, Clear Everything</button></div></div></div> )}
       <BackToTopButton />
     </div>
