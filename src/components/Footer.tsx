@@ -43,13 +43,28 @@ const Footer: React.FC<FooterProps> = ({ theme, setTheme }) => {
                 </p>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center text-sm">
-                <p className="text-gray-500">
-                    &copy; {new Date().getFullYear()} SecretSantaMatch.com - Happy Gifting!
+            <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center text-sm">
+                <div className="flex items-center justify-center md:justify-start gap-2 text-gray-500">
+                    <label htmlFor="theme-switcher" className="font-semibold whitespace-nowrap">Site Theme:</label>
+                    <select
+                        id="theme-switcher"
+                        value={theme}
+                        onChange={(e) => setTheme(e.target.value)}
+                        className="bg-white border border-slate-300 rounded-md py-1 px-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-color)]"
+                        aria-label="Select site theme"
+                    >
+                        <option value="default">Festive (Default)</option>
+                        <option value="christmas">Christmas</option>
+                        <option value="halloween">Halloween</option>
+                        <option value="valentines">Valentine's</option>
+                    </select>
+                </div>
+                <p className="text-gray-500 text-center order-first md:order-none">
+                    &copy; {new Date().getFullYear()} SecretSantaMatch.com
                 </p>
-                 <div className="flex gap-4 mt-4 sm:mt-0">
-                    <a href="https://blog.secretsantamatch.com/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-800 font-semibold">Blog</a>
-                    <a href="https://blog.secretsantamatch.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-800 font-semibold">Privacy Policy</a>
+                <div className="flex gap-4 justify-center md:justify-end">
+                    <a href="https://blog.secretsantamatch.com/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-[var(--primary-text)] font-semibold">Blog</a>
+                    <a href="https://blog.secretsantamatch.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-[var(--primary-text)] font-semibold">Privacy Policy</a>
                 </div>
             </div>
         </div>
