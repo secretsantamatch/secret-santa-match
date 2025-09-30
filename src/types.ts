@@ -20,6 +20,16 @@ export interface Assignment {
   receiverId: string;
 }
 
+// FIX: Export ExchangeData type
+export interface ExchangeData {
+  p: Participant[]; // participants
+  m: Match[]; // matches
+  e: Exclusion[]; // exclusions
+  a: Assignment[]; // assignments
+  d: string; // eventDetails
+  t: string; // exchangeDate
+}
+
 export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
 export type OutlineSizeSetting = 'thin' | 'normal' | 'thick';
 export type FontTheme = 'classic' | 'elegant' | 'modern' | 'whimsical';
