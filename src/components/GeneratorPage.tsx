@@ -10,7 +10,6 @@ import BlogPromo from './BlogPromo';
 import FaqSection from './FaqSection';
 import BackToTopButton from './BackToTopButton';
 import BulkAddModal from './BulkAddModal';
-import { encodeData } from '../services/urlService';
 
 const ClearIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>;
 
@@ -18,7 +17,7 @@ const getSeasonalTheme = (): string => {
     const month = new Date().getMonth();
     if (month === 9) return 'halloween';
     if (month === 1) return 'valentines';
-    if (month >= 10) return 'christmas';
+    if (month >= 10 || month <= 0) return 'christmas';
     return 'default';
 };
 
@@ -44,11 +43,16 @@ const defaultParticipants: Participant[] = [
     { id: crypto.randomUUID(), name: '', email: '', notes: '', budget: '' },
 ];
 
-const GeneratorPage: React.FC = () => {
+interface GeneratorPageProps {
+    onGenerate: (data: ExchangeData) => void;
+    error: string;
+}
+
+const GeneratorPage: React.FC<GeneratorPageProps> = ({ onGenerate, error: initialError }) => {
   const [participants, setParticipants] = useState<Participant[]>(() => loadFromStorage<Participant[]>('ssm_participants', defaultParticipants));
   const [exclusions, setExclusions] = useState<Exclusion[]>(() => loadFromStorage<Exclusion[]>('ssm_exclusions', []));
   const [assignments, setAssignments] = useState<Assignment[]>(() => loadFromStorage<Assignment[]>('ssm_assignments', []));
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>(initialError);
   const [eventDetails, setEventDetails] = useState<string>(() => loadFromStorage<string>('ssm_eventDetails', ''));
   const [exchangeDate, setExchangeDate] = useState<string>(() => {
     const today = new Date();
@@ -177,7 +181,6 @@ const GeneratorPage: React.FC = () => {
     let attempts = 0;
     while (attempts < 100 && !generatedMatches) {
       attempts++;
-      // ... [match generation logic from old App.tsx]
       const participantMap = new Map<string, Participant>(validParticipants.map(p => [p.id, p]));
       const assignedMatches: Match[] = [];
       const assignedGiverIds = new Set<string>();
@@ -216,7 +219,7 @@ const GeneratorPage: React.FC = () => {
           break;
         }
       }
-      if (possible) {
+      if (possible && currentMatches.length === remainingGivers.length) {
         generatedMatches = [...assignedMatches, ...currentMatches];
       }
     }
@@ -231,14 +234,24 @@ const GeneratorPage: React.FC = () => {
             })),
             e: eventDetails,
             d: new Date(exchangeDate).toISOString(),
+            // Pass PDF styling options through the data object
+            pdf: {
+                bgId: background,
+                bgCustom: customBackground,
+                textColor: textColor,
+                useOutline: useTextOutline,
+                outlineColor: outlineColor,
+                outlineSize: outlineSize,
+                font: fontTheme,
+                fontSize: fontSizeSetting,
+                lineSpacing: lineSpacing,
+                greeting: greetingText,
+                intro: introText,
+                wishlist: wishlistLabelText,
+            }
         };
 
-        const encodedData = encodeData(exchangeData);
-        if (encodedData) {
-            window.location.hash = encodedData;
-        } else {
-            setError("Could not generate a shareable link. Please try again.");
-        }
+        onGenerate(exchangeData);
     } else {
       setError('Could not find a valid match combination. Please try again or simplify your rules.');
     }
@@ -253,7 +266,10 @@ const GeneratorPage: React.FC = () => {
     setEventDetails('');
     localStorage.clear();
     setShowClearConfirmation(false);
-    window.location.hash = '';
+    // Go to the home page by removing the hash
+    if (window.location.hash) {
+        window.location.hash = '';
+    }
     window.scrollTo(0, 0);
   };
   
@@ -269,79 +285,77 @@ const GeneratorPage: React.FC = () => {
     };
 
   return (
-    <div className="bg-slate-50 min-h-screen">
-      <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-        <Header />
-        <HowItWorks onStepClick={handleHowItWorksClick} />
-        <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
-          
-          <div ref={participantRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-            <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-1 flex items-center">
-              <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
-              Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
-            </h2>
-            <ParticipantManager 
-              participants={participants} 
-              setParticipants={setParticipants}
-              onBulkAddClick={() => setShowBulkAddModal(true)}
-              duplicateNameIds={duplicateNameIds}
-            />
-          </div>
+    <>
+      <Header />
+      <HowItWorks onStepClick={handleHowItWorksClick} />
+      <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
+        
+        <div ref={participantRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-1 flex items-center">
+            <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
+            Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
+          </h2>
+          <ParticipantManager 
+            participants={participants} 
+            setParticipants={setParticipants}
+            onBulkAddClick={() => setShowBulkAddModal(true)}
+            duplicateNameIds={duplicateNameIds}
+          />
+        </div>
 
-          <div ref={rulesRef}>
-            <Options 
-              participants={participants.filter(p => p.name.trim() !== '')} 
-              exclusions={exclusions} 
-              setExclusions={setExclusions} 
-              assignments={assignments}
-              setAssignments={setAssignments}
-              eventDetails={eventDetails} 
-              setEventDetails={setEventDetails} 
-              exchangeDate={exchangeDate}
-              setExchangeDate={setExchangeDate}
-              isExpanded={isRulesExpanded}
-              setIsExpanded={setIsRulesExpanded}
-            />
-          </div>
-          
-          <div ref={cardsRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-             <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-1 flex items-center">
-                <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
-                Style Your Cards (Optional)
-            </h2>
-             <p className="text-gray-600 mb-6 ml-11">Choose a theme for the printable PDF gift tags.</p>
-             <BackgroundSelector 
-                participants={participants} eventDetails={eventDetails} backgroundOptions={backgroundOptions}
-                selectedBackground={background} setSelectedBackground={setBackground}
-                customBackground={customBackground} setCustomBackground={setCustomBackground}
-                textColor={textColor} setTextColor={setTextColor}
-                useTextOutline={useTextOutline} setUseTextOutline={setUseTextOutline}
-                outlineColor={outlineColor} setOutlineColor={setOutlineColor}
-                outlineSize={outlineSize} setOutlineSize={setOutlineSize}
-                fontSizeSetting={fontSizeSetting} setFontSizeSetting={setFontSizeSetting}
-                fontTheme={fontTheme} setFontTheme={setFontTheme}
-                lineSpacing={lineSpacing} setLineSpacing={setLineSpacing}
-                greetingText={greetingText} setGreetingText={setGreetingText}
-                introText={introText} setIntroText={setIntroText}
-                wishlistLabelText={wishlistLabelText} setWishlistLabelText={setWishlistLabelText}
-             />
-          </div>
+        <div ref={rulesRef}>
+          <Options 
+            participants={participants.filter(p => p.name.trim() !== '')} 
+            exclusions={exclusions} 
+            setExclusions={setExclusions} 
+            assignments={assignments}
+            setAssignments={setAssignments}
+            eventDetails={eventDetails} 
+            setEventDetails={setEventDetails} 
+            exchangeDate={exchangeDate}
+            setExchangeDate={setExchangeDate}
+            isExpanded={isRulesExpanded}
+            setIsExpanded={setIsRulesExpanded}
+          />
+        </div>
+        
+        <div ref={cardsRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+           <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-1 flex items-center">
+              <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
+              Style Your Cards (Optional)
+          </h2>
+           <p className="text-gray-600 mb-6 ml-11">Choose a theme for the printable PDF gift tags.</p>
+           <BackgroundSelector 
+              participants={participants} eventDetails={eventDetails} backgroundOptions={backgroundOptions}
+              selectedBackground={background} setSelectedBackground={setBackground}
+              customBackground={customBackground} setCustomBackground={setCustomBackground}
+              textColor={textColor} setTextColor={setTextColor}
+              useTextOutline={useTextOutline} setUseTextOutline={setUseTextOutline}
+              outlineColor={outlineColor} setOutlineColor={setOutlineColor}
+              outlineSize={outlineSize} setOutlineSize={setOutlineSize}
+              fontSizeSetting={fontSizeSetting} setFontSizeSetting={setFontSizeSetting}
+              fontTheme={fontTheme} setFontTheme={setFontTheme}
+              lineSpacing={lineSpacing} setLineSpacing={setLineSpacing}
+              greetingText={greetingText} setGreetingText={setGreetingText}
+              introText={introText} setIntroText={setIntroText}
+              wishlistLabelText={wishlistLabelText} setWishlistLabelText={setWishlistLabelText}
+           />
+        </div>
 
-          <div className="text-center pt-4">
-            {error && <p className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-center">{error}</p>}
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onClick={handleGenerateMatches} disabled={isGenerating} className="flex-1 bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
-                  {isGenerating ? 'Generating...' : '🎁 Generate Matches'}
+        <div className="text-center pt-4">
+          {error && <p className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-center">{error}</p>}
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button onClick={handleGenerateMatches} disabled={isGenerating} className="flex-1 bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
+                {isGenerating ? 'Generating...' : '🎁 Generate Matches'}
+              </button>
+               <button onClick={() => setShowClearConfirmation(true)} className="flex items-center justify-center gap-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-6 rounded-full shadow-sm transition-colors text-base">
+                    <ClearIcon />
+                    Clear All
                 </button>
-                 <button onClick={() => setShowClearConfirmation(true)} className="flex items-center justify-center gap-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-6 rounded-full shadow-sm transition-colors text-base">
-                      <ClearIcon />
-                      Clear All
-                  </button>
-            </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
       <FaqSection />
       <BlogPromo />
       <Footer theme={theme} setTheme={setTheme} />
@@ -362,7 +376,7 @@ const GeneratorPage: React.FC = () => {
         </div>
       )}
       <BackToTopButton />
-    </div>
+    </>
   );
 }
 
