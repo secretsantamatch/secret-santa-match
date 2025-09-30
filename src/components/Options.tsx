@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { Participant, Exclusion, Assignment } from '../types';
 import Tooltip from './Tooltip';
@@ -10,9 +11,9 @@ interface OptionsProps {
   setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
   eventDetails: string;
   setEventDetails: React.Dispatch<React.SetStateAction<string>>;
-  // FIX: Add optional props for exchange date to support new functionality
-  exchangeDate?: string;
-  setExchangeDate?: React.Dispatch<React.SetStateAction<string>>;
+  // FIX: Add props for managing the exchange date
+  exchangeDate: string;
+  setExchangeDate: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const XIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -110,21 +111,19 @@ const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusio
         />
       </div>
 
-      {/* FIX: Conditionally render the date picker if props are provided */}
-      {exchangeDate !== undefined && setExchangeDate && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-semibold text-gray-800">Date of Exchange</h3>
-            <Tooltip text="The date the gifts will be exchanged. This is used to reveal all matches to participants after the event." />
-          </div>
-          <input
-              type="date"
-              value={exchangeDate}
-              onChange={(e) => setExchangeDate(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)]"
-          />
+      {/* FIX: Add a date picker for the gift exchange date */}
+      <div className="pt-6 border-t">
+        <div className="flex items-center gap-2 mb-2">
+            <h3 className="font-semibold text-gray-800">Gift Exchange Date</h3>
+            <Tooltip text="After this date, participants can see the full list of matches. This is also used for a countdown timer on their result page." />
         </div>
-      )}
+        <input
+            type="date"
+            value={exchangeDate}
+            onChange={(e) => setExchangeDate(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)]"
+        />
+      </div>
       
       <div className="pt-6 border-t">
         <div className="flex items-center gap-2 mb-2"><h3 className="font-semibold text-gray-800">Set a Specific Match</h3><Tooltip text="Use this to set a specific gift assignment, e.g., 'Alice' MUST be the Secret Santa for 'Bob'." /></div>
