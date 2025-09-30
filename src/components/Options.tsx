@@ -10,6 +10,9 @@ interface OptionsProps {
   setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
   eventDetails: string;
   setEventDetails: React.Dispatch<React.SetStateAction<string>>;
+  // FIX: Add exchangeDate props
+  exchangeDate: string;
+  setExchangeDate: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const XIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -30,8 +33,7 @@ const NoMatchIcon: React.FC = () => (
     </svg>
 );
 
-
-const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusions, assignments, setAssignments, eventDetails, setEventDetails }) => {
+const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusions, assignments, setAssignments, eventDetails, setEventDetails, exchangeDate, setExchangeDate }) => {
   const [p1, setP1] = useState('');
   const [p2, setP2] = useState('');
   const [exclusionError, setExclusionError] = useState('');
@@ -97,13 +99,26 @@ const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusio
       <div>
         <div className="flex items-center gap-2 mb-2">
           <h3 className="font-semibold text-gray-800">Event Details</h3>
-          <Tooltip text="This note will appear on each participant's card or private link." />
+          <Tooltip text="This note will appear on each participant's card." />
         </div>
         <textarea
             value={eventDetails}
             onChange={(e) => setEventDetails(e.target.value)}
             rows={2}
             placeholder="e.g., Exchange at the holiday party on Dec 20th!"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)]"
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <h3 className="font-semibold text-gray-800">Exchange Date</h3>
+          <Tooltip text="The date the gift exchange will happen. After this date, participants can see the full list of matches." />
+        </div>
+        <input
+            type="date"
+            value={exchangeDate}
+            onChange={(e) => setExchangeDate(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)]"
         />
       </div>
