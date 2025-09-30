@@ -45,4 +45,18 @@ export interface ExchangeData {
   m: { g: number; r: number }[]; // Matches (using indexes)
   e: string; // Event Details
   d: string; // Exchange Date (ISO string)
+  pdf: { // All data needed to reconstruct the PDF style
+    bgId: string;
+    bgCustom: string | null;
+    textColor: string;
+    useOutline: boolean;
+    outlineColor: string;
+    outlineSize: OutlineSizeSetting;
+    font: FontTheme;
+    fontSize: FontSizeSetting;
+    lineSpacing: number;
+    greeting: string;
+    intro: string;
+    wishlist: string;
+  }
 }
