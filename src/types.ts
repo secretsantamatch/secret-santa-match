@@ -1,3 +1,4 @@
+
 export interface Participant {
   id: string;
   name: string;
@@ -20,13 +21,14 @@ export interface Assignment {
   receiverId: string;
 }
 
+// FIX: Add ExchangeData type for encoding/decoding shareable URL data.
 export interface ExchangeData {
-  p: Participant[]; // participants
-  m: Match[];       // matches
-  e: Exclusion[];   // exclusions
-  a: Assignment[];  // assignments
-  d: string;        // event details
-  t: string;        // exchange date
+  p: Participant[];
+  m: Match[];
+  e: Exclusion[];
+  a: Assignment[];
+  d: string;
+  t: string;
 }
 
 export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
