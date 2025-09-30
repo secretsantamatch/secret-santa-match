@@ -6,11 +6,11 @@ interface ParticipantManagerProps {
   participants: Participant[];
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
   onBulkAddClick: () => void;
-  // FIX: Accept duplicateNameIds as a prop
-  duplicateNameIds: Set<string>;
+  // FIX: Add optional prop to receive IDs of participants with duplicate names
+  duplicateNameIds?: Set<string>;
 }
 
-const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, duplicateNameIds }) => {
+const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, duplicateNameIds = new Set() }) => {
 
   const handleParticipantChange = (index: number, field: keyof Omit<Participant, 'id'>, value: string) => {
     const newParticipants = [...participants];
@@ -43,10 +43,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
       </div>
 
       <div className="space-y-3">
-        {participants.map((participant, index) => {
-          const isDuplicate = participant.name.trim() !== '' && duplicateNameIds.has(participant.id);
-          
-          return (
+        {participants.map((participant, index) => (
             <div key={participant.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
               <div className="col-span-12 sm:col-span-4">
                 <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Name *</label>
@@ -56,13 +53,9 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                   placeholder="Participant's Name"
                   value={participant.name}
                   onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
-                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${
-                    isDuplicate 
-                      ? 'border-red-500 focus:ring-red-300' 
-                      : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'
-                  }`}
+                  // FIX: Apply conditional styling for duplicate names
+                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${duplicateNameIds.has(participant.id) ? 'border-red-500 focus:ring-red-400' : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'}`}
                 />
-                {isDuplicate && <p className="text-xs text-red-600 mt-1">Duplicate name.</p>}
               </div>
 
               <div className="col-span-12 sm:col-span-6">
@@ -106,7 +99,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
               </div>
             </div>
           )
-        })}
+        )}
       </div>
       
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
