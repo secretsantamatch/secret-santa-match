@@ -3,18 +3,18 @@ import type { Match } from '../../src/types';
 
 const getThemeColors = (theme: string) => {
     switch (theme) {
-        case 'halloween': return { primary: '#f97316' }; // Orange
-        case 'valentines': return { primary: '#ec4899' }; // Pink
-        case 'christmas': return { primary: '#c62828' }; // Red
-        case 'birthday': return { primary: '#0ea5e9' }; // Sky Blue
-        case 'celebration': return { primary: '#4f46e5' }; // Indigo
-        default: return { primary: '#c62828' }; // Default to Red
+        case 'halloween': return { primary: '#f97316', secondary: '#1f2937' }; // Orange to Black
+        case 'valentines': return { primary: '#dc2626', secondary: '#ec4899' }; // Red to Pink
+        case 'christmas': return { primary: '#c62828', secondary: '#16a34a' }; // Red to Green
+        case 'birthday': return { primary: '#0ea5e9', secondary: '#f59e0b' }; // Sky Blue to Amber
+        case 'celebration': return { primary: '#4f46e5', secondary: '#d946ef' }; // Indigo to Fuchsia
+        default: return { primary: '#c62828', secondary: '#16a34a' }; // Default to Christmas gradient
     }
 };
 
 // --- Email HTML Template ---
 const createEmailHtml = (giverName: string, receiverName: string, receiverNotes: string, receiverBudget: string, eventDetails: string, theme: string): string => {
-    const { primary } = getThemeColors(theme);
+    const { primary, secondary } = getThemeColors(theme);
     const budgetHtml = receiverBudget 
         ? `<p style="font-size: 14px; margin-top: 5px;"><strong>Suggested Budget:</strong> ${receiverBudget.startsWith('$') ? receiverBudget : `$${receiverBudget}`}</p>`
         : '';
@@ -33,7 +33,7 @@ const createEmailHtml = (giverName: string, receiverName: string, receiverNotes:
           @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
           body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
           .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e2e8f0; }
-          .header { background-color: ${primary}; color: white; padding: 30px; text-align: center; }
+          .header { background: linear-gradient(to right, ${primary}, ${secondary}); color: white; padding: 30px; text-align: center; }
           .content { padding: 30px; }
           .footer { font-size: 12px; color: #94a3b8; text-align: center; padding: 20px; }
         </style>
