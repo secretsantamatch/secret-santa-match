@@ -10,9 +10,9 @@ const NamesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" heigh
 const RulesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-[var(--primary-color)]"><path d="m12 3-1.9 4.8-4.8 1.9 4.8 1.9L12 16l1.9-4.8 4.8-1.9-4.8-1.9z"></path><path d="M5 21v-4"></path><path d="M3 19h4"></path><path d="M19 3v4"></path><path d="M17 5h4"></path></svg>;
 const GiftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-[var(--primary-color)]"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>;
 
-// FIX: Add onStepClick prop to allow navigation
+// FIX: Add props interface to allow for click handling
 interface HowItWorksProps {
-    onStepClick: (stepNumber: number) => void;
+    onStepClick?: (stepNumber: number) => void;
 }
 
 const HowItWorks: React.FC<HowItWorksProps> = ({ onStepClick }) => {
@@ -31,8 +31,9 @@ const HowItWorks: React.FC<HowItWorksProps> = ({ onStepClick }) => {
                 {steps.map((step, index) => (
                     <React.Fragment key={index}>
                         <div 
-                            onClick={index < 2 ? () => onStepClick(index + 1) : undefined}
-                            className={`flex-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-lg text-center flex flex-col items-center justify-center ${index < 2 ? 'cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-transform' : ''}`}
+                            // FIX: Add onClick handler and conditional styling for interactive steps
+                            className={`flex-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-lg text-center flex flex-col items-center justify-center transition-colors ${index < 2 && onStepClick ? 'cursor-pointer hover:bg-slate-50' : ''}`}
+                            onClick={() => index < 2 && onStepClick && onStepClick(index + 1)}
                         >
                             <div className="mb-4"><step.Icon /></div>
                             <h3 className="font-bold text-xl text-slate-800">{step.num}. {step.title}</h3>
@@ -48,11 +49,12 @@ const HowItWorks: React.FC<HowItWorksProps> = ({ onStepClick }) => {
 
             {/* Mobile View */}
             <div className="md:hidden space-y-4">
-                {steps.map((step, index) => (
+                {steps.map((step) => (
                     <div 
                         key={step.num}
-                        onClick={index < 2 ? () => onStepClick(index + 1) : undefined}
-                        className={`w-full bg-white rounded-2xl p-6 border border-slate-200 shadow-lg flex items-center gap-4 text-left ${index < 2 ? 'cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-transform' : ''}`}
+                        // FIX: Add onClick handler and conditional styling for interactive steps
+                        className={`w-full bg-white rounded-2xl p-6 border border-slate-200 shadow-lg flex items-center gap-4 text-left transition-colors ${parseInt(step.num, 10) <= 2 && onStepClick ? 'cursor-pointer hover:bg-slate-50' : ''}`}
+                        onClick={() => parseInt(step.num, 10) <= 2 && onStepClick && onStepClick(parseInt(step.num, 10))}
                     >
                         <step.Icon />
                         <div>
