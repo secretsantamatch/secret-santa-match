@@ -18,8 +18,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
   };
 
   const addParticipant = () => {
-    // FIX: Add email field to new participants.
-    setParticipants([...participants, { id: crypto.randomUUID(), name: '', email: '', notes: '', budget: '' }]);
+    setParticipants([...participants, { id: crypto.randomUUID(), name: '', notes: '', budget: '' }]);
   };
 
   const removeParticipant = (index: number) => {
@@ -30,14 +29,9 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
 
   return (
     <div className="space-y-6">
-      {/* FIX: Add Email column to header and adjust grid spans */}
       <div className="hidden sm:grid grid-cols-12 gap-x-4 text-sm font-semibold text-gray-700">
-        <div className="col-span-3">Name <span className="text-[var(--primary-color)]">*</span></div>
-        <div className="col-span-3 flex items-center gap-1">
-            Email (Optional)
-            <Tooltip text="If you provide an email, we can send this person their match directly. If not, you can share their unique link with them." />
-        </div>
-        <div className="col-span-4 flex items-center gap-1">
+        <div className="col-span-4">Name <span className="text-[var(--primary-color)]">*</span></div>
+        <div className="col-span-6 flex items-center gap-1">
             Gift Ideas / Notes
             <Tooltip text="Notes for the gift giver, like wishlist items, clothing sizes, or favorite things. These will appear on their match's link." />
         </div>
@@ -52,9 +46,8 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
           const isDuplicate = participant.name.trim() !== '' && duplicateNameIds.has(participant.id);
           
           return (
-            // FIX: Adjust grid spans to accommodate the new email field
             <div key={participant.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
-              <div className="col-span-12 sm:col-span-3">
+              <div className="col-span-12 sm:col-span-4">
                 <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Name *</label>
                 <input
                   type="text"
@@ -71,20 +64,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                 {isDuplicate && <p className="text-xs text-red-600 mt-1">Duplicate name.</p>}
               </div>
 
-              {/* FIX: Add email input field */}
-              <div className="col-span-12 sm:col-span-3">
-                <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Email (Optional)</label>
-                <input
-                  type="email"
-                  aria-label={`Email for participant ${index + 1}`}
-                  placeholder="participant@email.com"
-                  value={participant.email || ''}
-                  onChange={(e) => handleParticipantChange(index, 'email', e.target.value)}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-focus-ring-color)] transition"
-                />
-              </div>
-
-              <div className="col-span-12 sm:col-span-4">
+              <div className="col-span-12 sm:col-span-6">
                 <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Gift Ideas / Notes</label>
                 <input
                   type="text"

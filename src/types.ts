@@ -3,7 +3,6 @@ export interface Participant {
   name: string;
   notes: string;
   budget: string;
-  email?: string;
 }
 
 export interface Match {
