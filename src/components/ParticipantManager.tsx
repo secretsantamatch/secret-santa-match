@@ -6,11 +6,11 @@ interface ParticipantManagerProps {
   participants: Participant[];
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
   onBulkAddClick: () => void;
-  // FIX: Add optional prop to receive IDs of participants with duplicate names
-  duplicateNameIds?: Set<string>;
+  // FIX: Add duplicateNameIds to props to handle duplicate name highlighting.
+  duplicateNameIds: Set<string>;
 }
 
-const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, duplicateNameIds = new Set() }) => {
+const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, duplicateNameIds }) => {
 
   const handleParticipantChange = (index: number, field: keyof Omit<Participant, 'id'>, value: string) => {
     const newParticipants = [...participants];
@@ -50,11 +50,14 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                 <input
                   type="text"
                   aria-label={`Name for participant ${index + 1}`}
-                  placeholder="Participant's Name"
+                  placeholder="Name"
                   value={participant.name}
                   onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
-                  // FIX: Apply conditional styling for duplicate names
-                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${duplicateNameIds.has(participant.id) ? 'border-red-500 focus:ring-red-400' : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'}`}
+                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${
+                    duplicateNameIds.has(participant.id)
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'
+                  }`}
                 />
               </div>
 
