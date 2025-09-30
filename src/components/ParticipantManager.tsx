@@ -18,47 +18,41 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
   };
 
   const addParticipant = () => {
+    // FIX: Add email field to new participants.
     setParticipants([...participants, { id: crypto.randomUUID(), name: '', email: '', notes: '', budget: '' }]);
   };
 
   const removeParticipant = (index: number) => {
-    // Prevent removing the very last row if it's the only one.
     if (participants.length <= 1) return;
     const newParticipants = participants.filter((_, i) => i !== index);
     setParticipants(newParticipants);
   };
 
-  const isValidEmail = (email: string): boolean => {
-      // Simple regex, not fully RFC 5322 compliant, but good enough for UI feedback.
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
   return (
     <div className="space-y-6">
-      {/* Table Headers */}
+      {/* FIX: Add Email column to header and adjust grid spans */}
       <div className="hidden sm:grid grid-cols-12 gap-x-4 text-sm font-semibold text-gray-700">
         <div className="col-span-3">Name <span className="text-[var(--primary-color)]">*</span></div>
         <div className="col-span-3 flex items-center gap-1">
-          Email
-          <Tooltip text="Optional. If you add an email, you can send this person their match result directly after generating." />
+            Email (Optional)
+            <Tooltip text="If you provide an email, we can send this person their match directly. If not, you can share their unique link with them." />
         </div>
-        <div className="col-span-3 flex items-center gap-1">
+        <div className="col-span-4 flex items-center gap-1">
             Gift Ideas / Notes
-            <Tooltip text="Notes for the gift giver, like wishlist items, clothing sizes, or favorite things. These will appear on the card." />
+            <Tooltip text="Notes for the gift giver, like wishlist items, clothing sizes, or favorite things. These will appear on their match's link." />
         </div>
-        <div className="col-span-2 flex items-center gap-1">
+        <div className="col-span-1 flex items-center gap-1">
             Budget
-             <Tooltip text="Set a spending limit for this person's gift. This will appear on the card." />
+             <Tooltip text="Set a spending limit for this person's gift. This will appear on their match's link." />
         </div>
       </div>
 
-      {/* Participant Rows */}
       <div className="space-y-3">
         {participants.map((participant, index) => {
           const isDuplicate = participant.name.trim() !== '' && duplicateNameIds.has(participant.id);
-          const isEmailInvalid = participant.email ? !isValidEmail(participant.email) : false;
-
+          
           return (
+            // FIX: Adjust grid spans to accommodate the new email field
             <div key={participant.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
               <div className="col-span-12 sm:col-span-3">
                 <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Name *</label>
@@ -77,6 +71,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                 {isDuplicate && <p className="text-xs text-red-600 mt-1">Duplicate name.</p>}
               </div>
 
+              {/* FIX: Add email input field */}
               <div className="col-span-12 sm:col-span-3">
                 <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Email (Optional)</label>
                 <input
@@ -85,16 +80,11 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                   placeholder="participant@email.com"
                   value={participant.email || ''}
                   onChange={(e) => handleParticipantChange(index, 'email', e.target.value)}
-                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${
-                    isEmailInvalid
-                      ? 'border-amber-500 focus:ring-amber-300'
-                      : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'
-                  }`}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-offset-1 focus:ring-[var(--primary-focus-ring-color)] transition"
                 />
-                {isEmailInvalid && <p className="text-xs text-amber-600 mt-1">Invalid email format.</p>}
               </div>
 
-              <div className="col-span-12 sm:col-span-3">
+              <div className="col-span-12 sm:col-span-4">
                 <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Gift Ideas / Notes</label>
                 <input
                   type="text"
@@ -106,7 +96,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                 />
               </div>
               
-              <div className="col-span-9 sm:col-span-2 relative">
+              <div className="col-span-9 sm:col-span-1 relative">
                 <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Budget</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
@@ -138,7 +128,6 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
         })}
       </div>
       
-      {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <button onClick={addParticipant} className="flex-1 bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 text-base shadow-sm hover:shadow-md">
            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
