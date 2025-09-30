@@ -1,241 +1,80 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="christmas">
+<!doctype html>
+<html lang="en" data-theme="default">
   <head>
     <meta charset="UTF-8" />
-    <meta name="referrer" content="no-referrer" />
-    <link rel="icon" href="/logo_256.png" type="image/png" />
+    <link rel="icon" type="image/png" href="/logo_256.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Secret Santa Match Generator - Free & Instant Name Drawing</title>
-
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="The best free Secret Santa Generator with no email or signups required. Instantly draw names, add exclusions, and share unique, private links with each participant for your office or family gift exchange." />
-    <meta name="keywords" content="secret santa generator, secret santa generator no email, secret santa link sharing, free secret santa generator, secret santa without signup, office secret santa generator, instant secret santa, draw names online, gift exchange generator" />
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://secretsantamatch.com/">
-    <meta property="og:title" content="Secret Santa Match Generator - Free, Instant & Private Links">
-    <meta property="og:description" content="The easiest way to run your gift exchange. Generate matches, add exclusions, and share unique, private links with participants—no signup or emails required.">
-    <meta property="og:image" content="https://secretsantamatch.com/logo_256.png">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://secretsantamatch.com/">
-    <meta property="twitter:title" content="Secret Santa Match Generator - Free, Instant & Private Links">
-    <meta property="twitter:description" content="The easiest way to run your gift exchange. Generate matches, add exclusions, and share unique, private links with participants—no signup or emails required.">
-    <meta property="twitter:image" content="https://secretsantamatch.com/logo_256.png">
+    <title>Secret Santa Generator - The Easiest Way to Draw Names Online</title>
+    <meta name="description" content="The best free Secret Santa generator for your gift exchange! Instantly draw names, add exclusions, download printable cards, and send results secretly via email—all with no sign-ups required. Perfect for office, family, and friends." />
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Asynchronous font loading -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600;700&family=Great+Vibes&family=Oswald:wght@700&family=Lobster&family=Cabin&family=Lato&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600;700&family=Great+Vibes&family=Oswald:wght@700&family=Lobster&family=Cabin&family=Lato&display=swap"></noscript>
     
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250878815864134"
-crossorigin="anonymous"></script>
-
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3423393287758223"
+     crossorigin="anonymous"></script>
+    
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-T5B0H2CH35"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
-      gtag('config', 'G-HG140X6CQ6');
+      gtag('config', 'G-T5B0H2CH35');
     </script>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;500;700&family=Playfair+Display:wght@700;900&family=Oswald:wght@700&family=Lato:wght@400;700&family=Lobster&family=Cabin:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
-      :root, html[data-theme="christmas"] {
-        --primary-color: #c62828;
-        --primary-color-hover: #b71c1c;
-        --primary-text: #c62828;
-        --primary-focus-ring-color: #fecaca;
-        --primary-border-color: #ef4444;
-        --primary-light-bg-color: #fef2f2;
-        --primary-light-border-color: #fca5a5;
-
-        --accent-color: #16a34a;
+      :root {
+        --primary-color: #c62828; /* Festive Red */
+        --primary-color-hover: #a52121;
+        --primary-text: #374151; /* Dark Gray */
+        --primary-focus-ring-color: #ef4444; /* Lighter Red for focus */
+        --accent-color: #16a34a; /* Festive Green */
         --accent-color-hover: #15803d;
-        --accent-light-bg: #f0fdf4;
-        --accent-lighter-bg: #dcfce7;
-        --accent-border: #16a34a;
-        --accent-dark-text: #14532d;
-        --accent-medium-text: #15803d;
-        --accent-icon-text: #16a34a;
-
-        --danger-color: #ef4444;
-        --danger-color-hover: #dc2626;
-
-        --donation-1-bg: #fef2f2; --donation-1-text: #991b1b; --donation-1-border: #fca5a5; --donation-1-hover-bg: #fee2e2;
-        --donation-2-bg: #fffbeb; --donation-2-text: #92400e; --donation-2-border: #fcd34d; --donation-2-hover-bg: #fef3c7;
-        --donation-3-bg: #f0fdf4; --donation-3-text: #166534; --donation-3-border: #86efac; --donation-3-hover-bg: #dcfce7;
+        --accent-lighter-bg: #dcfce7; /* Light green for success modal icon */
+        --accent-icon-text: #16a34a; /* Green for success modal icon */
+        --danger-color: #dc2626;
+        --danger-color-hover: #b91c1c;
+        --donation-1-bg: #f59e0b;
+        --donation-1-hover-bg: #d97706;
+        --donation-1-text: #ffffff;
+        --donation-2-bg: #fffbeb;
+        --donation-2-hover-bg: #fef3c7;
+        --donation-2-text: #b45309;
+        --donation-2-border: #fde68a;
       }
-      html[data-theme="halloween"] {
-        --primary-color: #f97316;
-        --primary-color-hover: #ea580c;
-        --primary-text: #f97316;
-        --primary-focus-ring-color: #fed7aa;
-        --primary-border-color: #fb923c;
-        --primary-light-bg-color: #fff7ed;
-        --primary-light-border-color: #fdba74;
-
-        --accent-color: #1f2937; /* Black/Dark Slate */
-        --accent-color-hover: #111827;
-        --accent-light-bg: #f3f4f6;
-        --accent-lighter-bg: #e5e7eb;
-        --accent-border: #4b5563;
-        --accent-dark-text: #111827;
-        --accent-medium-text: #1f2937;
-        --accent-icon-text: #1f2937;
-
-        --danger-color: #374151;
-        --danger-color-hover: #1f2937;
-        
-        --donation-1-bg: #fff7ed; --donation-1-text: #9a3412; --donation-1-border: #fdba74; --donation-1-hover-bg: #ffedd5;
-        --donation-2-bg: #f5f3ff; --donation-2-text: #5b21b6; --donation-2-border: #c4b5fd; --donation-2-hover-bg: #ede9fe;
-        --donation-3-bg: #f1f5f9; --donation-3-text: #1e293b; --donation-3-border: #94a3b8; --donation-3-hover-bg: #e2e8f0;
-      }
-      html[data-theme="valentines"] {
-        --primary-color: #dc2626; /* Red */
-        --primary-color-hover: #b91c1c;
-        --primary-text: #dc2626;
-        --primary-focus-ring-color: #fecaca;
-        --primary-border-color: #ef4444;
-        --primary-light-bg-color: #fef2f2;
-        --primary-light-border-color: #fca5a5;
-
-        --accent-color: #ec4899; /* Pink */
-        --accent-color-hover: #db2777;
-        --accent-light-bg: #fdf2f8;
-        --accent-lighter-bg: #fce7f3;
-        --accent-border: #f472b6;
-        --accent-dark-text: #831843;
-        --accent-medium-text: #be185d;
-        --accent-icon-text: #ec4899;
-
-        --danger-color: #f43f5e;
-        --danger-color-hover: #e11d48;
-
-        --donation-1-bg: #fdf2f8; --donation-1-text: #9d174d; --donation-1-border: #f9a8d4; --donation-1-hover-bg: #fce7f3;
-        --donation-2-bg: #fef2f2; --donation-2-text: #991b1b; --donation-2-border: #fca5a5; --donation-2-hover-bg: #fee2e2;
-        --donation-3-bg: #f5f3ff; --donation-3-text: #6d28d9; --donation-3-border: #c4b5fd; --donation-3-hover-bg: #ede9fe;
-      }
-      html[data-theme="birthday"] {
-        --primary-color: #0ea5e9; /* Sky Blue */
-        --primary-color-hover: #0284c7;
-        --primary-text: #0ea5e9;
-        --primary-focus-ring-color: #bae6fd;
-        --primary-border-color: #38bdf8;
-        --primary-light-bg-color: #f0f9ff;
-        --primary-light-border-color: #7dd3fc;
-
-        --accent-color: #f59e0b; /* Amber */
-        --accent-color-hover: #d97706;
-        --accent-light-bg: #fffbeb;
-        --accent-lighter-bg: #fef3c7;
-        --accent-border: #fbbf24;
-        --accent-dark-text: #92400e;
-        --accent-medium-text: #b45309;
-        --accent-icon-text: #f59e0b;
-
-        --danger-color: #ef4444;
-        --danger-color-hover: #dc2626;
-
-        --donation-1-bg: #f0f9ff; --donation-1-text: #075985; --donation-1-border: #7dd3fc; --donation-1-hover-bg: #e0f2fe;
-        --donation-2-bg: #fffbeb; --donation-2-text: #92400e; --donation-2-border: #fcd34d; --donation-2-hover-bg: #fef3c7;
-        --donation-3-bg: #f0fdf4; --donation-3-text: #166534; --donation-3-border: #86efac; --donation-3-hover-bg: #dcfce7;
-      }
-      html[data-theme="celebration"] {
-        --primary-color: #4f46e5; /* Indigo */
-        --primary-color-hover: #4338ca;
-        --primary-text: #4f46e5;
-        --primary-focus-ring-color: #c7d2fe;
-        --primary-border-color: #818cf8;
-        --primary-light-bg-color: #eef2ff;
-        --primary-light-border-color: #a5b4fc;
-
-        --accent-color: #d946ef; /* Fuchsia */
-        --accent-color-hover: #c026d3;
-        --accent-light-bg: #fdf4ff;
-        --accent-lighter-bg: #fae8ff;
-        --accent-border: #f0abfc;
-        --accent-dark-text: #701a75;
-        --accent-medium-text: #a21caf;
-        --accent-icon-text: #d946ef;
-
-        --danger-color: #ef4444;
-        --danger-color-hover: #dc2626;
-
-        --donation-1-bg: #eef2ff; --donation-1-text: #3730a3; --donation-1-border: #a5b4fc; --donation-1-hover-bg: #e0e7ff;
-        --donation-2-bg: #fdf4ff; --donation-2-text: #701a75; --donation-2-border: #f0abfc; --donation-2-hover-bg: #fae8ff;
-        --donation-3-bg: #f0fdf4; --donation-3-text: #166534; --donation-3-border: #86efac; --donation-3-hover-bg: #dcfce7;
-      }
-       html[data-theme="default"] {
-        --primary-color: #c62828;
-        --primary-color-hover: #b71c1c;
-        --primary-text: #c62828;
-        --primary-focus-ring-color: #fecaca;
-        --primary-border-color: #ef4444;
-        --primary-light-bg-color: #fef2f2;
-        --primary-light-border-color: #fca5a5;
-
-        --accent-color: #16a34a;
-        --accent-color-hover: #15803d;
-        --accent-light-bg: #f0fdf4;
-        --accent-lighter-bg: #dcfce7;
-        --accent-border: #16a34a;
-        --accent-dark-text: #14532d;
-        --accent-medium-text: #15803d;
-        --accent-icon-text: #16a34a;
-
-        --danger-color: #ef4444;
-        --danger-color-hover: #dc2626;
-
-        --donation-1-bg: #fef2f2; --donation-1-text: #991b1b; --donation-1-border: #fca5a5; --donation-1-hover-bg: #fee2e2;
-        --donation-2-bg: #fffbeb; --donation-2-text: #92400e; --donation-2-border: #fcd34d; --donation-2-hover-bg: #fef3c7;
-        --donation-3-bg: #f0fdf4; --donation-3-text: #166534; --donation-3-border: #86efac; --donation-3-hover-bg: #dcfce7;
-      }
-      body {
-        font-family: 'Montserrat', sans-serif;
-        margin: 0;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-      
-      @keyframes fade-in-up {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-      }
-      .animate-fade-in-up {
-          animation: fade-in-up 0.5s ease-out forwards;
-      }
-      @keyframes highlight-pulse {
-        0% { box-shadow: 0 0 0 0px var(--primary-light-border-color); }
-        50% { box-shadow: 0 0 0 8px var(--primary-light-border-color), 0 6px 10px rgba(0,0,0,0.1); }
-        100% { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); }
-      }
-      .highlight-section {
-          animation: highlight-pulse 1.2s ease-in-out;
-      }
+      html[data-theme="christmas"] { --primary-color: #c62828; --accent-color: #16a34a; }
+      html[data-theme="halloween"] { --primary-color: #f97316; --accent-color: #1f2937; }
+      html[data-theme="valentines"] { --primary-color: #dc2626; --accent-color: #ec4899; }
+      html[data-theme="birthday"] { --primary-color: #0ea5e9; --accent-color: #f59e0b; }
+      html[data-theme="celebration"] { --primary-color: #4f46e5; --accent-color: #d946ef; }
+      @keyframes highlight-pulse { 0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(22, 163, 74, 0); } 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); } }
+      .highlight-section { animation: highlight-pulse 1s ease-out; }
+      @keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      .animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; opacity: 0; }
     </style>
-  <script type="importmap">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "jspdf": "https://esm.sh/jspdf@2.5.1",
+    "html2canvas": "https://esm.sh/html2canvas@1.4.1",
+    "pako": "https://esm.sh/pako@2.1.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
     "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "pako": "https://aistudiocdn.com/pako@^2.1.0",
     "vite": "https://aistudiocdn.com/vite@^7.1.7",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.3",
-    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^5.0.2",
-    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
-    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.3",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.4",
     "@sendgrid/mail": "https://aistudiocdn.com/@sendgrid/mail@^8.1.6"
   }
 }
 </script>
-</head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
