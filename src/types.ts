@@ -3,6 +3,7 @@ export interface Participant {
   name: string;
   notes: string;
   budget: string;
+  email?: string;
 }
 
 export interface Match {
@@ -18,15 +19,6 @@ export interface Exclusion {
 export interface Assignment {
   giverId: string;
   receiverId: string;
-}
-
-export interface ExchangeData {
-  p: Participant[]; // participants
-  m: Match[];       // matches
-  e: Exclusion[];   // exclusions
-  a: Assignment[];  // assignments
-  d: string;        // eventDetails
-  t: string;        // exchangeDate
 }
 
 export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
@@ -45,4 +37,12 @@ export interface BackgroundOption {
     intro?: string;
     wishlistLabel?: string;
   };
+}
+
+// Data structure for the URL-based sharing feature
+export interface ExchangeData {
+  p: Omit<Participant, 'id'>[]; // Participants
+  m: { g: number; r: number }[]; // Matches (using indexes)
+  e: string; // Event Details
+  d: string; // Exchange Date (ISO string)
 }
