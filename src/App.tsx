@@ -79,9 +79,12 @@ function App() {
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [showBulkAddModal, setShowBulkAddModal] = useState(false);
   const [theme, setTheme] = useState(getSeasonalTheme());
+  const [duplicateNameIds, setDuplicateNameIds] = useState<Set<string>>(new Set());
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const downloadModalRef = useRef<HTMLDivElement>(null);
+  const participantsRef = useRef<HTMLDivElement>(null);
+  const rulesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -115,6 +118,27 @@ function App() {
         setError('Could not load card themes. Please try refreshing the page.');
       });
   }, []);
+
+  useEffect(() => {
+    const nameMap = new Map<string, string[]>();
+    participants.forEach(p => {
+        const trimmedName = p.name.trim().toLowerCase();
+        if (trimmedName) {
+            if (!nameMap.has(trimmedName)) {
+                nameMap.set(trimmedName, []);
+            }
+            nameMap.get(trimmedName)!.push(p.id);
+        }
+    });
+
+    const duplicates = new Set<string>();
+    nameMap.forEach(ids => {
+        if (ids.length > 1) {
+            ids.forEach(id => duplicates.add(id));
+        }
+    });
+    setDuplicateNameIds(duplicates);
+  }, [participants]);
 
   useEffect(() => {
     if (backgroundOptions.length === 0 || !background) return;
@@ -179,20 +203,31 @@ function App() {
     }
   }, [showDownloadOptionsModal]);
 
+  const handleStepClick = (stepNumber: number) => {
+    let targetRef: React.RefObject<HTMLDivElement> | null = null;
+    if (stepNumber === 1) targetRef = participantsRef;
+    if (stepNumber === 2) targetRef = rulesRef;
+    if (stepNumber === 3) targetRef = resultsRef;
+
+    if (targetRef?.current) {
+      targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetRef.current.classList.add('highlight-section');
+      setTimeout(() => {
+        targetRef.current?.classList.remove('highlight-section');
+      }, 1200);
+    }
+  };
 
   const handleGenerateMatches = () => {
     setError('');
-    const validParticipants = participants.filter((p: Participant) => p.name.trim() !== '');
-
-    const duplicateNames = validParticipants
-      .map((p: Participant) => p.name.trim().toLowerCase())
-      .filter((name, index, self) => self.indexOf(name) !== index);
     
-    if (duplicateNames.length > 0) {
-      setError(`Duplicate names found: ${[...new Set<string>(duplicateNames)].join(', ')}. Please ensure all names are unique.`);
+    if (duplicateNameIds.size > 0) {
+      setError(`Duplicate names found. Please ensure all names are unique.`);
       setMatches(null);
       return;
     }
+
+    const validParticipants = participants.filter((p: Participant) => p.name.trim() !== '');
 
     if (validParticipants.length < 2) {
       setError('Please add at least two participants with names.');
@@ -381,10 +416,10 @@ function App() {
     <div className="bg-slate-50 min-h-screen">
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
         <Header />
-        <HowItWorks />
+        <HowItWorks onStepClick={handleStepClick} />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div ref={participantsRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
               <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
               Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
@@ -394,10 +429,11 @@ function App() {
               participants={participants} 
               setParticipants={setParticipants}
               onBulkAddClick={() => setShowBulkAddModal(true)}
+              duplicateNameIds={duplicateNameIds}
             />
           </div>
 
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div ref={rulesRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
                 Add Details & Rules
@@ -417,7 +453,7 @@ function App() {
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
-                Style Your Cards <span className="text-[var(--primary-color)] ml-2">*</span>
+                Style Your Cards <span className="text-gray-500 font-normal text-lg ml-2">(Optional)</span>
             </h2>
              <p className="text-gray-600 mb-6 ml-11">Choose a theme and color for the printable cards.</p>
              <BackgroundSelector 
