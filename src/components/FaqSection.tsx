@@ -1,115 +1,83 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 
-interface FaqItem {
-    question: string;
-    answer: React.ReactNode;
-    answerText: string; // Plain text version for JSON-LD schema
-}
-
-const faqData: FaqItem[] = [
-    {
-        question: "How do I do Secret Santa without email?",
-        answer: "Our generator is designed for this! Simply enter participant names, generate your matches, then copy each person's unique, private link and share it with them via text, WhatsApp, or any other messaging app. No signups or email addresses are required, making it fast and private.",
-        answerText: "Our generator is designed for this! Simply enter participant names, generate your matches, then copy each person's unique, private link and share it with them via text, WhatsApp, or any other messaging app. No signups or email addresses are required, making it fast and private."
-    },
-    {
-        question: "Does Secret Santa work with an odd number of people?",
-        answer: "Absolutely! Our generator works perfectly with any number of participants, odd or even, as long as you have at least two people. The algorithm ensures everyone gives one gift and receives one gift, no matter the group size.",
-        answerText: "Absolutely! Our generator works perfectly with any number of participants, odd or even, as long as you have at least two people. The algorithm ensures everyone gives one gift and receives one gift, no matter the group size."
-    },
-    {
-        question: "What's the difference between Secret Santa and White Elephant?",
-        answer: "In Secret Santa, you are assigned a specific person to buy a thoughtful, personalized gift for. In a White Elephant (or Yankee Swap), participants bring one generic, often humorous, gift to a central pool, and then take turns choosing or stealing gifts from others.",
-        answerText: "In Secret Santa, you are assigned a specific person to buy a thoughtful, personalized gift for. In a White Elephant (or Yankee Swap), participants bring one generic, often humorous, gift to a central pool, and then take turns choosing or stealing gifts from others."
-    },
-    {
-        question: "Can I bulk upload a list of participants?",
-        answer: "Yes! To save you time, our generator includes a 'Bulk Add from List' feature. You can paste a list of all your participants at once, and the tool will automatically add them for you. This is perfect for large office or family groups.",
-        answerText: "Yes! To save you time, our generator includes a 'Bulk Add from List' feature. You can paste a list of all your participants at once, and the tool will automatically add them for you. This is perfect for large office or family groups."
-    },
-    {
-        question: "What are the basic rules of Secret Santa?",
-        answer: (
-            <ol className="list-decimal list-inside space-y-1">
-                <li>Everyone's name goes into a pool.</li>
-                <li>Each person secretly draws one name from the pool.</li>
-                <li>You buy a gift for the person you drew.</li>
-                <li>At the exchange, everyone reveals who their person was!</li>
-                <li>Don't forget to stick to the agreed-upon budget!</li>
-            </ol>
-        ),
-        answerText: "1. Everyone's name goes into a pool. 2. Each person secretly draws one name from the pool. 3. You buy a gift for the person you drew. 4. At the exchange, everyone reveals who their person was! 5. Don't forget to stick to the agreed-upon budget!"
-    },
-    {
-        question: "How can I make my Secret Santa more interesting?",
-        answer: "A great way to spice things up is by setting a fun theme for the gifts! Some popular ideas include 'Something You Make,' 'As Seen on TV,' 'Gifts Under $10,' or a color-themed exchange. You can add the theme details to the 'Event Details' section to have it appear on every participant's unique link.",
-        answerText: "A great way to spice things up is by setting a fun theme for the gifts! Some popular ideas include 'Something You Make,' 'As Seen on TV,' 'Gifts Under $10,' or a color-themed exchange. You can add the theme details to the 'Event Details' section to have it appear on every participant's unique link."
-    },
-    {
-        question: "Can I use this for holidays other than Christmas, like Halloween?",
-        answer: "Yes! We call it a 'Secret Santa' generator, but it's perfect for any gift exchange. We even have built-in themes for Halloween (Secret Satan or Secret Pumpkin) and Valentine's Day (Secret Cupid). You can organize a gift swap for any occasion.",
-        answerText: "Yes! We call it a 'Secret Santa' generator, but it's perfect for any gift exchange. We even have built-in themes for Halloween (Secret Satan or Secret Pumpkin) and Valentine's Day (Secret Cupid). You can organize a gift swap for any occasion."
-    },
-    {
-        question: "Can I set rules or prevent people from drawing each other?",
-        answer: "Yes, our generator makes it easy to set rules. You can add exclusions to prevent specific people from drawing each other—perfect for couples in a family gift exchange or managers and direct reports in an office secret santa. This ensures everyone gets a fun and appropriate match.",
-        answerText: "Yes, our generator makes it easy to set rules. You can add exclusions to prevent specific people from drawing each other—perfect for couples in a family gift exchange or managers and direct reports in an office secret santa. This ensures everyone gets a fun and appropriate match."
-    },
+const faqData = [
+  {
+    question: "How does the Secret Santa generator work?",
+    answer: "It's simple! 1. Enter the names of all participants. 2. Add any optional details like a budget, gift ideas, or rules (like preventing couples from drawing each other). 3. Click 'Generate Matches'. The tool will then randomly and anonymously assign each person someone to buy a gift for.",
+    answerText: "It's simple! 1. Enter the names of all participants. 2. Add any optional details like a budget, gift ideas, or rules (like preventing couples from drawing each other). 3. Click 'Generate Matches'. The tool will then randomly and anonymously assign each person someone to buy a gift for."
+  },
+  {
+    question: "How can I share the results with my group?",
+    answer: "You have three great options! 1) **Share Links (Recommended):** After generating, you get a unique, private link for each person. Just copy and send it via text, WhatsApp, etc. It's 100% private and requires no emails. 2) **Send Emails:** If you've collected emails, you can send the results directly to each person's inbox. 3) **Download Printables:** You can download and print beautiful, themed gift tags for each person to hand out.",
+    answerText: "You have three great options! 1) Share Links (Recommended): After generating, you get a unique, private link for each person. Just copy and send it via text, WhatsApp, etc. It's 100% private and requires no emails. 2) Send Emails: If you've collected emails, you can send the results directly to each person's inbox. 3) Download Printables: You can download and print beautiful, themed gift tags for each person to hand out."
+  },
+  {
+    question: "Can I set rules or prevent people from drawing each other?",
+    answer: "Absolutely! Under 'Add Details & Rules', you can set exclusions to prevent specific people from being matched (for example, partners or family members). You can also set 'Required Matches' to ensure one person must draw another, though this should be used carefully.",
+    answerText: "Absolutely! Under 'Add Details & Rules', you can set exclusions to prevent specific people from being matched (for example, partners or family members). You can also set 'Required Matches' to ensure one person must draw another, though this should be used carefully."
+  },
+  {
+    question: "What's the difference between Secret Santa and a White Elephant/Yankee Swap?",
+    answer: "In Secret Santa, you are assigned a specific person to buy a thoughtful, personalized gift for. In a White Elephant or Yankee Swap, everyone brings one generic, often humorous, gift to the party. Participants then take turns choosing a gift from the pile or 'stealing' a gift someone else has already opened.",
+    answerText: "In Secret Santa, you are assigned a specific person to buy a thoughtful, personalized gift for. In a White Elephant or Yankee Swap, everyone brings one generic, often humorous, gift to the party. Participants then take turns choosing a gift from the pile or 'stealing' a gift someone else has already opened."
+  },
+   {
+    question: "What are the basic rules of Secret Santa?",
+    answer: (<ol className="list-decimal list-inside space-y-1"><li>Everyone agrees on a spending limit.</li><li>The organizer enters all names into the generator.</li><li>The generator randomly assigns each person someone to buy a gift for.</li><li>You keep your assigned person a secret!</li><li>On the day of the exchange, everyone brings their wrapped gift and places it in a central spot.</li><li>Gifts are distributed and everyone enjoys the surprise!</li></ol>),
+    answerText: "1. Everyone agrees on a spending limit. 2. The organizer enters all names into the generator. 3. The generator randomly assigns each person someone to buy a gift for. 4. You keep your assigned person a secret! 5. On the day of the exchange, everyone brings their wrapped gift and places it in a central spot. 6. Gifts are distributed and everyone enjoys the surprise!"
+  },
 ];
 
-const ArrowRightIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
+const FaqItem: React.FC<{ faq: typeof faqData[0]; isOpen: boolean; onClick: () => void; }> = ({ faq, isOpen, onClick }) => (
+  <div className="border-b border-gray-200 py-4">
+    <button
+      onClick={onClick}
+      className="w-full flex justify-between items-center text-left text-lg font-semibold text-slate-800"
+      aria-expanded={isOpen}
+    >
+      <span>{faq.question}</span>
+      <svg className={`w-5 h-5 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+    </button>
+    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? 'max-h-96 pt-2' : 'max-h-0'}`}>
+      <div className="text-gray-600 leading-relaxed">{faq.answer}</div>
+    </div>
+  </div>
 );
 
-
 const FaqSection: React.FC = () => {
-    useEffect(() => {
-        const scriptId = 'faq-schema-script';
-        document.getElementById(scriptId)?.remove();
+    const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-        const schema = {
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            "mainEntity": faqData.map(item => ({
-                "@type": "Question",
-                "name": item.question,
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": item.answerText
-                }
-            }))
-        };
-        
-        const script = document.createElement('script');
-        script.id = scriptId;
-        script.type = 'application/ld+json';
-        script.innerHTML = JSON.stringify(schema);
-        document.head.appendChild(script);
+    const toggleFaq = (index: number) => {
+        setOpenIndex(openIndex === index ? null : index);
+    };
 
-        return () => {
-            document.getElementById(scriptId)?.remove();
-        };
-    }, []);
-
+    const faqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": faqData.map(faq => ({
+            "@type": "Question",
+            "name": faq.question,
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": faq.answerText
+            }
+        }))
+    };
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+        <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl mt-12">
+             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8">
-                <h2 className="text-3xl font-bold text-slate-800 text-center mb-8">Frequently Asked Questions about Secret Santa</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    {faqData.map((item, index) => (
-                        <div key={index} className="p-4 border-l-4 border-[var(--primary-light-border-color)] bg-[var(--primary-light-bg-color)] rounded-r-lg">
-                            <h3 className="font-semibold text-lg text-slate-800">{item.question}</h3>
-                            <div className="text-gray-600 text-sm mt-1">{item.answer}</div>
-                        </div>
+                <h2 className="text-3xl font-bold text-slate-800 text-center mb-8">Frequently Asked Questions</h2>
+                <div className="max-w-3xl mx-auto">
+                    {faqData.map((faq, index) => (
+                        <FaqItem
+                            key={index}
+                            faq={faq}
+                            isOpen={openIndex === index}
+                            onClick={() => toggleFaq(index)}
+                        />
                     ))}
-                </div>
-                 <div className="text-center mt-8">
-                     <a href="https://blog.secretsantamatch.com/" target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--primary-text)] text-sm inline-flex items-center group">
-                        Have more questions? Read our full guides on the blog <ArrowRightIcon />
-                    </a>
                 </div>
             </div>
         </div>
