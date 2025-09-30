@@ -9,13 +9,8 @@ interface FaqItem {
 const faqData: FaqItem[] = [
     {
         question: "How do I do Secret Santa without email?",
-        answer: "Our generator is designed for Secret Santa without email. Simply enter participant names, generate your matches, and then download beautiful, printable cards to share with everyone. No signups or email addresses are required, making it fast, free, and private. An optional email feature is available if you choose to use it.",
-        answerText: "Our generator is designed for Secret Santa without email. Simply enter participant names, generate your matches, and then download beautiful, printable cards to share with everyone. No signups or email addresses are required, making it fast, free, and private. An optional email feature is available if you choose to use it."
-    },
-    {
-        question: "Can I email the results to participants?",
-        answer: "Yes! You can now optionally add an email address for each participant. After generating matches, you'll have the option to send each person their Secret Santa assignment directly to their inbox. It’s a fast and convenient way to share the results, especially for remote groups. The tool remains 100% free and registration-free, whether you use this feature or not.",
-        answerText: "Yes! You can now optionally add an email address for each participant. After generating matches, you'll have the option to send each person their Secret Santa assignment directly to their inbox. It’s a fast and convenient way to share the results, especially for remote groups. The tool remains 100% free and registration-free, whether you use this feature or not."
+        answer: "Our generator is designed for this! Simply enter participant names, generate your matches, then copy each person's unique, private link and share it with them via text, WhatsApp, or any other messaging app. No signups or email addresses are required, making it fast and private.",
+        answerText: "Our generator is designed for this! Simply enter participant names, generate your matches, then copy each person's unique, private link and share it with them via text, WhatsApp, or any other messaging app. No signups or email addresses are required, making it fast and private."
     },
     {
         question: "Does Secret Santa work with an odd number of people?",
@@ -47,8 +42,8 @@ const faqData: FaqItem[] = [
     },
     {
         question: "How can I make my Secret Santa more interesting?",
-        answer: "A great way to spice things up is by setting a fun theme for the gifts! Some popular ideas include 'Something You Make,' 'As Seen on TV,' 'Gifts Under $10,' or a color-themed exchange. You can add the theme details to the 'Event Details' section to have it appear on every card.",
-        answerText: "A great way to spice things up is by setting a fun theme for the gifts! Some popular ideas include 'Something You Make,' 'As Seen on TV,' 'Gifts Under $10,' or a color-themed exchange. You can add the theme details to the 'Event Details' section to have it appear on every card."
+        answer: "A great way to spice things up is by setting a fun theme for the gifts! Some popular ideas include 'Something You Make,' 'As Seen on TV,' 'Gifts Under $10,' or a color-themed exchange. You can add the theme details to the 'Event Details' section to have it appear on every participant's unique link.",
+        answerText: "A great way to spice things up is by setting a fun theme for the gifts! Some popular ideas include 'Something You Make,' 'As Seen on TV,' 'Gifts Under $10,' or a color-themed exchange. You can add the theme details to the 'Event Details' section to have it appear on every participant's unique link."
     },
     {
         question: "Can I use this for holidays other than Christmas, like Halloween?",
@@ -60,11 +55,6 @@ const faqData: FaqItem[] = [
         answer: "Yes, our generator makes it easy to set rules. You can add exclusions to prevent specific people from drawing each other—perfect for couples in a family gift exchange or managers and direct reports in an office secret santa. This ensures everyone gets a fun and appropriate match.",
         answerText: "Yes, our generator makes it easy to set rules. You can add exclusions to prevent specific people from drawing each other—perfect for couples in a family gift exchange or managers and direct reports in an office secret santa. This ensures everyone gets a fun and appropriate match."
     },
-    {
-        question: "Are the printable cards customizable?",
-        answer: "Absolutely. You have full control over the look of your cards. You can change the text, choose different fonts, adjust colors, and even add a text outline for better visibility on busy backgrounds. All your edits are reflected in a live preview, so you see exactly what you'll get.",
-        answerText: "Absolutely. You have full control over the look of your cards. You can change the text, choose different fonts, adjust colors, and even add a text outline for better visibility on busy backgrounds. All your edits are reflected in a live preview, so you see exactly what you'll get."
-    }
 ];
 
 const ArrowRightIcon = () => (
