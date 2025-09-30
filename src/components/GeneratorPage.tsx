@@ -37,11 +37,10 @@ const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
   }
 };
 
-// FIX: Add email field to default participants.
 const defaultParticipants: Participant[] = [
-    { id: crypto.randomUUID(), name: '', notes: '', budget: '', email: '' },
-    { id: crypto.randomUUID(), name: '', notes: '', budget: '', email: '' },
-    { id: crypto.randomUUID(), name: '', notes: '', budget: '', email: '' },
+    { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
+    { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
+    { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
 ];
 
 
@@ -194,8 +193,7 @@ const GeneratorPage: React.FC = () => {
   };
   
   const handleBulkAdd = (names: string) => {
-    // FIX: Add email field to new participants from bulk add.
-    const newParticipants = names.split('\n').map(name => name.trim()).filter(Boolean).map(name => ({ id: crypto.randomUUID(), name, notes: '', budget: '', email: '' }));
+    const newParticipants = names.split('\n').map(name => name.trim()).filter(Boolean).map(name => ({ id: crypto.randomUUID(), name, notes: '', budget: '' }));
     if (newParticipants.length > 0) {
       const currentParticipants = participants.filter(p => p.name.trim());
       setParticipants([...currentParticipants, ...newParticipants]);
