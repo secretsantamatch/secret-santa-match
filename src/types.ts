@@ -20,14 +20,13 @@ export interface Assignment {
   receiverId: string;
 }
 
-// FIX: Export ExchangeData type
 export interface ExchangeData {
   p: Participant[]; // participants
-  m: Match[]; // matches
-  e: Exclusion[]; // exclusions
-  a: Assignment[]; // assignments
-  d: string; // eventDetails
-  t: string; // exchangeDate
+  m: Match[];       // matches
+  e: Exclusion[];   // exclusions
+  a: Assignment[];  // assignments
+  d: string;        // event details
+  t: string;        // exchange date
 }
 
 export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
