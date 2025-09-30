@@ -1,5 +1,0 @@
-{
-  "name": "Secret Santa Match",
-  "description": "A free, instant Secret Santa generator. Users can add participants, include notes like likes/dislikes and budget, and immediately generate gift matches without needing to sign up or provide emails.",
-  "requestFramePermissions": []
-}
