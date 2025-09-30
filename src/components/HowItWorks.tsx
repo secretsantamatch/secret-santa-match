@@ -6,15 +6,20 @@ const ChevronRightIcon = () => (
     </svg>
 );
 
+const NamesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-[var(--primary-color)]"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><line x1="9" y1="12" x2="15" y2="12"></line><line x1="9" y1="16" x2="15" y2="16"></line></svg>;
+const RulesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-[var(--primary-color)]"><path d="m12 3-1.9 4.8-4.8 1.9 4.8 1.9L12 16l1.9-4.8 4.8-1.9-4.8-1.9z"></path><path d="M5 21v-4"></path><path d="M3 19h4"></path><path d="M19 3v4"></path><path d="M17 5h4"></path></svg>;
+const GiftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-[var(--primary-color)]"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>;
+
+
 interface HowItWorksProps {
     onStepClick: (step: number) => void;
 }
 
 const HowItWorks: React.FC<HowItWorksProps> = ({ onStepClick }) => {
     const steps = [
-        { num: '1', title: 'Add Names & Details', description: 'Enter participant names, gift ideas, budget, and optional emails for easy sharing.' },
-        { num: '2', title: 'Set Rules & Generate', description: 'Add exclusions or required matches, then let the generator create fair, random pairings instantly.' },
-        { num: '3', title: 'Share the Results', description: 'Send matches secretly via email or download beautiful, custom-styled printable cards to share.' },
+        { num: '1', title: 'Add Names', Icon: NamesIcon },
+        { num: '2', title: 'Set Rules', Icon: RulesIcon },
+        { num: '3', title: 'Share Results', Icon: GiftIcon },
     ];
 
     return (
@@ -27,11 +32,10 @@ const HowItWorks: React.FC<HowItWorksProps> = ({ onStepClick }) => {
                     <React.Fragment key={index}>
                         <button 
                             onClick={() => onStepClick(index + 1)}
-                            className="flex-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-lg text-center transform hover:-translate-y-2 transition-transform duration-300 focus:outline-none focus:ring-4 focus:ring-offset-0 focus:ring-[var(--primary-focus-ring-color)]"
+                            className="flex-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-lg text-center transform hover:-translate-y-2 transition-transform duration-300 focus:outline-none focus:ring-4 focus:ring-offset-0 focus:ring-[var(--primary-focus-ring-color)] flex flex-col items-center justify-center"
                         >
-                            <div className="text-5xl font-bold text-[var(--primary-text)] font-serif mb-3">{step.num}</div>
-                            <h3 className="font-bold text-lg text-slate-800 mb-2">{step.title}</h3>
-                            <p className="text-gray-600 text-sm">{step.description}</p>
+                            <div className="mb-4"><step.Icon /></div>
+                            <h3 className="font-bold text-xl text-slate-800">{step.num}. {step.title}</h3>
                         </button>
                         {index < steps.length - 1 && (
                             <div className="flex-shrink-0 flex items-center">
@@ -43,17 +47,16 @@ const HowItWorks: React.FC<HowItWorksProps> = ({ onStepClick }) => {
             </div>
 
             {/* Mobile View */}
-            <div className="md:hidden space-y-6">
+            <div className="md:hidden space-y-4">
                 {steps.map((step, index) => (
                     <button 
                         key={step.num}
                         onClick={() => onStepClick(index + 1)}
-                        className="w-full bg-white rounded-2xl p-6 border border-slate-200 shadow-lg flex items-start gap-4 text-left"
+                        className="w-full bg-white rounded-2xl p-6 border border-slate-200 shadow-lg flex items-center gap-4 text-left"
                     >
-                        <div className="text-4xl font-bold text-[var(--primary-text)] font-serif">{step.num}</div>
+                        <step.Icon />
                         <div>
-                            <h3 className="font-bold text-lg text-slate-800 mb-1">{step.title}</h3>
-                            <p className="text-gray-600 text-sm">{step.description}</p>
+                            <h3 className="font-bold text-lg text-slate-800">{step.num}. {step.title}</h3>
                         </div>
                     </button>
                 ))}
