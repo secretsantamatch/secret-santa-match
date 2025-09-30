@@ -3,6 +3,7 @@ export interface Participant {
   name: string;
   notes: string;
   budget: string;
+  email?: string;
 }
 
 export interface Match {
@@ -36,4 +37,26 @@ export interface BackgroundOption {
     intro?: string;
     wishlistLabel?: string;
   };
+}
+
+// Data structure for the URL-based sharing feature
+export interface ExchangeData {
+  p: Omit<Participant, 'id'>[]; // Participants
+  m: { g: number; r: number }[]; // Matches (using indexes)
+  e: string; // Event Details
+  d: string; // Exchange Date (ISO string)
+  pdf: { // All data needed to reconstruct the PDF style
+    bgId: string;
+    bgCustom: string | null;
+    textColor: string;
+    useOutline: boolean;
+    outlineColor: string;
+    outlineSize: OutlineSizeSetting;
+    font: FontTheme;
+    fontSize: FontSizeSetting;
+    lineSpacing: number;
+    greeting: string;
+    intro: string;
+    wishlist: string;
+  }
 }

@@ -32,7 +32,7 @@ const getFontSizeClass = (setting: FontSizeSetting, element: 'h1' | 'h2' | 'labe
 
 const getFontStyles = (theme: FontTheme) => {
     switch (theme) {
-        case 'elegant': return { heading: { fontFamily: "'Cormorant Garamond', serif" }, body: { fontFamily: "'Lato', sans-serif" } };
+        case 'elegant': return { heading: { fontFamily: "'Great Vibes', cursive" }, body: { fontFamily: "'Lato', sans-serif" } };
         case 'modern': return { heading: { fontFamily: "'Oswald', sans-serif", fontWeight: 700, textTransform: 'uppercase' as const }, body: { fontFamily: "'Lato', sans-serif" } };
         case 'whimsical': return { heading: { fontFamily: "'Lobster', cursive" }, body: { fontFamily: "'Cabin', sans-serif" } };
         case 'classic': default: return { heading: { fontFamily: "'Playfair Display', serif", fontWeight: 700 }, body: { fontFamily: "'Montserrat', sans-serif" } };
