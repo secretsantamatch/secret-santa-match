@@ -79,6 +79,7 @@ function App() {
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [showBulkAddModal, setShowBulkAddModal] = useState(false);
   const [theme, setTheme] = useState(getSeasonalTheme());
+  const [isRulesExpanded, setIsRulesExpanded] = useState(false);
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const downloadModalRef = useRef<HTMLDivElement>(null);
@@ -385,11 +386,10 @@ function App() {
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6 flex items-center">
               <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
-              Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
+              Add Names <span className="text-[var(--primary-color)] ml-2">*</span>
             </h2>
-            <p className="text-gray-600 mb-6 ml-11">Enter the names of everyone participating.</p>
             <ParticipantManager 
               participants={participants} 
               setParticipants={setParticipants}
@@ -398,28 +398,31 @@ function App() {
           </div>
 
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
-                <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
-                Add Details & Rules
-            </h2>
-            <p className="text-gray-600 mb-6 ml-11">Include event details or prevent people from drawing each other.</p>
-            <Options 
-              participants={participants.filter(p => p.name.trim() !== '')} 
-              exclusions={exclusions} 
-              setExclusions={setExclusions} 
-              assignments={assignments}
-              setAssignments={setAssignments}
-              eventDetails={eventDetails} 
-              setEventDetails={setEventDetails} 
-            />
+            <button onClick={() => setIsRulesExpanded(!isRulesExpanded)} className="w-full text-left flex justify-between items-center">
+                <h2 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center">
+                    <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
+                    Add Details & Rules <span className="text-gray-500 font-normal text-lg ml-2">(Optional)</span>
+                </h2>
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 text-gray-500 transition-transform duration-300 ${isRulesExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isRulesExpanded ? 'max-h-[1000px] pt-6' : 'max-h-0'}`}>
+                <Options 
+                  participants={participants.filter(p => p.name.trim() !== '')} 
+                  exclusions={exclusions} 
+                  setExclusions={setExclusions} 
+                  assignments={assignments}
+                  setAssignments={setAssignments}
+                  eventDetails={eventDetails} 
+                  setEventDetails={setEventDetails} 
+                />
+            </div>
           </div>
           
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
+             <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
-                Style Your Cards
+                Customize Printable Card
             </h2>
-             <p className="text-gray-600 mb-6 ml-11">Choose a theme and color for the printable cards.</p>
              <BackgroundSelector 
                 participants={participants}
                 eventDetails={eventDetails}
