@@ -1,9 +1,9 @@
 export interface Participant {
   id: string;
   name: string;
-  email?: string;
   notes: string;
   budget: string;
+  email?: string;
 }
 
 export interface Match {
@@ -19,6 +19,15 @@ export interface Exclusion {
 export interface Assignment {
   giverId: string;
   receiverId: string;
+}
+
+export interface ExchangeData {
+  p: Participant[]; // participants
+  m: Match[];       // matches
+  e: Exclusion[];   // exclusions
+  a: Assignment[];  // assignments
+  d: string;        // eventDetails
+  t: string;        // exchangeDate
 }
 
 export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
