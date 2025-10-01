@@ -20,19 +20,34 @@ export interface Assignment {
   receiverId: string;
 }
 
-// FIX: Add ExchangeData interface to be used for encoding/decoding event data.
-export interface ExchangeData {
-  p: Participant[]; // participants
-  m: Match[]; // matches
-  e: Exclusion[]; // exclusions
-  a: Assignment[]; // assignments
-  d: string; // eventDetails
-  t: string; // exchangeDate
-}
-
 export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
 export type OutlineSizeSetting = 'thin' | 'normal' | 'thick';
 export type FontTheme = 'classic' | 'elegant' | 'modern' | 'whimsical';
+
+export interface StyleData {
+  bgId: string;
+  bgImg: string | null;
+  txtColor: string;
+  outline: boolean;
+  outColor: string;
+  outSize: OutlineSizeSetting;
+  font: FontTheme;
+  fontSize: FontSizeSetting;
+  line: number;
+  greet: string;
+  intro: string;
+  wish: string;
+}
+
+export interface ExchangeData {
+  p: Participant[]; // participants
+  m: Match[];       // matches
+  e: Exclusion[];   // exclusions
+  a: Assignment[];  // assignments
+  d: string;        // event details
+  t: string;        // exchange date
+  style: StyleData; // styling information
+}
 
 export interface BackgroundOption {
   id: string;
