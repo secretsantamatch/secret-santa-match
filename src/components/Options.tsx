@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Participant, Exclusion, Assignment } from '../types';
 import Tooltip from './Tooltip';
 
+// FIX: Add exchangeDate and setExchangeDate to props interface to fix type error.
 interface OptionsProps {
   participants: Participant[];
   exclusions: Exclusion[];
@@ -10,7 +11,6 @@ interface OptionsProps {
   setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
   eventDetails: string;
   setEventDetails: React.Dispatch<React.SetStateAction<string>>;
-  // FIX: Add exchangeDate props to handle date selection
   exchangeDate: string;
   setExchangeDate: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -96,32 +96,35 @@ const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusio
 
   return (
     <div className="space-y-6 p-4 bg-gray-50 rounded-lg border">
-       {/* FIX: Add input for gift exchange date */}
-       <div>
-        <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-semibold text-gray-800">Gift Exchange Date</h3>
-            <Tooltip text="The date of your gift exchange. After this date, participants can see the full list of who had who." />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="font-semibold text-gray-800">Event Details</h3>
+            <Tooltip text="This note will appear on each person's unique link." />
+          </div>
+          <textarea
+              value={eventDetails}
+              onChange={(e) => setEventDetails(e.target.value)}
+              rows={2}
+              placeholder="e.g., Exchange at the holiday party on Dec 20th!"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)]"
+          />
         </div>
-        <input
-            type="date"
-            value={exchangeDate}
-            onChange={(e) => setExchangeDate(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)]"
-            min={new Date().toISOString().split('T')[0]}
-        />
-      </div>
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <h3 className="font-semibold text-gray-800">Event Details</h3>
-          <Tooltip text="This note will appear on each participant's card." />
+        
+        {/* FIX: Add Exchange Date input control. */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="font-semibold text-gray-800">Exchange Date</h3>
+            <Tooltip text="The day of the gift exchange. The full match list will be revealed to all participants after this date." />
+          </div>
+          <input
+              type="date"
+              value={exchangeDate}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => setExchangeDate(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)] h-[58px]"
+          />
         </div>
-        <textarea
-            value={eventDetails}
-            onChange={(e) => setEventDetails(e.target.value)}
-            rows={2}
-            placeholder="e.g., Exchange at the holiday party on Dec 20th!"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--primary-focus-ring-color)]"
-        />
       </div>
       
       <div className="pt-6 border-t">
