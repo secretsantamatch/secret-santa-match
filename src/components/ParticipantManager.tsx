@@ -2,11 +2,11 @@ import React from 'react';
 import type { Participant } from '../types';
 import Tooltip from './Tooltip';
 
+// FIX: Add duplicateNameIds prop to fix type error in parent component.
 interface ParticipantManagerProps {
   participants: Participant[];
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
   onBulkAddClick: () => void;
-  // FIX: Add duplicateNameIds prop to identify duplicates
   duplicateNameIds: Set<string>;
 }
 
@@ -43,10 +43,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
       </div>
 
       <div className="space-y-3">
-        {participants.map((participant, index) => {
-          // FIX: Check if the current participant has a duplicate name
-          const isDuplicate = duplicateNameIds.has(participant.id);
-          return (
+        {participants.map((participant, index) => (
             <div key={participant.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
               <div className="col-span-12 sm:col-span-4">
                 <label className="sm:hidden text-xs font-semibold text-gray-600 mb-1 block">Name *</label>
@@ -56,8 +53,8 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                   placeholder="Name"
                   value={participant.name}
                   onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
-                  // FIX: Apply error styling for duplicate names
-                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${isDuplicate ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'}`}
+                  // FIX: Apply conditional styling to highlight inputs with duplicate names.
+                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${duplicateNameIds.has(participant.id) ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'}`}
                 />
               </div>
 
@@ -101,8 +98,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                   </button>
               </div>
             </div>
-          )
-        })}
+          ))}
       </div>
       
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
