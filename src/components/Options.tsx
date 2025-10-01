@@ -10,7 +10,6 @@ interface OptionsProps {
   setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
   eventDetails: string;
   setEventDetails: React.Dispatch<React.SetStateAction<string>>;
-  // FIX: Add optional props for exchange date to support new functionality
   exchangeDate?: string;
   setExchangeDate?: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -110,7 +109,6 @@ const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusio
         />
       </div>
 
-      {/* FIX: Conditionally render the date picker if props are provided */}
       {exchangeDate !== undefined && setExchangeDate && (
         <div>
           <div className="flex items-center gap-2 mb-2">
