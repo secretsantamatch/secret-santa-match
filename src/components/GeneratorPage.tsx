@@ -128,10 +128,11 @@ const GeneratorPage: React.FC = () => {
       setDuplicateNameIds(duplicates);
   }, [participants]);
 
-  const handleStepClick = (ref: React.RefObject<HTMLDivElement>) => {
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    ref.current?.classList.add('highlight-section');
-    setTimeout(() => ref.current?.classList.remove('highlight-section'), 1200);
+  const handleStepClick = (step: number) => {
+    const ref = { 1: participantsRef, 2: rulesRef, 3: stylingRef }[step];
+    ref?.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    ref?.current?.classList.add('highlight-section');
+    setTimeout(() => ref?.current?.classList.remove('highlight-section'), 1200);
   };
 
   const handleGenerateMatches = () => {
@@ -210,10 +211,7 @@ const GeneratorPage: React.FC = () => {
     <div className="bg-slate-50 min-h-screen">
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
         <Header />
-        <HowItWorks onStepClick={(step) => {
-            if (step === 1) handleStepClick(participantsRef);
-            if (step === 2) handleStepClick(rulesRef);
-        }} />
+        <HowItWorks onStepClick={handleStepClick} />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
           <div ref={participantsRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
