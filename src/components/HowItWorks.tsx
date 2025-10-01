@@ -10,16 +10,17 @@ const NamesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" heigh
 const RulesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-[var(--primary-color)]"><path d="m12 3-1.9 4.8-4.8 1.9 4.8 1.9L12 16l1.9-4.8 4.8-1.9-4.8-1.9z"></path><path d="M5 21v-4"></path><path d="M3 19h4"></path><path d="M19 3v4"></path><path d="M17 5h4"></path></svg>;
 const GiftIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-[var(--primary-color)]"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>;
 
-// FIX: Add onStepClick to props to allow navigation
+// FIX: Add onStepClick prop to the component's interface to fix type error in parent.
 interface HowItWorksProps {
-    onStepClick: (step: number) => void;
+    onStepClick: (stepNumber: number) => void;
 }
 
 const HowItWorks: React.FC<HowItWorksProps> = ({ onStepClick }) => {
     const steps = [
-        { num: '1', title: 'Add Names', Icon: NamesIcon },
-        { num: '2', title: 'Set Rules', Icon: RulesIcon },
-        { num: '3', title: 'Share Results', Icon: GiftIcon },
+        // FIX: Use numeric step numbers and update title to be more relevant for this page.
+        { num: 1, title: 'Add Names', Icon: NamesIcon },
+        { num: 2, title: 'Set Rules', Icon: RulesIcon },
+        { num: 3, title: 'Generate & Share', Icon: GiftIcon },
     ];
 
     return (
@@ -30,21 +31,11 @@ const HowItWorks: React.FC<HowItWorksProps> = ({ onStepClick }) => {
             <div className="hidden md:flex justify-center items-stretch gap-4">
                 {steps.map((step, index) => (
                     <React.Fragment key={index}>
-                        {/* FIX: Make first two steps clickable buttons */}
-                        {index < 2 ? (
-                             <button
-                                onClick={() => onStepClick(index + 1)}
-                                className="flex-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-lg text-center flex flex-col items-center justify-center hover:border-[var(--primary-color)] hover:shadow-xl hover:-translate-y-1 transition-all"
-                            >
-                                <div className="mb-4"><step.Icon /></div>
-                                <h3 className="font-bold text-xl text-slate-800">{step.num}. {step.title}</h3>
-                            </button>
-                        ) : (
-                            <div className="flex-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-lg text-center flex flex-col items-center justify-center">
-                                <div className="mb-4"><step.Icon /></div>
-                                <h3 className="font-bold text-xl text-slate-800">{step.num}. {step.title}</h3>
-                            </div>
-                        )}
+                        {/* FIX: Add onClick handler and interactive styles to make steps clickable. */}
+                        <div onClick={() => onStepClick(step.num)} className="flex-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-lg text-center flex flex-col items-center justify-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all">
+                            <div className="mb-4"><step.Icon /></div>
+                            <h3 className="font-bold text-xl text-slate-800">{step.num}. {step.title}</h3>
+                        </div>
                         {index < steps.length - 1 && (
                             <div className="flex-shrink-0 flex items-center">
                                 <ChevronRightIcon />
@@ -56,30 +47,18 @@ const HowItWorks: React.FC<HowItWorksProps> = ({ onStepClick }) => {
 
             {/* Mobile View */}
             <div className="md:hidden space-y-4">
-                 {/* FIX: Make first two steps clickable buttons */}
-                {steps.map((step, index) => (
-                    index < 2 ? (
-                        <button
-                            key={step.num}
-                            onClick={() => onStepClick(index + 1)}
-                            className="w-full bg-white rounded-2xl p-6 border border-slate-200 shadow-lg flex items-center gap-4 text-left active:border-[var(--primary-color)]"
-                        >
-                            <step.Icon />
-                            <div>
-                                <h3 className="font-bold text-lg text-slate-800">{step.num}. {step.title}</h3>
-                            </div>
-                        </button>
-                    ) : (
-                        <div 
-                            key={step.num}
-                            className="w-full bg-white rounded-2xl p-6 border border-slate-200 shadow-lg flex items-center gap-4 text-left"
-                        >
-                            <step.Icon />
-                            <div>
-                                <h3 className="font-bold text-lg text-slate-800">{step.num}. {step.title}</h3>
-                            </div>
+                {steps.map((step) => (
+                    <div 
+                        key={step.num}
+                        // FIX: Add onClick handler and active styles for better mobile interaction.
+                        onClick={() => onStepClick(step.num)}
+                        className="w-full bg-white rounded-2xl p-6 border border-slate-200 shadow-lg flex items-center gap-4 text-left active:bg-slate-50"
+                    >
+                        <step.Icon />
+                        <div>
+                            <h3 className="font-bold text-lg text-slate-800">{step.num}. {step.title}</h3>
                         </div>
-                    )
+                    </div>
                 ))}
             </div>
         </div>
