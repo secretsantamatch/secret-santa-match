@@ -1,5 +1,4 @@
 import { jsPDF } from 'jspdf';
-// @ts-ignore
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import React from 'react';
@@ -66,9 +65,9 @@ export const generateIndividualCardsPdf = async (props: IndividualCardsPdfProps)
 
     const canvas = await html2canvas(cardElement, {
       scale: 3,
-      backgroundColor: null, // Use transparent background to preserve rounded corners
+      backgroundColor: null,
       logging: false,
-      useCORS: true, // Important for proxied images
+      useCORS: true,
     });
     
     const imgData = canvas.toDataURL('image/png', 1.0);
@@ -88,15 +87,13 @@ export const generateMasterListPdf = ({ matches, eventDetails }: MasterListPdfPr
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Add Watermarks
     doc.setFontSize(10);
-    doc.setTextColor(150); // Light gray
+    doc.setTextColor(150);
     doc.text('SecretSantaMatch.com', pageWidth / 2, 10, { align: 'center' });
     doc.text('SecretSantaMatch.com', pageWidth / 2, pageHeight - 10, { align: 'center' });
     
-    // Main Content
     doc.setFontSize(22);
-    doc.setTextColor(0); // Black
+    doc.setTextColor(0);
     doc.text('Secret Santa Master List', 105, 25, { align: 'center' });
 
     if (eventDetails) {
