@@ -11,10 +11,8 @@ const App: React.FC = () => {
 
     useEffect(() => {
         const loadPage = () => {
-            // Use window.location.hash to get the part after #
             const hash = window.location.hash.slice(1);
             if (hash) {
-                // Split hash and query params, but we only care about the hash for data
                 const mainHash = hash.split('?')[0];
                 if (mainHash) {
                     try {
@@ -26,11 +24,10 @@ const App: React.FC = () => {
                         setPage('results');
                     } catch (e) {
                         console.error(e);
-                        setErrorMsg('This Secret Santa link is invalid, corrupted, or has expired.');
+                        setErrorMsg('This Secret Santa link is invalid or corrupted. Please ask the organizer for a new one.');
                         setPage('error');
                     }
                 } else {
-                    // Hash exists but is empty, go to generator
                     setPage('generator');
                 }
             } else {
@@ -39,7 +36,7 @@ const App: React.FC = () => {
         };
 
         window.addEventListener('hashchange', loadPage);
-        loadPage(); // Initial load
+        loadPage();
 
         return () => window.removeEventListener('hashchange', loadPage);
     }, []);
@@ -61,10 +58,10 @@ const App: React.FC = () => {
     if (page === 'error') {
         return (
           <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-lg">
-              <h1 className="text-2xl font-bold text-red-600 mb-4">Link Error</h1>
-              <p className="text-slate-700">{errorMsg}</p>
-              <a href="/" className="mt-6 inline-block bg-[var(--primary-color)] text-white font-bold py-2 px-6 rounded-lg">
+            <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
+              <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Link Error</h1>
+              <p className="text-slate-700 text-lg">{errorMsg}</p>
+              <a href="/" className="mt-8 inline-block bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
                 Start a New Game
               </a>
             </div>
@@ -73,7 +70,6 @@ const App: React.FC = () => {
     }
     
     if (page === 'results' && data) {
-        // Use URLSearchParams on window.location.search to get query params like ?id=...
         const params = new URLSearchParams(window.location.search);
         const participantId = params.get('id');
         return <ResultsPage data={data} currentParticipantId={participantId} />;
