@@ -48,7 +48,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
 
   const handleCopy = (participantId: string) => {
     const url = new URL(window.location.href);
-    url.search = `?id=${participantId}`; // Keep hash, set query param
+    url.search = `?id=${participantId}`;
     navigator.clipboard.writeText(url.href).then(() => {
       setCopiedId(participantId);
       setTimeout(() => setCopiedId(null), 2500);
