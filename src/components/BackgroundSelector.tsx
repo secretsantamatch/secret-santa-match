@@ -163,7 +163,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                 onMouseLeave={() => setHoveredId(null)} 
                 aria-label={option.name}
                 className={`relative w-full aspect-[3/4] rounded-lg overflow-hidden border-4 transition-all duration-200 bg-gray-100 focus:outline-none focus:ring-4 focus:ring-offset-0 focus:ring-[var(--primary-focus-ring-color)] ${selectedBackground === option.id ? 'border-[var(--primary-color)] scale-105 shadow-lg' : 'border-transparent hover:border-gray-300'}`}>
-                {option.imageUrl ? <img src={getProxiedUrl(option.imageUrl)} alt={option.name} className="w-full h-full object-cover scale-105" /> : <div className="w-full h-full bg-white flex items-center justify-center p-2"><span className="text-gray-500 text-3xl">{option.icon}</span></div>}
+                {option.imageUrl ? <img src={getProxiedUrl(option.imageUrl)} alt={option.name} className="w-full h-full object-cover scale-125" /> : <div className="w-full h-full bg-white flex items-center justify-center p-2"><span className="text-gray-500 text-3xl">{option.icon}</span></div>}
               </button>
               {option.imageUrl && <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-64 p-1 bg-white rounded-lg shadow-2xl border border-gray-200 z-30 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none transform group-hover:scale-100 scale-95"><img src={getProxiedUrl(option.imageUrl)} alt={`${option.name} Preview`} className="w-full h-auto rounded-md" /><div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-white drop-shadow-lg"></div></div>}
             </div>
