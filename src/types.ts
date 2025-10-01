@@ -20,14 +20,14 @@ export interface Assignment {
   receiverId: string;
 }
 
-// FIX: Add ExchangeData type for encoding/decoding event data for sharing.
+// FIX: Add ExchangeData interface to be used for encoding/decoding event data.
 export interface ExchangeData {
   p: Participant[]; // participants
   m: Match[]; // matches
   e: Exclusion[]; // exclusions
   a: Assignment[]; // assignments
-  d: string; // details
-  t: string; // date
+  d: string; // eventDetails
+  t: string; // exchangeDate
 }
 
 export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
