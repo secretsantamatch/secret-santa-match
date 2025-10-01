@@ -21,14 +21,14 @@ export interface Assignment {
   receiverId: string;
 }
 
-// FIX: Add ExchangeData type for encoding/decoding shareable URL data.
+// Fix: Add ExchangeData interface for URL encoding/decoding
 export interface ExchangeData {
-  p: Participant[];
-  m: Match[];
-  e: Exclusion[];
-  a: Assignment[];
-  d: string;
-  t: string;
+  p: Participant[]; // participants
+  m: Match[];       // matches
+  e: Exclusion[];   // exclusions
+  a: Assignment[];  // assignments
+  d: string;        // event details
+  t: string;        // exchange date
 }
 
 export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
