@@ -11,7 +11,7 @@ interface OptionsProps {
   setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
   eventDetails: string;
   setEventDetails: React.Dispatch<React.SetStateAction<string>>;
-  // FIX: Add props for managing the exchange date
+  // Fix: Add exchangeDate props to handle the date of the event.
   exchangeDate: string;
   setExchangeDate: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -111,11 +111,11 @@ const Options: React.FC<OptionsProps> = ({ participants, exclusions, setExclusio
         />
       </div>
 
-      {/* FIX: Add a date picker for the gift exchange date */}
-      <div className="pt-6 border-t">
+      {/* Fix: Add Exchange Date input */}
+      <div>
         <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-semibold text-gray-800">Gift Exchange Date</h3>
-            <Tooltip text="After this date, participants can see the full list of matches. This is also used for a countdown timer on their result page." />
+          <h3 className="font-semibold text-gray-800">Exchange Date</h3>
+          <Tooltip text="The day of the gift exchange. After this date, participants can see the full list of matches." />
         </div>
         <input
             type="date"
