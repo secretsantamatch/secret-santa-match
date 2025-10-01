@@ -70,8 +70,8 @@ const App: React.FC = () => {
     }
     
     if (page === 'results' && data) {
-        const params = new URLSearchParams(window.location.search);
-        const participantId = params.get('id');
+        const urlParams = new URLSearchParams(window.location.search);
+        const participantId = urlParams.get('id');
         return <ResultsPage data={data} currentParticipantId={participantId} />;
     }
 
