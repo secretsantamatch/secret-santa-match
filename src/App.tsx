@@ -11,19 +11,27 @@ const App: React.FC = () => {
 
     useEffect(() => {
         const loadPage = () => {
-            const hash = window.location.hash.slice(1).split('?')[0]; // Ignore query params in hash for decoding
+            // Use window.location.hash to get the part after #
+            const hash = window.location.hash.slice(1);
             if (hash) {
-                try {
-                    const decoded = decodeData(hash);
-                    if (!decoded || !decoded.p || !decoded.m || !decoded.style) {
-                        throw new Error('Invalid or corrupted data in the URL.');
+                // Split hash and query params, but we only care about the hash for data
+                const mainHash = hash.split('?')[0];
+                if (mainHash) {
+                    try {
+                        const decoded = decodeData(mainHash);
+                        if (!decoded || !decoded.p || !decoded.m || !decoded.style) {
+                            throw new Error('Invalid or corrupted data in the URL.');
+                        }
+                        setData(decoded);
+                        setPage('results');
+                    } catch (e) {
+                        console.error(e);
+                        setErrorMsg('This Secret Santa link is invalid, corrupted, or has expired.');
+                        setPage('error');
                     }
-                    setData(decoded);
-                    setPage('results');
-                } catch (e) {
-                    console.error(e);
-                    setErrorMsg('This Secret Santa link is invalid, corrupted, or has expired.');
-                    setPage('error');
+                } else {
+                    // Hash exists but is empty, go to generator
+                    setPage('generator');
                 }
             } else {
                 setPage('generator');
@@ -65,6 +73,7 @@ const App: React.FC = () => {
     }
     
     if (page === 'results' && data) {
+        // Use URLSearchParams on window.location.search to get query params like ?id=...
         const params = new URLSearchParams(window.location.search);
         const participantId = params.get('id');
         return <ResultsPage data={data} currentParticipantId={participantId} />;
