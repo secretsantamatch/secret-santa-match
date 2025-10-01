@@ -2,15 +2,15 @@ import React from 'react';
 import type { Participant } from '../types';
 import Tooltip from './Tooltip';
 
-// FIX: Add duplicateNameIds prop to fix type error in parent component.
 interface ParticipantManagerProps {
   participants: Participant[];
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
   onBulkAddClick: () => void;
-  duplicateNameIds: Set<string>;
+  // FIX: Add optional prop to receive IDs of participants with duplicate names
+  duplicateNameIds?: Set<string>;
 }
 
-const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, duplicateNameIds }) => {
+const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, duplicateNameIds = new Set() }) => {
 
   const handleParticipantChange = (index: number, field: keyof Omit<Participant, 'id'>, value: string) => {
     const newParticipants = [...participants];
@@ -38,7 +38,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
         </div>
         <div className="col-span-1 flex items-center gap-1">
             Budget
-            <Tooltip text="Set a spending limit for this person's gift. This will appear on their match's printable card." />
+             <Tooltip text="Set a spending limit for this person's gift. This will appear on their match's printable card." />
         </div>
       </div>
 
@@ -50,11 +50,11 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                 <input
                   type="text"
                   aria-label={`Name for participant ${index + 1}`}
-                  placeholder="Name"
+                  placeholder="Participant's Name"
                   value={participant.name}
                   onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
-                  // FIX: Apply conditional styling to highlight inputs with duplicate names.
-                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${duplicateNameIds.has(participant.id) ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'}`}
+                  // FIX: Apply conditional styling for duplicate names
+                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-offset-1 transition ${duplicateNameIds.has(participant.id) ? 'border-red-500 focus:ring-red-400' : 'border-gray-300 focus:ring-[var(--primary-focus-ring-color)]'}`}
                 />
               </div>
 
@@ -98,13 +98,14 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                   </button>
               </div>
             </div>
-          ))}
+          )
+        )}
       </div>
       
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <button onClick={addParticipant} className="flex-1 bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 text-base shadow-sm hover:shadow-md">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
-          Add Another Person
+           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
+           Add Another Person
         </button>
         <button onClick={onBulkAddClick} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 text-base shadow-sm hover:shadow-md">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM5 11a1 1 0 100 2h4a1 1 0 100-2H5z" /></svg>
