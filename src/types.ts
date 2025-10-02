@@ -1,3 +1,4 @@
+// FIX: Replaced placeholder content with type definitions.
 export interface Participant {
   id: string;
   name: string;
@@ -24,31 +25,6 @@ export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
 export type OutlineSizeSetting = 'thin' | 'normal' | 'thick';
 export type FontTheme = 'classic' | 'elegant' | 'modern' | 'whimsical';
 
-export interface StyleData {
-  bgId: string;
-  bgImg: string | null;
-  txtColor: string;
-  outline: boolean;
-  outColor: string;
-  outSize: OutlineSizeSetting;
-  font: FontTheme;
-  fontSize: FontSizeSetting;
-  line: number;
-  greet: string;
-  intro: string;
-  wish: string;
-}
-
-export interface ExchangeData {
-  p: Participant[]; // participants
-  m: Match[];       // matches
-  e: Exclusion[];   // exclusions
-  a: Assignment[];  // assignments
-  d: string;        // event details
-  t: string;        // exchange date
-  style: StyleData; // styling information
-}
-
 export interface BackgroundOption {
   id: string;
   name: string;
@@ -61,4 +37,28 @@ export interface BackgroundOption {
     intro?: string;
     wishlistLabel?: string;
   };
+}
+
+export interface CardStyleData {
+  backgroundId: string;
+  customBackground: string | null;
+  textColor: string;
+  useTextOutline: boolean;
+  outlineColor: string;
+  outlineSize: OutlineSizeSetting;
+  fontSizeSetting: FontSizeSetting;
+  fontTheme: FontTheme;
+  lineSpacing: number;
+  greetingText: string;
+  introText: string;
+  wishlistLabelText: string;
+}
+
+export interface ExchangeData {
+    // FIX: Corrected type for participants array.
+    p: Omit<Participant, 'id'>[]; // Participants
+    m: { g: number; r: number }[]; // Matches (by index)
+    style: CardStyleData;
+    e?: string; // eventDetails
+    rd?: string; // revealDate
 }
