@@ -27,17 +27,19 @@ interface IndividualCardsPdfProps {
 interface MasterListPdfProps {
   matches: Match[];
   eventDetails: string;
+  exchangeDate?: string;
+  exchangeTime?: string;
 }
 
 export const generateIndividualCardsPdf = async (props: IndividualCardsPdfProps) => {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a6' });
-  const cardWidth = doc.internal.pageSize.getWidth();
-  const cardHeight = doc.internal.pageSize.getHeight();
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [4.25, 5.5] });
+  const cardWidth = 4.25;
+  const cardHeight = 5.5;
   const { matches, backgroundOptions, ...cardProps } = props;
 
   const container = document.createElement('div');
-  container.style.width = '310px'; 
-  container.style.height = '437px';
+  container.style.width = '425px'; 
+  container.style.height = '550px';
   container.style.position = 'fixed';
   container.style.left = '-9999px';
   document.body.appendChild(container);
@@ -48,31 +50,39 @@ export const generateIndividualCardsPdf = async (props: IndividualCardsPdfProps)
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
 
-    await new Promise<void>(resolve => {
+    const renderPromise = new Promise<void>(resolve => {
       root.render(
         React.createElement(PrintableCard, {
           match,
           ...cardProps,
           backgroundImageUrl: selectedTheme?.imageUrl || null,
           isPdfMode: true,
-          onRendered: resolve
+          onRendered: resolve,
+          isNameRevealed: true, // Always show name for PDF
         })
       );
     });
+
+    const timeoutPromise = new Promise<void>((_, reject) => 
+        setTimeout(() => reject(new Error(`Rendering card for ${match.giver.name} timed out.`)), 5000)
+    );
+
+    await Promise.race([renderPromise, timeoutPromise]);
 
     const cardElement = container.firstChild as HTMLElement;
     if (!cardElement) continue;
 
     const canvas = await html2canvas(cardElement, {
       scale: 3,
-      backgroundColor: null,
+      backgroundColor: 'transparent',
       logging: false,
       useCORS: true,
+      imageTimeout: 5000,
     });
     
     const imgData = canvas.toDataURL('image/png', 1.0);
     if (i > 0) doc.addPage();
-    doc.addImage(imgData, 'PNG', 0, 0, cardWidth, cardHeight);
+    doc.addImage(imgData, 'PNG', 0, 0, cardWidth, cardHeight, undefined, 'FAST');
   }
 
   root.unmount();
@@ -82,29 +92,51 @@ export const generateIndividualCardsPdf = async (props: IndividualCardsPdfProps)
 };
 
 
-export const generateMasterListPdf = ({ matches, eventDetails }: MasterListPdfProps) => {
+export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate, exchangeTime }: MasterListPdfProps) => {
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
+    let startY = 35;
 
     doc.setFontSize(10);
     doc.setTextColor(150);
     doc.text('SecretSantaMatch.com', pageWidth / 2, 10, { align: 'center' });
-    doc.text('SecretSantaMatch.com', pageWidth / 2, pageHeight - 10, { align: 'center' });
     
     doc.setFontSize(22);
-    doc.setTextColor(0);
-    doc.text('Secret Santa Master List', 105, 25, { align: 'center' });
+    doc.setTextColor(40);
+    doc.text('Secret Santa Master List', pageWidth / 2, 25, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.setTextColor(100);
 
     if (eventDetails) {
-      doc.setFontSize(11);
-      doc.setTextColor(100);
       const eventLines = doc.splitTextToSize(eventDetails, 180);
-      doc.text(eventLines, 105, 35, { align: 'center' });
+      doc.text(eventLines, pageWidth / 2, startY, { align: 'center' });
+      startY += (eventLines.length * 5) + 5;
+    }
+
+    if (exchangeDate) {
+        const dateParts = exchangeDate.split('-').map(part => parseInt(part, 10));
+        let dateObj = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+        const formattedDate = dateObj.toLocaleDateString(undefined, {
+            year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
+        });
+        let dateString = `Exchange Date: ${formattedDate}`;
+        if (exchangeTime) {
+          const [hours, minutes] = exchangeTime.split(':');
+          dateObj.setUTCHours(parseInt(hours, 10));
+          dateObj.setUTCMinutes(parseInt(minutes, 10));
+          const formattedTime = dateObj.toLocaleTimeString(undefined, {
+            hour: 'numeric', minute: '2-digit', timeZone: 'UTC', hour12: true
+          });
+          dateString += ` at ${formattedTime}`;
+        }
+        doc.text(dateString, pageWidth / 2, startY, { align: 'center' });
+        startY += 10;
     }
 
     const tableData = matches.map(match => {
-        const budgetText = match.receiver.budget ? (match.receiver.budget.startsWith('$') ? match.receiver.budget : `$${match.receiver.budget}`) : '';
+        const budgetText = match.receiver.budget ? (match.receiver.budget.toString().startsWith('$') ? match.receiver.budget : `$${match.receiver.budget}`) : '';
         return [
             match.giver.name,
             match.receiver.name,
@@ -116,20 +148,26 @@ export const generateMasterListPdf = ({ matches, eventDetails }: MasterListPdfPr
     autoTable(doc, {
       head: [['Giver', 'Receiver', 'Wishlist/Notes', 'Budget']],
       body: tableData,
-      startY: 50,
+      startY: startY,
       headStyles: { 
-          fillColor: [209, 65, 65],
+          fillColor: '#c62828',
           halign: 'center' 
       },
       styles: {
-          halign: 'center'
+          halign: 'center',
+          cellPadding: 3,
       },
       columnStyles: {
-        0: { cellWidth: 45 },
-        1: { cellWidth: 45 },
-        2: { cellWidth: 'auto' },
-        3: { cellWidth: 30 },
+        0: { halign: 'left' },
+        1: { halign: 'left' },
+        2: { halign: 'left' },
       },
+      didDrawPage: (data) => {
+        // Footer
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text('SecretSantaMatch.com', pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
     });
     doc.save('SecretSanta-MasterList.pdf');
 };
