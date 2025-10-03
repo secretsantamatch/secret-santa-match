@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { Match, FontSizeSetting, OutlineSizeSetting, FontTheme } from '../types';
 
 interface PrintableCardProps {
@@ -19,9 +19,11 @@ interface PrintableCardProps {
   wishlistLabelText: string;
   isPdfMode?: boolean;
   onRendered?: () => void;
+  isNameRevealed?: boolean;
+  onReveal?: () => void;
 }
 
-const getProxiedUrl = (url: string) => `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
+const getProxiedUrl = (url: string) => `https://wsrv.nl/?url=${encodeURIComponent(url)}&n=-1`;
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
   match,
@@ -40,74 +42,85 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   wishlistLabelText,
   isPdfMode,
   onRendered,
+  isNameRevealed,
+  onReveal,
 }) => {
-  useEffect(() => {
+  React.useEffect(() => {
     if (isPdfMode && onRendered) {
-      // Allow a short moment for images to potentially load
-      const timer = setTimeout(onRendered, 100);
-      return () => clearTimeout(timer);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      let loaded = false;
+      const onFinish = () => {
+        if (!loaded) {
+          loaded = true;
+          setTimeout(onRendered, 50);
+        }
+      };
+      img.onload = onFinish;
+      img.onerror = onFinish; // Resolve even if image fails to load
+      img.src = customBackground || (backgroundImageUrl ? getProxiedUrl(backgroundImageUrl) : '');
+      setTimeout(onFinish, 1000); // Failsafe timeout
     }
-  }, [isPdfMode, onRendered]);
+  }, [isPdfMode, onRendered, backgroundImageUrl, customBackground]);
 
-  const fontClass = {
-    classic: 'font-serif',
-    elegant: 'font-[Cormorant-Garamond,serif]',
-    modern: 'font-[Montserrat,sans-serif]',
-    whimsical: 'font-[Pacifico,cursive]',
-  }[fontTheme];
+  const fontClasses = {
+    classic: 'font-serif', // Playfair Display
+    elegant: 'font-["Great_Vibes",cursive]',
+    modern: 'font-["Oswald",sans-serif]',
+    whimsical: 'font-["Pacifico",cursive]',
+  };
+  const bodyFontClass = 'font-["Montserrat",sans-serif]';
 
-  const fontSizeClasses = {
-    normal: { title: 'text-2xl', body: 'text-sm', small: 'text-xs' },
-    large: { title: 'text-3xl', body: 'text-base', small: 'text-sm' },
-    'extra-large': { title: 'text-4xl', body: 'text-lg', small: 'text-base' },
+  const fontSizes = {
+    normal: { title: 'text-3xl', body: 'text-base', small: 'text-sm' },
+    large: { title: 'text-4xl', body: 'text-lg', small: 'text-base' },
+    'extra-large': { title: 'text-5xl', body: 'text-xl', small: 'text-lg' },
   };
 
-  const outlineSizeMap = {
-    thin: '1px',
-    normal: '2px',
-    thick: '3px',
-  };
+  const outlineSizes = { thin: '1px', normal: '2px', thick: '3px' };
 
   const textShadow = useTextOutline
-    ? `${outlineSizeMap[outlineSize]} ${outlineSizeMap[outlineSize]} 0 ${outlineColor}, -${outlineSizeMap[outlineSize]} -${outlineSizeMap[outlineSize]} 0 ${outlineColor}, ${outlineSizeMap[outlineSize]} -${outlineSizeMap[outlineSize]} 0 ${outlineColor}, -${outlineSizeMap[outlineSize]} ${outlineSizeMap[outlineSize]} 0 ${outlineColor}, ${outlineSizeMap[outlineSize]} 0 0 ${outlineColor}, -${outlineSizeMap[outlineSize]} 0 0 ${outlineColor}, 0 ${outlineSizeMap[outlineSize]} 0 ${outlineColor}, 0 -${outlineSizeMap[outlineSize]} 0 ${outlineColor}`
+    ? `${outlineSizes[outlineSize]} ${outlineSizes[outlineSize]} 0 ${outlineColor}, -${outlineSizes[outlineSize]} -${outlineSizes[outlineSize]} 0 ${outlineColor}, ${outlineSizes[outlineSize]} -${outlineSizes[outlineSize]} 0 ${outlineColor}, -${outlineSizes[outlineSize]} ${outlineSizes[outlineSize]} 0 ${outlineColor}, ${outlineSizes[outlineSize]} 0 0 ${outlineColor}, -${outlineSizes[outlineSize]} 0 0 ${outlineColor}, 0 ${outlineSizes[outlineSize]} 0 ${outlineColor}, 0 -${outlineSizes[outlineSize]} 0 ${outlineColor}`
     : 'none';
   
-  const backgroundStyle: React.CSSProperties = {
-    width: '100%',
-    height: '100%',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-  };
+  const backgroundStyle: React.CSSProperties = { backgroundSize: 'cover', backgroundPosition: 'center' };
   
-  if (customBackground) {
-    backgroundStyle.backgroundImage = `url(${customBackground})`;
-  } else if (backgroundImageUrl) {
-    // For PDF generation, we don't want to rely on the proxy
-    backgroundStyle.backgroundImage = `url(${isPdfMode ? backgroundImageUrl : getProxiedUrl(backgroundImageUrl)})`;
-  } else {
-    backgroundStyle.backgroundColor = '#ffffff';
-  }
+  if (customBackground) backgroundStyle.backgroundImage = `url(${customBackground})`;
+  else if (backgroundImageUrl) backgroundStyle.backgroundImage = `url(${getProxiedUrl(backgroundImageUrl)})`;
+  else backgroundStyle.backgroundColor = '#ffffff';
 
   const processedGreeting = greetingText.replace('{secret_santa}', match.giver.name);
 
   return (
-    <div className="aspect-[3/4] w-full max-w-[310px] mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-      <div style={backgroundStyle} className="p-5 flex flex-col text-center relative h-full">
+    <div className="aspect-[3/4] w-full max-w-[350px] mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
+      <div style={backgroundStyle} className="p-6 flex flex-col text-center relative h-full">
         <div 
             style={{ color: textColor, textShadow, lineHeight: lineSpacing }}
-            className={`flex-grow flex flex-col justify-center items-center ${fontClass}`}
+            className="flex-grow flex flex-col justify-center items-center"
         >
-          <p className={`${fontSizeClasses[fontSizeSetting].body} mb-2`}>{processedGreeting}</p>
-          <p className={`${fontSizeClasses[fontSizeSetting].body} mb-4`}>{introText}</p>
-          <h2 className={`${fontSizeClasses[fontSizeSetting].title} font-bold break-words`}>{match.receiver.name}</h2>
+          <p className={`${bodyFontClass} ${fontSizes[fontSizeSetting].body} mb-2`}>{processedGreeting}</p>
+          <p className={`${bodyFontClass} ${fontSizes[fontSizeSetting].body} mb-4`}>{introText}</p>
+          
+          <div className="relative w-full min-h-[60px] flex items-center justify-center">
+            {isNameRevealed === false ? (
+                 <button onClick={onReveal} className="absolute inset-0 flex items-center justify-center w-full transition-opacity duration-500">
+                    <div className="relative w-4/5 p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50">
+                        <h2 className={`font-bold text-[var(--accent-dark-text)] text-2xl`}>Click to Reveal</h2>
+                    </div>
+                 </button>
+            ) : null}
+            <h2 className={`${fontClasses[fontTheme]} ${fontSizes[fontSizeSetting].title} font-bold break-words transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
+                {match.receiver.name}
+            </h2>
+          </div>
         </div>
 
         {(match.receiver.notes || match.receiver.budget) && (
-          <div className="flex-shrink-0 mt-4 pt-3 border-t-2 border-white/50">
-            <h3 style={{ color: textColor, textShadow }} className={`${fontSizeClasses[fontSizeSetting].small} font-bold uppercase tracking-wider mb-1 ${fontClass}`}>
+          <div className={`flex-shrink-0 mt-4 pt-3 border-t-2 border-white/50 transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
+            <h3 style={{ color: textColor, textShadow }} className={`${bodyFontClass} ${fontSizes[fontSizeSetting].small} font-bold uppercase tracking-wider mb-1`}>
                 {wishlistLabelText}
             </h3>
-            <p style={{ color: textColor, textShadow, lineHeight: lineSpacing }} className={`${fontSizeClasses[fontSizeSetting].body} ${fontClass} break-words`}>
+            <p style={{ color: textColor, textShadow, lineHeight: lineSpacing }} className={`${bodyFontClass} ${fontSizes[fontSizeSetting].body} break-words`}>
               {match.receiver.notes}
               {match.receiver.notes && match.receiver.budget && <span className="mx-1">|</span>}
               {match.receiver.budget && `Budget: $${match.receiver.budget}`}
@@ -116,8 +129,8 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         )}
 
         {eventDetails && (
-          <div className="flex-shrink-0 mt-3">
-             <p style={{ color: textColor, textShadow, lineHeight: lineSpacing }} className={`${fontSizeClasses[fontSizeSetting].small} ${fontClass} opacity-80 break-words`}>
+          <div className={`flex-shrink-0 mt-3 transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
+             <p style={{ color: textColor, textShadow, lineHeight: lineSpacing }} className={`${bodyFontClass} ${fontSizes[fontSizeSetting].small} opacity-80 break-words`}>
                 {eventDetails}
              </p>
           </div>
