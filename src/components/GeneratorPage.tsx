@@ -1,31 +1,23 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-// Fix: Corrected import paths for types and components.
 import type { Participant, Exclusion, Match, BackgroundOption, Assignment, FontSizeSetting, OutlineSizeSetting, FontTheme, MatchById, ExchangeData, CardStyle } from '../types';
 import Header from './Header';
 import HowItWorks from './HowItWorks';
 import ParticipantManager from './ParticipantManager';
 import Options from './Options';
-import ResultsDisplay from './ResultsDisplay';
 import BackgroundSelector from './BackgroundSelector';
 import BulkAddModal from './BulkAddModal';
-import { generateIndividualCardsPdf, generateMasterListPdf } from '../services/pdfService';
 import { encodeData } from '../services/urlService';
-import ShareButtons from './ShareButtons';
+import FaqSection from './FaqSection';
+import BlogPromo from './BlogPromo';
+import Footer from './Footer';
+import BackToTopButton from './BackToTopButton';
 
-const RerollIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M5.52 15.88A8.01 8.01 0 0012 20a8 8 0 100-16 7.92 7.92 0 00-6.48 3.52M20 20v-5h-5" /></svg>;
-const ClearIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>;
+const ClearIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h--3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>;
 
 const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
   try {
     const saved = localStorage.getItem(key);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (key === 'ssm_participants' && Array.isArray(parsed) && parsed.length === 0) {
-        return defaultValue;
-      }
-      return parsed;
-    }
+    if (saved) return JSON.parse(saved);
     return defaultValue;
   } catch {
     return defaultValue;
@@ -38,14 +30,17 @@ const defaultParticipants = [
     { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
 ];
 
-const CopyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" /><path d="M4 3a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V3z" /></svg>;
-const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
+const getSeasonalTheme = (): string => {
+    const month = new Date().getMonth();
+    if (month === 9) return 'halloween';
+    if (month === 1) return 'valentines';
+    return 'christmas';
+};
 
 const GeneratorPage: React.FC = () => {
   const [participants, setParticipants] = useState<Participant[]>(() => loadFromStorage<Participant[]>('ssm_participants', defaultParticipants));
   const [exclusions, setExclusions] = useState<Exclusion[]>(() => loadFromStorage<Exclusion[]>('ssm_exclusions', []));
   const [assignments, setAssignments] = useState<Assignment[]>(() => loadFromStorage<Assignment[]>('ssm_assignments', []));
-  const [matches, setMatches] = useState<Match[] | null>(null);
   const [error, setError] = useState<string>('');
   const [eventDetails, setEventDetails] = useState<string>(() => loadFromStorage<string>('ssm_eventDetails', ''));
   
@@ -64,69 +59,59 @@ const GeneratorPage: React.FC = () => {
   const [wishlistLabelText, setWishlistLabelText] = useState('Gift Ideas & Notes:');
   
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [showBulkAddModal, setShowBulkAddModal] = useState(false);
+  const [isDetailsCollapsed, setIsDetailsCollapsed] = useState(true);
 
-  // New state for URL-based sharing
   const [globalBudget, setGlobalBudget] = useState<string>(() => loadFromStorage<string>('ssm_globalBudget', ''));
-  const [revealAtDate, setRevealAtDate] = useState<string>(() => loadFromStorage<string>('ssm_revealAtDate', ''));
-  const [revealAtTime, setRevealAtTime] = useState<string>(() => loadFromStorage<string>('ssm_revealAtTime', ''));
-  const [shareableLinks, setShareableLinks] = useState<{ master: string; participants: { name: string; link: string }[] } | null>(null);
-  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [exchangeDate, setExchangeDate] = useState<string>(() => loadFromStorage<string>('ssm_exchangeDate', ''));
+  const [revealTime, setRevealTime] = useState<string>(() => loadFromStorage<string>('ssm_revealTime', ''));
+  const [pageTheme, setPageTheme] = useState<string>(() => loadFromStorage<string>('ssm_pageTheme', getSeasonalTheme()));
   const [duplicateNameIds, setDuplicateNameIds] = useState<Set<string>>(new Set());
+  const [siteTheme, setSiteTheme] = useState(getSeasonalTheme());
 
-  const resultsRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => { document.documentElement.dataset.theme = siteTheme; }, [siteTheme]);
   useEffect(() => { localStorage.setItem('ssm_participants', JSON.stringify(participants)); }, [participants]);
   useEffect(() => { localStorage.setItem('ssm_exclusions', JSON.stringify(exclusions)); }, [exclusions]);
   useEffect(() => { localStorage.setItem('ssm_assignments', JSON.stringify(assignments)); }, [assignments]);
-  useEffect(() => { localStorage.setItem('ssm_eventDetails', eventDetails); }, [eventDetails]);
-  useEffect(() => { localStorage.setItem('ssm_globalBudget', globalBudget); }, [globalBudget]);
-  useEffect(() => { localStorage.setItem('ssm_revealAtDate', revealAtDate); }, [revealAtDate]);
-  useEffect(() => { localStorage.setItem('ssm_revealAtTime', revealAtTime); }, [revealAtTime]);
-
+  useEffect(() => { localStorage.setItem('ssm_eventDetails', JSON.stringify(eventDetails)); }, [eventDetails]);
+  useEffect(() => { localStorage.setItem('ssm_globalBudget', JSON.stringify(globalBudget)); }, [globalBudget]);
+  useEffect(() => { localStorage.setItem('ssm_exchangeDate', JSON.stringify(exchangeDate)); }, [exchangeDate]);
+  useEffect(() => { localStorage.setItem('ssm_revealTime', JSON.stringify(revealTime)); }, [revealTime]);
+  useEffect(() => { localStorage.setItem('ssm_pageTheme', JSON.stringify(pageTheme)); }, [pageTheme]);
+  
+  const handleGlobalBudgetChange = (budget: string) => {
+    setGlobalBudget(budget);
+    setParticipants(prev => prev.map(p => ({ ...p, budget })));
+  };
 
   useEffect(() => {
     fetch('/templates.json')
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
+      .then(response => response.json())
       .then((data: BackgroundOption[]) => {
         setBackgroundOptions(data);
-        if (data.length > 1) setBackground(data[1].id);
-        else if (data.length > 0) setBackground(data[0].id);
-      })
-      .catch(error => {
-        console.error('Failed to load theme templates:', error);
-        setError('Could not load card themes. Please try refreshing the page.');
+        if (data.length > 1) {
+            const defaultTheme = data[1];
+            setBackground(defaultTheme.id);
+            setTextColor(defaultTheme.defaultTextColor);
+            setOutlineColor('#FFFFFF');
+        }
       });
   }, []);
 
-  useEffect(() => {
-    if (backgroundOptions.length === 0 || !background) return;
-    const selectedTheme = backgroundOptions.find(opt => opt.id === background);
+  const handleSetSelectedBackground = (id: string) => {
+    setBackground(id);
+    const selectedTheme = backgroundOptions.find(opt => opt.id === id);
     if (selectedTheme) {
         setTextColor(selectedTheme.defaultTextColor);
-        if (selectedTheme.cardText) {
-            setGreetingText(selectedTheme.cardText.greeting || 'Hello, {secret_santa}!');
-            setIntroText(selectedTheme.cardText.intro || 'You are the Secret Santa for...');
-            setWishlistLabelText(selectedTheme.cardText.wishlistLabel || 'Gift Ideas & Notes:');
-        }
+        setOutlineColor('#FFFFFF');
     }
-  }, [background, backgroundOptions]);
+  };
 
-
-  useEffect(() => {
-    if ((matches || shareableLinks) && !isGenerating) {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [matches, shareableLinks, isGenerating]);
-  
   const handleGenerateMatches = () => {
     setError('');
-    const validParticipants = participants.filter((p: Participant) => p.name.trim() !== '');
+    const validParticipants = participants.filter(p => p.name.trim() !== '');
 
     const nameCounts = new Map<string, string[]>();
     validParticipants.forEach(p => {
@@ -135,50 +120,72 @@ const GeneratorPage: React.FC = () => {
         nameCounts.get(name)!.push(p.id);
     });
 
-    const duplicates = new Map<string, string[]>();
     const dupIds = new Set<string>();
-    for (const [name, ids] of nameCounts.entries()) {
-        if (ids.length > 1) {
-            duplicates.set(name, ids);
-            ids.forEach(id => dupIds.add(id));
-        }
+    for (const ids of nameCounts.values()) {
+        if (ids.length > 1) ids.forEach(id => dupIds.add(id));
     }
-    
     setDuplicateNameIds(dupIds);
 
-    if (duplicates.size > 0) {
-      const dupNames = Array.from(duplicates.keys());
-      setError(`Duplicate names found: ${dupNames.join(', ')}. Please ensure all names are unique.`);
-      setMatches(null);
-      setShareableLinks(null);
+    if (dupIds.size > 0) {
+      setError(`Duplicate names found. Please ensure all names are unique.`);
       return;
     }
-
     if (validParticipants.length < 2) {
       setError('Please add at least two participants with names.');
-      setMatches(null);
-      setShareableLinks(null);
       return;
     }
-    
     if (assignments.length > validParticipants.length) {
         setError('There are more "must match" rules than participants.');
-        setMatches(null);
-        setShareableLinks(null);
         return;
     }
 
     setIsGenerating(true);
-    setMatches(null);
-    setShareableLinks(null);
 
     let generatedMatches: Match[] | null = null;
     let attempts = 0;
-    const maxAttempts = 100;
-
-    while (attempts < maxAttempts && !generatedMatches) {
+    while (attempts < 100 && !generatedMatches) {
       attempts++;
-      const participantMap = new Map<string, Participant>(validParticipants.map((p: Participant) => [p.id, p]));
+      const { success, matches } = tryGenerate(validParticipants, exclusions, assignments);
+      if (success) generatedMatches = matches;
+    }
+
+    if (generatedMatches) {
+        const matchesById: MatchById[] = generatedMatches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
+        
+        let revealTimestamp: number | undefined = undefined;
+        if (exchangeDate) {
+            const revealDateStr = exchangeDate + 'T' + (revealTime || '00:00:00');
+            const revealDate = new Date(revealDateStr);
+            if (!isNaN(revealDate.getTime())) revealTimestamp = revealDate.getTime();
+        }
+
+        const cardStyle: CardStyle = {
+            bgId: background, bgImg: customBackground, txtColor: textColor, useOutline: useTextOutline,
+            outColor: outlineColor, outSize: outlineSize, fontSize: fontSizeSetting, font: fontTheme,
+            line: lineSpacing, greet: greetingText, intro: introText, wish: wishlistLabelText,
+        };
+
+        const exchangeData: ExchangeData = {
+            // Fix: Include all participant data, including ID, and apply global budget if needed.
+            p: validParticipants.map(p => ({ ...p, budget: p.budget || globalBudget })),
+            m: matchesById,
+            details: eventDetails,
+            style: cardStyle,
+            th: pageTheme,
+            revealAt: revealTimestamp,
+            rt: revealTime
+        };
+
+        const encodedData = encodeData(exchangeData);
+        window.location.hash = encodedData;
+    } else {
+      setError('Could not find a valid match combination. This can happen with many exclusions. Please try again or simplify your rules.');
+    }
+    setIsGenerating(false);
+  };
+  
+  const tryGenerate = (participants: Participant[], exclusions: Exclusion[], assignments: Assignment[]) => {
+      const participantMap = new Map<string, Participant>(participants.map(p => [p.id, p]));
       const assignedMatches: Match[] = [];
       const assignedGiverIds = new Set<string>();
       const assignedReceiverIds = new Set<string>();
@@ -193,173 +200,48 @@ const GeneratorPage: React.FC = () => {
           }
       }
       
-      const remainingGivers = validParticipants.filter((p: Participant) => !assignedGiverIds.has(p.id));
-      let remainingReceivers = validParticipants.filter((p: Participant) => !assignedReceiverIds.has(p.id));
+      const remainingGivers = participants.filter(p => !assignedGiverIds.has(p.id));
+      let remainingReceivers = participants.filter(p => !assignedReceiverIds.has(p.id));
       remainingReceivers = remainingReceivers.sort(() => Math.random() - 0.5);
 
       const currentMatches: Match[] = [];
       const availableReceivers = new Set<Participant>(remainingReceivers);
-      let possible = true;
 
       for (const giver of remainingGivers) {
-        const potentialReceivers = Array.from(availableReceivers).filter(receiver => {
-          if (giver.id === receiver.id) return false;
-          return !exclusions.some(ex => (ex.p1 === giver.id && ex.p2 === receiver.id) || (ex.p2 === giver.id && ex.p1 === receiver.id));
-        });
-
+        const potentialReceivers = Array.from(availableReceivers).filter(receiver => 
+            giver.id !== receiver.id && 
+            !exclusions.some(ex => (ex.p1 === giver.id && ex.p2 === receiver.id) || (ex.p2 === giver.id && ex.p1 === receiver.id))
+        );
         if (potentialReceivers.length > 0) {
           const receiver = potentialReceivers[Math.floor(Math.random() * potentialReceivers.length)];
           currentMatches.push({ giver, receiver });
           availableReceivers.delete(receiver);
         } else {
-          possible = false;
-          break;
+          return { success: false, matches: [] };
         }
       }
-      
-      if (possible && currentMatches.length === remainingGivers.length) {
-        generatedMatches = [...assignedMatches, ...currentMatches];
-      }
-    }
-
-    if (generatedMatches) {
-      setMatches(generatedMatches);
-      setError('');
-      
-      const matchesById: MatchById[] = generatedMatches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
-      
-      let revealTimestamp: number | undefined = undefined;
-      if (revealAtDate) {
-          const revealDateStr = revealAtDate + 'T' + (revealAtTime || '00:00:00') + 'Z';
-          const revealDate = new Date(revealDateStr);
-          if (!isNaN(revealDate.getTime())) {
-            revealTimestamp = revealDate.getTime();
-          }
-      }
-
-      const cardStyle: CardStyle = {
-        bgId: background,
-        customBg: customBackground,
-        textColor: textColor,
-        useOutline: useTextOutline,
-        outlineColor: outlineColor,
-        outlineSize: outlineSize,
-        fontSetting: fontSizeSetting,
-        fontTheme: fontTheme,
-        lineSpacing: lineSpacing,
-        greeting: greetingText,
-        intro: introText,
-        wishlistLabel: wishlistLabelText,
-      };
-
-      const exchangeData: ExchangeData = {
-          p: validParticipants.map(({id, name, notes, budget}) => ({ id, name, notes, budget: budget || globalBudget })),
-          m: matchesById,
-          details: eventDetails,
-          style: cardStyle,
-          revealAt: revealTimestamp
-      };
-
-      const encodedData = encodeData(exchangeData);
-      
-      const baseUrl = `${window.location.origin}${window.location.pathname}`;
-      const masterLink = `${baseUrl}#${encodedData}`;
-      const participantLinks = generatedMatches.map(match => ({
-          name: match.giver.name,
-          link: `${baseUrl}#${encodedData}?id=${match.giver.id}`
-      }));
-
-      setShareableLinks({ master: masterLink, participants: participantLinks });
-
-    } else {
-      setError('Could not find a valid match combination. This can happen with many exclusions, required matches, or just by chance. Please try again or simplify your rules.');
-      setMatches(null);
-      setShareableLinks(null);
-    }
-    setIsGenerating(false);
+      return { success: true, matches: [...assignedMatches, ...currentMatches] };
   };
-  
-  const handleClear = () => setShowClearConfirmation(true);
-  
+
   const confirmClear = () => {
     setParticipants(defaultParticipants);
-    setExclusions([]);
-    setAssignments([]);
-    setMatches(null);
-    setError('');
-    setEventDetails('');
-    setGlobalBudget('');
-    setRevealAtDate('');
-    setRevealAtTime('');
-    setShareableLinks(null);
+    setExclusions([]); setAssignments([]); setError('');
+    setEventDetails(''); setGlobalBudget(''); setExchangeDate(''); setRevealTime('');
     setDuplicateNameIds(new Set());
-
-    localStorage.removeItem('ssm_participants');
-    localStorage.removeItem('ssm_exclusions');
-    localStorage.removeItem('ssm_assignments');
-    localStorage.removeItem('ssm_eventDetails');
-    localStorage.removeItem('ssm_globalBudget');
-    localStorage.removeItem('ssm_revealAtDate');
-    localStorage.removeItem('ssm_revealAtTime');
-    
+    Object.keys(localStorage).forEach(key => { if(key.startsWith('ssm_')) localStorage.removeItem(key); });
     setShowClearConfirmation(false);
     window.scrollTo(0, 0);
   };
   
   const handleBulkAdd = (names: string) => {
-    const newParticipants = names.split('\n').map(name => name.trim()).filter(name => name.length > 0).map(name => ({
-        id: crypto.randomUUID(), name: name, notes: '', budget: ''
+    const newParticipants = names.split('\n').map(name => name.trim()).filter(name => name).map(name => ({
+        id: crypto.randomUUID(), name, notes: '', budget: globalBudget
     }));
-
     if (newParticipants.length > 0) {
-        const currentParticipants = participants.filter(p => p.name.trim() !== '' || p.notes.trim() !== '' || p.budget.trim() !== '');
+        const currentParticipants = participants.filter(p => p.name.trim() !== '');
         setParticipants([...currentParticipants, ...newParticipants]);
     }
     setShowBulkAddModal(false);
-  };
-
-  const performPdfGeneration = async (generationFn: () => Promise<void>) => {
-    let loadingTimer: number | null = null;
-    try {
-      loadingTimer = window.setTimeout(() => setIsPdfLoading(true), 500);
-      await generationFn();
-    } catch (err) {
-      console.error("PDF Generation failed:", err);
-      setError("Sorry, something went wrong while generating the PDF. Please try again.");
-    } finally {
-      if (loadingTimer) clearTimeout(loadingTimer);
-      setIsPdfLoading(false);
-    }
-  };
-
-
-  const handleDownload = async (type: 'cards' | 'list') => {
-      if (!matches) return;
-      setError('');
-      if (!greetingText.includes('{secret_santa}')) {
-          setError("The Greeting text must include {secret_santa} so the giver's name appears. Please add it back before downloading.");
-          return;
-      }
-
-      await performPdfGeneration(async () => {
-        if (type === 'cards') {
-            await generateIndividualCardsPdf({ 
-                matches, eventDetails, backgroundOptions, backgroundId: background, customBackground, 
-                textColor, useTextOutline, outlineColor, outlineSize, fontSizeSetting, fontTheme,
-                lineSpacing, greetingText, introText, wishlistLabelText
-            });
-        }
-        if (type === 'list') {
-            generateMasterListPdf({ matches, eventDetails, exchangeDate: revealAtDate, exchangeTime: revealAtTime });
-        }
-      });
-  };
-
-  const handleCopyToClipboard = (link: string) => {
-    navigator.clipboard.writeText(link).then(() => {
-        setCopiedLink(link);
-        setTimeout(() => setCopiedLink(null), 2000);
-    });
   };
 
   return (
@@ -369,12 +251,11 @@ const GeneratorPage: React.FC = () => {
         <HowItWorks />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
+          <div id="participants-section" className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center">
               <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
               Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
             </h2>
-            <p className="text-gray-600 mb-6 ml-11">Enter the names of everyone participating.</p>
             <ParticipantManager 
               participants={participants} 
               setParticipants={setParticipants}
@@ -383,32 +264,40 @@ const GeneratorPage: React.FC = () => {
             />
           </div>
 
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
-                <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
-                Add Details & Rules
-            </h2>
-            <p className="text-gray-600 mb-6 ml-11">Include event details or prevent people from drawing each other.</p>
-            <Options 
-              participants={participants.filter(p => p.name.trim() !== '')} 
-              exclusions={exclusions} setExclusions={setExclusions} 
-              assignments={assignments} setAssignments={setAssignments}
-              eventDetails={eventDetails} setEventDetails={setEventDetails} 
-              globalBudget={globalBudget} setGlobalBudget={setGlobalBudget}
-              revealAtDate={revealAtDate} setRevealAtDate={setRevealAtDate}
-              revealAtTime={revealAtTime} setRevealAtTime={setRevealAtTime}
-            />
+          <div id="rules-section" className="bg-white rounded-2xl shadow-lg border border-gray-200">
+            <button onClick={() => setIsDetailsCollapsed(!isDetailsCollapsed)} className="w-full p-6 md:p-8 text-left">
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
+                  Details & Rules <span className="text-base font-normal text-gray-500 ml-2">(Optional)</span>
+                </div>
+                <svg className={`w-6 h-6 text-gray-500 transform transition-transform duration-300 ${isDetailsCollapsed ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </h2>
+            </button>
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isDetailsCollapsed ? 'max-h-0' : 'max-h-[1000px]'}`}>
+              <div className="p-6 md:p-8 pt-0">
+                <Options 
+                  participants={participants.filter(p => p.name.trim() !== '')} 
+                  exclusions={exclusions} setExclusions={setExclusions} 
+                  assignments={assignments} setAssignments={setAssignments}
+                  eventDetails={eventDetails} setEventDetails={setEventDetails} 
+                  globalBudget={globalBudget} setGlobalBudget={handleGlobalBudgetChange}
+                  exchangeDate={exchangeDate} setExchangeDate={setExchangeDate}
+                  revealTime={revealTime} setRevealTime={setRevealTime}
+                  pageTheme={pageTheme} setPageTheme={setPageTheme}
+                />
+              </div>
+            </div>
           </div>
           
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
+          <div id="style-section" className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
-                Style Your Cards & Links
+                Style Your Cards & Reveal Page
             </h2>
-             <p className="text-gray-600 mb-6 ml-11">Choose a theme and colors for the reveal pages and printable cards.</p>
              <BackgroundSelector 
                 participants={participants} eventDetails={eventDetails} backgroundOptions={backgroundOptions}
-                selectedBackground={background} setSelectedBackground={setBackground}
+                selectedBackground={background} setSelectedBackground={handleSetSelectedBackground}
                 customBackground={customBackground} setCustomBackground={setCustomBackground}
                 textColor={textColor} setTextColor={setTextColor}
                 useTextOutline={useTextOutline} setUseTextOutline={setUseTextOutline}
@@ -426,81 +315,21 @@ const GeneratorPage: React.FC = () => {
           <div className="text-center pt-4">
             {error && <p className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-center">{error}</p>}
             
-            {matches ? (
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button onClick={handleGenerateMatches} disabled={isGenerating} className="flex items-center justify-center gap-3 bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
-                      <RerollIcon />
-                      {isGenerating ? 'Generating...' : 'Generate Again'}
-                  </button>
-                  <button onClick={handleClear} className="flex items-center justify-center gap-3 bg-[var(--danger-color)] hover:bg-[var(--danger-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out">
-                      <ClearIcon />
-                      Clear
-                  </button>
-              </div>
-            ) : (
-               <button onClick={handleGenerateMatches} disabled={isGenerating} className="bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
-                 {isGenerating ? 'Generating...' : '🎁 Generate Secret Santa Links'}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+               <button onClick={handleGenerateMatches} disabled={isGenerating} className="flex-grow bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
+                 {isGenerating ? 'Generating...' : '🎁 Generate & Get Share Links'}
                </button>
-            )}
-          </div>
-
-          {(matches && shareableLinks) && (
-            <div ref={resultsRef} className="pt-4 space-y-8">
-              <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-                <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2 text-center">Your Links are Ready!</h2>
-                <p className="text-gray-600 mb-6 text-center max-w-2xl mx-auto">Share the private links with each person. They won't see other matches. Use the Master Link yourself to see all matches.</p>
-                <div className="space-y-4 max-w-3xl mx-auto">
-                    <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                        <h3 className="font-semibold text-amber-900 mb-2 text-lg">Your Master Link (Organizer Only)</h3>
-                        <div className="flex items-center gap-2 flex-wrap"><input type="text" readOnly value={shareableLinks.master} className="flex-grow p-2 border border-amber-300 bg-white rounded-md text-sm text-gray-700" /><button onClick={() => handleCopyToClipboard(shareableLinks.master)} className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-3 rounded-md text-sm transition-colors">{copiedLink === shareableLinks.master ? <CheckIcon /> : <CopyIcon />}{copiedLink === shareableLinks.master ? 'Copied' : 'Copy'}</button></div>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-slate-800 mb-2 text-lg">Participant Links</h3>
-                        <div className="space-y-2 border rounded-lg p-2 bg-slate-50">
-                        {shareableLinks.participants.map(({ name, link }) => (
-                            <div key={link} className="flex items-center justify-between flex-wrap gap-2 bg-white p-3 rounded-md border">
-                                <span className="font-semibold text-slate-700">{name}</span>
-                                <div className="flex items-center gap-2"><input type="text" readOnly value={link} className="w-48 sm:w-64 p-2 border border-gray-300 rounded-md text-sm text-gray-500" onClick={(e) => (e.target as HTMLInputElement).select()} /><button onClick={() => handleCopyToClipboard(link)} className="flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white font-semibold py-2 px-3 rounded-md text-sm transition-colors">{copiedLink === link ? <CheckIcon /> : <CopyIcon />}{copiedLink === link ? 'Copied' : 'Copy'}</button></div>
-                            </div>
-                        ))}
-                        </div>
-                    </div>
-                </div>
-              </div>
-              <ResultsDisplay matches={matches} />
-              
-              <div className="p-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
-                    <div className="mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
-                    <h3 className="text-3xl font-bold font-serif mb-2">Download Your Files</h3>
-                    <p className="text-green-100 max-w-xs mb-6 text-lg">You can also download printable cards or a master list for offline use.</p>
-                    <div className="flex gap-4">
-                        <button onClick={() => handleDownload('cards')} className="bg-white text-green-700 font-bold py-3 px-6 text-lg rounded-full shadow-md transform hover:scale-105 hover:shadow-xl hover:bg-gray-100 transition-all flex items-center gap-2">Cards</button>
-                        <button onClick={() => handleDownload('list')} className="bg-white text-green-700 font-bold py-3 px-6 text-lg rounded-full shadow-md transform hover:scale-105 hover:shadow-xl hover:bg-gray-100 transition-all flex items-center gap-2">List</button>
-                    </div>
-                </div>
-                <div className="p-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
-                    <div className="mb-4"><svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg></div>
-                    <h3 className="text-3xl font-bold font-serif mb-2">Share the Fun!</h3>
-                    <p className="text-orange-100 max-w-xs mb-6 text-lg">Enjoying this free tool? Help spread the holiday cheer!</p>
-                    <ShareButtons participantCount={participants.length} />
-                </div>
+               <button title="Clear all data and start over" onClick={() => setShowClearConfirmation(true)} className="flex items-center justify-center gap-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 px-6 text-lg rounded-full shadow-sm transition-colors">
+                  <ClearIcon />
+              </button>
             </div>
-          )}
+          </div>
         </main>
       </div>
-      
-      {isPdfLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60]">
-          <div className="text-white text-center">
-            <svg className="animate-spin h-12 w-12 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <p className="text-xl font-semibold mt-4">Generating your PDF...</p>
-            <p className="text-sm opacity-80">This may take a moment for custom images.</p>
-          </div>
-        </div>
-      )}
-
+      <FaqSection />
+      <BlogPromo />
+      <Footer theme={siteTheme} setTheme={setSiteTheme} />
       {showBulkAddModal && <BulkAddModal onClose={() => setShowBulkAddModal(false)} onConfirm={handleBulkAdd} />}
-
       {showClearConfirmation && (
          <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
@@ -514,6 +343,7 @@ const GeneratorPage: React.FC = () => {
           </div>
         </div>
       )}
+      <BackToTopButton />
     </>
   );
 }
