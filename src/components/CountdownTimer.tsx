@@ -2,11 +2,25 @@ import React, { useState, useEffect } from 'react';
 
 interface CountdownTimerProps {
     targetDate: string;
+    targetTime?: string;
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
+const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, targetTime }) => {
+    const getTargetDateTime = () => {
+        const [year, month, day] = targetDate.split('-').map(Number);
+        const date = new Date(Date.UTC(year, month - 1, day));
+        
+        if (targetTime) {
+            const [hours, minutes] = targetTime.split(':').map(Number);
+            date.setUTCHours(hours, minutes, 0, 0);
+        }
+        return date;
+    };
+
+    const [targetDateTime, setTargetDateTime] = useState(getTargetDateTime());
+
     const calculateTimeLeft = () => {
-        const difference = +new Date(targetDate) - +new Date();
+        const difference = +targetDateTime - +new Date();
         let timeLeft: { [key: string]: number } = {};
 
         if (difference > 0) {
@@ -21,37 +35,46 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
     };
 
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+    
+    useEffect(() => {
+        setTargetDateTime(getTargetDateTime());
+    }, [targetDate, targetTime]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setTimeLeft(calculateTimeLeft());
         }, 1000);
-
         return () => clearTimeout(timer);
     });
 
-    // FIX: Changed JSX.Element[] to React.ReactElement[] to resolve namespace error.
-    const timerComponents: React.ReactElement[] = [];
-    const timeUnits = ['days', 'hours', 'minutes', 'seconds'];
+    const timerComponents: React.ReactElement[] = Object.entries(timeLeft).map(([unit, value]) => (
+        <div key={unit} className="text-center">
+            <div className="text-3xl sm:text-4xl lg:text-5xl font-bold">{String(value).padStart(2, '0')}</div>
+            <div className="text-xs sm:text-sm uppercase tracking-wider">{unit}</div>
+        </div>
+    ));
 
-    timeUnits.forEach(interval => {
-        if (timeLeft[interval] !== undefined) {
-             timerComponents.push(
-                <div key={interval} className="text-center">
-                    <div className="text-3xl sm:text-4xl font-bold">{timeLeft[interval]}</div>
-                    <div className="text-xs sm:text-sm uppercase tracking-wider">{interval}</div>
-                </div>
-            );
-        }
+    const formattedDate = new Date(targetDate + 'T00:00:00Z').toLocaleDateString(undefined, {
+        year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
     });
 
+    const formattedTime = targetTime ? new Date(`1970-01-01T${targetTime}Z`).toLocaleTimeString(undefined, {
+        hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC'
+    }) : '';
+
     if (!timerComponents.length) {
-        return null; // Timer has finished
+        return <p className="font-bold text-lg text-green-600">The results are revealed!</p>;
     }
 
     return (
-        <div className="flex justify-center gap-4 sm:gap-8 text-slate-700">
-            {timerComponents}
+        <div className="text-slate-700">
+             <p className="text-center text-slate-600 mb-4">
+                Come back after <span className="font-bold text-[var(--primary-text)]">{formattedDate}</span>
+                {formattedTime && <span className="font-bold text-[var(--primary-text)]"> at {formattedTime}</span>} to see who everyone else got!
+            </p>
+            <div className="flex justify-center gap-4 sm:gap-6">
+                {timerComponents}
+            </div>
         </div>
     );
 };
