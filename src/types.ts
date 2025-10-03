@@ -1,4 +1,3 @@
-// FIX: Replaced placeholder content with type definitions.
 export interface Participant {
   id: string;
   name: string;
@@ -55,10 +54,11 @@ export interface CardStyleData {
 }
 
 export interface ExchangeData {
-    // FIX: Corrected type for participants array.
     p: Omit<Participant, 'id'>[]; // Participants
-    m: { g: number; r: number }[]; // Matches (by index)
+    m: { g: number; r: number }[]; // Matches (by participant index)
     style: CardStyleData;
     e?: string; // eventDetails
     rd?: string; // revealDate
+    rt?: string; // revealTime
+    th?: string; // theme
 }
