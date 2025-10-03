@@ -1,160 +1,188 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Participant, Exclusion, Assignment, Match, BackgroundOption, 
-  FontSizeSetting, OutlineSizeSetting, FontTheme, ExchangeData 
-} from '../types';
-import { encodeData } from '../services/urlService';
+import React, { useState, useRef, useEffect } from 'react';
+// Fix: Corrected import paths for types and components.
+import type { Participant, Exclusion, Match, BackgroundOption, Assignment, FontSizeSetting, OutlineSizeSetting, FontTheme, ExchangeData, CardStyle, MatchById } from '../types';
 import Header from './Header';
 import HowItWorks from './HowItWorks';
 import ParticipantManager from './ParticipantManager';
 import Options from './Options';
 import BackgroundSelector from './BackgroundSelector';
-import FaqSection from './FaqSection';
-import BlogPromo from './BlogPromo';
 import Footer from './Footer';
 import BackToTopButton from './BackToTopButton';
 import BulkAddModal from './BulkAddModal';
+import FaqSection from './FaqSection';
+import BlogPromo from './BlogPromo';
+import { encodeData } from '../services/urlService';
+
+// Fix: Defined missing ClearIcon component.
+const ClearIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>;
+
+const getSeasonalTheme = (): string => {
+    const month = new Date().getMonth(); // 0 = Jan, 1 = Feb, etc.
+    if (month === 9) return 'halloween'; // October
+    if (month === 1) return 'valentines'; // February
+    if (month === 10 || month === 11) return 'christmas'; // Nov, Dec
+    return 'default';
+};
 
 const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
   try {
     const saved = localStorage.getItem(key);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (key === 'ssm_participants' && Array.isArray(parsed) && parsed.length === 0) {
+        return defaultValue;
+      }
+      return parsed;
+    }
     return defaultValue;
   } catch {
     return defaultValue;
   }
 };
 
-const defaultParticipants: Participant[] = [
-  { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
-  { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
-  { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
+const defaultParticipants = [
+    { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
+    { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
+    { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
 ];
 
-const GeneratorPage: React.FC = () => {
-  // State for participants and rules
-  const [participants, setParticipants] = useState<Participant[]>(() => loadFromStorage<Participant[]>('ssg_participants', defaultParticipants));
-  const [exclusions, setExclusions] = useState<Exclusion[]>(() => loadFromStorage<Exclusion[]>('ssg_exclusions', []));
-  const [assignments, setAssignments] = useState<Assignment[]>(() => loadFromStorage<Assignment[]>('ssg_assignments', []));
-  const [duplicateNameIds, setDuplicateNameIds] = useState<Set<string>>(new Set());
+
+function GeneratorPage() {
+  const [participants, setParticipants] = useState<Participant[]>(() => loadFromStorage<Participant[]>('ssm_participants', defaultParticipants));
+  const [exclusions, setExclusions] = useState<Exclusion[]>(() => loadFromStorage<Exclusion[]>('ssm_exclusions', []));
+  const [assignments, setAssignments] = useState<Assignment[]>(() => loadFromStorage<Assignment[]>('ssm_assignments', []));
+  const [error, setError] = useState<string>('');
+  const [eventDetails, setEventDetails] = useState<string>(() => loadFromStorage<string>('ssm_eventDetails', ''));
+  const [globalBudget, setGlobalBudget] = useState<string>(() => loadFromStorage<string>('ssm_globalBudget', ''));
+  const [revealAtDate, setRevealAtDate] = useState<string>('');
+  const [revealAtTime, setRevealAtTime] = useState<string>('');
+  const [pageTheme, setPageTheme] = useState<string>('default');
   
-  // State for event details and options
-  const [eventDetails, setEventDetails] = useState<string>(() => loadFromStorage<string>('ssg_eventDetails', ''));
-  const [exchangeDate, setExchangeDate] = useState<string>(() => loadFromStorage<string>('ssg_exchangeDate', ''));
-  const [exchangeTime, setExchangeTime] = useState<string>(() => loadFromStorage<string>('ssg_exchangeTime', ''));
-  const [globalBudget, setGlobalBudget] = useState<string>(() => loadFromStorage<string>('ssg_globalBudget', ''));
-  const [pageTheme, setPageTheme] = useState<string>(() => loadFromStorage<string>('ssg_pageTheme', 'default'));
-  
-  // State for card styling
   const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
-  const [backgroundId, setBackgroundId] = useState<string>('default-christmas');
+  const [background, setBackground] = useState<string>('');
   const [customBackground, setCustomBackground] = useState<string | null>(null);
-  const [textColor, setTextColor] = useState<string>('#FFFFFF');
+  const [textColor, setTextColor] = useState<string>('#265343');
   const [useTextOutline, setUseTextOutline] = useState(true);
-  const [outlineColor, setOutlineColor] = useState<string>('#265343');
+  const [outlineColor, setOutlineColor] = useState<string>('#FFFFFF');
   const [outlineSize, setOutlineSize] = useState<OutlineSizeSetting>('normal');
   const [fontSizeSetting, setFontSizeSetting] = useState<FontSizeSetting>('normal');
   const [fontTheme, setFontTheme] = useState<FontTheme>('classic');
-  const [lineSpacing, setLineSpacing] = useState<number>(1.2);
+  const [lineSpacing, setLineSpacing] = useState<number>(1.0);
   const [greetingText, setGreetingText] = useState('Hello, {secret_santa}!');
   const [introText, setIntroText] = useState('You are the Secret Santa for...');
   const [wishlistLabelText, setWishlistLabelText] = useState('Gift Ideas & Notes:');
   
-  // UI State
-  const [error, setError] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showBulkAddModal, setShowBulkAddModal] = useState(false);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  const [showBulkAddModal, setShowBulkAddModal] = useState(false);
+  const [theme, setTheme] = useState(getSeasonalTheme());
+  const [duplicateNameIds, setDuplicateNameIds] = useState<Set<string>>(new Set());
+  const [rulesSectionOpen, setRulesSectionOpen] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
   
   // --- Local Storage Hooks ---
-  useEffect(() => { localStorage.setItem('ssg_participants', JSON.stringify(participants)); }, [participants]);
-  useEffect(() => { localStorage.setItem('ssg_exclusions', JSON.stringify(exclusions)); }, [exclusions]);
-  useEffect(() => { localStorage.setItem('ssg_assignments', JSON.stringify(assignments)); }, [assignments]);
-  useEffect(() => { localStorage.setItem('ssg_eventDetails', JSON.stringify(eventDetails)); }, [eventDetails]);
-  useEffect(() => { localStorage.setItem('ssg_exchangeDate', JSON.stringify(exchangeDate)); }, [exchangeDate]);
-  useEffect(() => { localStorage.setItem('ssg_exchangeTime', JSON.stringify(exchangeTime)); }, [exchangeTime]);
-  useEffect(() => { localStorage.setItem('ssg_globalBudget', JSON.stringify(globalBudget)); }, [globalBudget]);
-  useEffect(() => { localStorage.setItem('ssg_pageTheme', JSON.stringify(pageTheme)); }, [pageTheme]);
+  useEffect(() => { localStorage.setItem('ssm_participants', JSON.stringify(participants)); }, [participants]);
+  useEffect(() => { localStorage.setItem('ssm_exclusions', JSON.stringify(exclusions)); }, [exclusions]);
+  useEffect(() => { localStorage.setItem('ssm_assignments', JSON.stringify(assignments)); }, [assignments]);
+  useEffect(() => { localStorage.setItem('ssm_eventDetails', eventDetails); }, [eventDetails]);
+  useEffect(() => { localStorage.setItem('ssm_globalBudget', globalBudget); }, [globalBudget]);
 
-  // Set page theme
-  useEffect(() => { document.documentElement.dataset.theme = pageTheme; }, [pageTheme]);
-  
-  // Fetch background templates
+  const handleGlobalBudgetChange = (budget: string) => {
+    setGlobalBudget(budget);
+    if (budget.trim() !== '') {
+        setParticipants(prev => prev.map(p => ({...p, budget: budget})))
+    }
+  }
+
+
   useEffect(() => {
     fetch('/templates.json')
-      .then(res => res.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then((data: BackgroundOption[]) => {
         setBackgroundOptions(data);
-        if (data.length > 0 && !backgroundOptions.some(b => b.id === backgroundId)) {
-          setBackgroundId(data[0].id);
+        if (data.length > 1) {
+          setBackground(data[1].id);
+        } else if (data.length > 0) {
+          setBackground(data[0].id);
         }
-      }).catch(err => {
-        console.error("Failed to load templates.json", err);
-        setError("Could not load card themes. Please try refreshing.");
+      })
+      .catch(error => {
+        console.error('Failed to load theme templates:', error);
+        setError('Could not load card themes. Please try refreshing the page.');
       });
   }, []);
 
-  // Update text styles when background changes
   useEffect(() => {
-    if (!backgroundId || backgroundOptions.length === 0) return;
-    const theme = backgroundOptions.find(opt => opt.id === backgroundId);
-    if (theme) {
-      setTextColor(theme.defaultTextColor);
-      if (theme.cardText) {
-        setGreetingText(theme.cardText.greeting || 'Hello, {secret_santa}!');
-        setIntroText(theme.cardText.intro || 'You are the Secret Santa for...');
-        setWishlistLabelText(theme.cardText.wishlistLabel || 'Gift Ideas & Notes:');
-      }
+    if (backgroundOptions.length === 0 || !background) return;
+    const selectedTheme = backgroundOptions.find(opt => opt.id === background);
+    if (selectedTheme) {
+        setTextColor(selectedTheme.defaultTextColor);
+        // Fix: Set a contrasting outline color to prevent blurry text
+        setOutlineColor('#FFFFFF'); 
+        if (selectedTheme.cardText) {
+            setGreetingText(selectedTheme.cardText.greeting || 'Hello, {secret_santa}!');
+            setIntroText(selectedTheme.cardText.intro || 'You are the Secret Santa for...');
+            setWishlistLabelText(selectedTheme.cardText.wishlistLabel || 'Gift Ideas & Notes:');
+        }
     }
-  }, [backgroundId, backgroundOptions]);
+  }, [background, backgroundOptions]);
 
-  // Global budget handler
-  const handleGlobalBudgetChange = (budget: string) => {
-      setGlobalBudget(budget);
-      setParticipants(prev => prev.map(p => ({ ...p, budget })));
-  };
-
-  // Duplicate name check
-  useEffect(() => {
-    const names = new Map<string, string[]>();
-    participants.forEach(p => {
-      const name = p.name.trim().toLowerCase();
-      if (name) {
-        if (!names.has(name)) names.set(name, []);
-        names.get(name)!.push(p.id);
-      }
-    });
-    const duplicates = new Set<string>();
-    for (const ids of names.values()) {
-      if (ids.length > 1) {
-        ids.forEach(id => duplicates.add(id));
-      }
-    }
-    setDuplicateNameIds(duplicates);
-  }, [participants]);
-
-  const handleGenerate = () => {
+  const validateAndGetParticipants = (): Participant[] | null => {
     setError('');
-    const validParticipants = participants.filter(p => p.name.trim() !== '');
-
+    setDuplicateNameIds(new Set());
+    const validParticipants = participants
+      .map(p => ({...p, name: p.name.trim()}))
+      .filter(p => p.name !== '');
+      
     if (validParticipants.length < 2) {
-      setError('Please add at least two participants.');
-      return;
+      setError('Please add at least two participants with names.');
+      return null;
     }
 
-    if (duplicateNameIds.size > 0) {
-        setError('Please ensure all participant names are unique.');
-        return;
+    const nameCounts = new Map<string, string[]>();
+    validParticipants.forEach(p => {
+        const lowerName = p.name.toLowerCase();
+        if (!nameCounts.has(lowerName)) {
+            nameCounts.set(lowerName, []);
+        }
+        nameCounts.get(lowerName)!.push(p.id);
+    });
+
+    const duplicates = new Set<string>();
+    for (const [name, ids] of nameCounts.entries()) {
+        if (ids.length > 1) {
+            ids.forEach(id => duplicates.add(id));
+        }
     }
 
+    if (duplicates.size > 0) {
+        setError("Duplicate names found. Please ensure all names are unique.");
+        setDuplicateNameIds(duplicates);
+        return null;
+    }
+    
     if (assignments.length > validParticipants.length) {
         setError('There are more "must match" rules than participants.');
-        return;
+        return null;
     }
+    return validParticipants;
+  }
+
+  const handleGenerateMatches = () => {
+    const validParticipants = validateAndGetParticipants();
+    if (!validParticipants) return;
 
     if (!greetingText.includes('{secret_santa}')) {
-        setError("The Greeting text must include {secret_santa} so the giver's name appears on their card.");
-        return;
+      setError("The Greeting text must include {secret_santa} so the giver's name appears. Please add it back.");
+      return;
     }
 
     setIsGenerating(true);
@@ -162,8 +190,7 @@ const GeneratorPage: React.FC = () => {
     let generatedMatches: Match[] | null = null;
     let attempts = 0;
     const maxAttempts = 100;
-    
-    // --- Matching Logic (adapted from old App.tsx) ---
+
     while (attempts < maxAttempts && !generatedMatches) {
       attempts++;
       
@@ -183,76 +210,107 @@ const GeneratorPage: React.FC = () => {
           }
       }
       
-      let remainingGivers = validParticipants.filter(p => !assignedGiverIds.has(p.id));
-      let remainingReceivers = validParticipants.filter(p => !assignedReceiverIds.has(p.id));
+      const remainingGivers = validParticipants.filter(p => !assignedGiverIds.has(p.id));
+      const remainingReceivers = validParticipants.filter(p => !assignedReceiverIds.has(p.id));
       
-      // Shuffle receivers
-      for (let i = remainingReceivers.length - 1; i > 0; i--) {
+      let shuffledReceivers = [...remainingReceivers];
+      for (let i = shuffledReceivers.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [remainingReceivers[i], remainingReceivers[j]] = [remainingReceivers[j], remainingReceivers[i]];
+        [shuffledReceivers[i], shuffledReceivers[j]] = [shuffledReceivers[j], shuffledReceivers[i]];
       }
 
       const currentMatches: Match[] = [];
-      const availableReceivers = new Set<Participant>(remainingReceivers);
       let possible = true;
 
       for (const giver of remainingGivers) {
-        const potentialReceivers = Array.from(availableReceivers).filter(receiver => {
-          if (giver.id === receiver.id) return false;
+        let foundReceiver = false;
+        for (let i = 0; i < shuffledReceivers.length; i++) {
+          const receiver = shuffledReceivers[i];
+          if (giver.id === receiver.id) continue;
+          
           const isExcluded = exclusions.some(ex =>
-            (ex.p1 === giver.id && ex.p2 === receiver.id) || (ex.p2 === giver.id && ex.p1 === receiver.id)
+            (ex.p1 === giver.id && ex.p2 === receiver.id) ||
+            (ex.p2 === giver.id && ex.p1 === receiver.id)
           );
-          return !isExcluded;
-        });
 
-        if (potentialReceivers.length > 0) {
-          const receiver = potentialReceivers[Math.floor(Math.random() * potentialReceivers.length)];
-          currentMatches.push({ giver, receiver });
-          availableReceivers.delete(receiver);
-        } else {
+          if (!isExcluded) {
+            currentMatches.push({ giver, receiver });
+            shuffledReceivers.splice(i, 1);
+            foundReceiver = true;
+            break;
+          }
+        }
+        if (!foundReceiver) {
           possible = false;
           break;
         }
       }
       
-      if (possible && currentMatches.length === remainingGivers.length) {
+      if (possible) {
         generatedMatches = [...assignedMatches, ...currentMatches];
       }
     }
-    // --- End Matching Logic ---
-    
-    if (generatedMatches) {
-        const participantIdToIndexMap = new Map<string, number>(validParticipants.map((p, i) => [p.id, i]));
-        
-        const dataToEncode: ExchangeData = {
-            p: validParticipants.map(({ name, notes, budget }) => ({ name, notes, budget })),
-            m: generatedMatches.map(match => ({
-                g: participantIdToIndexMap.get(match.giver.id)!,
-                r: participantIdToIndexMap.get(match.receiver.id)!,
-            })),
-            style: {
-                backgroundId, customBackground, textColor, useTextOutline, outlineColor, outlineSize,
-                fontSizeSetting, fontTheme, lineSpacing, greetingText, introText, wishlistLabelText
-            },
-            e: eventDetails || undefined,
-            rd: exchangeDate || undefined,
-            rt: exchangeTime || undefined,
-            th: pageTheme || undefined,
-        };
 
-        try {
-            const encodedData = encodeData(dataToEncode);
-            window.location.hash = encodedData;
-        } catch(e) {
-            setError("Failed to generate the shareable link. Please try again.");
+    if (generatedMatches) {
+      setError('');
+      
+      // Fix: Corrected property names for CardStyle to match type definition.
+      const style: CardStyle = {
+        bgId: background,
+        customBg: customBackground,
+        textColor: textColor,
+        useOutline: useTextOutline,
+        outlineColor: outlineColor,
+        outlineSize: outlineSize,
+        fontSetting: fontSizeSetting,
+        fontTheme: fontTheme,
+        lineSpacing: lineSpacing,
+        greeting: greetingText,
+        intro: introText,
+        wishlistLabel: wishlistLabelText,
+      };
+
+      let revealTimestamp: number | undefined;
+      if (revealAtDate) {
+        // Combine date and time, defaulting to midnight UTC if time is missing
+        const dateTimeString = `${revealAtDate}T${revealAtTime || '00:00'}:00Z`;
+        const revealDate = new Date(dateTimeString);
+        // Check if the date is valid before setting the timestamp
+        if (!isNaN(revealDate.getTime())) {
+          revealTimestamp = revealDate.getTime();
         }
+      }
+
+      // Fix: Corrected data structure for ExchangeData to match type definitions.
+      // Kept participant IDs for URL sharing and used string IDs for matches.
+      const exchangeData: ExchangeData = {
+        p: validParticipants,
+        m: generatedMatches.map(m => ({
+          g: m.giver.id,
+          r: m.receiver.id,
+        })),
+        details: eventDetails,
+        style: style,
+        revealAt: revealTimestamp,
+      };
+      
+      try {
+        const encodedData = encodeData(exchangeData);
+        window.location.hash = encodedData;
+        
+      } catch (e) {
+        console.error("Encoding error:", e);
+        setError("Could not generate the shareable links. Please try again.");
+      }
     } else {
-      setError('Could not find a valid match combination. This can happen with many exclusions or required matches. Please try again or simplify your rules.');
+      setError('Could not find a valid match combination. This can happen with many exclusions or just by chance. Please try again or simplify your rules.');
     }
     setIsGenerating(false);
   };
   
-  const handleClear = () => setShowClearConfirmation(true);
+  const handleClear = () => {
+      setShowClearConfirmation(true);
+  };
   
   const confirmClear = () => {
     setParticipants(defaultParticipants);
@@ -260,41 +318,53 @@ const GeneratorPage: React.FC = () => {
     setAssignments([]);
     setError('');
     setEventDetails('');
-    setExchangeDate('');
-    setExchangeTime('');
     setGlobalBudget('');
-    
-    ['ssg_participants', 'ssg_exclusions', 'ssg_assignments', 'ssg_eventDetails', 'ssg_exchangeDate', 'ssg_exchangeTime', 'ssg_globalBudget', 'ssg_pageTheme'].forEach(key => localStorage.removeItem(key));
+    setRevealAtDate('');
+    setRevealAtTime('');
+
+    localStorage.removeItem('ssm_participants');
+    localStorage.removeItem('ssm_exclusions');
+    localStorage.removeItem('ssm_assignments');
+    localStorage.removeItem('ssm_eventDetails');
+    localStorage.removeItem('ssm_globalBudget');
     
     setShowClearConfirmation(false);
+    // Go back to the generator page if on a results page
+    if (window.location.hash) {
+      window.location.hash = '';
+    }
     window.scrollTo(0, 0);
   };
   
   const handleBulkAdd = (names: string) => {
-    const newParticipants = names.split('\n').map(name => name.trim()).filter(Boolean).map(name => ({
-        id: crypto.randomUUID(), name, notes: '', budget: globalBudget
-    }));
+      const newParticipants = names
+          .split('\n')
+          .map(name => name.trim())
+          .filter(name => name.length > 0)
+          .map(name => ({
+              id: crypto.randomUUID(), name, notes: '',
+              budget: globalBudget || ''
+          }));
 
-    if (newParticipants.length > 0) {
-        const currentParticipants = participants.filter(p => p.name.trim() !== '');
-        setParticipants([...currentParticipants, ...newParticipants]);
-    }
-    setShowBulkAddModal(false);
+      if (newParticipants.length > 0) {
+          const currentParticipants = participants.filter(p => p.name.trim() !== '' || p.notes.trim() !== '' || p.budget.trim() !== '');
+          setParticipants([...currentParticipants, ...newParticipants]);
+      }
+      setShowBulkAddModal(false);
   };
 
   return (
     <div className="bg-slate-50 min-h-screen">
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
         <Header />
+        <HowItWorks />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
-          <HowItWorks />
           
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center">
               <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
               Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
             </h2>
-            <p className="text-gray-600 mb-6 ml-11">Enter the names of everyone participating.</p>
             <ParticipantManager 
               participants={participants} 
               setParticipants={setParticipants}
@@ -304,54 +374,85 @@ const GeneratorPage: React.FC = () => {
           </div>
 
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
-                <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
-                Add Details & Rules
-            </h2>
-            <p className="text-gray-600 mb-6 ml-11">Include event details or prevent people from drawing each other.</p>
-            <Options 
-              participants={participants.filter(p => p.name.trim() !== '')} 
-              exclusions={exclusions} setExclusions={setExclusions} 
-              assignments={assignments} setAssignments={setAssignments}
-              eventDetails={eventDetails} setEventDetails={setEventDetails} 
-              exchangeDate={exchangeDate} setExchangeDate={setExchangeDate}
-              exchangeTime={exchangeTime} setExchangeTime={setExchangeTime}
-              globalBudget={globalBudget} onGlobalBudgetChange={handleGlobalBudgetChange}
-              pageTheme={pageTheme} setPageTheme={setPageTheme}
-            />
+            <button onClick={() => setRulesSectionOpen(!rulesSectionOpen)} className="w-full text-left">
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
+                  <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
+                  Details & Rules
+                  <span className="text-gray-500 font-normal text-xl ml-2">(Optional)</span>
+                   <svg
+                    className={`w-6 h-6 text-gray-400 transform transition-transform duration-300 ml-auto ${rulesSectionOpen ? 'rotate-180' : ''}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                </svg>
+              </h2>
+            </button>
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${rulesSectionOpen ? 'max-h-[1000px] mt-6' : 'max-h-0'}`}>
+              {/* Fix: Removed pageTheme and setPageTheme props which are not defined in OptionsProps. */}
+              <Options 
+                participants={participants.filter(p => p.name.trim() !== '')} 
+                exclusions={exclusions} 
+                setExclusions={setExclusions} 
+                assignments={assignments}
+                setAssignments={setAssignments}
+                eventDetails={eventDetails} 
+                setEventDetails={setEventDetails} 
+                globalBudget={globalBudget}
+                setGlobalBudget={handleGlobalBudgetChange}
+                revealAtDate={revealAtDate}
+                setRevealAtDate={setRevealAtDate}
+                revealAtTime={revealAtTime}
+                setRevealAtTime={setRevealAtTime}
+              />
+            </div>
           </div>
           
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
-                Style the Reveal Card <span className="text-[var(--primary-color)] ml-2">*</span>
+                Style Your Cards <span className="text-gray-500 font-normal text-xl ml-2">(Optional)</span>
             </h2>
-             <p className="text-gray-600 mb-6 ml-11">Customize the card each person sees when they click their private link.</p>
+             <p className="text-gray-600 mb-6 ml-11">Choose a theme and color for the printable cards and private links.</p>
              <BackgroundSelector 
-                participants={participants} eventDetails={eventDetails} backgroundOptions={backgroundOptions}
-                selectedBackground={backgroundId} setSelectedBackground={setBackgroundId}
-                customBackground={customBackground} setCustomBackground={setCustomBackground}
-                textColor={textColor} setTextColor={setTextColor}
-                useTextOutline={useTextOutline} setUseTextOutline={setUseTextOutline}
-                outlineColor={outlineColor} setOutlineColor={setOutlineColor}
-                outlineSize={outlineSize} setOutlineSize={setOutlineSize}
-                fontSizeSetting={fontSizeSetting} setFontSizeSetting={setFontSizeSetting}
-                fontTheme={fontTheme} setFontTheme={setFontTheme}
-                lineSpacing={lineSpacing} setLineSpacing={setLineSpacing}
-                greetingText={greetingText} setGreetingText={setGreetingText}
-                introText={introText} setIntroText={setIntroText}
-                wishlistLabelText={wishlistLabelText} setWishlistLabelText={setWishlistLabelText}
+                participants={participants}
+                eventDetails={eventDetails}
+                backgroundOptions={backgroundOptions}
+                selectedBackground={background}
+                setSelectedBackground={setBackground}
+                customBackground={customBackground}
+                setCustomBackground={setCustomBackground}
+                textColor={textColor}
+                setTextColor={setTextColor}
+                useTextOutline={useTextOutline}
+                setUseTextOutline={setUseTextOutline}
+                outlineColor={outlineColor}
+                setOutlineColor={setOutlineColor}
+                outlineSize={outlineSize}
+                setOutlineSize={setOutlineSize}
+                fontSizeSetting={fontSizeSetting}
+                setFontSizeSetting={setFontSizeSetting}
+                fontTheme={fontTheme}
+                setFontTheme={setFontTheme}
+                lineSpacing={lineSpacing}
+                setLineSpacing={setLineSpacing}
+                greetingText={greetingText}
+                setGreetingText={setGreetingText}
+                introText={introText}
+                setIntroText={setIntroText}
+                wishlistLabelText={wishlistLabelText}
+                setWishlistLabelText={setWishlistLabelText}
              />
           </div>
 
           <div className="text-center pt-4">
             {error && <p className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-center">{error}</p>}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                 <button onClick={handleGenerate} disabled={isGenerating} className="bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
-                    {isGenerating ? 'Generating...' : '🎁 Generate Private Links'}
-                 </button>
-                 <button onClick={handleClear} className="bg-[var(--danger-color)] hover:bg-[var(--danger-color-hover)] text-white font-bold py-2 px-6 rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out">
-                    Clear All
+            
+             <button onClick={handleGenerateMatches} disabled={isGenerating} className="bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
+               {isGenerating ? 'Generating...' : '🎁 Generate & Get Share Links'}
+             </button>
+             <div className="mt-8">
+                <button onClick={handleClear} className="text-sm text-gray-500 hover:text-red-600 font-semibold flex items-center justify-center gap-2 mx-auto">
+                    <ClearIcon />
+                    Clear Everything & Start Over
                 </button>
             </div>
           </div>
@@ -361,7 +462,7 @@ const GeneratorPage: React.FC = () => {
       <FaqSection />
       <BlogPromo />
       
-      <Footer theme={pageTheme} setTheme={setPageTheme} />
+      <Footer theme={theme} setTheme={setTheme} />
       
       {showBulkAddModal && <BulkAddModal onClose={() => setShowBulkAddModal(false)} onConfirm={handleBulkAdd} />}
 
@@ -376,8 +477,12 @@ const GeneratorPage: React.FC = () => {
             <h2 className="text-3xl font-bold text-slate-800 font-serif mt-5 mb-2">Are you sure?</h2>
             <p className="text-gray-600 mb-6">This will permanently clear all participants and rules. This action cannot be undone.</p>
             <div className="flex justify-center gap-4">
-                <button onClick={() => setShowClearConfirmation(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">Cancel</button>
-                <button onClick={confirmClear} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Yes, Clear Everything</button>
+                <button onClick={() => setShowClearConfirmation(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">
+                    Cancel
+                </button>
+                <button onClick={confirmClear} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">
+                    Yes, Clear Everything
+                </button>
             </div>
           </div>
         </div>
@@ -386,6 +491,6 @@ const GeneratorPage: React.FC = () => {
       <BackToTopButton />
     </div>
   );
-};
+}
 
 export default GeneratorPage;
