@@ -1,11 +1,16 @@
-// Fix: Replaced placeholder with a functional component.
-import React, { useState, useMemo, useEffect } from 'react';
-import type { ExchangeData, Participant, Match } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+// Fix: Corrected import paths for types and components.
+import type { ExchangeData, Participant, Match, BackgroundOption } from '../types';
 import PrintableCard from './PrintableCard';
+import ResultsDisplay from './ResultsDisplay';
 import CountdownTimer from './CountdownTimer';
 import ShareButtons from './ShareButtons';
-import FaqSection from './FaqSection';
-import BlogPromo from './BlogPromo';
+import Footer from './Footer';
+import Header from './Header';
+
+const findParticipant = (id: string, participants: Participant[]): Participant | undefined => {
+  return participants.find(p => p.id === id);
+};
 
 interface ResultsPageProps {
   data: ExchangeData;
@@ -13,132 +18,131 @@ interface ResultsPageProps {
 }
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
-  const [isRevealed, setIsRevealed] = useState(false);
-  const [showFullList, setShowFullList] = useState(false);
-
-  const { p: participants, m: matchesById, details: eventDetails, style, revealAt } = data;
-
-  useEffect(() => {
-      if (revealAt) {
-        setShowFullList(new Date().getTime() > revealAt);
-      } else {
-        setShowFullList(true); // If no reveal date, always show
-      }
-  }, [revealAt]);
-
-  const { currentParticipant, match, allMatches } = useMemo(() => {
-    const participantMap = new Map<string, Participant>(participants.map(p => [p.id, p]));
-    const allMatches: Match[] = matchesById.map(m => ({
-      giver: participantMap.get(m.g)!,
-      receiver: participantMap.get(m.r)!
-    })).filter(m => m.giver && m.receiver);
-
-    const currentMatch = allMatches.find(m => m.giver.id === currentParticipantId) || null;
+    const { p: participants, m: matchesById, details, style, th: pageTheme, revealAt } = data;
     
-    return {
-      currentParticipant: participantMap.get(currentParticipantId || '') || null,
-      match: currentMatch,
-      allMatches
+    const [isRevealTime, setIsRevealTime] = useState(revealAt ? new Date().getTime() > revealAt : true);
+    const [isCardNameVisible, setIsCardNameVisible] = useState(false);
+    const [siteTheme, setSiteTheme] = useState(pageTheme || 'christmas');
+    const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
+
+    useEffect(() => {
+        document.documentElement.dataset.theme = siteTheme;
+    }, [siteTheme]);
+
+    useEffect(() => {
+        fetch('/templates.json')
+            .then(res => res.json())
+            .then(setBackgroundOptions)
+            .catch(console.error);
+    }, []);
+
+    const selectedBackground = useMemo(() => {
+        return backgroundOptions.find(opt => opt.id === style.bgId);
+    }, [backgroundOptions, style.bgId]);
+    
+    const allMatches: Match[] = useMemo(() => {
+        return matchesById.map(matchById => {
+            const giver = findParticipant(matchById.g, participants);
+            const receiver = findParticipant(matchById.r, participants);
+            return { giver: giver!, receiver: receiver! };
+        }).filter(match => match.giver && match.receiver);
+    }, [matchesById, participants]);
+
+    const currentMatch = useMemo(() => {
+        if (!currentParticipantId) return null;
+        return allMatches.find(m => m.giver.id === currentParticipantId);
+    }, [allMatches, currentParticipantId]);
+    
+    const handleStartNewGame = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        window.location.hash = '';
     };
-  }, [participants, matchesById, currentParticipantId]);
 
-  if (!currentParticipant || !match) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
-          <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Oops!</h1>
-          <p className="text-slate-700 text-lg">We couldn't find your name in this gift exchange. Please check the link or contact the organizer.</p>
-           <a href="/" className="mt-8 inline-block bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
-            Start a New Game
-          </a>
-        </div>
-      </div>
-    );
-  }
-
-  const handleRevealComplete = () => {
-    setShowFullList(true);
-  };
-
-  const backgroundImageUrl = document.querySelector(`[data-id="${style.bgId}"]`)?.getAttribute('data-url') || null;
-
-  return (
-    <div className="bg-slate-50 min-h-screen py-8">
-      <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl space-y-12">
-        <header className="text-center">
-             <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">
-              Secret Santa Reveal!
-            </h1>
-            <p className="text-lg text-gray-600 mt-1">Here's your secret assignment.</p>
-        </header>
-
-        <section className="max-w-md mx-auto">
-            <PrintableCard
-                match={match}
-                eventDetails={eventDetails}
-                backgroundId={style.bgId}
-                backgroundImageUrl={backgroundImageUrl}
-                // Fix: Corrected property names to match the CardStyle type.
-                customBackground={style.bgImg}
-                textColor={style.txtColor}
-                useTextOutline={style.useOutline}
-                outlineColor={style.outColor}
-                outlineSize={style.outSize}
-                fontSizeSetting={style.fontSize}
-                fontTheme={style.font}
-                lineSpacing={style.line}
-                greetingText={style.greet}
-                introText={style.intro}
-                wishlistLabelText={style.wish}
-                isNameRevealed={isRevealed}
-            />
-            {!isRevealed && (
-                <div className="text-center mt-6">
-                    <button 
-                        onClick={() => setIsRevealed(true)}
-                        className="bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out"
-                    >
-                        Click to Reveal Your Person
-                    </button>
+    if (!currentParticipantId || !currentMatch) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex flex-col">
+                <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl flex-grow">
+                    <Header />
+                    <div className="bg-white p-8 rounded-2xl shadow-lg mt-8 text-center">
+                        <h2 className="text-3xl font-bold text-slate-800 mb-4 font-serif">Who are you?</h2>
+                        <p className="text-slate-600 mb-8 text-lg">Select your name to see your Secret Santa assignment!</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {participants.map(p => (
+                                <a key={p.id} href={`#${window.location.hash.substring(1).split('?')[0]}?id=${p.id}`} className="block p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-800 transition-colors text-lg">
+                                    {p.name}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-            )}
-        </section>
-        
-        {revealAt && !showFullList ? (
-             <section className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-                <CountdownTimer targetTimestamp={revealAt} onComplete={handleRevealComplete} />
-             </section>
-        ) : (
-            <section className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-                <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4 text-center">Full Match List</h2>
-                <div className="max-w-xl mx-auto">
-                    <ul className="space-y-2">
-                        {allMatches.map(m => (
-                            <li key={m.giver.id} className="flex items-center justify-center gap-4 text-lg p-2 bg-slate-50 rounded-md">
-                                <span className="font-semibold text-slate-800 text-right w-2/5">{m.giver.name}</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                                <span className="font-semibold text-[var(--primary-text)] w-2/5">{m.receiver.name}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </section>
-        )}
-        <section className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Share the Fun!</h2>
-            <p className="text-gray-600 mb-6">Enjoying this tool? Help spread the holiday cheer!</p>
-            <ShareButtons participantCount={participants.length} />
-            <div className="mt-8">
-                <a href="/" className="text-sm font-semibold text-gray-500 hover:text-[var(--primary-color)]">
-                    Want to start your own game? Click here!
-                </a>
+                <Footer theme={siteTheme} setTheme={setSiteTheme} />
             </div>
-        </section>
-      </div>
-       <FaqSection />
-       <BlogPromo />
-    </div>
-  );
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-slate-50">
+            <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+                <Header />
+                <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
+                    { !isRevealTime && revealAt && (
+                        <div className="p-8 bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl shadow-xl text-white text-center">
+                             <h2 className="text-3xl font-bold font-serif mb-2">The Big Reveal is Coming Soon!</h2>
+                             <p className="text-slate-300 max-w-lg mx-auto mb-6 text-lg">The full list of who got who will be revealed after the exchange. Until then, your assignment is below!</p>
+                             <CountdownTimer targetDate={revealAt} onComplete={() => setIsRevealTime(true)} />
+                        </div>
+                    )}
+
+                    <div className="grid md:grid-cols-2 gap-8 items-center">
+                        <div className="text-center md:text-left">
+                            <p className="text-lg text-slate-600">Hello, <span className="font-bold text-slate-800">{currentMatch.giver.name}</span>!</p>
+                            <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 font-serif mt-2">You are the Secret Santa for...</h2>
+                        </div>
+                        <div onClick={() => setIsCardNameVisible(true)} className="cursor-pointer" title="Click to reveal name">
+                             <PrintableCard 
+                                match={currentMatch}
+                                eventDetails={details}
+                                backgroundId={style.bgId}
+                                backgroundImageUrl={selectedBackground?.imageUrl || null}
+                                customBackground={style.bgImg}
+                                textColor={style.txtColor}
+                                useTextOutline={style.useOutline}
+                                outlineColor={style.outColor}
+                                outlineSize={style.outSize}
+                                fontSizeSetting={style.fontSize}
+                                fontTheme={style.font}
+                                lineSpacing={style.line}
+                                greetingText={style.greet}
+                                introText={style.intro}
+                                wishlistLabelText={style.wish}
+                                isNameRevealed={isCardNameVisible}
+                             />
+                        </div>
+                    </div>
+                    
+                    {isRevealTime && (
+                         <div className="pt-8 text-center">
+                            <h2 className="text-3xl font-bold text-slate-800 mb-6 font-serif">The Big Reveal!</h2>
+                            <p className="text-slate-600 mb-6 text-lg">Here's the full list of who had who. Thanks for playing!</p>
+                            <ResultsDisplay matches={allMatches} />
+                         </div>
+                    )}
+                    
+                     <div className="p-8 bg-white rounded-2xl shadow-lg border border-gray-200 mt-12">
+                        <h3 className="text-3xl font-bold font-serif mb-2 text-center">Share the Fun!</h3>
+                        <p className="max-w-xs mb-6 text-lg text-center mx-auto text-slate-600">Enjoying this free tool? Help spread the holiday cheer!</p>
+                        <ShareButtons participantCount={participants.length} />
+                        <div className="text-center mt-8">
+                             <a href="/" onClick={handleStartNewGame} className="inline-block bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
+                                Start a New Game
+                             </a>
+                        </div>
+                     </div>
+                </main>
+            </div>
+            <Footer theme={siteTheme} setTheme={setSiteTheme} />
+        </div>
+    );
 };
 
 export default ResultsPage;
