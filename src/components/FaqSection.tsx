@@ -25,8 +25,8 @@ const FaqItem: React.FC<FaqItemProps> = ({ question, children }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 mt-4' : 'max-h-0'}`}>
-                <div className="text-gray-600 prose">
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[500px] mt-4' : 'max-h-0'}`}>
+                <div className="text-gray-600 prose max-w-none">
                     {children}
                 </div>
             </div>
@@ -41,20 +41,29 @@ const FaqSection: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8">
                 <h2 className="text-3xl font-bold text-slate-800 text-center mb-8 font-serif">Frequently Asked Questions</h2>
                 <div className="max-w-3xl mx-auto">
-                    <FaqItem question="Is this Secret Santa generator free?">
-                        <p>Yes, absolutely! This tool is 100% free to use. There are no hidden fees, and you don't need to create an account or provide an email address.</p>
+                    <FaqItem question="How does this Secret Santa Generator work?">
+                        <p>It's simple! 1. You add participant names. 2. You set optional rules (like exclusions). 3. You generate unique, private links for each person. 4. You copy and send these links to your participants via text, chat, or messenger. They click their link to see who they're buying for!</p>
                     </FaqItem>
-                    <FaqItem question="How does the sharing work without emails?">
-                        <p>After generating matches, we create a unique, private link for each participant. As the organizer, you'll see a list of these links. Simply copy each person's link and send it to them via text, chat, or any other private messaging app. It's fast, secure, and doesn't require collecting everyone's email addresses.</p>
+                    <FaqItem question="Is this tool really free? What's the catch?">
+                        <p>Yes, it's 100% free. There is no catch. We don't require sign-ups, don't ask for emails, and don't sell your data. The site is supported by small, unobtrusive ads and optional tips from generous users who find the tool helpful. Our goal is to be the best free Secret Santa generator available.</p>
                     </FaqItem>
-                    <FaqItem question="Is my data private and secure?">
-                        <p>Yes. Your privacy is our top priority. We don't require sign-ups, so we don't store personal information like your name or email. All the event data (participant names, rules, etc.) is encoded directly into the URL you share. We don't save this information on our servers. The only person with access to all the links is the organizer.</p>
+                    <FaqItem question="How is this private if there are no emails or accounts?">
+                        <p>Your privacy is a core feature. All your event data—participant names, gift notes, rules, and matches—is compressed and encoded directly into the long URL hash. We don't store any of this information on our servers. When someone clicks a link, the data is decoded in their browser only. The only person with access to everyone's link is you, the organizer.</p>
                     </FaqItem>
-                    <FaqItem question="Can I prevent certain people from drawing each other?">
-                        <p>Of course! In Step 2, under "Details & Rules," you can add drawing restrictions. This is perfect for preventing couples or family members from being matched together. You can add as many of these "exclusions" as you need.</p>
+                    <FaqItem question="Can I use this for occasions other than Christmas?">
+                        <p>Absolutely! This tool is perfect for any gift exchange, year-round. Use it for office parties, birthday gift exchanges, family gatherings, Valentine's Day, or just for fun. We've even added themes for Birthdays, Celebrations, and Halloween to make your event page match the occasion.</p>
                     </FaqItem>
-                    <FaqItem question="What happens if I make a mistake?">
-                        <p>If you're the organizer, you can go back to the main page (by removing the part of the URL after the '#' symbol) to make changes and generate a new set of links. The old links will no longer be valid once you share the new ones. If you've already shared the links, it's best to let everyone know you're sending out a revised version.</p>
+                    <FaqItem question="How do I prevent people from drawing each other (e.g., couples)?">
+                        <p>In Step 2 ("Details & Rules"), you can add as many "Drawing Restrictions" as you need. Just select two people who should not be matched together. The generator will guarantee they don't draw each other's names. This is perfect for couples, siblings, or close co-workers.</p>
+                    </FaqItem>
+                    <FaqItem question="What is the 'Big Reveal' feature?">
+                        <p>The Big Reveal adds a fun final moment to your event! You can set an exchange date and time. Before that time, participants who click their link will only see their own assignment. After the date and time pass, the same link will automatically update to show the full master list of who had who. It's a great way for everyone to find out who their Secret Santa was!</p>
+                    </FaqItem>
+                    <FaqItem question="Can I download or print the results?">
+                        <p>Yes! As the organizer, the results page gives you a "Download Now" option. You can download beautifully styled individual cards for each participant (perfect for handing out in person) or a complete master list for your own records. The cards are fully customizable with themes, colors, and fonts before you generate.</p>
+                    </FaqItem>
+                    <FaqItem question="What happens if I make a mistake after sending the links?">
+                        <p>No problem. Simply go back to the main page (click the site logo or the "Start a New Game" button), make your corrections, and generate a new set of links. The old links will now be invalid. It is important to let your participants know that you are sending out a new, corrected set of links.</p>
                     </FaqItem>
                 </div>
             </div>
