@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { ExchangeData, Match, Participant } from '../types';
+import type { ExchangeData, Match, Participant, BackgroundOption } from '../types';
 import PrintableCard from './PrintableCard';
 import CountdownTimer from './CountdownTimer';
 import Header from './Header';
@@ -21,18 +21,25 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     const [error, setError] = useState<string>('');
     const [isRevealed, setIsRevealed] = useState(false);
     const [isNameRevealed, setIsNameRevealed] = useState(false);
-    const [backgroundOptions, setBackgroundOptions] = useState<any[]>([]);
+    const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const [copySuccess, setCopySuccess] = useState<Record<string, boolean>>({});
 
-    const reconstructedMatches = useMemo(() => {
+    const reconstructedParticipants = useMemo((): Participant[] => {
+        return data.p.map((participantData, index) => ({
+            ...participantData,
+            id: `p${index}`,
+        }));
+    }, [data.p]);
+
+    const reconstructedMatches = useMemo((): Match[] => {
         return data.m.map(matchData => {
-            const giver: Participant = { ...data.p[matchData.g], id: `p${matchData.g}` };
-            const receiver: Participant = { ...data.p[matchData.r], id: `p${matchData.r}` };
+            const giver = reconstructedParticipants[matchData.g];
+            const receiver = reconstructedParticipants[matchData.r];
             return { giver, receiver };
         });
-    }, [data.m, data.p]);
+    }, [data.m, reconstructedParticipants]);
 
     useEffect(() => {
         document.documentElement.dataset.theme = data.th || 'default';
