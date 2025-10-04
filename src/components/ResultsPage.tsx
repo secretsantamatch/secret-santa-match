@@ -27,6 +27,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     const [showShareModal, setShowShareModal] = useState(false);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const [copySuccess, setCopySuccess] = useState<Record<string, boolean>>({});
+    const [isMasterListVisible, setIsMasterListVisible] = useState(false);
 
     const reconstructedParticipants = useMemo((): Participant[] => {
         return data.p.map((participantData, index) => ({
@@ -149,18 +150,25 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                     <Header />
                     <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
                          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-                             <div className="text-center mb-6">
+                             <div className="text-center">
                                 <h2 className="text-3xl font-bold text-slate-800 font-serif mb-2">Your Event is Ready!</h2>
-                                <p className="text-gray-600 max-w-2xl mx-auto">Click the button below to get the unique, private links to share with your participants.</p>
-                                <button onClick={() => setShowShareModal(true)} className="mt-4 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-all">
+                                <p className="text-gray-600 max-w-2xl mx-auto mb-6">This is the organizer's page. Your main task is to share the private links with each participant so they can discover their match.</p>
+                                <button onClick={() => setShowShareModal(true)} className="bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out">
                                     Share Links with Participants
                                 </button>
                             </div>
-                            
-                            <div className="text-center mt-6 border-t pt-6">
-                                <h3 className="font-bold text-xl text-slate-800 mb-4">View Master List</h3>
-                                {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} targetTime={data.rt} /> : <ResultsDisplay matches={allMatches} />)}
-                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl shadow-lg border border-gray-200">
+                             <button onClick={() => setIsMasterListVisible(!isMasterListVisible)} className="w-full p-6 md:p-8 flex justify-between items-center text-left" aria-expanded={isMasterListVisible}>
+                                <h3 className="font-bold text-xl text-slate-800">View Master List</h3>
+                                <svg className={`w-6 h-6 text-gray-500 transform transition-transform duration-300 ${isMasterListVisible ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                             </button>
+                             {isMasterListVisible && (
+                                <div className="px-6 md:px-8 pb-8 animate-fade-in-down">
+                                  {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} targetTime={data.rt} /> : <ResultsDisplay matches={allMatches} />)}
+                                </div>
+                             )}
                         </div>
                         
                         <div className="grid md:grid-cols-2 gap-8">
