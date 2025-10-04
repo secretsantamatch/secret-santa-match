@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
+// Fix: Corrected import paths for types.
 import type { Match, FontSizeSetting, OutlineSizeSetting, FontTheme } from '../types';
 
 interface PrintableCardProps {
   match: Match;
-  eventDetails: string;
+  isNameRevealed: boolean;
   backgroundImageUrl: string | null;
   customBackground: string | null;
   textColor: string;
@@ -16,144 +17,125 @@ interface PrintableCardProps {
   greetingText: string;
   introText: string;
   wishlistLabelText: string;
-  isPdfMode: boolean;
+  isPdfMode?: boolean;
   onRendered?: () => void;
-  isNameRevealed: boolean;
-  onReveal?: () => void; // Added for click-to-reveal
 }
 
-const fontFamilies: Record<FontTheme, string> = {
-    classic: '"Playfair Display", serif',
-    elegant: '"Cormorant Garamond", serif',
-    modern: '"Montserrat", sans-serif',
-    whimsical: '"Pacifico", cursive',
+const fontClasses: Record<FontTheme, string> = {
+  classic: 'font-serif',
+  elegant: 'font-serif',
+  modern: 'font-sans',
+  whimsical: 'font-sans',
 };
 
-const fontSizes: Record<FontSizeSetting, { base: string, large: string, small: string }> = {
-    normal: { base: '1rem', large: '2rem', small: '0.875rem' },
-    large: { base: '1.125rem', large: '2.25rem', small: '1rem' },
-    'extra-large': { base: '1.25rem', large: '2.5rem', small: '1.125rem' },
+const fontSizes: Record<FontSizeSetting, { base: string; header: string; small: string }> = {
+  normal: { base: 'text-[15px]', header: 'text-[24px]', small: 'text-[12px]' },
+  large: { base: 'text-[17px]', header: 'text-[28px]', small: 'text-[14px]' },
+  'extra-large': { base: 'text-[19px]', header: 'text-[32px]', small: 'text-[16px]' },
 };
 
 const outlineSizes: Record<OutlineSizeSetting, string> = {
-    thin: '0.5px',
-    normal: '1px',
-    thick: '2px',
+    thin: '1px',
+    normal: '2px',
+    thick: '3px',
 };
 
+const PrintableCard: React.FC<PrintableCardProps> = ({
+  match,
+  isNameRevealed,
+  backgroundImageUrl,
+  customBackground,
+  textColor,
+  useTextOutline,
+  outlineColor,
+  outlineSize,
+  fontSizeSetting,
+  fontTheme,
+  lineSpacing,
+  greetingText,
+  introText,
+  wishlistLabelText,
+  onRendered,
+}) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (onRendered) {
+      const images = cardRef.current?.querySelectorAll('img');
+      const bgImage = customBackground || backgroundImageUrl;
 
-const PrintableCard: React.FC<PrintableCardProps> = (props) => {
-    const { 
-        match, eventDetails, backgroundImageUrl, customBackground, textColor, useTextOutline, outlineColor,
-        outlineSize, fontSizeSetting, fontTheme, lineSpacing, greetingText, introText, wishlistLabelText,
-        isPdfMode, onRendered, isNameRevealed, onReveal
-    } = props;
-    
-    useEffect(() => {
-        if (onRendered) onRendered();
-    }, [onRendered, props]);
-    
-    const textShadow = useMemo(() => {
-        if (!useTextOutline) return 'none';
-        const size = outlineSizes[outlineSize];
-        return `
-            -${size} -${size} 0 ${outlineColor},
-             ${size} -${size} 0 ${outlineColor},
-            -${size}  ${size} 0 ${outlineColor},
-             ${size}  ${size} 0 ${outlineColor},
-            -${size} 0 0 ${outlineColor},
-             ${size} 0 0 ${outlineColor},
-            0 -${size} 0 ${outlineColor},
-            0  ${size} 0 ${outlineColor}
-        `;
-    }, [useTextOutline, outlineColor, outlineSize]);
-    
-    // FIX: Cast the style object to React.CSSProperties to allow for CSS custom properties.
-    const dynamicStyles = {
-        fontFamily: fontFamilies[fontTheme],
-        color: textColor,
-        '--base-font-size': fontSizes[fontSizeSetting].base,
-        '--large-font-size': fontSizes[fontSizeSetting].large,
-        '--small-font-size': fontSizes[fontSizeSetting].small,
-        lineHeight: lineSpacing,
-        textShadow,
-    } as React.CSSProperties;
-    
-    const backgroundStyle: React.CSSProperties = {
-        backgroundImage: `url(${customBackground || backgroundImageUrl || ''})`,
+      if (!bgImage || (!images || images.length === 0)) {
+        setTimeout(onRendered, 50);
+        return;
+      }
+      
+      const imagePromises = Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise<void>(resolve => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        });
+      });
+
+      Promise.all(imagePromises).then(() => {
+        setTimeout(onRendered, 100);
+      });
+    }
+  }, [onRendered, customBackground, backgroundImageUrl]);
+  
+  const size = outlineSizes[outlineSize];
+  const textShadow = useTextOutline
+    ? `${size} 0 0 ${outlineColor}, -${size} 0 0 ${outlineColor}, 0 ${size} 0 ${outlineColor}, 0 -${size} 0 ${outlineColor}, ${size} ${size} 0 ${outlineColor}, -${size} -${size} 0 ${outlineColor}, ${size} -${size} 0 ${outlineColor}, -${size} ${size} 0 ${outlineColor}`
+    : 'none';
+
+  const styles: React.CSSProperties = {
+    color: textColor,
+    textShadow,
+    lineHeight: lineSpacing,
+  };
+
+  const bgImage = customBackground || backgroundImageUrl;
+  const giverName = match.giver.name;
+  const receiverName = match.receiver.name;
+  
+  const finalGreetingText = greetingText.replace('{secret_santa}', giverName);
+
+  return (
+    <div
+      ref={cardRef}
+      className={`w-full h-full p-6 flex flex-col justify-between relative overflow-hidden ${fontClasses[fontTheme]}`}
+      style={{
+        backgroundImage: bgImage ? `url(${bgImage})` : undefined,
+        backgroundColor: bgImage ? 'transparent' : '#f0f0f0',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-    };
-
-    const parsedGreeting = greetingText.replace('{secret_santa}', match.giver.name);
-    
-    const renderRevealableName = () => {
-        if (isNameRevealed || isPdfMode) {
-            return (
-                 <div className="my-4 p-4" style={{ fontSize: 'var(--large-font-size)', fontWeight: 700 }}>
-                    {match.receiver.name}
-                </div>
-            )
-        }
-        return (
-            <div 
-                className="my-4 p-4 rounded-lg cursor-pointer transition-all duration-300 bg-black/10 hover:bg-black/20 backdrop-blur-sm"
-                onClick={onReveal}
-                role="button"
-                aria-label="Click to reveal name"
-            >
-                <div 
-                    style={{
-                         fontSize: 'var(--large-font-size)',
-                         fontWeight: 700,
-                         filter: 'blur(12px)',
-                         opacity: 0.6
-                    }}
-                >
-                   {match.receiver.name}
-                </div>
-                 <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-semibold" style={{ textShadow: 'none' }}>Tap to Reveal</span>
-                </div>
-            </div>
-        )
-    }
-
-    return (
-        <div 
-            className="w-full h-full p-6 sm:p-8 flex flex-col justify-between text-center overflow-hidden bg-gray-100" 
-            style={{ ...dynamicStyles, ...backgroundStyle }}
-        >
-            <div className="flex-grow flex flex-col items-center justify-center">
-                <p className="text-[var(--base-font-size)] opacity-90">{parsedGreeting}</p>
-                <p className="text-[var(--base-font-size)] mt-2 sm:mt-4">{introText}</p>
-                
-                <div className="relative w-full">
-                   {renderRevealableName()}
-                </div>
-
-                {(match.receiver.notes || match.receiver.budget) && (
-                    <div className="mt-2 sm:mt-4 text-[var(--small-font-size)] w-full max-w-xs mx-auto p-3 bg-black/10 rounded-lg backdrop-blur-sm">
-                        <h3 className="font-bold opacity-90">{wishlistLabelText}</h3>
-                        <p className="opacity-80 break-words">
-                            {match.receiver.notes}
-                            {match.receiver.notes && match.receiver.budget && ' | '}
-                            {match.receiver.budget && `Budget: $${match.receiver.budget}`}
-                        </p>
-                    </div>
-                )}
-            </div>
-            {eventDetails && (
-                <div className="mt-auto pt-4 text-[var(--small-font-size)] opacity-70">
-                    <p className="font-bold">Event Details:</p>
-                    <p className="break-words">{eventDetails}</p>
-                </div>
-            )}
-            <div className="absolute bottom-1 right-2 text-[10px] opacity-50" style={{textShadow: '0 0 2px rgba(0,0,0,0.5)'}}>
-                SecretSantaMatch.com
-            </div>
+      }}
+    >
+      <div className="absolute inset-0 bg-black/20" />
+      <div className="relative z-10 text-center" style={styles}>
+        <h2 className={`${fontSizes[fontSizeSetting].header} font-bold`}>{finalGreetingText}</h2>
+        <p className={`${fontSizes[fontSizeSetting].base} mt-2`}>{introText}</p>
+        <div className={`my-4 inline-block px-6 py-3 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30`}>
+          <p className={`${fontSizes[fontSizeSetting].header} font-bold`}>
+            {isNameRevealed ? receiverName : 'Tap to Reveal'}
+          </p>
         </div>
-    );
+      </div>
+      
+      <div className="relative z-10 text-center" style={styles}>
+        <h3 className={`${fontSizes[fontSizeSetting].base} font-bold`}>{wishlistLabelText}</h3>
+        <p className={`${fontSizes[fontSizeSetting].small}`}>
+          {match.receiver.notes || <span className="italic">No notes provided</span>}
+        </p>
+        {match.receiver.budget && (
+          <p className={`${fontSizes[fontSizeSetting].small} mt-1`}>
+            <strong>Suggested Budget:</strong> ${match.receiver.budget}
+          </p>
+        )}
+      </div>
+      {bgImage && <img src={bgImage} alt="" className="hidden" aria-hidden="true" />}
+    </div>
+  );
 };
 
 export default PrintableCard;
