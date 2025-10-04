@@ -1,73 +1,71 @@
 import React, { useState, useEffect } from 'react';
 
 interface CountdownTimerProps {
-  targetDate: number; // timestamp
-  onComplete: () => void;
+    targetDate: string;
 }
 
-interface TimeLeft {
-    days?: number;
-    hours?: number;
-    minutes?: number;
-    seconds?: number;
-}
-
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, onComplete }) => {
-  const calculateTimeLeft = (): TimeLeft => {
-    const difference = targetDate - Date.now();
-    if (difference <= 0) {
-      return {};
-    }
-    return {
-      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-      minutes: Math.floor((difference / 1000 / 60) % 60),
-      seconds: Math.floor((difference / 1000) % 60),
+const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
+    const getTargetDateTime = () => {
+        const [year, month, day] = targetDate.split('-').map(Number);
+        const date = new Date(Date.UTC(year, month - 1, day));
+        return date;
     };
-  };
 
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft());
+    const [targetDateTime, setTargetDateTime] = useState(getTargetDateTime());
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const newTimeLeft = calculateTimeLeft();
-      setTimeLeft(newTimeLeft);
-      if (Object.keys(newTimeLeft).length === 0) {
-        onComplete();
-        clearInterval(timer);
-      }
-    }, 1000);
+    const calculateTimeLeft = () => {
+        const difference = +targetDateTime - +new Date();
+        let timeLeft: { [key: string]: number } = {};
 
-    return () => clearInterval(timer);
-  }, [onComplete]);
+        if (difference > 0) {
+            timeLeft = {
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((difference / 1000 / 60) % 60),
+                seconds: Math.floor((difference / 1000) % 60)
+            };
+        }
+        return timeLeft;
+    };
 
-  const timerComponents: React.ReactElement[] = [];
-  let hasStarted = false;
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+    
+    useEffect(() => {
+        setTargetDateTime(getTargetDateTime());
+    }, [targetDate]);
 
-  (Object.keys(timeLeft) as Array<keyof TimeLeft>).forEach((interval) => {
-    const value = timeLeft[interval];
-    if (value === undefined) return;
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setTimeLeft(calculateTimeLeft());
+        }, 1000);
+        return () => clearTimeout(timer);
+    });
 
-    if (value > 0) hasStarted = true;
-    if (!hasStarted && interval !== 'seconds') return;
+    const timerComponents: React.ReactElement[] = Object.entries(timeLeft).map(([unit, value]) => (
+        <div key={unit} className="text-center">
+            <div className="text-3xl sm:text-4xl lg:text-5xl font-bold">{String(value).padStart(2, '0')}</div>
+            <div className="text-xs sm:text-sm uppercase tracking-wider">{unit}</div>
+        </div>
+    ));
 
-    timerComponents.push(
-      <div key={interval} className="text-center">
-        <span className="text-4xl lg:text-5xl font-bold">{String(value).padStart(2, '0')}</span>
-        <span className="block text-sm uppercase tracking-wider">{interval}</span>
-      </div>
+    const formattedDate = new Date(targetDate + 'T00:00:00Z').toLocaleDateString(undefined, {
+        year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
+    });
+
+    if (!timerComponents.length) {
+        return <p className="font-bold text-lg text-green-600">The results are revealed!</p>;
+    }
+
+    return (
+        <div className="text-slate-700">
+             <p className="text-center text-slate-600 mb-4">
+                Come back after <span className="font-bold text-[var(--primary-text)]">{formattedDate}</span> to see who everyone else got!
+            </p>
+            <div className="flex justify-center gap-4 sm:gap-6">
+                {timerComponents}
+            </div>
+        </div>
     );
-  });
-
-  if (timerComponents.length === 0) {
-     return <div className="text-xl font-semibold">Revealing now...</div>;
-  }
-
-  return (
-    <div className="flex justify-center items-center gap-4 text-white">
-      {timerComponents}
-    </div>
-  );
 };
 
 export default CountdownTimer;
