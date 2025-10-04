@@ -64,12 +64,12 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   }, [isPdfMode, onRendered, backgroundImageUrl, customBackground]);
 
   const fontClasses = {
-    classic: 'font-serif', // Playfair Display
-    elegant: 'font-["Great_Vibes",cursive]',
-    modern: 'font-["Oswald",sans-serif]',
-    whimsical: 'font-["Pacifico",cursive]',
+    classic: 'font-serif',
+    elegant: 'font-elegant',
+    modern: 'font-modern',
+    whimsical: 'font-whimsical',
   };
-  const bodyFontClass = 'font-["Montserrat",sans-serif]';
+  const bodyFontClass = 'font-sans';
 
   const fontSizes = {
     normal: { title: 'text-3xl', body: 'text-base', small: 'text-sm' },
