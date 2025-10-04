@@ -28,6 +28,7 @@ interface MasterListPdfProps {
   matches: Match[];
   eventDetails: string;
   exchangeDate?: string;
+  exchangeTime?: string;
 }
 
 export const generateIndividualCardsPdf = async (props: IndividualCardsPdfProps) => {
@@ -91,7 +92,7 @@ export const generateIndividualCardsPdf = async (props: IndividualCardsPdfProps)
 };
 
 
-export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate }: MasterListPdfProps) => {
+export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate, exchangeTime }: MasterListPdfProps) => {
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -115,12 +116,16 @@ export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate }: M
     }
 
     if (exchangeDate) {
-        const dateParts = exchangeDate.split('-').map(part => parseInt(part, 10));
-        let dateObj = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+        const dateTimeString = `${exchangeDate}T${exchangeTime || '00:00'}:00Z`;
+        const dateObj = new Date(dateTimeString);
         const formattedDate = dateObj.toLocaleDateString(undefined, {
             year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
         });
-        let dateString = `Exchange Date: ${formattedDate}`;
+        const formattedTime = exchangeTime ? dateObj.toLocaleTimeString(undefined, {
+            hour: 'numeric', minute: '2-digit', timeZone: 'UTC', hour12: true
+        }) : '';
+
+        let dateString = `Exchange Date: ${formattedDate}${exchangeTime ? ` at ${formattedTime} (UTC)` : ''}`;
         doc.text(dateString, pageWidth / 2, startY, { align: 'center' });
         startY += 10;
     }
