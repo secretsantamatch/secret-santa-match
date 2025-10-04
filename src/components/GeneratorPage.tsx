@@ -58,6 +58,7 @@ const GeneratorPage: React.FC = () => {
   const [wishlistLabelText, setWishlistLabelText] = useState('Gift Ideas & Notes:');
   
   const [exchangeDate, setExchangeDate] = useState('');
+  const [exchangeTime, setExchangeTime] = useState('');
   const [globalBudget, setGlobalBudget] = useState('');
   const [pageTheme, setPageTheme] = useState(getSeasonalTheme());
   
@@ -206,6 +207,7 @@ const GeneratorPage: React.FC = () => {
             style: cardStyle,
             e: eventDetails || undefined,
             rd: exchangeDate || undefined,
+            rt: exchangeTime || undefined,
             th: pageTheme,
         };
         const encodedData = encodeData(data);
@@ -225,6 +227,7 @@ const GeneratorPage: React.FC = () => {
     setError('');
     setEventDetails('');
     setExchangeDate('');
+    setExchangeTime('');
     setGlobalBudget('');
     setPageTheme(getSeasonalTheme());
     localStorage.removeItem('ssm_participants_v2');
@@ -280,6 +283,7 @@ const GeneratorPage: React.FC = () => {
                           assignments={assignments} setAssignments={setAssignments}
                           eventDetails={eventDetails} setEventDetails={setEventDetails}
                           exchangeDate={exchangeDate} setExchangeDate={setExchangeDate}
+                          exchangeTime={exchangeTime} setExchangeTime={setExchangeTime}
                           globalBudget={globalBudget} onGlobalBudgetChange={handleGlobalBudgetChange}
                           pageTheme={pageTheme} setPageTheme={setPageTheme}
                       />
