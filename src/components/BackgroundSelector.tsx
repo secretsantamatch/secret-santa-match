@@ -33,8 +33,6 @@ interface BackgroundSelectorProps {
   setWishlistLabelText: (text: string) => void;
 }
 
-const getProxiedUrl = (url: string) => `https://wsrv.nl/?url=${encodeURIComponent(url)}&n=-1`;
-
 const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
   participants,
   eventDetails,
@@ -133,7 +131,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                 onMouseLeave={() => setHoveredId(null)} 
                 aria-label={option.name}
                 className={`relative w-full aspect-[3/4] rounded-lg overflow-hidden border-4 transition-all duration-200 bg-gray-100 focus:outline-none focus:ring-4 focus:ring-offset-0 focus:ring-[var(--primary-focus-ring-color)] ${selectedBackground === option.id ? 'border-[var(--primary-color)] scale-105 shadow-lg' : 'border-transparent hover:border-gray-300'}`}>
-                {option.imageUrl ? <img src={getProxiedUrl(option.imageUrl)} alt={option.name} className="w-full h-full object-cover" loading="lazy"/> : <div className="w-full h-full bg-white flex items-center justify-center p-2"><span className="text-gray-500 text-3xl">{option.icon}</span></div>}
+                {option.imageUrl ? <img src={option.imageUrl} alt={option.name} className="w-full h-full object-cover" loading="lazy"/> : <div className="w-full h-full bg-white flex items-center justify-center p-2"><span className="text-gray-500 text-3xl">{option.icon}</span></div>}
               </button>
             </div>
           ))}
