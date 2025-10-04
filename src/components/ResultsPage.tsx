@@ -1,248 +1,221 @@
 import React, { useState, useEffect, useMemo } from 'react';
-// Fix: Corrected import paths for types and components.
-import type { ExchangeData, Participant, Match, BackgroundOption } from '../types';
+import type { ExchangeData, Match, BackgroundOption } from '../types';
 import PrintableCard from './PrintableCard';
-import ShareButtons from './ShareButtons';
-import CountdownTimer from './CountdownTimer';
 import { generateIndividualCardsPdf, generateMasterListPdf } from '../services/pdfService';
-import FaqSection from './FaqSection';
-import BlogPromo from './BlogPromo';
-import Footer from './Footer';
-import BackToTopButton from './BackToTopButton';
+import CountdownTimer from './CountdownTimer';
+import ShareButtons from './ShareButtons';
 
-const getSeasonalTheme = (theme: string): string => {
-    const validThemes = ['christmas', 'halloween', 'valentines', 'birthday', 'celebration'];
-    if (validThemes.includes(theme)) {
-        return theme;
-    }
-    const month = new Date().getMonth();
-    if (month === 9) return 'halloween';
-    if (month === 1) return 'valentines';
-    return 'christmas';
-};
+interface ResultsPageProps {
+    data: ExchangeData;
+    currentParticipantId: string | null;
+}
 
-const ResultsPage: React.FC<{ data: ExchangeData, currentParticipantId: string | null }> = ({ data, currentParticipantId }) => {
-    const { p: participants, m: matchesById, details, style, th: pageTheme, revealAt } = data;
-    
-    const [isRevealed, setIsRevealed] = useState(!revealAt || Date.now() > revealAt);
+const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
+    const [isNameRevealed, setIsNameRevealed] = useState(false);
+    const [isRevealedGlobally, setIsRevealedGlobally] = useState(data.revealAt ? Date.now() > data.revealAt : true);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
-    const [siteTheme, setSiteTheme] = useState(() => getSeasonalTheme(pageTheme));
-    
+    const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
+
     useEffect(() => {
-        document.documentElement.dataset.theme = siteTheme;
-    }, [siteTheme]);
-    
-    const participantMap = useMemo(() => new Map(participants.map(p => [p.id, p])), [participants]);
-    
-    const matches: Match[] = useMemo(() => matchesById.map(matchById => ({
-        giver: participantMap.get(matchById.g)!,
-        receiver: participantMap.get(matchById.r)!
-    })).filter(m => m.giver && m.receiver), [matchesById, participantMap]);
-    
+        fetch('/templates.json')
+            .then(res => res.json())
+            .then(data => setBackgroundOptions(data))
+            .catch(err => console.error("Could not load templates", err));
+    }, []);
+
+    const participantMap = useMemo(() => new Map(data.p.map(p => [p.id, p])), [data.p]);
+    const matches: Match[] = useMemo(() => data.m.map(m => ({
+        giver: participantMap.get(m.g)!,
+        receiver: participantMap.get(m.r)!,
+    })).filter(m => m.giver && m.receiver), [data.m, participantMap]);
+
     const currentMatch = useMemo(() => {
         if (!currentParticipantId) return null;
         return matches.find(m => m.giver.id === currentParticipantId) || null;
-    }, [currentParticipantId, matches]);
+    }, [matches, currentParticipantId]);
+    
+    const selectedTheme = useMemo(() => {
+        return backgroundOptions.find(opt => opt.id === data.style.bgId);
+    }, [backgroundOptions, data.style.bgId]);
 
     const handleRevealComplete = () => {
-        setIsRevealed(true);
+        setIsRevealedGlobally(true);
     };
-
-    const performPdfGeneration = async (generationFn: () => Promise<void>) => {
+    
+    const handleDownload = async (type: 'card' | 'list') => {
         setIsPdfLoading(true);
         try {
-            await generationFn();
+            if (type === 'card' && currentMatch) {
+                await generateIndividualCardsPdf({
+                    matches: [currentMatch],
+                    eventDetails: data.details,
+                    backgroundOptions: backgroundOptions,
+                    backgroundId: data.style.bgId,
+                    customBackground: data.style.bgImg,
+                    textColor: data.style.txtColor,
+                    useTextOutline: data.style.useOutline,
+                    outlineColor: data.style.outColor,
+                    outlineSize: data.style.outSize,
+                    fontSizeSetting: data.style.fontSize,
+                    fontTheme: data.style.font,
+                    lineSpacing: data.style.line,
+                    greetingText: data.style.greet,
+                    introText: data.style.intro,
+                    wishlistLabelText: data.style.wish,
+                });
+            } else if (type === 'list' && isRevealedGlobally) {
+                generateMasterListPdf({ 
+                    matches, 
+                    eventDetails: data.details,
+                    exchangeDate: data.revealAt ? new Date(data.revealAt).toISOString().split('T')[0] : undefined,
+                    exchangeTime: data.rt
+                });
+            }
         } catch (err) {
-            console.error("PDF Generation failed:", err);
-            alert("Sorry, something went wrong while generating the PDF. Please try again.");
+            console.error("PDF generation failed:", err);
+            // You might want to show an error to the user
         } finally {
             setIsPdfLoading(false);
         }
     };
-
-    const handleDownloadCards = () => performPdfGeneration(async () => {
-        const backgroundOptions: BackgroundOption[] = [{
-            id: style.bgId,
-            name: 'Custom',
-            description: '',
-            icon: '',
-            imageUrl: style.bgImg || '',
-            defaultTextColor: style.txtColor,
-        }];
-
-        await generateIndividualCardsPdf({
-            matches,
-            eventDetails: details,
-            backgroundOptions,
-            backgroundId: style.bgId,
-            customBackground: style.bgImg,
-            textColor: style.txtColor,
-            useTextOutline: style.useOutline,
-            outlineColor: style.outColor,
-            outlineSize: style.outSize,
-            fontSizeSetting: style.fontSize,
-            fontTheme: style.font,
-            lineSpacing: style.line,
-            greetingText: style.greet,
-            introText: style.intro,
-            wishlistLabelText: style.wish,
-        });
-    });
-
-    const handleDownloadList = () => performPdfGeneration(async () => {
-        generateMasterListPdf({ 
-            matches, 
-            eventDetails: details,
-            exchangeDate: revealAt ? new Date(revealAt).toISOString().split('T')[0] : undefined,
-            exchangeTime: data.rt
-        });
-    });
     
-    const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
-    const handleCopyLink = (participantId: string) => {
-        const url = `${window.location.origin}${window.location.pathname}#${window.location.hash.split('?')[0]}?id=${participantId}`;
-        navigator.clipboard.writeText(url).then(() => {
-            setCopiedLinkId(participantId);
-            setTimeout(() => setCopiedLinkId(null), 2000);
-        });
+    useEffect(() => {
+        document.documentElement.dataset.theme = data.th || 'christmas';
+    }, [data.th]);
+
+    const renderContent = () => {
+        if (!isRevealedGlobally && data.revealAt) {
+            return (
+                <div className="text-center p-8 bg-slate-800/50 rounded-2xl backdrop-blur-md text-white">
+                    <h2 className="text-2xl font-bold font-serif mb-2">The Big Reveal is Coming!</h2>
+                    <p className="text-lg opacity-80 mb-6">The full list of who has who will be revealed in:</p>
+                    <CountdownTimer targetDate={data.revealAt} onComplete={handleRevealComplete} />
+                </div>
+            );
+        }
+
+        return (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="p-6 md:p-8">
+                    <h2 className="text-3xl font-bold text-slate-800 text-center font-serif mb-2">Secret Santa Master List</h2>
+                    <p className="text-center text-gray-600 mb-6">The results are in! Here is the full list of matches.</p>
+                </div>
+                <div className="max-w-4xl mx-auto overflow-x-auto p-4 md:p-8 pt-0">
+                    <div className="bg-slate-50 rounded-lg p-4 border">
+                        <div className="grid grid-cols-3 gap-4 text-left font-semibold text-sm text-gray-600 uppercase tracking-wider px-4 pb-2 border-b">
+                            <div>Secret Santa (Giver)</div>
+                            <div>Is Giving To (Receiver)</div>
+                            <div>Receiver's Notes & Budget</div>
+                        </div>
+                        <div className="divide-y">
+                            {matches.map((match) => (
+                                <div key={match.giver.id} className="grid grid-cols-3 gap-4 items-center p-4">
+                                    <div className={`font-semibold text-slate-800 ${currentParticipantId === match.giver.id ? 'text-[var(--accent-dark-text)]' : ''}`}>{match.giver.name}</div>
+                                    <div><span className={`font-semibold py-1 px-3 rounded-full ${currentParticipantId === match.giver.id ? 'bg-[var(--accent-color)] text-white' : 'bg-slate-200 text-slate-700'}`}>{match.receiver.name}</span></div>
+                                    <div className="text-sm text-gray-500">
+                                        {match.receiver.notes || match.receiver.budget ? (
+                                            <>
+                                                {match.receiver.notes && <span>{match.receiver.notes}</span>}
+                                                {match.receiver.notes && match.receiver.budget && <span className="mx-1">|</span>}
+                                                {match.receiver.budget && <span>Budget: ${match.receiver.budget}</span>}
+                                            </>
+                                        ) : <span className="italic">No notes</span>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <div className="p-6 md:p-8 text-center bg-slate-50 border-t">
+                    <button onClick={() => handleDownload('list')} disabled={isPdfLoading} className="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50">
+                        {isPdfLoading ? 'Generating...' : 'Download Master List (PDF)'}
+                    </button>
+                </div>
+            </div>
+        );
     };
 
-    const isOrganizer = !currentParticipantId;
-
     return (
-        <div className="bg-slate-50 min-h-screen">
-            <header className="text-center py-6">
-                <a href="/" className="inline-block" aria-label="Go to homepage">
-                    <div className="flex justify-center items-center gap-4 flex-col sm:flex-row">
-                        <img src="/logo_64.png" alt="Santa hat logo" className="h-14 w-14" />
-                        <div>
-                            <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">Secret Santa Results</h1>
+        <div className="min-h-screen bg-slate-50 py-12 px-4">
+            <div className="container mx-auto max-w-4xl">
+                <header className="text-center mb-10">
+                    <a href="/" className="inline-block" aria-label="Go to homepage">
+                        <div className="flex justify-center items-center gap-4">
+                            <img src="/logo_64.png" alt="Santa hat logo" className="h-12 w-12" />
+                            <h1 className="text-4xl font-bold text-slate-800 font-serif">Secret Santa Exchange</h1>
                         </div>
-                    </div>
-                </a>
-            </header>
-            
-            <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl space-y-12">
-                {currentMatch && (
-                     <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
-                        <div className="grid md:grid-cols-2 gap-8 items-center">
-                            <div className="text-center md:text-left">
-                                <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Hello, {currentMatch.giver.name}!</h2>
-                                <p className="text-gray-600 mt-2 text-lg">You are the Secret Santa for...</p>
-                                <div className="my-4 p-4 bg-[var(--accent-lighter-bg)] rounded-lg text-center">
-                                    <span className="text-4xl font-bold text-[var(--accent-dark-text)]">{currentMatch.receiver.name}</span>
-                                </div>
-                                {(currentMatch.receiver.notes || currentMatch.receiver.budget) && (
-                                    <div className="text-left text-sm space-y-1 bg-slate-50 p-3 rounded-lg border">
-                                        <p className="font-semibold text-gray-700">Their wishlist & notes:</p>
-                                        {currentMatch.receiver.notes && <p className="text-gray-600">{currentMatch.receiver.notes}</p>}
-                                        {currentMatch.receiver.budget && <p className="text-gray-600 font-medium">Suggested budget: ${currentMatch.receiver.budget}</p>}
-                                    </div>
-                                )}
-                            </div>
-                            <div>
-                                <h3 className="text-center font-semibold text-gray-700 mb-2">Card Preview</h3>
+                    </a>
+                </header>
+
+                <main className="space-y-10">
+                    {currentMatch ? (
+                        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8 text-center">
+                            <h2 className="text-3xl font-bold text-slate-800 font-serif mb-6">Your Secret Santa Assignment</h2>
+                            <div className="aspect-[4.25/5.5] w-full max-w-[425px] mx-auto rounded-lg shadow-xl overflow-hidden" onClick={() => setIsNameRevealed(true)}>
                                 <PrintableCard
                                     match={currentMatch}
-                                    eventDetails={details}
-                                    backgroundId={style.bgId}
-                                    backgroundImageUrl={style.bgImg}
-                                    customBackground={style.bgImg}
-                                    textColor={style.txtColor}
-                                    useTextOutline={style.useOutline}
-                                    outlineColor={style.outColor}
-                                    outlineSize={style.outSize}
-                                    fontSizeSetting={style.fontSize}
-                                    fontTheme={style.font}
-                                    lineSpacing={style.line}
-                                    greetingText={style.greet}
-                                    introText={style.intro}
-                                    wishlistLabelText={style.wish}
-                                    isNameRevealed={true}
+                                    eventDetails={data.details}
+                                    backgroundImageUrl={data.style.bgId !== 'custom' ? selectedTheme?.imageUrl || null : null}
+                                    customBackground={data.style.bgImg}
+                                    textColor={data.style.txtColor}
+                                    useTextOutline={data.style.useOutline}
+                                    outlineColor={data.style.outColor}
+                                    outlineSize={data.style.outSize}
+                                    fontSizeSetting={data.style.fontSize}
+                                    fontTheme={data.style.font}
+                                    lineSpacing={data.style.line}
+                                    greetingText={data.style.greet}
+                                    introText={data.style.intro}
+                                    wishlistLabelText={data.style.wish}
+                                    isPdfMode={false}
+                                    isNameRevealed={isNameRevealed}
                                 />
                             </div>
+                            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                                <button onClick={() => handleDownload('card')} disabled={isPdfLoading || backgroundOptions.length === 0} className="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50">
+                                    {isPdfLoading ? 'Generating...' : 'Download Your Card (PDF)'}
+                                </button>
+                                {isRevealedGlobally && (
+                                    <a href="#master-list" className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-lg transition-colors">View All Matches</a>
+                                )}
+                            </div>
                         </div>
+                    ) : (
+                        !isRevealedGlobally && <div className="text-center text-lg text-slate-600">You are viewing the main event page. Your private link will show your specific assignment.</div>
+                    )}
+                    
+                    <div id="master-list">
+                        {renderContent()}
                     </div>
-                )}
+                    
+                    <div className="p-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
+                        <h3 className="text-3xl font-bold font-serif mb-2">Enjoying the tool?</h3>
+                        <p className="text-orange-100 max-w-xs mb-6 text-lg">Help spread the holiday cheer by sharing it with others!</p>
+                        <ShareButtons participantCount={data.p.length} />
+                    </div>
+                    
+                    <div className="text-center mt-10">
+                        <a href="/" onClick={(e) => { e.preventDefault(); window.history.pushState("", document.title, window.location.pathname + window.location.search); window.location.reload(); }} className="bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-3 px-8 rounded-full text-lg transition-colors shadow-md">
+                            Start a New Game
+                        </a>
+                    </div>
+                </main>
 
-                {revealAt && !isRevealed && (
-                    <div className="p-8 bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl shadow-xl text-white text-center">
-                        <h3 className="text-3xl font-bold font-serif mb-2">The Big Reveal!</h3>
-                        <p className="text-slate-300 max-w-xl mx-auto mb-6 text-lg">The full list of who had who will be revealed after the exchange time. Come back to this page then to see all the matches!</p>
-                        <CountdownTimer targetDate={revealAt} onComplete={handleRevealComplete} />
-                    </div>
-                )}
-                
-                {isRevealed && (
-                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
-                        <h2 className="text-3xl font-bold text-slate-800 text-center mb-6 font-serif">Master List: Who Had Who?</h2>
-                        <div className="max-w-4xl mx-auto overflow-x-auto">
-                            <div className="grid grid-cols-2 gap-4 text-left font-semibold text-sm text-gray-600 uppercase tracking-wider px-4 pb-2 border-b">
-                                <div className="col-span-1">Secret Santa (Giver)</div>
-                                <div className="col-span-1">Was Giving To (Receiver)</div>
-                            </div>
-                            <div className="divide-y">
-                                {matches.map((match) => (
-                                    <div key={match.giver.id} className="grid grid-cols-2 gap-4 items-center p-4">
-                                        <div className="col-span-1 font-semibold text-slate-800">{match.giver.name}</div>
-                                        <div className="col-span-1 font-semibold text-[var(--primary-text)]">{match.receiver.name}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-                
-                {isOrganizer && (
-                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
-                        <h2 className="text-3xl font-bold text-slate-800 text-center mb-6 font-serif">Organizer Hub</h2>
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div className="bg-slate-50 p-6 rounded-lg border">
-                                <h3 className="font-bold text-lg text-slate-800 mb-3">Distribute Private Links</h3>
-                                <p className="text-sm text-gray-600 mb-4">Copy and send each person their unique link. They will only see their own assignment until the reveal time (if set).</p>
-                                <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                                    {participants.map(p => (
-                                        <div key={p.id} className="flex items-center justify-between bg-white p-2 rounded-md border">
-                                            <span className="font-medium text-gray-700">{p.name}</span>
-                                            <button onClick={() => handleCopyLink(p.id)} className={`text-sm font-semibold py-1 px-3 rounded-full transition-colors ${copiedLinkId === p.id ? 'bg-green-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'}`}>
-                                                {copiedLinkId === p.id ? 'Copied!' : 'Copy Link'}
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                             <div className="bg-slate-50 p-6 rounded-lg border text-center">
-                                <h3 className="font-bold text-lg text-slate-800 mb-3">Downloads & Sharing</h3>
-                                <p className="text-sm text-gray-600 mb-4">You can also download printable cards for an in-person drawing or a master list for yourself.</p>
-                                <div className="space-y-3">
-                                    <button onClick={handleDownloadCards} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-lg transition-colors">Download Individual Cards</button>
-                                    <button onClick={handleDownloadList} className="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Download Master List</button>
-                                </div>
-                                <div className="mt-6">
-                                    <p className="text-sm font-semibold text-gray-700 mb-2">Share this generator:</p>
-                                    <ShareButtons participantCount={participants.length} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-                
-                <div className="text-center pt-4">
-                    <a href="/" className="bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
-                        Start a New Game
-                    </a>
-                </div>
-            </main>
-
-            <FaqSection />
-            <BlogPromo />
-            <Footer theme={siteTheme} setTheme={setSiteTheme} />
-            <BackToTopButton />
+                <footer className="text-center mt-12 text-sm text-gray-500">
+                    <p>&copy; {new Date().getFullYear()} SecretSantaMatch.com</p>
+                </footer>
+            </div>
             
             {isPdfLoading && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60]">
                     <div className="text-white text-center">
-                        <svg className="animate-spin h-12 w-12 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <div role="status">
+                            <svg aria-hidden="true" className="inline w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5424 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+                            </svg>
+                            <span className="sr-only">Loading...</span>
+                        </div>
                         <p className="text-xl font-semibold mt-4">Generating your PDF...</p>
                     </div>
                 </div>
