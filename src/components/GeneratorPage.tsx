@@ -58,7 +58,6 @@ const GeneratorPage: React.FC = () => {
   const [wishlistLabelText, setWishlistLabelText] = useState('Gift Ideas & Notes:');
   
   const [exchangeDate, setExchangeDate] = useState('');
-  const [exchangeTime, setExchangeTime] = useState('');
   const [globalBudget, setGlobalBudget] = useState('');
   const [pageTheme, setPageTheme] = useState(getSeasonalTheme());
   
@@ -68,10 +67,6 @@ const GeneratorPage: React.FC = () => {
   const [theme, setTheme] = useState(getSeasonalTheme());
   const [duplicateNameIds, setDuplicateNameIds] = useState<Set<string>>(new Set());
   const [isRulesExpanded, setIsRulesExpanded] = useState(false);
-
-  const participantsRef = useRef<HTMLDivElement>(null);
-  const rulesRef = useRef<HTMLDivElement>(null);
-  const generateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -105,15 +100,6 @@ const GeneratorPage: React.FC = () => {
         setWishlistLabelText(selectedTheme.cardText?.wishlistLabel || 'Gift Ideas & Notes:');
     }
   }, [background, backgroundOptions]);
-
-  const handleStepClick = (sectionId: string) => {
-    const sectionMap: { [key: string]: React.RefObject<HTMLDivElement> } = {
-      'participants-section': participantsRef,
-      'rules-section': rulesRef,
-      'generate-section': generateRef,
-    };
-    sectionMap[sectionId]?.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
 
   const handleGlobalBudgetChange = (budget: string) => {
     const sanitizedBudget = budget.replace(/[^0-9.]/g, '');
@@ -220,7 +206,6 @@ const GeneratorPage: React.FC = () => {
             style: cardStyle,
             e: eventDetails || undefined,
             rd: exchangeDate || undefined,
-            rt: exchangeTime || undefined,
             th: pageTheme,
         };
         const encodedData = encodeData(data);
@@ -240,7 +225,6 @@ const GeneratorPage: React.FC = () => {
     setError('');
     setEventDetails('');
     setExchangeDate('');
-    setExchangeTime('');
     setGlobalBudget('');
     setPageTheme(getSeasonalTheme());
     localStorage.removeItem('ssm_participants_v2');
@@ -265,9 +249,9 @@ const GeneratorPage: React.FC = () => {
     <div className="bg-slate-50 min-h-screen">
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
         <Header />
-        <HowItWorks onStepClick={handleStepClick} />
+        <HowItWorks />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
-            <div ref={participantsRef} className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+            <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center">
                   <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
                   Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
@@ -280,7 +264,7 @@ const GeneratorPage: React.FC = () => {
                 />
             </div>
             
-            <div ref={rulesRef} className="bg-white rounded-2xl shadow-lg border border-gray-200">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200">
               <button onClick={() => setIsRulesExpanded(!isRulesExpanded)} className="w-full p-6 md:p-8 flex justify-between items-center text-left" aria-expanded={isRulesExpanded}>
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center">
                     <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
@@ -296,7 +280,6 @@ const GeneratorPage: React.FC = () => {
                           assignments={assignments} setAssignments={setAssignments}
                           eventDetails={eventDetails} setEventDetails={setEventDetails}
                           exchangeDate={exchangeDate} setExchangeDate={setExchangeDate}
-                          exchangeTime={exchangeTime} setExchangeTime={setExchangeTime}
                           globalBudget={globalBudget} onGlobalBudgetChange={handleGlobalBudgetChange}
                           pageTheme={pageTheme} setPageTheme={setPageTheme}
                       />
@@ -320,7 +303,7 @@ const GeneratorPage: React.FC = () => {
              />
             </div>
 
-            <div ref={generateRef} className="text-center pt-4">
+            <div className="text-center pt-4">
                 {error && <p className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-center">{error}</p>}
                 
                 <button onClick={handleGenerateMatches} disabled={isGenerating} className="bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
