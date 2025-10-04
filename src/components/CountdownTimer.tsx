@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 
 interface CountdownTimerProps {
     targetDate: string;
+    targetTime?: string;
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
+const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, targetTime }) => {
     const getTargetDateTime = () => {
-        const [year, month, day] = targetDate.split('-').map(Number);
-        const date = new Date(Date.UTC(year, month - 1, day));
-        return date;
+        const time = targetTime || '00:00';
+        // Combine date and time and interpret as a UTC timestamp to ensure consistency across timezones
+        return new Date(`${targetDate}T${time}:00Z`);
     };
 
     const [targetDateTime, setTargetDateTime] = useState(getTargetDateTime());
@@ -32,7 +33,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
     
     useEffect(() => {
         setTargetDateTime(getTargetDateTime());
-    }, [targetDate]);
+    }, [targetDate, targetTime]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -47,10 +48,15 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
             <div className="text-xs sm:text-sm uppercase tracking-wider">{unit}</div>
         </div>
     ));
-
-    const formattedDate = new Date(targetDate + 'T00:00:00Z').toLocaleDateString(undefined, {
-        year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
+    
+    const formattedDateTime = targetDateTime.toLocaleString(undefined, {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: targetTime ? 'numeric' : undefined,
+        minute: targetTime ? 'numeric' : undefined,
+        timeZone: 'UTC',
+        hour12: true,
     });
+
 
     if (!timerComponents.length) {
         return <p className="font-bold text-lg text-green-600">The results are revealed!</p>;
@@ -59,7 +65,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
     return (
         <div className="text-slate-700">
              <p className="text-center text-slate-600 mb-4">
-                Come back after <span className="font-bold text-[var(--primary-text)]">{formattedDate}</span> to see who everyone else got!
+                Come back after <span className="font-bold text-[var(--primary-text)]">{formattedDateTime} (UTC)</span> to see who everyone else got!
             </p>
             <div className="flex justify-center gap-4 sm:gap-6">
                 {timerComponents}
