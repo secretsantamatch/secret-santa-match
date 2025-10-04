@@ -24,7 +24,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
-    const [copySuccess, setCopySuccess] = useState<Record<string, boolean>>({});
+    const [copySuccess, setCopySuccess] = useState<Record<number, boolean>>({});
 
     const reconstructedParticipants = useMemo((): Participant[] => {
         return data.p.map((participantData, index) => ({
@@ -135,7 +135,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         
         const message = `🎁 Secret Santa links are ready! 🎁\n\nPlease send each person their own private link below:\n\n${allLinks}`;
         navigator.clipboard.writeText(message).then(() => {
-            const allCopied = data.p.reduce((acc, _, index) => ({...acc, [index]: true}), {});
+            const allCopied = data.p.reduce((acc, _, index) => ({...acc, [index]: true}), {} as Record<number, boolean>);
             setCopySuccess(allCopied);
             setTimeout(() => setCopySuccess({}), 3000);
         });
@@ -171,7 +171,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                             </div>
                             <div className="text-center mt-6 border-t pt-6">
                                 <h3 className="font-bold text-xl text-slate-800 mb-4">View Master List</h3>
-                                {isRevealed ? <ResultsDisplay matches={allMatches} /> : (revealDateTime ? <CountdownTimer targetDate={data.rd!} targetTime={data.rt} /> : <p className="text-slate-600">The full list of matches will be revealed here.</p>)}
+                                {isRevealed ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} targetTime={data.rt} /> : <p className="text-slate-600">The full list of matches will be revealed here.</p>)}
                             </div>
                         </div>
                         
@@ -227,7 +227,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
 
               <div className="mt-10 bg-white p-6 sm:p-8 rounded-2xl shadow-lg border text-center">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 font-serif mb-4">The Big Reveal is Coming!</h2>
-                {isRevealed ? <ResultsDisplay matches={allMatches} /> : (revealDateTime ? <CountdownTimer targetDate={data.rd!} targetTime={data.rt} /> : <p>Come back after the event to see who everyone else got!</p>)}
+                {isRevealed ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} targetTime={data.rt} /> : <p>Come back after the event to see who everyone else got!</p>)}
               </div>
             </main>
             
