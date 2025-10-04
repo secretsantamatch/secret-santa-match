@@ -23,6 +23,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     const [isNameRevealed, setIsNameRevealed] = useState(false);
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const [copySuccess, setCopySuccess] = useState<Record<string, boolean>>({});
 
@@ -51,13 +52,12 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
             return;
         }
 
-        const participantIndex = parseInt(currentParticipantId, 10);
-        if (isNaN(participantIndex) || participantIndex < 0 || participantIndex >= data.p.length) {
+        if (!/^\d+$/.test(currentParticipantId) || parseInt(currentParticipantId, 10) >= data.p.length) {
             setError("Invalid participant ID. This link may be corrupted.");
             return;
         }
 
-        const currentMatch = reconstructedMatches.find(m => m.giver.id === `p${participantIndex}`);
+        const currentMatch = reconstructedMatches.find(m => m.giver.id === `p${currentParticipantId}`);
         
         if (!currentMatch) {
             setError("Could not find your match. The data in this link might be incomplete.");
@@ -68,10 +68,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
 
     const revealDateTime = useMemo(() => {
         if (!data.rd) return null;
-        const [year, month, day] = data.rd.split('-').map(Number);
-        const date = new Date(Date.UTC(year, month - 1, day));
-        return date;
-    }, [data.rd]);
+        const time = data.rt || '00:00';
+        return new Date(`${data.rd}T${time}:00Z`);
+    }, [data.rd, data.rt]);
 
     useEffect(() => {
         if (!revealDateTime) {
@@ -99,7 +98,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
             await generateIndividualCardsPdf({ matches: allMatches, eventDetails: data.e || '', backgroundOptions, ...data.style });
         }
         if (type === 'list' || type === 'both') {
-            generateMasterListPdf({ matches: allMatches, eventDetails: data.e || '', exchangeDate: data.rd });
+            generateMasterListPdf({ matches: allMatches, eventDetails: data.e || '', exchangeDate: data.rd, exchangeTime: data.rt });
         }
       } catch (err) {
           console.error("PDF generation failed:", err);
@@ -149,24 +148,15 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
                              <div className="text-center mb-6">
                                 <h2 className="text-3xl font-bold text-slate-800 font-serif mb-2">Your Event is Ready!</h2>
-                                <p className="text-gray-600 max-w-2xl mx-auto">Copy each participant's unique link and share it with them privately.</p>
+                                <p className="text-gray-600 max-w-2xl mx-auto">Click the button below to get the unique, private links to share with your participants.</p>
+                                <button onClick={() => setShowShareModal(true)} className="mt-4 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-all">
+                                    Share Links with Participants
+                                </button>
                             </div>
-                            <div className="space-y-3 max-w-3xl mx-auto">
-                               {data.p.map((participant, index) => {
-                                    return (
-                                        <div key={index} className="flex flex-col sm:flex-row items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 gap-3">
-                                            <div className="font-bold text-slate-800">{participant.name}'s Link</div>
-                                            <button onClick={() => handleCopy(participant.name, index)} className={`w-full sm:w-48 text-center font-semibold py-2 px-4 rounded-md transition-colors text-white flex items-center justify-center gap-2 ${copySuccess[String(index)] ? 'bg-green-600' : 'bg-slate-700 hover:bg-slate-800'}`}>
-                                               {copySuccess[String(index)] ? 'Copied!' : 'Copy Link'}
-                                            </button>
-                                        </div>
-                                    )
-                               })}
-                               <button onClick={handleCopyAll} className="w-full font-bold py-3 px-4 rounded-lg transition-colors bg-[var(--accent-light-bg)] text-[var(--accent-dark-text)] hover:bg-[var(--accent-lighter-bg)] border border-[var(--accent-border)]">Copy All Links for Group Chat</button>
-                            </div>
+                            
                             <div className="text-center mt-6 border-t pt-6">
                                 <h3 className="font-bold text-xl text-slate-800 mb-4">View Master List</h3>
-                                {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} /> : <ResultsDisplay matches={allMatches} />)}
+                                {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} targetTime={data.rt} /> : <ResultsDisplay matches={allMatches} />)}
                             </div>
                         </div>
                         
@@ -193,6 +183,28 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                 </div>
                 {isPdfLoading && <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60]"><div className="text-white text-center"><svg className="animate-spin h-12 w-12 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path></svg><p className="text-xl font-semibold mt-4">Generating your PDF...</p></div></div>}
                 {showDownloadModal && <div className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-sm" onClick={() => setShowDownloadModal(false)}><div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full"><h2 className="text-3xl font-bold text-slate-800 font-serif mb-2 text-center">Choose Your Download</h2><div className="space-y-4 mt-6"><button onClick={() => handleDownload('both')} className="w-full bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold p-4 rounded-xl text-left">Download Both (Cards & Master List)</button><div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><button onClick={() => handleDownload('cards')} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-semibold p-4 rounded-xl">Individual Cards</button><button onClick={() => handleDownload('list')} className="w-full bg-slate-500 hover:bg-slate-600 text-white font-semibold p-4 rounded-xl">Master List Only</button></div></div><div className="text-center mt-6"><button onClick={() => setShowDownloadModal(false)} className="text-gray-500 font-semibold">Cancel</button></div></div></div>}
+                {showShareModal && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-sm" onClick={() => setShowShareModal(false)}>
+                        <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full">
+                             <h2 className="text-3xl font-bold text-slate-800 font-serif mb-2 text-center">Share Private Links</h2>
+                             <p className="text-gray-600 text-center mb-6">Copy each participant's unique link and send it to them privately.</p>
+                             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                               {data.p.map((participant, index) => (
+                                    <div key={index} className="flex flex-col sm:flex-row items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 gap-3">
+                                        <div className="font-bold text-slate-800">{participant.name}'s Link</div>
+                                        <button onClick={() => handleCopy(participant.name, index)} className={`w-full sm:w-48 text-center font-semibold py-2 px-4 rounded-md transition-colors text-white flex items-center justify-center gap-2 ${copySuccess[String(index)] ? 'bg-green-600' : 'bg-slate-700 hover:bg-slate-800'}`}>
+                                           {copySuccess[String(index)] ? 'Copied!' : 'Copy Link'}
+                                        </button>
+                                    </div>
+                                ))}
+                             </div>
+                             <div className="mt-4 pt-4 border-t">
+                                <button onClick={handleCopyAll} className="w-full font-bold py-3 px-4 rounded-lg transition-colors bg-[var(--accent-light-bg)] text-[var(--accent-dark-text)] hover:bg-[var(--accent-lighter-bg)] border border-[var(--accent-border)]">Copy All Links for Group Chat</button>
+                             </div>
+                             <div className="text-center mt-6"><button onClick={() => setShowShareModal(false)} className="text-gray-500 font-semibold">Close</button></div>
+                        </div>
+                    </div>
+                )}
                 <BackToTopButton />
             </div>
         )
@@ -222,7 +234,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
 
               <div className="mt-10 bg-white p-6 sm:p-8 rounded-2xl shadow-lg border text-center">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 font-serif mb-4">The Big Reveal is Coming!</h2>
-                {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} /> : <p>Come back after the event to see who everyone else got!</p>)}
+                {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} targetTime={data.rt} /> : <p>Come back after the event to see who everyone else got!</p>)}
               </div>
             </main>
             
