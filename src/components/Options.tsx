@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { Participant, Exclusion, Assignment } from '../types';
 import Tooltip from './Tooltip';
