@@ -12,6 +12,8 @@ interface OptionsProps {
   setEventDetails: (details: string) => void;
   exchangeDate: string;
   setExchangeDate: (date: string) => void;
+  exchangeTime: string;
+  setExchangeTime: (time: string) => void;
   globalBudget: string;
   onGlobalBudgetChange: (budget: string) => void;
   pageTheme: string;
@@ -28,6 +30,8 @@ const Options: React.FC<OptionsProps> = ({
   setEventDetails,
   exchangeDate,
   setExchangeDate,
+  exchangeTime,
+  setExchangeTime,
   globalBudget,
   onGlobalBudgetChange,
   pageTheme,
@@ -139,7 +143,10 @@ const Options: React.FC<OptionsProps> = ({
                   Date of Exchange
                   <Tooltip text="The date of your gift exchange. The 'Big Reveal' of who had who will happen after this date." />
               </label>
-              <input type="date" id="reveal-date" value={exchangeDate} onChange={e => setExchangeDate(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md"/>
+              <div className="flex gap-2">
+                 <input type="date" id="reveal-date" value={exchangeDate} onChange={e => setExchangeDate(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md"/>
+                 <input type="time" id="reveal-time" value={exchangeTime} onChange={e => setExchangeTime(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md" disabled={!exchangeDate}/>
+              </div>
             </div>
             <div>
               <label htmlFor="global-budget" className="block text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
