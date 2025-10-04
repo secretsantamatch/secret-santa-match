@@ -70,13 +70,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         if (!data.rd) return null;
         const [year, month, day] = data.rd.split('-').map(Number);
         const date = new Date(Date.UTC(year, month - 1, day));
-        
-        if (data.rt) {
-            const [hours, minutes] = data.rt.split(':').map(Number);
-            date.setUTCHours(hours, minutes, 0, 0);
-        }
         return date;
-    }, [data.rd, data.rt]);
+    }, [data.rd]);
 
     useEffect(() => {
         if (!revealDateTime) {
@@ -104,7 +99,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
             await generateIndividualCardsPdf({ matches: allMatches, eventDetails: data.e || '', backgroundOptions, ...data.style });
         }
         if (type === 'list' || type === 'both') {
-            generateMasterListPdf({ matches: allMatches, eventDetails: data.e || '', exchangeDate: data.rd, exchangeTime: data.rt });
+            generateMasterListPdf({ matches: allMatches, eventDetails: data.e || '', exchangeDate: data.rd });
         }
       } catch (err) {
           console.error("PDF generation failed:", err);
@@ -171,7 +166,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                             </div>
                             <div className="text-center mt-6 border-t pt-6">
                                 <h3 className="font-bold text-xl text-slate-800 mb-4">View Master List</h3>
-                                {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} targetTime={data.rt} /> : <ResultsDisplay matches={allMatches} />)}
+                                {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} /> : <ResultsDisplay matches={allMatches} />)}
                             </div>
                         </div>
                         
@@ -227,7 +222,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
 
               <div className="mt-10 bg-white p-6 sm:p-8 rounded-2xl shadow-lg border text-center">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 font-serif mb-4">The Big Reveal is Coming!</h2>
-                {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} targetTime={data.rt} /> : <p>Come back after the event to see who everyone else got!</p>)}
+                {isRevealed && data.rd ? <ResultsDisplay matches={allMatches} /> : (revealDateTime && data.rd ? <CountdownTimer targetDate={data.rd} /> : <p>Come back after the event to see who everyone else got!</p>)}
               </div>
             </main>
             
