@@ -21,30 +21,9 @@ interface PrintableCardProps {
   isPdfMode?: boolean;
   onRendered?: () => void;
   isNameRevealed?: boolean;
-  onReveal?: () => void;
 }
 
-const getProxiedUrl = (url: string) => `https://wsrv.nl/?url=${encodeURIComponent(url)}&n=-1&w=425`;
-
-const fontClasses: Record<FontTheme, string> = {
-  classic: 'font-serif',
-  elegant: 'font-serif italic',
-  modern: 'font-sans',
-  whimsical: 'font-sans font-bold',
-};
-
-const fontSizeClasses: Record<FontSizeSetting, string> = {
-  'normal': 'text-base',
-  'large': 'text-lg',
-  'extra-large': 'text-xl',
-};
-
-const outlineSizeClasses: Record<OutlineSizeSetting, string> = {
-    'thin': '1px',
-    'normal': '2px',
-    'thick': '3px',
-};
-
+const getProxiedUrl = (url: string) => `https://wsrv.nl/?url=${encodeURIComponent(url)}&n=-1`;
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
   match,
@@ -64,96 +43,91 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   isPdfMode = false,
   onRendered,
   isNameRevealed = false,
-  onReveal,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isPdfMode && onRendered) {
-      const img = cardRef.current?.querySelector('img');
-      if (img && !img.complete) {
-        img.onload = onRendered;
-        img.onerror = onRendered;
-        return;
-      }
-      // Fallback for cases where image might be cached or there's no image
-      const timer = setTimeout(() => onRendered(), 100);
+    if (onRendered) {
+      // Allow a short time for images to potentially load before rendering PDF
+      const timer = setTimeout(() => {
+        onRendered();
+      }, isPdfMode ? 250 : 50);
       return () => clearTimeout(timer);
     }
-  }, [isPdfMode, onRendered, match, backgroundImageUrl, customBackground]);
+  }, [match, backgroundImageUrl, customBackground, onRendered, isPdfMode]);
 
-  const textShadow = useTextOutline
-    ? `${outlineColor} -${outlineSizeClasses[outlineSize]} -${outlineSizeClasses[outlineSize]} 0, ${outlineColor} ${outlineSizeClasses[outlineSize]} -${outlineSizeClasses[outlineSize]} 0, ${outlineColor} -${outlineSizeClasses[outlineSize]} ${outlineSizeClasses[outlineSize]} 0, ${outlineColor} ${outlineSizeClasses[outlineSize]} ${outlineSizeClasses[outlineSize]} 0`
-    : 'none';
-
-  const finalGreeting = greetingText.replace('{secret_santa}', match.giver.name);
+  const getFontSizeClasses = () => {
+    switch (fontSizeSetting) {
+      case 'large': return { base: 'text-lg', receiver: 'text-4xl', details: 'text-base' };
+      case 'extra-large': return { base: 'text-xl', receiver: 'text-5xl', details: 'text-lg' };
+      default: return { base: 'text-base', receiver: 'text-3xl', details: 'text-sm' };
+    }
+  };
   
-  const backgroundStyle: React.CSSProperties = {};
-  let backgroundContent;
+  const getFontThemeClass = () => {
+    switch (fontTheme) {
+        case 'elegant':
+        case 'classic': 
+            return 'font-serif';
+        case 'whimsical':
+        case 'modern': 
+            return 'font-sans';
+        default: 
+            return 'font-serif';
+    }
+  };
 
-  if (customBackground) {
-      backgroundContent = <img src={customBackground} alt="" className="absolute inset-0 w-full h-full object-cover z-0" />;
-  } else if (backgroundImageUrl) {
-      backgroundContent = <img src={getProxiedUrl(backgroundImageUrl)} alt="" className="absolute inset-0 w-full h-full object-cover z-0" />;
-  } else {
-      backgroundStyle.backgroundColor = '#FFFFFF';
-  }
+  const getOutlineStyle = () => {
+    if (!useTextOutline) return {};
+    const sizeMap = { thin: '1px', normal: '2px', thick: '3px' };
+    const shadowSize = sizeMap[outlineSize] || '2px';
+    return {
+      textShadow: `
+        -${shadowSize} -${shadowSize} 0 ${outlineColor},
+         ${shadowSize} -${shadowSize} 0 ${outlineColor},
+        -${shadowSize}  ${shadowSize} 0 ${outlineColor},
+         ${shadowSize}  ${shadowSize} 0 ${outlineColor}
+      `,
+    };
+  };
   
+  const finalBackgroundImageUrl = customBackground ? customBackground : (backgroundImageUrl ? getProxiedUrl(backgroundImageUrl) : undefined);
+  const { giver, receiver } = match;
+
+  const fontSizes = getFontSizeClasses();
+
   return (
     <div
       ref={cardRef}
-      className={`relative aspect-[3/4] w-full max-w-[425px] mx-auto bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col justify-between text-center p-6 md:p-8 ${fontClasses[fontTheme]}`}
-      style={{ 
-          color: textColor, 
-          textShadow,
-          lineHeight: lineSpacing,
-          ...backgroundStyle
-       }}
+      className={`aspect-[4.25/5.5] w-full bg-cover bg-center rounded-xl shadow-lg overflow-hidden flex flex-col justify-between text-center p-6 ${getFontThemeClass()}`}
+      style={{
+        backgroundImage: finalBackgroundImageUrl ? `url("${finalBackgroundImageUrl}")` : 'linear-gradient(to bottom, #f3f4f6, #e5e7eb)',
+        color: textColor,
+        lineHeight: lineSpacing,
+        ...getOutlineStyle()
+      }}
     >
-        {backgroundContent}
-        <div className="z-10 relative">
-            <p className="text-lg font-semibold">{finalGreeting}</p>
-            <p className="mt-2 text-base">{introText}</p>
+      <div className={`greeting-section ${fontSizes.base}`}>
+        <p>{greetingText.replace('{secret_santa}', giver.name)}</p>
+        <p className="mt-2">{introText}</p>
+      </div>
 
-            {isNameRevealed && (
-              <div className="my-4">
-                <div className="inline-block bg-white/20 backdrop-blur-sm p-3 md:p-4 rounded-xl">
-                    <h2 className="text-3xl md:text-4xl font-bold" style={{ color: textColor, textShadow }}>
-                        {match.receiver.name}
-                    </h2>
-                </div>
-              </div>
-            )}
-            
-             {!isNameRevealed && onReveal && (
-                <div className="my-4">
-                    <button 
-                        onClick={onReveal}
-                        className="bg-white text-gray-800 font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 hover:shadow-xl transition-all"
-                    >
-                        Click to Reveal
-                    </button>
-                </div>
-             )}
-        </div>
+      <div className="receiver-section">
+        <h2 className={`font-bold break-words ${fontSizes.receiver}`}>
+          {isNameRevealed ? receiver.name : '????????'}
+        </h2>
+      </div>
 
-        <div className={`z-10 relative text-left bg-black/20 backdrop-blur-sm p-4 rounded-lg ${fontSizeClasses[fontSizeSetting]}`}>
-            <h3 className="font-bold mb-1">{wishlistLabelText}</h3>
-            {match.receiver.notes || match.receiver.budget ? (
-                <>
-                {match.receiver.notes && <p>{match.receiver.notes}</p>}
-                {match.receiver.budget && <p><span className="font-semibold">Budget:</span> {match.receiver.budget.toString().startsWith('$') ? match.receiver.budget : `$${match.receiver.budget}`}</p>}
-                </>
-            ) : (
-                <p className="italic">No notes provided.</p>
-            )}
-            {eventDetails && (
-                <div className="mt-3 pt-3 border-t border-white/30">
-                    <h3 className="font-bold">Event Details:</h3>
-                    <p>{eventDetails}</p>
-                </div>
-            )}
-        </div>
+      <div className={`details-section ${fontSizes.details}`}>
+        {(receiver.notes || receiver.budget) && (
+            <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg mt-4 max-h-24 overflow-y-auto">
+                <p className="font-bold">{wishlistLabelText}</p>
+                {receiver.notes && <p>{receiver.notes}</p>}
+                {receiver.budget && <p>Suggested Budget: ${receiver.budget}</p>}
+            </div>
+        )}
+        {eventDetails && <p className="mt-3 opacity-90">{eventDetails}</p>}
+      </div>
     </div>
   );
 };
