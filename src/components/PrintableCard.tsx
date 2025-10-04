@@ -23,20 +23,13 @@ interface PrintableCardProps {
   onReveal?: () => void;
 }
 
-const getFontClass = (theme: FontTheme): string => {
-  switch (theme) {
-    case 'elegant':
-      return 'font-elegant';
-    case 'modern':
-      return 'font-modern';
-    case 'whimsical':
-      return 'font-whimsical';
-    case 'classic':
-    default:
-      return 'font-serif';
-  }
+// Statically define font classes to ensure Tailwind's JIT compiler finds them.
+const fontClassMap: Record<FontTheme, string> = {
+  classic: 'font-serif',
+  elegant: 'font-elegant',
+  modern: 'font-modern',
+  whimsical: 'font-whimsical',
 };
-
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
   match,
@@ -76,7 +69,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
     }
   }, [isPdfMode, onRendered, backgroundImageUrl, customBackground]);
 
-  const fontClass = getFontClass(fontTheme);
+  const fontClass = fontClassMap[fontTheme] || 'font-serif';
   const bodyFontClass = 'font-sans';
 
   const fontSizes = {
