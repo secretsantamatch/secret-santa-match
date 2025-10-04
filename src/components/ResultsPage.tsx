@@ -24,7 +24,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
-    const [copySuccess, setCopySuccess] = useState<Record<number, boolean>>({});
+    const [copySuccess, setCopySuccess] = useState<Record<string, boolean>>({});
 
     const reconstructedParticipants = useMemo((): Participant[] => {
         return data.p.map((participantData, index) => ({
@@ -120,8 +120,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         const link = `${baseUrl}#${hash}?id=${index}`;
         const message = `Here is the private Secret Santa link for ${name}. Send it to them so they can see who they got! \n\n${link}`;
         navigator.clipboard.writeText(message).then(() => {
-            setCopySuccess(prev => ({ ...prev, [index]: true }));
-            setTimeout(() => setCopySuccess(prev => ({ ...prev, [index]: false })), 2000);
+            setCopySuccess(prev => ({ ...prev, [String(index)]: true }));
+            setTimeout(() => setCopySuccess(prev => ({ ...prev, [String(index)]: false })), 2000);
         });
     };
 
@@ -135,7 +135,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         
         const message = `🎁 Secret Santa links are ready! 🎁\n\nPlease send each person their own private link below:\n\n${allLinks}`;
         navigator.clipboard.writeText(message).then(() => {
-            const allCopied = data.p.reduce((acc, _, index) => ({...acc, [index]: true}), {} as Record<number, boolean>);
+            const allCopied = data.p.reduce((acc, _, index) => ({...acc, [String(index)]: true}), {} as Record<string, boolean>);
             setCopySuccess(allCopied);
             setTimeout(() => setCopySuccess({}), 3000);
         });
@@ -161,8 +161,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                                     return (
                                         <div key={index} className="flex flex-col sm:flex-row items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 gap-3">
                                             <div className="font-bold text-slate-800">{participant.name}'s Link</div>
-                                            <button onClick={() => handleCopy(participant.name, index)} className={`w-full sm:w-48 text-center font-semibold py-2 px-4 rounded-md transition-colors text-white flex items-center justify-center gap-2 ${copySuccess[index] ? 'bg-green-600' : 'bg-slate-700 hover:bg-slate-800'}`}>
-                                               {copySuccess[index] ? 'Copied!' : 'Copy Link'}
+                                            <button onClick={() => handleCopy(participant.name, index)} className={`w-full sm:w-48 text-center font-semibold py-2 px-4 rounded-md transition-colors text-white flex items-center justify-center gap-2 ${copySuccess[String(index)] ? 'bg-green-600' : 'bg-slate-700 hover:bg-slate-800'}`}>
+                                               {copySuccess[String(index)] ? 'Copied!' : 'Copy Link'}
                                             </button>
                                         </div>
                                     )
