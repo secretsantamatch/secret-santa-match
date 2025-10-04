@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match, Participant, BackgroundOption } from '../types';
 import PrintableCard from './PrintableCard';
@@ -30,7 +31,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     const reconstructedParticipants = useMemo((): Participant[] => {
         return data.p.map((participantData, index) => ({
             ...participantData,
-            id: `p${index}`,
+            id: String(index),
         }));
     }, [data.p]);
 
@@ -51,20 +52,22 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
             setAllMatches(reconstructedMatches);
             return;
         }
+        
+        const participantIndex = reconstructedParticipants.findIndex(p => p.id === currentParticipantId);
 
-        if (!/^\d+$/.test(currentParticipantId) || parseInt(currentParticipantId, 10) >= data.p.length) {
+        if (participantIndex === -1) {
             setError("Invalid participant ID. This link may be corrupted.");
             return;
         }
 
-        const currentMatch = reconstructedMatches.find(m => m.giver.id === `p${currentParticipantId}`);
+        const currentMatch = reconstructedMatches.find(m => m.giver.id === currentParticipantId);
         
         if (!currentMatch) {
             setError("Could not find your match. The data in this link might be incomplete.");
             return;
         }
         setMatch(currentMatch);
-    }, [data, currentParticipantId, reconstructedMatches]);
+    }, [data, currentParticipantId, reconstructedMatches, reconstructedParticipants]);
 
     const revealDateTime = useMemo(() => {
         if (!data.rd) return null;
