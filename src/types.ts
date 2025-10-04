@@ -10,11 +10,6 @@ export interface Match {
   receiver: Participant;
 }
 
-export interface MatchById {
-  g: string; // giverId
-  r: string; // receiverId
-}
-
 export interface Exclusion {
   p1: string; // participant ID
   p2: string; // participant ID
@@ -43,29 +38,27 @@ export interface BackgroundOption {
   };
 }
 
-// Data for URL sharing
-export interface ExchangeData {
-  // Fix: Changed from Omit<Participant, 'id'>[] to Participant[] to include IDs, which are necessary for matching.
-  p: Participant[];
-  m: MatchById[];
-  details: string;
-  style: CardStyle;
-  th: string; // page theme
-  revealAt?: number;
-  rt?: string; // reveal time
+export interface CardStyleData {
+  backgroundId: string;
+  customBackground: string | null;
+  textColor: string;
+  useTextOutline: boolean;
+  outlineColor: string;
+  outlineSize: OutlineSizeSetting;
+  fontSizeSetting: FontSizeSetting;
+  fontTheme: FontTheme;
+  lineSpacing: number;
+  greetingText: string;
+  introText: string;
+  wishlistLabelText: string;
 }
 
-export interface CardStyle {
-    bgId: string;
-    bgImg: string | null;
-    txtColor: string;
-    useOutline: boolean;
-    outColor: string;
-    outSize: OutlineSizeSetting;
-    fontSize: FontSizeSetting;
-    font: FontTheme;
-    line: number;
-    greet: string;
-    intro: string;
-    wish: string;
+export interface ExchangeData {
+    p: Omit<Participant, 'id'>[]; // Participants
+    m: { g: number; r: number }[]; // Matches (by participant index)
+    style: CardStyleData;
+    e?: string; // eventDetails
+    rd?: string; // revealDate
+    rt?: string; // revealTime
+    th?: string; // theme
 }
