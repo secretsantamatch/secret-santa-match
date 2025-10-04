@@ -59,5 +59,6 @@ export interface ExchangeData {
     style: CardStyleData;
     e?: string; // eventDetails
     rd?: string; // revealDate
+    rt?: string; // revealTime
     th?: string; // theme
 }
