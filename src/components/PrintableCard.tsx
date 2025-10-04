@@ -23,7 +23,20 @@ interface PrintableCardProps {
   onReveal?: () => void;
 }
 
-const getProxiedUrl = (url: string) => `https://wsrv.nl/?url=${encodeURIComponent(url)}&n=-1`;
+const getFontClass = (theme: FontTheme): string => {
+  switch (theme) {
+    case 'elegant':
+      return 'font-elegant';
+    case 'modern':
+      return 'font-modern';
+    case 'whimsical':
+      return 'font-whimsical';
+    case 'classic':
+    default:
+      return 'font-serif';
+  }
+};
+
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
   match,
@@ -58,17 +71,12 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       };
       img.onload = onFinish;
       img.onerror = onFinish; // Resolve even if image fails to load
-      img.src = customBackground || (backgroundImageUrl ? getProxiedUrl(backgroundImageUrl) : '');
+      img.src = customBackground || backgroundImageUrl || '';
       setTimeout(onFinish, 1000); // Failsafe timeout
     }
   }, [isPdfMode, onRendered, backgroundImageUrl, customBackground]);
 
-  const fontClasses = {
-    classic: 'font-serif',
-    elegant: 'font-elegant',
-    modern: 'font-modern',
-    whimsical: 'font-whimsical',
-  };
+  const fontClass = getFontClass(fontTheme);
   const bodyFontClass = 'font-sans';
 
   const fontSizes = {
@@ -86,7 +94,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const backgroundStyle: React.CSSProperties = { backgroundSize: 'cover', backgroundPosition: 'center' };
   
   if (customBackground) backgroundStyle.backgroundImage = `url(${customBackground})`;
-  else if (backgroundImageUrl) backgroundStyle.backgroundImage = `url(${getProxiedUrl(backgroundImageUrl)})`;
+  else if (backgroundImageUrl) backgroundStyle.backgroundImage = `url(${backgroundImageUrl})`;
   else backgroundStyle.backgroundColor = '#ffffff';
 
   const processedGreeting = greetingText.replace('{secret_santa}', match.giver.name);
@@ -109,7 +117,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     </div>
                  </button>
             ) : null}
-            <h2 className={`${fontClasses[fontTheme]} ${fontSizes[fontSizeSetting].title} font-bold break-words transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
+            <h2 className={`${fontClass} ${fontSizes[fontSizeSetting].title} font-bold break-words transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
                 {match.receiver.name}
             </h2>
           </div>
