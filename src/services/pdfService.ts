@@ -28,7 +28,6 @@ interface MasterListPdfProps {
   matches: Match[];
   eventDetails: string;
   exchangeDate?: string;
-  exchangeTime?: string;
 }
 
 export const generateIndividualCardsPdf = async (props: IndividualCardsPdfProps) => {
@@ -92,7 +91,7 @@ export const generateIndividualCardsPdf = async (props: IndividualCardsPdfProps)
 };
 
 
-export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate, exchangeTime }: MasterListPdfProps) => {
+export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate }: MasterListPdfProps) => {
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -122,15 +121,6 @@ export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate, exc
             year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
         });
         let dateString = `Exchange Date: ${formattedDate}`;
-        if (exchangeTime) {
-          const [hours, minutes] = exchangeTime.split(':');
-          dateObj.setUTCHours(parseInt(hours, 10));
-          dateObj.setUTCMinutes(parseInt(minutes, 10));
-          const formattedTime = dateObj.toLocaleTimeString(undefined, {
-            hour: 'numeric', minute: '2-digit', timeZone: 'UTC', hour12: true
-          });
-          dateString += ` at ${formattedTime}`;
-        }
         doc.text(dateString, pageWidth / 2, startY, { align: 'center' });
         startY += 10;
     }
