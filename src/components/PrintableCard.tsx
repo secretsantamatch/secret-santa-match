@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+// Fix: Corrected import path for types.
 import type { Match, FontSizeSetting, OutlineSizeSetting, FontTheme } from '../types';
 
 interface PrintableCardProps {
@@ -23,7 +24,27 @@ interface PrintableCardProps {
   onReveal?: () => void;
 }
 
-const getProxiedUrl = (url: string) => `https://wsrv.nl/?url=${encodeURIComponent(url)}&n=-1`;
+const getProxiedUrl = (url: string) => `https://wsrv.nl/?url=${encodeURIComponent(url)}&n=-1&w=425`;
+
+const fontClasses: Record<FontTheme, string> = {
+  classic: 'font-serif',
+  elegant: 'font-serif italic',
+  modern: 'font-sans',
+  whimsical: 'font-sans font-bold',
+};
+
+const fontSizeClasses: Record<FontSizeSetting, string> = {
+  'normal': 'text-base',
+  'large': 'text-lg',
+  'extra-large': 'text-xl',
+};
+
+const outlineSizeClasses: Record<OutlineSizeSetting, string> = {
+    'thin': '1px',
+    'normal': '2px',
+    'thick': '3px',
+};
+
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
   match,
@@ -40,102 +61,99 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   greetingText,
   introText,
   wishlistLabelText,
-  isPdfMode,
+  isPdfMode = false,
   onRendered,
-  isNameRevealed,
+  isNameRevealed = false,
   onReveal,
 }) => {
-  React.useEffect(() => {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
     if (isPdfMode && onRendered) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      let loaded = false;
-      const onFinish = () => {
-        if (!loaded) {
-          loaded = true;
-          setTimeout(onRendered, 50);
-        }
-      };
-      img.onload = onFinish;
-      img.onerror = onFinish; // Resolve even if image fails to load
-      img.src = customBackground || (backgroundImageUrl ? getProxiedUrl(backgroundImageUrl) : '');
-      setTimeout(onFinish, 1000); // Failsafe timeout
+      const img = cardRef.current?.querySelector('img');
+      if (img && !img.complete) {
+        img.onload = onRendered;
+        img.onerror = onRendered;
+        return;
+      }
+      // Fallback for cases where image might be cached or there's no image
+      const timer = setTimeout(() => onRendered(), 100);
+      return () => clearTimeout(timer);
     }
-  }, [isPdfMode, onRendered, backgroundImageUrl, customBackground]);
-
-  const fontClasses = {
-    classic: 'font-serif', // Playfair Display
-    elegant: 'font-["Great_Vibes",cursive]',
-    modern: 'font-["Oswald",sans-serif]',
-    whimsical: 'font-["Pacifico",cursive]',
-  };
-  const bodyFontClass = 'font-["Montserrat",sans-serif]';
-
-  const fontSizes = {
-    normal: { title: 'text-3xl', body: 'text-base', small: 'text-sm' },
-    large: { title: 'text-4xl', body: 'text-lg', small: 'text-base' },
-    'extra-large': { title: 'text-5xl', body: 'text-xl', small: 'text-lg' },
-  };
-
-  const outlineSizes = { thin: '1px', normal: '2px', thick: '3px' };
+  }, [isPdfMode, onRendered, match, backgroundImageUrl, customBackground]);
 
   const textShadow = useTextOutline
-    ? `${outlineSizes[outlineSize]} ${outlineSizes[outlineSize]} 0 ${outlineColor}, -${outlineSizes[outlineSize]} -${outlineSizes[outlineSize]} 0 ${outlineColor}, ${outlineSizes[outlineSize]} -${outlineSizes[outlineSize]} 0 ${outlineColor}, -${outlineSizes[outlineSize]} ${outlineSizes[outlineSize]} 0 ${outlineColor}, ${outlineSizes[outlineSize]} 0 0 ${outlineColor}, -${outlineSizes[outlineSize]} 0 0 ${outlineColor}, 0 ${outlineSizes[outlineSize]} 0 ${outlineColor}, 0 -${outlineSizes[outlineSize]} 0 ${outlineColor}`
+    ? `${outlineColor} -${outlineSizeClasses[outlineSize]} -${outlineSizeClasses[outlineSize]} 0, ${outlineColor} ${outlineSizeClasses[outlineSize]} -${outlineSizeClasses[outlineSize]} 0, ${outlineColor} -${outlineSizeClasses[outlineSize]} ${outlineSizeClasses[outlineSize]} 0, ${outlineColor} ${outlineSizeClasses[outlineSize]} ${outlineSizeClasses[outlineSize]} 0`
     : 'none';
-  
-  const backgroundStyle: React.CSSProperties = { backgroundSize: 'cover', backgroundPosition: 'center' };
-  
-  if (customBackground) backgroundStyle.backgroundImage = `url(${customBackground})`;
-  else if (backgroundImageUrl) backgroundStyle.backgroundImage = `url(${getProxiedUrl(backgroundImageUrl)})`;
-  else backgroundStyle.backgroundColor = '#ffffff';
 
-  const processedGreeting = greetingText.replace('{secret_santa}', match.giver.name);
+  const finalGreeting = greetingText.replace('{secret_santa}', match.giver.name);
+  
+  const backgroundStyle: React.CSSProperties = {};
+  let backgroundContent;
 
+  if (customBackground) {
+      backgroundContent = <img src={customBackground} alt="" className="absolute inset-0 w-full h-full object-cover z-0" />;
+  } else if (backgroundImageUrl) {
+      backgroundContent = <img src={getProxiedUrl(backgroundImageUrl)} alt="" className="absolute inset-0 w-full h-full object-cover z-0" />;
+  } else {
+      backgroundStyle.backgroundColor = '#FFFFFF';
+  }
+  
   return (
-    <div className="aspect-[3/4] w-full max-w-[350px] mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-      <div style={backgroundStyle} className="p-6 flex flex-col text-center relative h-full">
-        <div 
-            style={{ color: textColor, textShadow, lineHeight: lineSpacing }}
-            className="flex-grow flex flex-col justify-center items-center"
-        >
-          <p className={`${bodyFontClass} ${fontSizes[fontSizeSetting].body} mb-2`}>{processedGreeting}</p>
-          <p className={`${bodyFontClass} ${fontSizes[fontSizeSetting].body} mb-4`}>{introText}</p>
-          
-          <div className="relative w-full min-h-[60px] flex items-center justify-center">
-            {isNameRevealed === false ? (
-                 <button onClick={onReveal} className="absolute inset-0 flex items-center justify-center w-full transition-opacity duration-500">
-                    <div className="relative w-4/5 p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50">
-                        <h2 className={`font-bold text-[var(--accent-dark-text)] text-2xl`}>Click to Reveal</h2>
-                    </div>
-                 </button>
-            ) : null}
-            <h2 className={`${fontClasses[fontTheme]} ${fontSizes[fontSizeSetting].title} font-bold break-words transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
-                {match.receiver.name}
-            </h2>
-          </div>
+    <div
+      ref={cardRef}
+      className={`relative aspect-[3/4] w-full max-w-[425px] mx-auto bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col justify-between text-center p-6 md:p-8 ${fontClasses[fontTheme]}`}
+      style={{ 
+          color: textColor, 
+          textShadow,
+          lineHeight: lineSpacing,
+          ...backgroundStyle
+       }}
+    >
+        {backgroundContent}
+        <div className="z-10 relative">
+            <p className="text-lg font-semibold">{finalGreeting}</p>
+            <p className="mt-2 text-base">{introText}</p>
+
+            {isNameRevealed && (
+              <div className="my-4">
+                <div className="inline-block bg-white/20 backdrop-blur-sm p-3 md:p-4 rounded-xl">
+                    <h2 className="text-3xl md:text-4xl font-bold" style={{ color: textColor, textShadow }}>
+                        {match.receiver.name}
+                    </h2>
+                </div>
+              </div>
+            )}
+            
+             {!isNameRevealed && onReveal && (
+                <div className="my-4">
+                    <button 
+                        onClick={onReveal}
+                        className="bg-white text-gray-800 font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 hover:shadow-xl transition-all"
+                    >
+                        Click to Reveal
+                    </button>
+                </div>
+             )}
         </div>
 
-        {(match.receiver.notes || match.receiver.budget) && (
-          <div className={`flex-shrink-0 mt-4 pt-3 border-t-2 border-white/50 transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
-            <h3 style={{ color: textColor, textShadow }} className={`${bodyFontClass} ${fontSizes[fontSizeSetting].small} font-bold uppercase tracking-wider mb-1`}>
-                {wishlistLabelText}
-            </h3>
-            <p style={{ color: textColor, textShadow, lineHeight: lineSpacing }} className={`${bodyFontClass} ${fontSizes[fontSizeSetting].body} break-words`}>
-              {match.receiver.notes}
-              {match.receiver.notes && match.receiver.budget && <span className="mx-1">|</span>}
-              {match.receiver.budget && `Budget: $${match.receiver.budget}`}
-            </p>
-          </div>
-        )}
-
-        {eventDetails && (
-          <div className={`flex-shrink-0 mt-3 transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
-             <p style={{ color: textColor, textShadow, lineHeight: lineSpacing }} className={`${bodyFontClass} ${fontSizes[fontSizeSetting].small} opacity-80 break-words`}>
-                {eventDetails}
-             </p>
-          </div>
-        )}
-      </div>
+        <div className={`z-10 relative text-left bg-black/20 backdrop-blur-sm p-4 rounded-lg ${fontSizeClasses[fontSizeSetting]}`}>
+            <h3 className="font-bold mb-1">{wishlistLabelText}</h3>
+            {match.receiver.notes || match.receiver.budget ? (
+                <>
+                {match.receiver.notes && <p>{match.receiver.notes}</p>}
+                {match.receiver.budget && <p><span className="font-semibold">Budget:</span> {match.receiver.budget.toString().startsWith('$') ? match.receiver.budget : `$${match.receiver.budget}`}</p>}
+                </>
+            ) : (
+                <p className="italic">No notes provided.</p>
+            )}
+            {eventDetails && (
+                <div className="mt-3 pt-3 border-t border-white/30">
+                    <h3 className="font-bold">Event Details:</h3>
+                    <p>{eventDetails}</p>
+                </div>
+            )}
+        </div>
     </div>
   );
 };
