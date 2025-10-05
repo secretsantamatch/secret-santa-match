@@ -41,7 +41,7 @@ const InfoIcon = () => (
 
 
 const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
-    eventDetails, backgroundOptions, selectedBackground, setSelectedBackground, customBackground, textColor, setTextColor, useTextOutline, setUseTextOutline, outlineColor, setOutlineColor, outlineSize, setOutlineSize, fontSizeSetting, setFontSizeSetting, fontTheme, setFontTheme, lineSpacing, setLineSpacing, greetingText, setGreetingText, introText, setIntroText, wishlistLabelText, setWishlistLabelText
+    participants, eventDetails, backgroundOptions, selectedBackground, setSelectedBackground, customBackground, textColor, setTextColor, useTextOutline, setUseTextOutline, outlineColor, setOutlineColor, outlineSize, setOutlineSize, fontSizeSetting, setFontSizeSetting, fontTheme, setFontTheme, lineSpacing, setLineSpacing, greetingText, setGreetingText, introText, setIntroText, wishlistLabelText, setWishlistLabelText
 }) => {
     
     const [filter, setFilter] = useState('');
@@ -54,9 +54,13 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
         );
     }, [filter, backgroundOptions]);
 
+    const previewParticipants = participants.filter(p => p.name.trim() !== '');
+    const giverName = previewParticipants.length > 0 ? previewParticipants[0].name : 'Alx';
+    const receiverName = previewParticipants.length > 1 ? previewParticipants[1].name : 'Mark';
+
     const previewMatch = {
-        giver: { name: 'Alx' },
-        receiver: { name: 'Mark', notes: 'Loves coffee, books, and board games.', budget: '25' }
+        giver: { name: giverName },
+        receiver: { name: receiverName, notes: 'Loves coffee, books, and board games.', budget: '25' }
     };
     
     const handleLineSpacingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,13 +88,14 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                                 <button 
                                     key={option.id}
                                     onClick={() => setSelectedBackground(option.id)}
+                                    onMouseOver={() => setSelectedBackground(option.id)}
                                     className={`text-left border-2 rounded-lg transition-all transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${selectedBackground === option.id ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-400'}`}
                                 >
-                                    <div className="aspect-w-3 aspect-h-4">
+                                    <div className="aspect-w-3 aspect-h-4 bg-slate-100 rounded-t-md">
                                         {imageUrl ? (
                                             <img src={imageUrl} alt={option.name} className="object-cover rounded-t-md w-full h-full" />
                                         ) : (
-                                            <div className="bg-slate-100 flex items-center justify-center rounded-t-md">
+                                            <div className="flex items-center justify-center w-full h-full">
                                                 <span className="text-4xl">{option.icon}</span>
                                             </div>
                                         )}
