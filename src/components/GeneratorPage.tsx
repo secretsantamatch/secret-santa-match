@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Participant, Exclusion, Match, BackgroundOption, Assignment, FontSizeSetting, OutlineSizeSetting, FontTheme, ExchangeData } from '../types';
 import Header from './Header';
 import HowItWorks from './HowItWorks';
@@ -12,6 +12,8 @@ import FaqSection from './FaqSection';
 import BackToTopButton from './BackToTopButton';
 import BulkAddModal from './BulkAddModal';
 
+// This function determines the seasonal theme. It's now managed in App.tsx
+// but we need it here to pass to the ExchangeData
 const getSeasonalTheme = (): string => {
     const month = new Date().getMonth();
     if (month === 9) return 'halloween';
@@ -19,6 +21,7 @@ const getSeasonalTheme = (): string => {
     if (month === 10 || month === 11) return 'christmas';
     return 'default';
 };
+
 
 const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
   try {
@@ -65,11 +68,6 @@ const GeneratorPage: React.FC = () => {
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [showBulkAddModal, setShowBulkAddModal] = useState(false);
-  const [theme, setTheme] = useState(getSeasonalTheme());
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
   
   useEffect(() => { localStorage.setItem('ssm_participants', JSON.stringify(participants)); }, [participants]);
   useEffect(() => { localStorage.setItem('ssm_exclusions', JSON.stringify(exclusions)); }, [exclusions]);
@@ -196,7 +194,7 @@ const GeneratorPage: React.FC = () => {
             introText,
             wishlistLabelText,
             backgroundOptions,
-            pageTheme: theme,
+            pageTheme: getSeasonalTheme(),
         };
         const encodedData = encodeData(exchangeData);
         window.location.hash = encodedData;
@@ -210,7 +208,6 @@ const GeneratorPage: React.FC = () => {
       setParticipants(defaultParticipants);
   };
 
-  // FIX: Added missing handleBulkAdd function.
   const handleBulkAdd = (names: string) => {
       const newParticipants = names
           .split('\n')
@@ -224,7 +221,6 @@ const GeneratorPage: React.FC = () => {
           }));
 
       if (newParticipants.length > 0) {
-          // Remove any initial/empty placeholder participants before adding the new ones.
           const currentParticipants = participants.filter(p => p.name.trim() !== '' || p.notes.trim() !== '' || p.budget.trim() !== '');
           setParticipants([...currentParticipants, ...newParticipants]);
       }
