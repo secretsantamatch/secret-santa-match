@@ -30,7 +30,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     eventDetails,
     exchangeDate,
     exchangeTime,
-    pageTheme,
     bgId,
     customBackground,
     textColor,
@@ -64,7 +63,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     outlineSize, fontSizeSetting, fontTheme, lineSpacing, greetingText,
     introText, wishlistLabelText
   ]);
-
+  
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -104,7 +103,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
       await generationFn();
     } catch (err) {
       console.error("PDF Generation failed:", err);
-      // You might want to show an error message to the user here.
     } finally {
       if (loadingTimer) clearTimeout(loadingTimer);
       setIsPdfLoading(false);
@@ -135,7 +133,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   if (!currentParticipantId) { // Organizer View
     if (isRevealTime) {
        return (
-         <div className={`theme-${pageTheme || 'default'} bg-slate-50 min-h-screen`}>
+         <div className="bg-slate-50 min-h-screen">
             <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
                 <Header />
                 <main className="mt-8 md:mt-12">
@@ -149,7 +147,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     
     return (
         <>
-            <div className={`theme-${pageTheme || 'default'} bg-slate-50 min-h-screen`}>
+            <div className="bg-slate-50 min-h-screen">
                 <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
                     <Header />
                     <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
@@ -301,7 +299,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
 
   if (isRevealTime) {
       return (
-         <div className={`theme-${pageTheme || 'default'} bg-slate-50 min-h-screen`}>
+         <div className="bg-slate-50 min-h-screen">
             <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
                 <Header />
                 <main className="mt-8 md:mt-12">
@@ -315,7 +313,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   
   if (participant && match) {
       return (
-        <div className={`theme-${pageTheme || 'default'} bg-slate-50 min-h-screen`}>
+        <div className="bg-slate-50 min-h-screen">
             <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
                 <Header />
                  <main className="mt-8 md:mt-12 space-y-10">
