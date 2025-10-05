@@ -41,7 +41,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     backgroundOptions,
   } = data;
 
-  const style: CardStyleData = useMemo(() => ({
+  const cardStyle: CardStyleData = useMemo(() => ({
     bgId: backgroundId,
     bgImg: customBackground,
     txtColor: textColor,
@@ -75,18 +75,18 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     });
   }, [matchesById, participants]);
   
-  const targetTimestamp = useMemo(() => {
+  const targetTime = useMemo(() => {
     if (!exchangeDate) return 0;
     const dateStr = exchangeTime ? `${exchangeDate}T${exchangeTime}` : `${exchangeDate}T00:00:00`;
     return new Date(dateStr).getTime();
   }, [exchangeDate, exchangeTime]);
   
-  const isRevealTime = targetTimestamp > 0 && new Date().getTime() >= targetTimestamp;
+  const isRevealTime = targetTime > 0 && new Date().getTime() >= targetTime;
 
   const handleDownload = async (type: 'cards' | 'list' | 'both') => {
       setShowDownloadOptionsModal(false);
       if (type === 'cards' || type === 'both') {
-          await generateIndividualCardsPdf({ matches, eventDetails, style, backgroundOptions });
+          await generateIndividualCardsPdf({ matches, eventDetails, style: cardStyle, backgroundOptions });
       }
       if (type === 'list' || type === 'both') {
           generateMasterListPdf({ matches, eventDetails, exchangeDate, exchangeTime });
@@ -99,7 +99,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     return `${baseUrl}${hash}?id=${participantId}`;
   };
 
-  if (!currentParticipantId) {
+  if (!currentParticipantId) { // Organizer View
     if (isRevealTime) {
        return (
          <div className={`theme-${pageTheme || 'default'} bg-slate-50 min-h-screen`}>
@@ -158,6 +158,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     );
   }
 
+  // Participant View
   const participant = participants.find((p: Participant) => p.id === currentParticipantId);
   const match = participant ? matches.find(m => m.giver.id === participant.id) : null;
 
@@ -185,12 +186,12 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                         <p className="text-xl text-slate-600">Hello, <span className="font-bold text-slate-800">{participant.name}!</span></p>
                         
                         <div className="my-6 max-w-sm mx-auto">
-                           <PrintableCard match={match} eventDetails={eventDetails} style={style} isNameRevealed={isRevealed} onReveal={() => setIsRevealed(true)} backgroundOptions={backgroundOptions} />
+                           <PrintableCard match={match} eventDetails={eventDetails} style={cardStyle} isNameRevealed={isRevealed} onReveal={() => setIsRevealed(true)} backgroundOptions={backgroundOptions} />
                         </div>
                     </div>
-                     {targetTimestamp > 0 && (
+                     {targetTime > 0 && (
                         <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200 text-center">
-                           <CountdownTimer targetTimestamp={targetTimestamp} onComplete={() => window.location.reload()} />
+                           <CountdownTimer targetTime={targetTime} onComplete={() => window.location.reload()} />
                         </div>
                     )}
                     <div className="text-center">
