@@ -4,6 +4,15 @@ import ResultsPage from './components/ResultsPage';
 import { decodeData } from './services/urlService';
 import type { ExchangeData } from './types';
 
+// Centralized theme logic
+const getSeasonalTheme = (): string => {
+    const month = new Date().getMonth(); // 0 = Jan, 1 = Feb, etc.
+    if (month === 9) return 'halloween'; // October
+    if (month === 1) return 'valentines'; // February
+    if (month === 10 || month === 11) return 'christmas'; // Nov, Dec
+    return 'default';
+};
+
 interface AppState {
   exchangeData: ExchangeData | null;
   participantId: string | null;
@@ -17,7 +26,13 @@ const App: React.FC = () => {
     error: null
   });
 
+  // This effect runs once and ensures the theme is always set correctly.
   useEffect(() => {
+    const applyTheme = (data: ExchangeData | null) => {
+      const theme = data?.pageTheme || getSeasonalTheme();
+      document.documentElement.dataset.theme = theme;
+    };
+    
     const handleHashChange = () => {
       try {
         const hash = window.location.hash;
@@ -26,7 +41,9 @@ const App: React.FC = () => {
           const [encodedData, queryString] = hashContent.split('?');
           
           if (!encodedData) {
-            setState({ exchangeData: null, participantId: null, error: null });
+            const newState = { exchangeData: null, participantId: null, error: null };
+            setState(newState);
+            applyTheme(null);
             return;
           }
 
@@ -38,18 +55,25 @@ const App: React.FC = () => {
             pId = params.get('id');
           }
           
-          setState({ exchangeData: data, participantId: pId, error: null });
+          const newState = { exchangeData: data, participantId: pId, error: null };
+          setState(newState);
+          applyTheme(data);
+
         } else {
-          setState({ exchangeData: null, participantId: null, error: null });
+          const newState = { exchangeData: null, participantId: null, error: null };
+          setState(newState);
+          applyTheme(null);
         }
       } catch (e) {
         console.error("Error processing URL hash:", e);
-        setState({ exchangeData: null, participantId: null, error: "The link seems to be invalid or corrupted. Please check the URL and try again." });
+        const newState = { exchangeData: null, participantId: null, error: "The link seems to be invalid or corrupted. Please check the URL and try again." };
+        setState(newState);
+        applyTheme(null);
       }
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // initial check
+    handleHashChange(); // Initial check
 
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
@@ -59,7 +83,8 @@ const App: React.FC = () => {
   const handleStartNewGame = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     window.history.pushState("", document.title, window.location.pathname + window.location.search);
-    setState({ exchangeData: null, participantId: null, error: null });
+    // Manually trigger the hash change logic to reset the state and theme
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
   };
 
   if (state.error) {
