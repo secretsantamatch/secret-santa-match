@@ -16,7 +16,7 @@ const HowItWorks: React.FC = () => {
                     <div className="flex justify-center mb-4">
                         <img src="/step_1.png" alt="Add Names" className="h-12 w-12" />
                     </div>
-                    <h3 className="text-xl font-bold text-[var(--primary-text)]">1. Add Names</h3>
+                    <h3 className="text-xl font-bold text-[#c62828]">1. Add Names</h3>
                     <p className="text-slate-600 mt-2 text-sm leading-relaxed">Easily enter participant names one by one or use the bulk add feature. It's fast, free, and requires no sign-ups or apps.</p>
                 </div>
                 
@@ -29,7 +29,7 @@ const HowItWorks: React.FC = () => {
                     <div className="flex justify-center mb-4">
                         <img src="/step_2.png" alt="Set Rules & Styles" className="h-12 w-12" />
                     </div>
-                    <h3 className="text-xl font-bold text-[var(--primary-text)]">2. Set Rules &amp; Styles</h3>
+                    <h3 className="text-xl font-bold text-[#c62828]">2. Set Rules &amp; Styles</h3>
                     <p className="text-slate-600 mt-2 text-sm leading-relaxed">Add exclusions to prevent people from drawing each other, then customize beautiful, printable cards for a personal touch.</p>
                 </div>
 
@@ -42,7 +42,7 @@ const HowItWorks: React.FC = () => {
                     <div className="flex justify-center mb-4">
                         <img src="/step_3.png" alt="Share Links & Cards" className="h-12 w-12" />
                     </div>
-                    <h3 className="text-xl font-bold text-[var(--primary-text)]">3. Share Links &amp; Cards</h3>
+                    <h3 className="text-xl font-bold text-[#c62828]">3. Share Links &amp; Cards</h3>
                     <p className="text-slate-600 mt-2 text-sm leading-relaxed">Instantly share private links so everyone can see their match online, or download the styled cards for your in-person party.</p>
                 </div>
             </div>
