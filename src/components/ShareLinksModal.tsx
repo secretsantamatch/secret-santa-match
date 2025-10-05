@@ -10,8 +10,9 @@ interface ShareLinksModalProps {
 const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getParticipantLink, onClose }) => {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
-  const copyLink = (link: string, participantId: string) => {
-    navigator.clipboard.writeText(link).then(() => {
+  const copyLink = (participantId: string) => {
+    const urlToCopy = getParticipantLink(participantId);
+    navigator.clipboard.writeText(urlToCopy).then(() => {
       setCopiedLink(participantId);
       setTimeout(() => setCopiedLink(null), 2000);
     }).catch(err => {
@@ -42,7 +43,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getPart
             <div key={p.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-200">
               <span className="font-semibold text-slate-800">{p.name}'s Link</span>
               <button 
-                onClick={() => copyLink(getParticipantLink(p.id), p.id)}
+                onClick={() => copyLink(p.id)}
                 className="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-5 text-sm rounded-lg transition-all flex items-center gap-2 w-32 justify-center"
                 style={{minHeight: '36px'}}
               >
