@@ -227,8 +227,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                       </div>
                       <div className="space-y-4">
                           <button onClick={() => handleDownload('both')} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold p-4 rounded-xl shadow-lg transform hover:scale-[1.03] transition-all text-left flex items-center gap-5">
-                              <div className="flex-shrink-0">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                              <div className="p-2 bg-white/20 rounded-lg">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                               </div>
                               <div className="flex-grow">
                                   <span className="text-xl">Download Both</span>
@@ -236,25 +236,33 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                               </div>
                           </button>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button onClick={() => handleDownload('cards')} className="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold p-6 rounded-xl shadow-md transition-colors text-center flex flex-col items-center justify-center gap-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-                                <div className="text-center">
-                                  <p className="text-lg font-semibold">Individual Cards Only</p>
-                                  <p className="text-sm text-slate-300 font-normal">Styled cards for each person.</p>
+                            <button onClick={() => handleDownload('cards')} className="w-full bg-slate-700 hover:bg-slate-800 text-white p-6 rounded-xl shadow-md transition-colors text-left flex flex-col justify-between items-start min-h-[10rem]">
+                                <div>
+                                    <div className="p-2 bg-white/20 rounded-lg mb-3 inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2H5a2 2 0 00-2 2v2m14 0h0z" />
+                                        </svg>
+                                    </div>
+                                    <p className="text-lg font-bold">Individual Cards Only</p>
                                 </div>
+                                <p className="text-sm text-slate-300 font-normal">Styled cards for each person.</p>
                             </button>
                             
-                            <button onClick={() => handleDownload('list')} className="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold p-6 rounded-xl shadow-md transition-colors text-center flex flex-col items-center justify-center gap-3">
-                               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-                                <div className="text-center">
-                                  <p className="text-lg font-semibold">Master List Only</p>
-                                  <p className="text-sm text-slate-300 font-normal">A single page showing all matches.</p>
-                                </div>
+                            <button onClick={() => handleDownload('list')} className="w-full bg-slate-700 hover:bg-slate-800 text-white p-6 rounded-xl shadow-md transition-colors text-left flex flex-col justify-between items-start min-h-[10rem]">
+                               <div>
+                                  <div className="p-2 bg-white/20 rounded-lg mb-3 inline-block">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                      </svg>
+                                  </div>
+                                  <p className="text-lg font-bold">Master List Only</p>
+                               </div>
+                               <p className="text-sm text-slate-300 font-normal">A single page showing all matches.</p>
                             </button>
                           </div>
                       </div>
                       <div className="text-center">
-                          <button onClick={() => setShowDownloadOptionsModal(false)} className="mt-8 text-gray-500 hover:text-gray-700 font-semibold text-sm transition-colors py-2 px-4 rounded-full">
+                          <button onClick={() => setShowDownloadOptionsModal(false)} className="mt-8 text-gray-500 hover:text-gray-700 font-semibold text-sm transition-colors">
                               Cancel
                           </button>
                       </div>
