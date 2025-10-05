@@ -1,0 +1,84 @@
+import React, { useState } from 'react';
+import type { Participant } from '../types';
+
+interface ShareLinksModalProps {
+  participants: Participant[];
+  getParticipantLink: (id: string) => string;
+  onClose: () => void;
+}
+
+const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getParticipantLink, onClose }) => {
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+
+  const copyLink = (link: string, participantId: string) => {
+    navigator.clipboard.writeText(link).then(() => {
+      setCopiedLink(participantId);
+      setTimeout(() => setCopiedLink(null), 2000);
+    }).catch(err => {
+      console.error('Failed to copy link: ', err);
+      alert('Failed to copy link.');
+    });
+  };
+
+  const handleCopyAllLinks = () => {
+    const allLinksText = participants.map(p => `${p.name}'s Link: ${getParticipantLink(p.id)}`).join('\n');
+    navigator.clipboard.writeText(`Here are all the private Secret Santa links for your group:\n\n${allLinksText}`).then(() => {
+      alert('All links copied to clipboard!');
+    }).catch(err => {
+      alert('Failed to copy all links.');
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="share-links-title">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-lg w-full" onClick={e => e.stopPropagation()}>
+        <div className="text-center">
+            <h2 id="share-links-title" className="text-3xl font-bold text-slate-800 font-serif mb-2">Share Private Links</h2>
+            <p className="text-gray-600 mb-8">Copy each participant's unique link and send it to them privately.</p>
+        </div>
+        
+        <div className="space-y-3 text-left max-h-[40vh] overflow-y-auto pr-2">
+          {participants.map(p => (
+            <div key={p.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <span className="font-semibold text-slate-800">{p.name}'s Link</span>
+              <button 
+                onClick={() => copyLink(getParticipantLink(p.id), p.id)}
+                className="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-5 text-sm rounded-lg transition-all flex items-center gap-2 w-32 justify-center"
+                style={{minHeight: '36px'}}
+              >
+                {copiedLink === p.id ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                    </svg>
+                )}
+                {copiedLink === p.id ? 'Copied!' : 'Copy Link'}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 border-t border-slate-200 pt-6">
+          <button 
+            onClick={handleCopyAllLinks} 
+            className="w-full bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg transition-colors"
+          >
+            Copy All Links for Group Chat
+          </button>
+        </div>
+
+        <div className="text-center">
+            <button onClick={onClose} className="mt-4 text-gray-500 hover:text-gray-800 font-semibold text-sm transition-colors py-2 px-4 rounded-full">
+            Close
+            </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ShareLinksModal;
