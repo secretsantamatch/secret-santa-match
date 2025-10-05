@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { Participant, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import PrintableCard from './PrintableCard';
 import Tooltip from './Tooltip';
@@ -45,6 +45,11 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
 }) => {
     
     const [filter, setFilter] = useState('');
+    const [previewBackground, setPreviewBackground] = useState(selectedBackground);
+
+    useEffect(() => {
+        setPreviewBackground(selectedBackground);
+    }, [selectedBackground]);
 
     const filteredOptions = useMemo(() => {
         if (!filter) return backgroundOptions;
@@ -81,14 +86,17 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                         onChange={e => setFilter(e.target.value)}
                         className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition mb-4"
                     />
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-96 overflow-y-auto pr-2">
+                    <div 
+                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-96 overflow-y-auto pr-2"
+                        onMouseLeave={() => setPreviewBackground(selectedBackground)}
+                    >
                         {filteredOptions.map(option => {
                             const imageUrl = option.imageUrl && !option.imageUrl.startsWith('/') ? `/${option.imageUrl}` : option.imageUrl;
                             return (
                                 <button 
                                     key={option.id}
                                     onClick={() => setSelectedBackground(option.id)}
-                                    onMouseOver={() => setSelectedBackground(option.id)}
+                                    onMouseOver={() => setPreviewBackground(option.id)}
                                     className={`text-left border-2 rounded-lg transition-all transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${selectedBackground === option.id ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-400'}`}
                                 >
                                     <div className="aspect-w-3 aspect-h-4 bg-slate-100 rounded-t-md">
@@ -193,7 +201,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                         eventDetails={eventDetails}
                         isNameRevealed={true}
                         backgroundOptions={backgroundOptions}
-                        bgId={selectedBackground}
+                        bgId={previewBackground}
                         bgImg={customBackground}
                         txtColor={textColor}
                         outline={useTextOutline}
