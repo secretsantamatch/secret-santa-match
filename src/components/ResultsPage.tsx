@@ -141,7 +141,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                 <main className="mt-8 md:mt-12">
                     <ResultsDisplay matches={matches} />
                 </main>
-                <Footer theme={pageTheme || 'default'} setTheme={() => {}} />
+                <Footer />
             </div>
          </div>
       );
@@ -203,7 +203,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                             </a>
                         </div>
                     </main>
-                    <Footer theme={pageTheme || 'default'} setTheme={() => {}} />
+                    <Footer />
                 </div>
             </div>
             
@@ -307,7 +307,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                 <main className="mt-8 md:mt-12">
                     <ResultsDisplay matches={matches} />
                 </main>
-                <Footer theme={pageTheme || 'default'} setTheme={() => {}} />
+                <Footer />
             </div>
          </div>
       )
@@ -344,7 +344,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                       </a>
                     </div>
                  </main>
-                 <Footer theme={pageTheme || 'default'} setTheme={() => {}} />
+                 <Footer />
             </div>
         </div>
       );
