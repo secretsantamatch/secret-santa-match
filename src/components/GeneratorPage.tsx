@@ -319,7 +319,7 @@ const GeneratorPage: React.FC = () => {
       <FaqSection />
       <BlogPromo />
       
-      <Footer theme={theme} setTheme={setTheme} />
+      <Footer />
       
       {showBulkAddModal && <BulkAddModal onClose={() => setShowBulkAddModal(false)} onConfirm={handleBulkAdd} />}
 
