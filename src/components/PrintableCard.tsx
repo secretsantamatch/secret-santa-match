@@ -85,8 +85,24 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                       <h2 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 2.25)' }} className="font-bold break-words">
                           {match.receiver.name}
                       </h2>
+                      
+                      {(match.receiver.notes || match.receiver.budget) && (
+                          <div className="mt-4 w-full text-center">
+                              <div className="bg-black/5 p-3 rounded-lg backdrop-blur-sm inline-block max-w-full">
+                                  <h3 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)'}} className="font-bold tracking-widest uppercase opacity-70">
+                                      {wish}
+                                  </h3>
+                                  <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words">
+                                      {match.receiver.notes}
+                                      {match.receiver.notes && match.receiver.budget && " | "}
+                                      {match.receiver.budget && `Budget: $${match.receiver.budget}`}
+                                  </p>
+                              </div>
+                          </div>
+                      )}
+
                       {eventDetails && (
-                        <div className="w-full text-center px-2 mt-2">
+                        <div className="w-full text-center px-2 mt-4">
                           <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)' }} className="opacity-80 break-words">
                             {eventDetails}
                           </p>
@@ -103,21 +119,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 )}
             </div>
         </div>
-
-        {isNameRevealed && (match.receiver.notes || match.receiver.budget) && (
-            <div className="mt-auto w-full text-center pt-4">
-                <div className="bg-black/5 p-3 rounded-lg backdrop-blur-sm">
-                    <h3 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)'}} className="font-bold tracking-widest uppercase opacity-70">
-                        {wish}
-                    </h3>
-                    <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words">
-                        {match.receiver.notes}
-                        {match.receiver.notes && match.receiver.budget && " | "}
-                        {match.receiver.budget && `Budget: $${match.receiver.budget}`}
-                    </p>
-                </div>
-            </div>
-        )}
         
         <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.65)' }} className="absolute bottom-3 right-4 opacity-50 z-20">
             SecretSantaMatch.com
