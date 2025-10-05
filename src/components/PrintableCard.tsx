@@ -1,23 +1,31 @@
 import React from 'react';
-// FIX: Import CardStyleData and BackgroundOption types.
-import type { Match, CardStyleData, BackgroundOption } from '../types';
+import type { Match, CardStyleData, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 
 interface PrintableCardProps {
   match: Match | { giver: { name: string }, receiver: { name: string, notes: string, budget: string } };
   eventDetails: string;
-  style: CardStyleData;
   isNameRevealed: boolean;
   onReveal?: () => void;
   backgroundOptions: BackgroundOption[];
+  // Style props are now individual
+  bgId: string;
+  bgImg: string | null;
+  txtColor: string;
+  outline: boolean;
+  outColor: string;
+  outSize: OutlineSizeSetting;
+  fontSize: FontSizeSetting;
+  font: FontTheme;
+  line: number;
+  greet: string;
+  intro: string;
+  wish: string;
 }
 
-const PrintableCard: React.FC<PrintableCardProps> = ({ match, eventDetails, style, isNameRevealed, onReveal, backgroundOptions }) => {
-  const { 
-    bgId, bgImg, txtColor, 
-    outline, outColor, outSize, 
-    fontSize, font, line, 
-    greet, intro, wish 
-  } = style;
+const PrintableCard: React.FC<PrintableCardProps> = ({ 
+  match, eventDetails, isNameRevealed, onReveal, backgroundOptions,
+  bgId, bgImg, txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish 
+}) => {
 
   const fontFamilies: Record<string, string> = {
     classic: '"Playfair Display", serif',
@@ -38,7 +46,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({ match, eventDetails, styl
     thick: '2px',
   };
 
-  // FIX: Cast to React.CSSProperties to allow for custom properties.
   const dynamicStyles = {
     '--base-font-size': fontSizes[fontSize] || '1rem',
     '--line-spacing': line,
@@ -47,7 +54,13 @@ const PrintableCard: React.FC<PrintableCardProps> = ({ match, eventDetails, styl
     textShadow: outline ? `${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `${outlineSizes[outSize]} ${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `-${outlineSizes[outSize]} -${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `${outlineSizes[outSize]} -${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `-${outlineSizes[outSize]} ${outlineSizes[outSize]} 0`} ${outColor}` : 'none',
   } as React.CSSProperties;
 
-  const backgroundImageUrl = bgImg || (bgId !== 'plain-white' && backgroundOptions.find(b => b.id === bgId)?.imageUrl);
+  const backgroundImageUrlRaw = bgImg || (bgId !== 'plain-white' && backgroundOptions.find(b => b.id === bgId)?.imageUrl);
+  
+  let backgroundImageUrl = backgroundImageUrlRaw;
+  if (backgroundImageUrl && !backgroundImageUrl.startsWith('http') && !backgroundImageUrl.startsWith('data:') && !backgroundImageUrl.startsWith('/')) {
+    backgroundImageUrl = `/${backgroundImageUrl}`;
+  }
+
 
   return (
     <div 
@@ -72,7 +85,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({ match, eventDetails, styl
                       <h2 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 2.25)' }} className="font-bold break-words">
                           {match.receiver.name}
                       </h2>
-                      {/* FIX: Display event details on the card */}
                       {eventDetails && (
                         <div className="w-full text-center px-2 mt-2">
                           <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)' }} className="opacity-80 break-words">
