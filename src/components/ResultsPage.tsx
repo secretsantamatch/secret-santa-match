@@ -153,9 +153,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                 <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
                     <Header />
                     <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
-                         <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200 text-center">
-                            <h2 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">You're the Organizer!</h2>
-                            <p className="text-gray-600 mt-2 mb-8 max-w-2xl mx-auto">Your matches are ready. Share the private links with each person so they can see who they're gifting to.</p>
+                         <div className="p-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
+                            <div className="mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-bold text-white font-serif">You're the Organizer!</h2>
+                            <p className="text-purple-100 mt-2 mb-8 max-w-2xl mx-auto">Your matches are ready. Share the private links with each person so they can see who they're gifting to.</p>
                             
                             <button 
                               onClick={() => setShowShareModal(true)} 
