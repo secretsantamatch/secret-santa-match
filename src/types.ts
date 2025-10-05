@@ -1,4 +1,6 @@
-// FIX: Removed unused and invalid import of 'Packer' from 'pako'.
+// FIX: Removed unused and incorrect import of 'Packer' from 'pako'.
+// The 'Packer' type does not exist in the 'pako' library.
+
 export interface Participant {
   id: string;
   name: string;
@@ -56,9 +58,9 @@ export interface BackgroundOption {
 
 export interface ExchangeData {
     matches: { g: string; r: string; }[];
-    participants: Participant[];
+    p: Participant[]; // Renamed from participants
     eventDetails: string;
-    backgroundId: string;
+    bgId: string; // Renamed from backgroundId
     customBackground: string | null;
     textColor: string;
     useTextOutline: boolean;
@@ -74,4 +76,12 @@ export interface ExchangeData {
     exchangeDate?: string;
     exchangeTime?: string;
     pageTheme?: string;
+}
+
+// FIX: Removed the 'match' property. The function that uses this type generates
+// cards for a list of matches, so this property was incorrect and caused a type error
+// in src/components/ResultsPage.tsx.
+export interface PdfCardOptions extends CardStyleData {
+  eventDetails: string;
+  backgroundOptions: BackgroundOption[];
 }
