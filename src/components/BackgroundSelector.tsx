@@ -60,12 +60,21 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     }, [filter, backgroundOptions]);
 
     const previewParticipants = participants.filter(p => p.name.trim() !== '');
-    const giverName = previewParticipants.length > 0 ? previewParticipants[0].name : 'Alx';
-    const receiverName = previewParticipants.length > 1 ? previewParticipants[1].name : 'Mark';
+    const giverName = previewParticipants.length > 0 ? previewParticipants[0].name : 'Alex';
+    
+    const receiverParticipant = previewParticipants.length > 1 ? previewParticipants[1] : null;
+
+    const receiverName = receiverParticipant ? receiverParticipant.name : 'Alexa';
+    const receiverNotes = receiverParticipant?.notes || 'Loves coffee, books, and board games.';
+    const receiverBudget = receiverParticipant?.budget || '25';
 
     const previewMatch = {
         giver: { name: giverName },
-        receiver: { name: receiverName, notes: 'Loves coffee, books, and board games.', budget: '25' }
+        receiver: { 
+            name: receiverName, 
+            notes: receiverNotes, 
+            budget: receiverBudget 
+        }
     };
     
     const handleLineSpacingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
