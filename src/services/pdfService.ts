@@ -94,7 +94,7 @@ export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate, exc
     autoTable(doc, {
         startY: 50,
         head: [['Giver', 'Is the Secret Santa for', 'Receiver']],
-        body: matches.map(match => [match.giver.name, '→', match.receiver.name]),
+        body: matches.map(match => [match.giver.name, '', match.receiver.name]),
         theme: 'striped',
         headStyles: { fillColor: [22, 160, 133] }, // Teal color for header
         styles: { halign: 'center' },
@@ -103,6 +103,20 @@ export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate, exc
             2: { halign: 'left' }
         }
     });
+
+    const finalY = (doc as any).lastAutoTable.finalY || doc.internal.pageSize.getHeight() - 20;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let footerY = finalY + 20;
+
+    if (footerY > pageHeight - 10) {
+        footerY = pageHeight - 10;
+    }
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(150);
+    doc.text('secretsantamatch.com', pageWidth / 2, footerY, { align: 'center' });
 
     doc.save('Secret_Santa_Master_List.pdf');
 };
