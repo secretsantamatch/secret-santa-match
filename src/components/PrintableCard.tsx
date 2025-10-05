@@ -1,141 +1,115 @@
 import React from 'react';
-import type { Match, FontSizeSetting, OutlineSizeSetting, FontTheme } from '../types';
+// FIX: Import CardStyleData and BackgroundOption types.
+import type { Match, CardStyleData, BackgroundOption } from '../types';
 
 interface PrintableCardProps {
-  match: Match;
+  match: Match | { giver: { name: string }, receiver: { name: string, notes: string, budget: string } };
   eventDetails: string;
-  backgroundId: string;
-  backgroundImageUrl: string | null;
-  customBackground: string | null;
-  textColor: string;
-  useTextOutline: boolean;
-  outlineColor: string;
-  outlineSize: OutlineSizeSetting;
-  fontSizeSetting: FontSizeSetting;
-  fontTheme: FontTheme;
-  lineSpacing: number;
-  greetingText: string;
-  introText: string;
-  wishlistLabelText: string;
-  isPdfMode?: boolean;
-  onRendered?: () => void;
-  isNameRevealed?: boolean;
+  style: CardStyleData;
+  isNameRevealed: boolean;
   onReveal?: () => void;
+  backgroundOptions: BackgroundOption[];
 }
 
-// Statically define font classes to ensure Tailwind's JIT compiler finds them.
-const fontClassMap: Record<FontTheme, string> = {
-  classic: 'font-serif',
-  elegant: 'font-elegant',
-  modern: 'font-modern',
-  whimsical: 'font-whimsical',
-};
+const PrintableCard: React.FC<PrintableCardProps> = ({ match, eventDetails, style, isNameRevealed, onReveal, backgroundOptions }) => {
+  const { 
+    bgId, bgImg, txtColor, 
+    outline, outColor, outSize, 
+    fontSize, font, line, 
+    greet, intro, wish 
+  } = style;
 
-const PrintableCard: React.FC<PrintableCardProps> = ({
-  match,
-  eventDetails,
-  backgroundImageUrl,
-  customBackground,
-  textColor,
-  useTextOutline,
-  outlineColor,
-  outlineSize,
-  fontSizeSetting,
-  fontTheme,
-  lineSpacing,
-  greetingText,
-  introText,
-  wishlistLabelText,
-  isPdfMode,
-  onRendered,
-  isNameRevealed,
-  onReveal,
-}) => {
-  React.useEffect(() => {
-    if (isPdfMode && onRendered) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      let loaded = false;
-      const onFinish = () => {
-        if (!loaded) {
-          loaded = true;
-          setTimeout(onRendered, 50);
-        }
-      };
-      img.onload = onFinish;
-      img.onerror = onFinish; // Resolve even if image fails to load
-      img.src = customBackground || backgroundImageUrl || '';
-      setTimeout(onFinish, 1000); // Failsafe timeout
-    }
-  }, [isPdfMode, onRendered, backgroundImageUrl, customBackground]);
-
-  const fontClass = fontClassMap[fontTheme] || 'font-serif';
-  const bodyFontClass = 'font-sans';
-
-  const fontSizes = {
-    normal: { title: 'text-3xl', body: 'text-base', small: 'text-sm' },
-    large: { title: 'text-4xl', body: 'text-lg', small: 'text-base' },
-    'extra-large': { title: 'text-5xl', body: 'text-xl', small: 'text-lg' },
+  const fontFamilies: Record<string, string> = {
+    classic: '"Playfair Display", serif',
+    elegant: '"Cormorant Garamond", serif',
+    modern: '"Montserrat", sans-serif',
+    whimsical: '"Patrick Hand", cursive',
   };
 
-  const outlineSizes = { thin: '1px', normal: '2px', thick: '3px' };
+  const fontSizes: Record<string, string> = {
+    normal: '1rem',
+    large: '1.15rem',
+    'extra-large': '1.3rem',
+  };
 
-  const textShadow = useTextOutline
-    ? `${outlineSizes[outlineSize]} ${outlineSizes[outlineSize]} 0 ${outlineColor}, -${outlineSizes[outlineSize]} -${outlineSizes[outlineSize]} 0 ${outlineColor}, ${outlineSizes[outlineSize]} -${outlineSizes[outlineSize]} 0 ${outlineColor}, -${outlineSizes[outlineSize]} ${outlineSizes[outlineSize]} 0 ${outlineColor}, ${outlineSizes[outlineSize]} 0 0 ${outlineColor}, -${outlineSizes[outlineSize]} 0 0 ${outlineColor}, 0 ${outlineSizes[outlineSize]} 0 ${outlineColor}, 0 -${outlineSizes[outlineSize]} 0 ${outlineColor}`
-    : 'none';
-  
-  const backgroundStyle: React.CSSProperties = { backgroundSize: 'cover', backgroundPosition: 'center' };
-  
-  if (customBackground) backgroundStyle.backgroundImage = `url(${customBackground})`;
-  else if (backgroundImageUrl) backgroundStyle.backgroundImage = `url(${backgroundImageUrl})`;
-  else backgroundStyle.backgroundColor = '#ffffff';
+  const outlineSizes: Record<string, string> = {
+    thin: '0.5px',
+    normal: '1px',
+    thick: '2px',
+  };
 
-  const processedGreeting = greetingText.replace('{secret_santa}', match.giver.name);
+  // FIX: Cast to React.CSSProperties to allow for custom properties.
+  const dynamicStyles = {
+    '--base-font-size': fontSizes[fontSize] || '1rem',
+    '--line-spacing': line,
+    '--text-color': txtColor,
+    '--font-family': fontFamilies[font] || '"Playfair Display", serif',
+    textShadow: outline ? `${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `${outlineSizes[outSize]} ${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `-${outlineSizes[outSize]} -${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `${outlineSizes[outSize]} -${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `-${outlineSizes[outSize]} ${outlineSizes[outSize]} 0`} ${outColor}` : 'none',
+  } as React.CSSProperties;
+
+  const backgroundImageUrl = bgImg || (bgId !== 'plain-white' && backgroundOptions.find(b => b.id === bgId)?.imageUrl);
 
   return (
-    <div className="aspect-[3/4] w-full max-w-[350px] mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-      <div style={backgroundStyle} className="p-6 flex flex-col text-center relative h-full">
-        <div 
-            style={{ color: textColor, textShadow, lineHeight: lineSpacing }}
-            className="flex-grow flex flex-col justify-center items-center"
-        >
-          <p className={`${bodyFontClass} ${fontSizes[fontSizeSetting].body} mb-2`}>{processedGreeting}</p>
-          <p className={`${bodyFontClass} ${fontSizes[fontSizeSetting].body} mb-4`}>{introText}</p>
-          
-          <div className="relative w-full min-h-[60px] flex items-center justify-center">
-            {isNameRevealed === false ? (
-                 <button onClick={onReveal} className="absolute inset-0 flex items-center justify-center w-full transition-opacity duration-500">
-                    <div className="relative w-4/5 p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50">
-                        <h2 className={`font-bold text-[var(--accent-dark-text)] text-2xl`}>Click to Reveal</h2>
+    <div 
+        className="printable-card aspect-[3/4] w-full max-w-sm mx-auto rounded-2xl shadow-lg relative overflow-hidden bg-white flex flex-col items-center justify-center p-6" 
+        style={dynamicStyles}
+    >
+      {backgroundImageUrl && (
+        <img src={backgroundImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" crossOrigin="anonymous" />
+      )}
+      <div className="relative z-10 text-center flex flex-col h-full w-full">
+        <div className="flex-grow flex flex-col items-center justify-center text-center">
+            <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)', lineHeight: 'var(--line-spacing)' }} className="opacity-90">
+                {greet.replace('{secret_santa}', match.giver.name)}
+            </p>
+            <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 1.1)', lineHeight: 'var(--line-spacing)' }} className="mt-1">
+                {intro}
+            </p>
+            
+            <div className="my-4 w-full">
+                {isNameRevealed ? (
+                    <>
+                      <h2 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 2.25)' }} className="font-bold break-words">
+                          {match.receiver.name}
+                      </h2>
+                      {/* FIX: Display event details on the card */}
+                      {eventDetails && (
+                        <div className="w-full text-center px-2 mt-2">
+                          <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)' }} className="opacity-80 break-words">
+                            {eventDetails}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                ) : (
+                    <div 
+                        className="w-full aspect-[3/1] max-w-[80%] mx-auto rounded-xl flex items-center justify-center cursor-pointer bg-white/30 backdrop-blur-sm border border-white/50"
+                        onClick={onReveal}
+                    >
+                        <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)' }} className="text-lg font-semibold opacity-80">Click to Reveal</p>
                     </div>
-                 </button>
-            ) : null}
-            <h2 className={`${fontClass} ${fontSizes[fontSizeSetting].title} font-bold break-words transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
-                {match.receiver.name}
-            </h2>
-          </div>
+                )}
+            </div>
         </div>
 
-        {(match.receiver.notes || match.receiver.budget) && (
-          <div className={`flex-shrink-0 mt-4 pt-3 border-t-2 border-white/50 transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
-            <h3 style={{ color: textColor, textShadow }} className={`${bodyFontClass} ${fontSizes[fontSizeSetting].small} font-bold uppercase tracking-wider mb-1`}>
-                {wishlistLabelText}
-            </h3>
-            <p style={{ color: textColor, textShadow, lineHeight: lineSpacing }} className={`${bodyFontClass} ${fontSizes[fontSizeSetting].body} break-words`}>
-              {match.receiver.notes}
-              {match.receiver.notes && match.receiver.budget && <span className="mx-1">|</span>}
-              {match.receiver.budget && `Budget: $${match.receiver.budget}`}
-            </p>
-          </div>
+        {isNameRevealed && (match.receiver.notes || match.receiver.budget) && (
+            <div className="mt-auto w-full text-center pt-4">
+                <div className="bg-black/5 p-3 rounded-lg backdrop-blur-sm">
+                    <h3 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)'}} className="font-bold tracking-widest uppercase opacity-70">
+                        {wish}
+                    </h3>
+                    <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words">
+                        {match.receiver.notes}
+                        {match.receiver.notes && match.receiver.budget && " | "}
+                        {match.receiver.budget && `Budget: $${match.receiver.budget}`}
+                    </p>
+                </div>
+            </div>
         )}
-
-        {eventDetails && (
-          <div className={`flex-shrink-0 mt-3 transition-opacity duration-500 ${isNameRevealed === false ? 'opacity-0' : 'opacity-100'}`}>
-             <p style={{ color: textColor, textShadow, lineHeight: lineSpacing }} className={`${bodyFontClass} ${fontSizes[fontSizeSetting].small} opacity-80 break-words`}>
-                {eventDetails}
-             </p>
-          </div>
-        )}
+        
+        <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.65)' }} className="absolute bottom-3 right-4 opacity-50 z-20">
+            SecretSantaMatch.com
+        </p>
       </div>
     </div>
   );
