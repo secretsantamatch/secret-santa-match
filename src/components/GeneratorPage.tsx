@@ -355,18 +355,18 @@ const GeneratorPage: React.FC = () => {
                 matches, 
                 eventDetails, 
                 backgroundOptions,
-                backgroundId: background,
-                customBackground, 
-                textColor,
-                useTextOutline,
-                outlineColor,
-                outlineSize,
-                fontSizeSetting,
-                fontTheme,
-                lineSpacing,
-                greetingText,
-                introText,
-                wishlistLabelText
+                bgId: background,
+                bgImg: customBackground, 
+                txtColor: textColor,
+                outline: useTextOutline,
+                outColor: outlineColor,
+                outSize: outlineSize,
+                fontSize: fontSizeSetting,
+                font: fontTheme,
+                line: lineSpacing,
+                greet: greetingText,
+                intro: introText,
+                wish: wishlistLabelText
               });
         }
         if (type === 'list' || type === 'both') {
