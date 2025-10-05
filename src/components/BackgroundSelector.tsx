@@ -41,10 +41,11 @@ const InfoIcon = () => (
 
 
 const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
-    participants, eventDetails, backgroundOptions, selectedBackground, setSelectedBackground, customBackground, textColor, setTextColor, useTextOutline, setUseTextOutline, outlineColor, setOutlineColor, outlineSize, setOutlineSize, fontSizeSetting, setFontSizeSetting, fontTheme, setFontTheme, lineSpacing, setLineSpacing, greetingText, setGreetingText, introText, setIntroText, wishlistLabelText, setWishlistLabelText
+    participants, eventDetails, backgroundOptions, selectedBackground, setSelectedBackground, customBackground, setCustomBackground, textColor, setTextColor, useTextOutline, setUseTextOutline, outlineColor, setOutlineColor, outlineSize, setOutlineSize, fontSizeSetting, setFontSizeSetting, fontTheme, setFontTheme, lineSpacing, setLineSpacing, greetingText, setGreetingText, introText, setIntroText, wishlistLabelText, setWishlistLabelText
 }) => {
     
     const [filter, setFilter] = useState('');
+    const [uploadError, setUploadError] = useState('');
     const [previewBackground, setPreviewBackground] = useState(selectedBackground);
 
     useEffect(() => {
@@ -65,8 +66,8 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     const receiverParticipant = previewParticipants.length > 1 ? previewParticipants[1] : null;
 
     const receiverName = receiverParticipant ? receiverParticipant.name : 'Alexa';
-    const receiverNotes = receiverParticipant ? receiverParticipant.notes : 'Loves coffee, books, and board games.';
-    const receiverBudget = receiverParticipant ? receiverParticipant.budget : '25';
+    const receiverNotes = receiverParticipant?.notes || '';
+    const receiverBudget = receiverParticipant?.budget || '';
 
     const previewMatch = {
         giver: { name: giverName },
@@ -79,6 +80,35 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     
     const handleLineSpacingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLineSpacing(parseFloat(e.target.value));
+    };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUploadError('');
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            setUploadError('Invalid file type. Please upload a JPG or PNG.');
+            return;
+        }
+
+        if (file.size > 3 * 1024 * 1024) { // 3 MB
+            setUploadError('File is too large. Please upload an image under 3MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = reader.result as string;
+            setCustomBackground(result);
+            setSelectedBackground('plain-white');
+        };
+        reader.onerror = () => {
+            setUploadError('Failed to read the file.');
+        };
+        reader.readAsDataURL(file);
+        
+        e.target.value = ''; 
     };
 
     return (
@@ -104,7 +134,11 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                             return (
                                 <button 
                                     key={option.id}
-                                    onClick={() => setSelectedBackground(option.id)}
+                                    onClick={() => {
+                                        setSelectedBackground(option.id);
+                                        setCustomBackground(null);
+                                        setUploadError('');
+                                    }}
                                     onMouseOver={() => setPreviewBackground(option.id)}
                                     className={`text-left border-2 rounded-lg transition-all transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${selectedBackground === option.id ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-400'}`}
                                 >
@@ -120,6 +154,50 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                                 </button>
                             );
                          })}
+                    </div>
+
+                    <div className="mt-6">
+                        <h4 className="text-lg font-bold text-slate-600 mb-1">...Or Upload Your Own</h4>
+                        <p className="text-slate-500 mb-4 flex items-center text-sm">
+                            Recommended: 3:4 ratio, under 3MB.
+                            <Tooltip text="For best results, use an image around 600x800 pixels. Supports JPG and PNG.">
+                                <InfoIcon />
+                            </Tooltip>
+                        </p>
+                         <div className="p-4 bg-slate-50 rounded-lg border">
+                            {customBackground ? (
+                                <div className="flex items-center gap-4">
+                                    <img src={customBackground} alt="Custom background preview" className="w-16 h-16 object-cover rounded-md border" />
+                                    <div className="flex-grow">
+                                        <p className="font-semibold text-slate-700">Your background is ready.</p>
+                                        <p className="text-sm text-slate-500">Select another theme to replace it.</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            setCustomBackground(null);
+                                            setUploadError('');
+                                        }}
+                                        className="py-1 px-3 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-semibold"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label htmlFor="custom-bg-upload" className="w-full text-center cursor-pointer bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg transition-colors block">
+                                        Upload Image
+                                    </label>
+                                    <input 
+                                        type="file" 
+                                        id="custom-bg-upload"
+                                        className="hidden"
+                                        accept="image/png, image/jpeg"
+                                        onChange={handleFileUpload}
+                                    />
+                                </div>
+                            )}
+                            {uploadError && <p className="text-red-600 text-sm mt-2">{uploadError}</p>}
+                        </div>
                     </div>
                 </div>
 
