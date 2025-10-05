@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { ExchangeData, Participant, Match, CardStyleData, BackgroundOption } from '../types';
+import type { ExchangeData, Participant, Match, CardStyleData } from '../types';
 import { generateIndividualCardsPdf, generateMasterListPdf } from '../services/pdfService';
 import PrintableCard from './PrintableCard';
 import CountdownTimer from './CountdownTimer';
@@ -65,9 +65,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   }, []);
 
   const matches: Match[] = useMemo(() => {
-    return matchesById.map(matchById => {
-        const giver = participants.find(p => p.id === matchById.g);
-        const receiver = participants.find(p => p.id === matchById.r);
+    return matchesById.map((matchById: { g: string; r: string; }) => {
+        const giver = participants.find((p: Participant) => p.id === matchById.g);
+        const receiver = participants.find((p: Participant) => p.id === matchById.r);
         if (!giver || !receiver) {
             throw new Error(`Could not find participants for match: ${JSON.stringify(matchById)}`);
         }
@@ -158,7 +158,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     );
   }
 
-  const participant = participants.find(p => p.id === currentParticipantId);
+  const participant = participants.find((p: Participant) => p.id === currentParticipantId);
   const match = participant ? matches.find(m => m.giver.id === participant.id) : null;
 
   if (isRevealTime) {
@@ -185,7 +185,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                         <p className="text-xl text-slate-600">Hello, <span className="font-bold text-slate-800">{participant.name}!</span></p>
                         
                         <div className="my-6 max-w-sm mx-auto">
-                           {/* FIX: Pass missing required 'eventDetails' and 'backgroundOptions' props */}
                            <PrintableCard match={match} eventDetails={eventDetails} style={style} isNameRevealed={isRevealed} onReveal={() => setIsRevealed(true)} backgroundOptions={backgroundOptions} />
                         </div>
                     </div>
