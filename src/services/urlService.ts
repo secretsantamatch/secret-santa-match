@@ -1,48 +1,43 @@
 import pako from 'pako';
 import type { ExchangeData } from '../types';
 
-const base64UrlEncode = (str: string): string => {
-  return btoa(str)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
+const uint8ArrayToBase64 = (bytes: Uint8Array): string => {
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
 };
 
-const base64UrlDecode = (str: string): string => {
-  str = str.replace(/-/g, '+').replace(/_/g, '/');
-  while (str.length % 4) {
-    str += '=';
+const base64ToUint8Array = (base64: string): Uint8Array => {
+  const binary_string = atob(base64);
+  const len = binary_string.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary_string.charCodeAt(i);
   }
-  return atob(str);
+  return bytes;
 };
 
 export const encodeData = (data: ExchangeData): string => {
   try {
     const jsonString = JSON.stringify(data);
     const compressed = pako.deflate(jsonString);
-    const binaryString = String.fromCharCode.apply(null, compressed as unknown as number[]);
-    return base64UrlEncode(binaryString);
+    return uint8ArrayToBase64(compressed);
   } catch (error) {
-    console.error("Encoding failed:", error);
-    throw new Error("Could not encode event data.");
+    console.error("Failed to encode data:", error);
+    return '';
   }
 };
 
-export const decodeData = (encodedString: string): ExchangeData => {
+export const decodeData = (encodedData: string): ExchangeData => {
   try {
-    const compressedString = base64UrlDecode(encodedString);
-    const uint8Array = new Uint8Array(compressedString.length);
-    for (let i = 0; i < compressedString.length; i++) {
-        uint8Array[i] = compressedString.charCodeAt(i);
-    }
-    const jsonString = pako.inflate(uint8Array, { to: 'string' });
-    const data = JSON.parse(jsonString) as ExchangeData;
-    if (!data.p || !data.m) {
-        throw new Error("Decoded data is missing required fields.");
-    }
-    return data;
+    const compressed = base64ToUint8Array(encodedData);
+    const jsonString = pako.inflate(compressed, { to: 'string' });
+    return JSON.parse(jsonString);
   } catch (error) {
-    console.error("Decoding failed:", error);
-    throw new Error("Could not decode event data.");
+    console.error("Failed to decode data:", error);
+    throw new Error("Invalid or corrupted data in URL.");
   }
 };
