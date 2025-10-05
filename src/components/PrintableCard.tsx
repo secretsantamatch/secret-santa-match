@@ -91,11 +91,10 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                               <h3 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)'}} className="font-bold tracking-widest uppercase opacity-70">
                                   {wish}
                               </h3>
-                              <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words">
-                                  {match.receiver.notes}
-                                  {match.receiver.notes && match.receiver.budget && " | "}
-                                  {match.receiver.budget && `Budget: $${match.receiver.budget}`}
-                              </p>
+                              <div style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words px-2">
+                                  {match.receiver.notes && <p>{match.receiver.notes}</p>}
+                                  {match.receiver.budget && <p className="mt-1">{`Budget: $${match.receiver.budget}`}</p>}
+                              </div>
                           </div>
                       )}
 
@@ -117,10 +116,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 )}
             </div>
         </div>
-        
-        <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.65)' }} className="absolute bottom-3 right-4 opacity-50 z-20">
-            SecretSantaMatch.com
-        </p>
       </div>
     </div>
   );
