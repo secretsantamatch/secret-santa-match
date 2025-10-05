@@ -40,21 +40,6 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
         giver: { name: 'You' },
         receiver: { name: 'Your Recipient', notes: 'Loves coffee, books, and board games.', budget: '25' }
     };
-    
-    const cardStyle: CardStyleData = {
-        bgId: selectedBackground,
-        bgImg: customBackground,
-        txtColor: textColor,
-        outline: useTextOutline,
-        outColor: outlineColor,
-        outSize: outlineSize,
-        fontSize: fontSizeSetting,
-        font: fontTheme,
-        line: lineSpacing,
-        greet: greetingText,
-        intro: introText,
-        wish: wishlistLabelText
-    };
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -83,9 +68,20 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                     <PrintableCard 
                         match={previewMatch}
                         eventDetails={eventDetails}
-                        style={cardStyle}
                         isNameRevealed={true}
                         backgroundOptions={backgroundOptions}
+                        bgId={selectedBackground}
+                        bgImg={customBackground}
+                        txtColor={textColor}
+                        outline={useTextOutline}
+                        outColor={outlineColor}
+                        outSize={outlineSize}
+                        fontSize={fontSizeSetting}
+                        font={fontTheme}
+                        line={lineSpacing}
+                        greet={greetingText}
+                        intro={introText}
+                        wish={wishlistLabelText}
                     />
                 </div>
             </div>
