@@ -99,8 +99,8 @@ export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate, exc
         headStyles: { fillColor: [22, 160, 133] }, // Teal color for header
         styles: { halign: 'center' },
         columnStyles: {
-            0: { halign: 'left' },
-            2: { halign: 'left' }
+            0: { halign: 'center' },
+            2: { halign: 'center' }
         }
     });
 
