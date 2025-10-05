@@ -318,11 +318,10 @@ function GeneratorPage() {
           </div>
           
           <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
+             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
                 Style Your Cards <span className="text-[var(--primary-color)] ml-2">*</span>
             </h2>
-             <p className="text-gray-600 mb-6 ml-11">Choose a theme and color for the printable cards.</p>
              <BackgroundSelector 
                 participants={participants}
                 eventDetails={eventDetails}
