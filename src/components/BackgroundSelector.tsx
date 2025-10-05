@@ -65,8 +65,8 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     const receiverParticipant = previewParticipants.length > 1 ? previewParticipants[1] : null;
 
     const receiverName = receiverParticipant ? receiverParticipant.name : 'Alexa';
-    const receiverNotes = receiverParticipant?.notes || 'Loves coffee, books, and board games.';
-    const receiverBudget = receiverParticipant?.budget || '25';
+    const receiverNotes = receiverParticipant ? receiverParticipant.notes : 'Loves coffee, books, and board games.';
+    const receiverBudget = receiverParticipant ? receiverParticipant.budget : '25';
 
     const previewMatch = {
         giver: { name: giverName },
