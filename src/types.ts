@@ -1,3 +1,4 @@
+// FIX: Removed unused and invalid import of 'Packer' from 'pako'.
 export interface Participant {
   id: string;
   name: string;
