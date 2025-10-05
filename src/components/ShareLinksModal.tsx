@@ -8,13 +8,13 @@ interface ShareLinksModalProps {
 }
 
 const CopyIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-        <path d="M7 2a1 1 0 00-1 1v1H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H8V3a1 1 0 00-1-1zM5 6h10v10H5V6z" />
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
     </svg>
 );
 
 const CheckIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
     </svg>
 );
@@ -60,14 +60,14 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getPart
         
         <div className="space-y-3 text-left max-h-[40vh] overflow-y-auto pr-2">
           {participants.map(p => (
-            <div key={p.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div key={p.id} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
               <span className="font-semibold text-slate-800">{p.name}'s Link</span>
               <button 
                 onClick={() => copyLink(p.id)}
-                className={`bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-4 text-sm rounded-lg transition-all flex items-center justify-center w-36 h-12 ${copiedLink === p.id ? 'bg-green-600' : ''}`}
+                className={`bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 text-sm rounded-lg transition-all flex items-center justify-center w-36 ${copiedLink === p.id ? 'bg-green-600' : ''}`}
               >
                 {copiedLink === p.id ? <CheckIcon /> : <CopyIcon />}
-                <span className="ml-1">{copiedLink === p.id ? 'Copied!' : 'Copy Link'}</span>
+                <span className="ml-2">{copiedLink === p.id ? 'Copied!' : 'Copy Link'}</span>
               </button>
             </div>
           ))}
@@ -83,7 +83,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getPart
         </div>
 
         <div className="text-center">
-            <button onClick={onClose} className="mt-4 text-gray-500 hover:text-gray-800 font-semibold text-sm transition-colors py-2 px-4 rounded-full">
+            <button onClick={onClose} className="mt-6 text-gray-500 hover:text-gray-700 font-semibold text-sm transition-colors py-2 px-4 rounded-full">
             Close
             </button>
         </div>
