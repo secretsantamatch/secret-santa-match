@@ -24,6 +24,21 @@ export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
 export type OutlineSizeSetting = 'thin' | 'normal' | 'thick';
 export type FontTheme = 'classic' | 'elegant' | 'modern' | 'whimsical';
 
+export interface CardStyleData {
+  bgId: string;
+  bgImg: string | null;
+  txtColor: string;
+  outline: boolean;
+  outColor: string;
+  outSize: OutlineSizeSetting;
+  fontSize: FontSizeSetting;
+  font: FontTheme;
+  line: number;
+  greet: string;
+  intro: string;
+  wish: string;
+}
+
 export interface BackgroundOption {
   id: string;
   name: string;
@@ -38,27 +53,24 @@ export interface BackgroundOption {
   };
 }
 
-export interface CardStyleData {
-  backgroundId: string;
-  customBackground: string | null;
-  textColor: string;
-  useTextOutline: boolean;
-  outlineColor: string;
-  outlineSize: OutlineSizeSetting;
-  fontSizeSetting: FontSizeSetting;
-  fontTheme: FontTheme;
-  lineSpacing: number;
-  greetingText: string;
-  introText: string;
-  wishlistLabelText: string;
-}
-
 export interface ExchangeData {
-    p: Omit<Participant, 'id'>[]; // Participants
-    m: { g: number; r: number }[]; // Matches (by participant index)
-    style: CardStyleData;
-    e?: string; // eventDetails
-    rd?: string; // revealDate
-    rt?: string; // revealTime
-    th?: string; // theme
+    matches: { g: string; r: string; }[];
+    participants: Participant[];
+    eventDetails: string;
+    backgroundId: string;
+    customBackground: string | null;
+    textColor: string;
+    useTextOutline: boolean;
+    outlineColor: string;
+    outlineSize: OutlineSizeSetting;
+    fontSizeSetting: FontSizeSetting;
+    fontTheme: FontTheme;
+    lineSpacing: number;
+    greetingText: string;
+    introText: string;
+    wishlistLabelText: string;
+    backgroundOptions: BackgroundOption[];
+    exchangeDate?: string;
+    exchangeTime?: string;
+    pageTheme?: string;
 }
