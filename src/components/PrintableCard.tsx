@@ -76,7 +76,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 {greet.replace('{secret_santa}', match.giver.name)}
             </p>
             <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 1.1)', lineHeight: 'var(--line-spacing)' }} className="mt-1">
-                {intro}
+                {intro.replace('{secret_santa}', match.giver.name)}
             </p>
             
             <div className="my-4 w-full">
@@ -91,7 +91,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                               <h3 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)'}} className="font-bold tracking-widest uppercase opacity-70">
                                   {wish}
                               </h3>
-                              <div style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words px-2">
+                              <div style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words px-4">
                                   {match.receiver.notes && <p>{match.receiver.notes}</p>}
                                   {match.receiver.budget && <p className="mt-1">{`Budget: $${match.receiver.budget}`}</p>}
                               </div>
@@ -99,7 +99,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                       )}
 
                       {eventDetails && (
-                        <div className="w-full text-center px-2 mt-4">
+                        <div className="w-full text-center px-4 mt-4">
                           <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)' }} className="opacity-80 break-words">
                             {eventDetails}
                           </p>
