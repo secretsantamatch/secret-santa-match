@@ -20,13 +20,13 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   const [showShareModal, setShowShareModal] = useState(false);
   
   const {
-    participants,
+    p: participants,
     matches: matchesById,
     eventDetails,
     exchangeDate,
     exchangeTime,
     pageTheme,
-    backgroundId,
+    bgId,
     customBackground,
     textColor,
     useTextOutline,
@@ -42,7 +42,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   } = data;
 
   const cardStyle: CardStyleData = useMemo(() => ({
-    bgId: backgroundId,
+    bgId: bgId,
     bgImg: customBackground,
     txtColor: textColor,
     outline: useTextOutline,
@@ -55,7 +55,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     intro: introText,
     wish: wishlistLabelText,
   }), [
-    backgroundId, customBackground, textColor, useTextOutline, outlineColor,
+    bgId, customBackground, textColor, useTextOutline, outlineColor,
     outlineSize, fontSizeSetting, fontTheme, lineSpacing, greetingText,
     introText, wishlistLabelText
   ]);
@@ -86,7 +86,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   const handleDownload = async (type: 'cards' | 'list' | 'both') => {
       setShowDownloadOptionsModal(false);
       if (type === 'cards' || type === 'both') {
-          await generateIndividualCardsPdf({ matches, eventDetails, style: cardStyle, backgroundOptions });
+          // Pass individual style properties
+          await generateIndividualCardsPdf({ matches, eventDetails, ...cardStyle, backgroundOptions });
       }
       if (type === 'list' || type === 'both') {
           generateMasterListPdf({ matches, eventDetails, exchangeDate, exchangeTime });
@@ -186,7 +187,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                         <p className="text-xl text-slate-600">Hello, <span className="font-bold text-slate-800">{participant.name}!</span></p>
                         
                         <div className="my-6 max-w-sm mx-auto">
-                           <PrintableCard match={match} eventDetails={eventDetails} style={cardStyle} isNameRevealed={isRevealed} onReveal={() => setIsRevealed(true)} backgroundOptions={backgroundOptions} />
+                           <PrintableCard 
+                              match={match} 
+                              eventDetails={eventDetails} 
+                              isNameRevealed={isRevealed} 
+                              onReveal={() => setIsRevealed(true)} 
+                              backgroundOptions={backgroundOptions} 
+                              {...cardStyle}
+                           />
                         </div>
                     </div>
                      {targetTime > 0 && (
