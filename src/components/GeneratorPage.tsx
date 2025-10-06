@@ -7,7 +7,6 @@ import Options from './Options';
 import Footer from './Footer';
 import BackgroundSelector from './BackgroundSelector';
 import { encodeData } from '../services/urlService';
-import BlogPromo from './BlogPromo';
 import FaqSection from './FaqSection';
 import BackToTopButton from './BackToTopButton';
 import BulkAddModal from './BulkAddModal';
@@ -313,7 +312,6 @@ const GeneratorPage: React.FC = () => {
       </div>
 
       <FaqSection />
-      <BlogPromo />
       
       <Footer />
       
