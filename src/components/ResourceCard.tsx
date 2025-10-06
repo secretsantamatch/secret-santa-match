@@ -21,7 +21,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
         <img 
           src={resource.thumbnailUrl} 
           alt={resource.title} 
-          className="rounded-lg shadow-md w-full object-cover aspect-[4/3]" 
+          className="rounded-lg shadow-md w-full object-contain aspect-[4/3]" 
         />
       </div>
       <div className="flex-grow text-center sm:text-left">
