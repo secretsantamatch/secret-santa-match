@@ -8,6 +8,7 @@ import Footer from './Footer';
 import BackgroundSelector from './BackgroundSelector';
 import { encodeData } from '../services/urlService';
 import FaqSection from './FaqSection';
+import ResourcesSection from './ResourcesSection';
 import BackToTopButton from './BackToTopButton';
 import BulkAddModal from './BulkAddModal';
 
@@ -312,6 +313,7 @@ const GeneratorPage: React.FC = () => {
       </div>
 
       <FaqSection />
+      <ResourcesSection />
       
       <Footer />
       
