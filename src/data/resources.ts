@@ -9,6 +9,14 @@ export interface Resource {
 
 export const resources: Resource[] = [
   {
+    id: 'how-to-organize',
+    type: 'Guide & Tips',
+    title: 'How to Organize a Secret Santa: A Complete Guide',
+    description: "Your stress-free roadmap to planning the perfect gift exchange. Learn the 6 simple steps, common mistakes to avoid, and how to use free tools to make it easy.",
+    thumbnailUrl: '/posts/secret_santa_questionnaire_thumbnail.png',
+    linkUrl: '/how-to-organize-secret-santa.html',
+  },
+  {
     id: 'questionnaire',
     type: 'Free Download',
     title: 'Free Secret Santa Questionnaire',
@@ -16,5 +24,4 @@ export const resources: Resource[] = [
     thumbnailUrl: '/posts/secret_santa_questionnaire_thumbnail.png',
     linkUrl: '/secret-santa-questionnaire.html',
   },
-  // Future resources like blog posts can be easily added here
 ];
