@@ -17,11 +17,11 @@ export const resources: Resource[] = [
     linkUrl: '/how-to-organize-secret-santa.html',
   },
   {
-    id: 'questionnaire',
-    type: 'Free Download',
-    title: 'Free Secret Santa Questionnaire',
-    description: "The perfect companion for your gift exchange! This fun, printable questionnaire helps everyone get the perfect gift. Download, print, and share to make this year's gifting easy and thoughtful.",
-    thumbnailUrl: '/posts/secret_santa_questionnaire_thumbnail.png',
-    linkUrl: '/secret-santa-questionnaire.html',
+   id: 'bingo-guide',
+    type: 'Guide & Tips',
+    title: 'How to Make Your Secret Santa Party Actually Fun',
+    description: 'Transform boring parties with Secret Santa Bingo! This guide includes free printable cards and game variations to keep everyone engaged and laughing.',
+    thumbnailUrl: '/posts/Free_Secret_Santa_Bingo_Card_Guide.png',
+    linkUrl: '/secret-santa-bingo-guide.html',
   },
 ];
