@@ -1,0 +1,21 @@
+{
+  "short_name": "Secret Santa",
+  "name": "Secret Santa Generator",
+  "description": "A free, instant Secret Santa generator for gift exchanges. No sign-ups or emails required.",
+  "icons": [
+    {
+      "src": "/logo_192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo_512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#c62828",
+  "background_color": "#ffffff"
+}
