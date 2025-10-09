@@ -9,6 +9,14 @@ export interface Resource {
 
 export const resources: Resource[] = [
   {
+    id: 'halloween-games',
+    type: 'Guide & Tips',
+    title: '15 Free Halloween Party Games for Kids & Adults',
+    description: 'Get 15 no-prep games for your next party, plus free printable Halloween bingo cards to make your event a smash hit!',
+    thumbnailUrl: '/posts/Halloween_Bingo_Image.png',
+    linkUrl: '/halloween-party-games.html',
+  },
+  {
     id: 'how-to-organize',
     type: 'Guide & Tips',
     title: 'How to Organize a Secret Santa: A Complete Guide',
