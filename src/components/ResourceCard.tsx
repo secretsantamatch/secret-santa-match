@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Resource } from '../data/resources';
 
@@ -10,6 +11,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
     'Free Download': 'bg-emerald-100 text-emerald-800',
     'Guide & Tips': 'bg-blue-100 text-blue-800',
     'Article': 'bg-slate-100 text-slate-800',
+    'Guide & Printable': 'bg-purple-100 text-purple-800',
   };
 
   return (
@@ -25,9 +27,14 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
         />
       </div>
       <div className="flex-grow text-center sm:text-left">
-        <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full mb-2 ${typeColors[resource.type] || typeColors['Article']}`}>
-          {resource.type}
-        </span>
+        <div className="flex items-center justify-center sm:justify-start gap-4 mb-2">
+            <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full ${typeColors[resource.type] || typeColors['Article']}`}>
+              {resource.type}
+            </span>
+            {resource.lastUpdated && (
+                <span className="text-xs text-slate-400 font-semibold">{resource.lastUpdated}</span>
+            )}
+        </div>
         <h3 className="text-xl font-bold text-slate-800 group-hover:text-[var(--primary-color)] transition-colors">
           {resource.title}
         </h3>
