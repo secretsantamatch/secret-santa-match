@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -286,6 +287,7 @@
         }
         .type-guide { background-color: #ebf8ff; color: #3182ce; }
         .type-download { background-color: #f0fff4; color: #38a169; }
+        .type-article { background-color: #f1f5f9; color: #475569; }
 
         @media (max-width: 600px) {
             .container {
@@ -563,41 +565,58 @@
         
         <section class="resources-section">
             <h2>More Holiday Resources & Fun Extras</h2>
-            <a href="/how-to-organize-secret-santa.html" class="resource-card">
-                <div class="resource-card-img-wrapper">
-                    <img src="/posts/secretsantamatchhowto1.png" alt="How to Organize a Secret Santa guide thumbnail" class="resource-card-img">
-                </div>
-                <div class="resource-card-content">
-                    <span class="resource-card-type type-guide">Guide & Tips</span>
-                    <h3>How to Organize a Secret Santa: A Complete Guide</h3>
-                    <p>Your stress-free roadmap to planning the perfect gift exchange. Learn the 6 simple steps, common mistakes to avoid, and how to use free tools to make it easy.</p>
-                </div>
-            </a>
-            <a href="/secret-santa-bingo-guide.html" class="resource-card">
-                 <div class="resource-card-img-wrapper">
-                    <img src="/posts/Free_Secret_Santa_Bingo_Card_Guide.png" alt="Secret Santa Bingo guide thumbnail" class="resource-card-img">
-                </div>
-                <div class="resource-card-content">
-                    <span class="resource-card-type type-guide">Guide & Tips</span>
-                    <h3>How to Make Your Secret Santa Party Actually Fun</h3>
-                    <p>Transform boring parties with Secret Santa Bingo! This guide includes free printable cards and game variations to keep everyone engaged and laughing.</p>
-                </div>
-            </a>
-            <a href="/secret-santa-questionnaire.html" class="resource-card">
-                 <div class="resource-card-img-wrapper">
-                    <img src="/posts/secret_santa_questionnaire_thumbnail.png" alt="Secret Santa Questionnaire thumbnail" class="resource-card-img">
-                </div>
-                <div class="resource-card-content">
-                    <span class="resource-card-type type-download">Free Download</span>
-                    <h3>Free Secret Santa Questionnaire</h3>
-                    <p>The perfect companion for your gift exchange! This fun, printable questionnaire helps everyone get the perfect gift. Download, print, and share to make this year's gifting easy and thoughtful.</p>
-                </div>
-            </a>
+            <div id="resources-container"></div>
         </section>
 
         <p style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e2e8f0; color: #718096;">
             <strong>Planning a holiday gift exchange?</strong> Check out <a href="https://secretsantamatch.com">SecretSantaMatch.com</a> to organize Secret Santa, White Elephant, and name draws with zero signup required.
         </p>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeColors = {
+                'Free Download': 'type-download',
+                'Guide & Tips': 'type-guide',
+                'Article': 'type-article',
+            };
+    
+            fetch('/resources.json')
+                .then(response => response.json())
+                .then(resources => {
+                    const container = document.getElementById('resources-container');
+                    if (!container) return;
+                    
+                    let html = '';
+                    resources.forEach(resource => {
+                        // Don't show a link to the current page
+                        if (window.location.pathname.endsWith(resource.linkUrl)) {
+                            return;
+                        }
+
+                        const typeClass = typeColors[resource.type] || 'type-article';
+                        html += `
+                            <a href="${resource.linkUrl}" class="resource-card">
+                                <div class="resource-card-img-wrapper">
+                                    <img src="${resource.thumbnailUrl}" alt="${resource.title}" class="resource-card-img">
+                                </div>
+                                <div class="resource-card-content">
+                                    <span class="resource-card-type ${typeClass}">
+                                      ${resource.type}
+                                    </span>
+                                    <h3>${resource.title}</h3>
+                                    <p>${resource.description}</p>
+                                </div>
+                            </a>
+                        `;
+                    });
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading resources:', error);
+                    const container = document.getElementById('resources-container');
+                    if(container) container.innerHTML = '<p>Could not load additional resources.</p>';
+                });
+        });
+    </script>
 </body>
 </html>
