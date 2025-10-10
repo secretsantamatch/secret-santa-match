@@ -1,0 +1,782 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughtful gift ideas when you're broke. From $5 finds to completely free options, discover how to give meaningful presents on any budget.">
+    <meta name="keywords" content="gifts when broke, cheap gift ideas, budget christmas gifts, gifts under $10, free gift ideas, thoughtful gifts no money, DIY gifts cheap">
+    <title>50+ Gift Ideas When You're Broke (But Still Want to Give) | 2025</title>
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://secretsantamatch.com/gift-ideas-when-broke.html">
+    <meta property="og:title" content="50+ Gift Ideas When You're Broke (But Still Want to Give)">
+    <meta property="og:description" content="From $5 finds to completely free options, discover how to give meaningful presents on any budget without feeling cheap.">
+    <meta property="og:image" content="https://secretsantamatch.com/posts/gift-ideas-when-broke.png">
+    <meta property="twitter:card" content="summary_large_image">
+
+    <!-- Pinterest Verification -->
+    <meta name="p:domain_verify" content="bc322d28f428cbc03973572de2259667"/>
+
+    <!-- Pinterest Tag -->
+    <script type="text/javascript">
+      !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(
+      Array.prototype.slice.call(arguments))};var
+      n=window.pintrk;n.queue=[],n.version="3.0";var
+      t=document.createElement("script");t.async=!0,t.src=e;var
+      r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
+      pintrk('load', '2612962984250');
+      pintrk('page');
+      pintrk('track', 'pagevisit');
+    </script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3037944530219260" crossorigin="anonymous"></script>
+    
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-HG140X6CQ6');
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background: #f7f9fc;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 2.8em;
+            font-weight: 900;
+            margin-bottom: 15px;
+            line-height: 1.1;
+        }
+
+        .hero .tagline {
+            font-size: 1.3em;
+            opacity: 0.95;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: -40px auto 0;
+            padding: 0 20px 60px;
+        }
+        
+        .main-content {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .intro-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        .intro-card p {
+            font-size: 1.15em;
+            color: #4a5568;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .intro-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .content-section {
+            background: white;
+            padding: 45px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 2.2em;
+            color: #667eea;
+            margin-bottom: 25px;
+            font-weight: 800;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h2:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.6em;
+            color: #2c3e50;
+            margin: 35px 0 20px 0;
+            font-weight: 700;
+        }
+
+        h4 {
+            font-size: 1.3em;
+            color: #764ba2;
+            margin: 25px 0 15px 0;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: #4a5568;
+            font-size: 1.05em;
+        }
+
+        .price-tier {
+            background: linear-gradient(135deg, #f6f9fc 0%, #f0f4f8 100%);
+            border-left: 5px solid #667eea;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .price-tier h3 {
+            color: #667eea;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .price-badge {
+            background: #667eea;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+
+        ul {
+            margin: 20px 0;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        li {
+            padding: 14px 0 14px 40px;
+            position: relative;
+            color: #4a5568;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        li:before {
+            content: '💝';
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+        }
+
+        .free-tier li:before {
+            content: '✨';
+        }
+
+        .diy-tier li:before {
+            content: '🎨';
+        }
+
+        strong {
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            transition: all 0.2s;
+        }
+
+        a:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-bottom-color: #667eea;
+        }
+
+        .tip-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .tip-box h4 {
+            color: #d97706;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tip-box h4:before {
+            content: '💡';
+        }
+
+        .reality-check {
+            background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+            padding: 35px;
+            border-radius: 12px;
+            margin: 35px 0;
+            border: 2px solid #c7d2fe;
+        }
+
+        .reality-check h3 {
+            color: #5b21b6;
+            margin-top: 0;
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            margin: 45px 0;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .cta-box h3 {
+            color: white;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .cta-box p {
+            color: white;
+            font-size: 1.15em;
+            margin-bottom: 0;
+        }
+
+        .cta-box strong {
+            color: white;
+        }
+
+        .cta-box a {
+            color: white;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+        }
+
+        .cta-box a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-bottom-color: white;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .category-tag {
+            background: #f0f4f8;
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .category-tag:hover {
+            border-color: #667eea;
+            background: #f6f9fc;
+        }
+
+        ol {
+            counter-reset: step;
+            list-style: none;
+            padding-left: 0;
+            margin: 25px 0;
+        }
+
+        ol li {
+            counter-increment: step;
+            padding: 18px 0 18px 50px;
+            position: relative;
+        }
+
+        ol li:before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .secret-santa-callout {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #f59e0b;
+            padding: 30px;
+            margin: 35px 0;
+            border-radius: 10px;
+        }
+
+        .secret-santa-callout h4 {
+            color: #d97706;
+            margin-top: 0;
+        }
+        
+        .resources-section {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 2px solid #e2e8f0;
+        }
+        .resource-card {
+            display: flex;
+            align-items: center;
+            background: #fdfdfe;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .resource-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .resource-card-img-wrapper {
+            width: 33.333333%;
+            flex-shrink: 0;
+            margin-right: 20px;
+        }
+        .resource-card-img {
+            width: 100%;
+            border-radius: 8px;
+            object-fit: contain;
+            aspect-ratio: 4 / 3;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .resource-card-content h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.25em;
+            color: #1a202c;
+        }
+        .resource-card-content p {
+            margin: 0;
+            font-size: 1em;
+            color: #4a5568;
+        }
+        .resource-card-type {
+            display: inline-block;
+            padding: 3px 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+            border-radius: 99px;
+            margin-bottom: 10px;
+        }
+        .type-guide { background-color: #ebf8ff; color: #3182ce; }
+        .type-download { background-color: #f0fff4; color: #38a169; }
+        .type-article { background-color: #f1f5f9; color: #475569; }
+
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2em;
+            }
+
+            .hero .tagline {
+                font-size: 1.1em;
+            }
+
+            .intro-card, .content-section, .main-content {
+                padding: 30px 25px;
+            }
+
+            h2 {
+                font-size: 1.8em;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+            .resource-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .resource-card-img-wrapper {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <noscript>
+      <img height="1" width="1" style="display:none;" alt=""
+      src="https://ct.pinterest.com/v3/?tid=2612962984250&noscript=1" />
+    </noscript>
+
+    <div class="hero">
+        <h1>Gift Ideas When You're Actually Broke</h1>
+        <p class="tagline">Real talk and realistic solutions. From $5 finds to free ideas that don't feel cheap.</p>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="intro-card" style="box-shadow: none; padding: 0; margin-bottom: 20px;">
+                <p>Let's be honest: being broke during gift-giving season sucks. Whether it's Christmas, birthdays, Secret Santa at work, or just wanting to show someone you care—empty pockets make everything harder.</p>
+
+                <p>But here's what nobody tells you: <strong>the amount you spend has almost nothing to do with how much someone appreciates a gift.</strong> I'm not going to feed you some line about "it's the thought that counts" and call it a day. Instead, I'm going to show you exactly how to give thoughtful, appreciated gifts even when your bank account is giving you anxiety.</p>
+
+                <p>This guide covers everything from legitimately free ideas to budget finds under $10, plus some DIY options that don't require Martha Stewart skills.</p>
+            </div>
+
+            <div class="content-section" style="box-shadow: none; padding: 0;">
+                <h2>The Reality Check You Need</h2>
+
+                <div class="reality-check">
+                    <h3>Being Broke Isn't Shameful</h3>
+                    <p>Student loans. Medical bills. Unexpected car repairs. Layoffs. Supporting family. Cost of living. These are real. You're not failing at life because gift-giving feels financially impossible right now.</p>
+                    <p>Most people have been there. And most people would rather you show up to their celebration than stress yourself into debt over a present.</p>
+                </div>
+
+                <p>That said, you still want to participate. You want to show love. You want to be part of the gift exchange at work. You want your kid's teacher to know you appreciate them. So let's figure this out together.</p>
+
+                <h3>What Makes a Gift Feel Good to Receive</h3>
+                <p>Before we dive into specific ideas, let's talk about what actually makes people happy when they receive gifts:</p>
+                <ul>
+                    <li><strong>Personal connection</strong> - It's clear you know them and thought about what they'd like</li>
+                    <li><strong>Usefulness</strong> - They'll actually use it, not shove it in a drawer</li>
+                    <li><strong>Thoughtful presentation</strong> - Even simple gifts feel special with nice wrapping</li>
+                    <li><strong>The surprise factor</strong> - Unexpected gifts often mean more than expected ones</li>
+                    <li><strong>Emotional value</strong> - It reminds them of a memory, inside joke, or shared experience</li>
+                </ul>
+                <p>Notice what's NOT on that list? Price tags. Designer labels. Expensive receipts.</p>
+            </div>
+
+            <div class="content-section free-tier" style="box-shadow: none; padding: 0;">
+                <h2>Completely Free Gift Ideas (Yes, Really)</h2>
+                <p>These cost $0 but require your time, creativity, or skills. They work best for people who know you well enough to appreciate the effort.</p>
+
+                <div class="price-tier">
+                    <h3><span class="price-badge">FREE</span> Time & Service Gifts</h3>
+                    <ul>
+                        <li><strong>Babysitting coupon</strong> - For parents, this is gold. Offer 3 hours on a Saturday night</li>
+                        <li><strong>House/apartment deep clean</strong> - Pick one room and make it spotless while they're out</li>
+                        <li><strong>Meal prep day</strong> - Cook and freeze 5 dinners they can reheat later</li>
+                        <li><strong>Tech support package</strong> - Set up their new phone, organize their photos, teach them something</li>
+                        <li><strong>Yard work afternoon</strong> - Rake leaves, mow lawn, pull weeds</li>
+                        <li><strong>Car detailing</strong> - Vacuum, wash, and detail their car inside and out</li>
+                        <li><strong>Pet sitting</strong> - So they can take a weekend trip without boarding costs</li>
+                        <li><strong>Organization project</strong> - Tackle their closet, garage, or junk drawer</li>
+                    </ul>
+                    <div class="tip-box">
+                        <h4>Pro Tip: Make It Official</h4>
+                        <p>Design a simple "gift certificate" you can print and wrap. Include what you're offering and when it expires. This makes free gifts feel more substantial and ensures you actually follow through.</p>
+                    </div>
+                </div>
+                 <div class="price-tier">
+                    <h3><span class="price-badge">FREE</span> Creative & Sentimental Gifts</h3>
+                    <ul>
+                        <li><strong>Photo collage from your phone</strong> - Use free apps like Canva to create a printable collage</li>
+                        <li><strong>Spotify playlist</strong> - Curated specifically for them with a handwritten track list</li>
+                        <li><strong>Recipe book</strong> - Type up family recipes or your favorites and print/bind it</li>
+                        <li><strong>Video message compilation</strong> - Get friends/family to record 10-second clips</li>
+                        <li><strong>Handwritten letter</strong> - Specific memories, what you appreciate about them</li>
+                        <li><strong>52 reasons why I love you</strong> - One for each week, written on index cards</li>
+                        <li><strong>Memory scrapbook</strong> - Use ticket stubs, photos, notes from your relationship</li>
+                        <li><strong>Teach them something</strong> - Guitar basics, how to change oil, baking bread, whatever you know</li>
+                    </ul>
+                </div>
+
+                <div class="price-tier">
+                    <h3><span class="price-badge">FREE</span> Experience Gifts (No Money Needed)</h3>
+                    <ul>
+                        <li><strong>Hiking day at a scenic trail</strong> - Pack sandwiches you already have</li>
+                        <li><strong>Movie night at your place</strong> - Create a themed double feature with snacks</li>
+                        <li><strong>Museum free day</strong> - Most cities have free museum days monthly</li>
+                        <li><strong>Sunrise/sunset picnic</strong> - Raid your pantry for a special outdoor breakfast or dinner</li>
+                        <li><strong>Game tournament night</strong> - Board games, video games, cards - make it competitive</li>
+                        <li><strong>Photo shoot</strong> - Take updated photos for them (family, dating profiles, professional headshots)</li>
+                        <li><strong>Walking tour</strong> - Be their tour guide in a neighborhood neither of you knows well</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-section" style="box-shadow: none; padding: 0;">
+                <h2>Budget Finds: Under $10</h2>
+                <p>When you can scrape together $5-10, these ideas give you the most bang for your buck. They don't look cheap, and they're things people actually want.</p>
+                <div class="price-tier">
+                    <h3><span class="price-badge">$3-$7</span> Amazon & Dollar Store Wins</h3>
+                    <ul>
+                        <li><strong>Mini succulent plant ($3-5)</strong> - Comes in cute pots, lasts forever</li>
+                        <li><strong>Fancy soap bar ($4-6)</strong> - French milled or artisanal brands from TJ Maxx</li>
+                        <li><strong>Reusable coffee cup ($5-8)</strong> - Perfect for anyone who buys coffee out</li>
+                        <li><strong>Fuzzy socks pack ($5-7)</strong> - Everyone loves cozy socks</li>
+                        <li><strong>Phone pop socket ($3-5)</strong> - Functional and personalizable</li>
+                        <li><strong>Mini desk zen garden ($6-8)</strong> - Great for stressed coworkers</li>
+                        <li><strong>Fancy chocolate bar ($4-7)</strong> - Lindt, Ghirardelli, or specialty flavors</li>
+                        <li><strong>Notebook/journal ($5-8)</strong> - Look for nice ones at Target or Marshalls</li>
+                        <li><strong>Scented candle ($5-10)</strong> - TJ Maxx and HomeGoods have designer brands cheap</li>
+                        <li><strong>Kitchen gadgets ($5-9)</strong> - Avocado slicer, garlic press, measuring spoons</li>
+                    </ul>
+                </div>
+                <div class="price-tier">
+                    <h3><span class="price-badge">$5-$10</span> Personalized on a Budget</h3>
+                    <ul>
+                        <li><strong>Mug with their initial or hobby</strong> - Search "cat mug" or "nurse mug" on Amazon</li>
+                        <li><strong>Keychain that matches their interest</strong> - Sports teams, fandoms, professions</li>
+                        <li><strong>Bookmark for book lovers</strong> - Metal ones on Etsy are $5-7</li>
+                        <li><strong>Travel-size games</strong> - Mini card games, travel Uno, tiny puzzles</li>
+                        <li><strong>Specialty tea or coffee sampler</strong> - 4-5 different flavors to try</li>
+                        <li><strong>Bath bombs set ($6-10)</strong> - Lush dupes at Target work great</li>
+                        <li><strong>Magnetic locker decorations for kids/teens ($5-8)</strong></li>
+                        <li><strong>Enamel pins ($5-8)</strong> - Match their interests or aesthetic</li>
+                    </ul>
+                </div>
+                <div class="secret-santa-callout">
+                    <h4>💡 Perfect for Secret Santa</h4>
+                    <p>Most workplace Secret Santas have $10-20 limits. These ideas nail that price point while feeling thoughtful. Organize your exchange easily with <a href="https://secretsantamatch.com" target="_blank">SecretSantaMatch.com</a> - it's free, requires no email signup, and takes 3 minutes to set up.</p>
+                </div>
+            </div>
+
+            <div class="content-section diy-tier" style="box-shadow: none; padding: 0;">
+                <h2>Easy DIY Gifts (Under $15 in Supplies)</h2>
+                <p>If you have basic craft supplies or can invest $10-15 in materials to make multiple gifts, these DIY options don't require advanced skills.</p>
+                <h3>Kitchen & Food Gifts</h3>
+                <ul>
+                    <li><strong>Hot cocoa mix in a jar</strong> - Layer cocoa, marshmallows, chocolate chips. Add ribbon. Cost: $10 makes 5 jars</li>
+                    <li><strong>Cookie mix in a jar</strong> - Pre-measure dry ingredients, attach recipe card. Cost: $8 makes 3-4 jars</li>
+                    <li><strong>Homemade vanilla extract</strong> - Vodka + vanilla beans. Takes 8 weeks but costs $12 for 4 bottles</li>
+                    <li><strong>Infused olive oil</strong> - Add rosemary, garlic, or chili to cheap olive oil. $15 makes 6 bottles</li>
+                    <li><strong>Spice blend kits</strong> - Mix and package taco seasoning, pumpkin spice, etc.</li>
+                    <li><strong>Baked goods</strong> - Cookies, brownies, or bread. Package in clear bags with ribbon</li>
+                </ul>
+                <h3>Craft & Home Decor</h3>
+                <ul>
+                    <li><strong>Photo magnets</strong> - Print 4x6 photos, glue to cardboard, add magnetic strips. $8 makes 20+</li>
+                    <li><strong>Painted flower pots</strong> - $1 terracotta pots + acrylic paint + succulent cutting</li>
+                    <li><strong>Bookmarks</strong> - Card stock + laminate + ribbon = professional looking</li>
+                    <li><strong>Coasters</strong> - Tile squares from hardware store + felt pads + Mod Podge + photos/fabric</li>
+                    <li><strong>Beaded keychains or bracelets</strong> - Beads are cheap in bulk, feels handmade without being "crafty"</li>
+                    <li><strong>Mason jar anything</strong> - Sewing kit, first aid kit, cocktail kit, spa kit</li>
+                </ul>
+                <h3>Personal Care</h3>
+                <ul>
+                    <li><strong>Sugar scrub</strong> - Sugar + coconut oil + essential oil. $10 makes 8 jars</li>
+                    <li><strong>Bath salts</strong> - Epsom salt + essential oils + food coloring. Super cheap</li>
+                    <li><strong>Lip balm</strong> - Beeswax + coconut oil + flavor oils. Makes 20 tubes for $15</li>
+                    <li><strong>Body butter</strong> - Shea butter + oils. Feels luxurious, costs pennies per jar</li>
+                </ul>
+                <div class="tip-box">
+                    <h4>Batch Production Strategy</h4>
+                    <p>Make one type of gift in bulk. It's cheaper per unit and less overwhelming. For example: buy $20 in sugar scrub supplies, make 10 jars, and you've covered 10 people for $2 each.</p>
+                </div>
+            </div>
+            
+            <div class="content-section" style="box-shadow: none; padding: 0;">
+                <h2>The Secret Weapon: Strategic Giving</h2>
+                <p>Sometimes it's not about what you give, but how you organize the giving. Here's how to reduce financial pressure while keeping everyone happy:</p>
+                <h3>1. Suggest a Gift Exchange Instead</h3>
+                <p>Instead of buying gifts for 8 family members ($200+), propose a Secret Santa where everyone buys ONE gift ($25). You've just saved $175 and everyone still gets something.</p>
+                <p>Set it up in literally 3 minutes at <a href="https://secretsantamatch.com" target="_blank">SecretSantaMatch.com</a>. No email signup required, just add names, set a budget, and share links. You can even exclude certain people from drawing each other (like couples).</p>
+                <h3>2. Do "4 Gifts Per Kid" Rule</h3>
+                <p>If you have kids, use: something they want, something they need, something to wear, something to read. Keeps it reasonable and teaches them quality over quantity.</p>
+                <h3>3. Start Handmade Traditions</h3>
+                <p>Make it clear with your friend group or family that you're all doing homemade gifts this year. Takes the pressure off everyone and makes it a fun challenge instead of a financial burden.</p>
+                <h3>4. Be Honest About Your Situation</h3>
+                <p>Real friends and family get it. "Hey, I'm really tight on money this year, so I'm doing smaller gifts or skipping some people entirely. I hope you understand." Most people will be relieved you said something first.</p>
+                <div class="cta-box">
+                    <h3>Organizing Group Gifts? Make It Easy</h3>
+                    <p>Whether it's Secret Santa at work, a family exchange, or friend group gifting, use <a href="https://secretsantamatch.com" target="_blank">SecretSantaMatch.com</a> to organize in minutes. Set budget limits everyone can afford, prevent awkward pairings, and share via text or messaging apps. <strong>It's free and requires zero personal information.</strong></p>
+                </div>
+            </div>
+            
+            <div class="content-section" style="box-shadow: none; padding: 0;">
+                <h2>Category Quick Reference</h2>
+                <p>Need ideas fast based on who you're shopping for? Here's your cheat sheet:</p>
+                <h3>For Coworkers & Acquaintances</h3>
+                <div class="category-grid">
+                    <div class="category-tag">Fancy chocolates ($5-8)</div>
+                    <div class="category-tag">Coffee/tea samples ($6-10)</div>
+                    <div class="category-tag">Desk plant ($3-7)</div>
+                    <div class="category-tag">Candle ($5-10)</div>
+                    <div class="category-tag">Mug ($5-9)</div>
+                    <div class="category-tag">Nice pen set ($7-10)</div>
+                </div>
+                <h3>For Close Friends</h3>
+                <div class="category-grid">
+                    <div class="category-tag">Spotify playlist (FREE)</div>
+                    <div class="category-tag">Photo collage (FREE)</div>
+                    <div class="category-tag">Inside joke gift ($5-15)</div>
+                    <div class="category-tag">Meal together (FREE-$20)</div>
+                    <div class="category-tag">DIY spa kit ($10-15)</div>
+                    <div class="category-tag">Memory scrapbook (FREE-$10)</div>
+                </div>
+                <h3>For Family</h3>
+                <div class="category-grid">
+                    <div class="category-tag">Framed photo (FREE-$10)</div>
+                    <div class="category-tag">Service gift (FREE)</div>
+                    <div class="category-tag">Homemade food gifts ($10-15)</div>
+                    <div class="category-tag">Family recipe book (FREE)</div>
+                    <div class="category-tag">Time together (FREE)</div>
+                    <div class="category-tag">DIY crafts ($5-15)</div>
+                </div>
+                <h3>For Teachers & Helpers</h3>
+                <div class="category-grid">
+                    <div class="category-tag">Amazon gift card ($10)</div>
+                    <div class="category-tag">Classroom supplies ($10-15)</div>
+                    <div class="category-tag">Homemade cookies ($5-8)</div>
+                    <div class="category-tag">Hand cream set ($8-10)</div>
+                    <div class="category-tag">Personalized note + $5 coffee card</div>
+                </div>
+            </div>
+            
+             <div class="content-section" style="box-shadow: none; padding: 0;">
+                <h2>Presentation Makes Everything Better</h2>
+                <p>A $5 gift in beautiful wrapping feels more expensive than a $20 gift in a grocery bag. Here's how to make cheap gifts look intentional:</p>
+                <ol>
+                    <li><strong>Use what you have</strong> - Brown paper bags, newspaper, or plain craft paper can look classy with a nice ribbon</li>
+                    <li><strong>Add natural elements</strong> - Twig, pinecone, or greenery tucked into ribbon costs $0 and looks rustic-chic</li>
+                    <li><strong>Handwrite tags</strong> - Skip printed gift tags. Handwritten on card stock feels more personal</li>
+                    <li><strong>Mason jars for everything</strong> - Even simple gifts look cute in a jar with fabric lid cover</li>
+                    <li><strong>Stack multiple small items</strong> - Three $3 items together feel like one $15 gift</li>
+                </ol>
+                <div class="tip-box">
+                    <h4>Dollar Store Hack</h4>
+                    <p>Dollar Tree has surprisingly good wrapping paper, tissue paper, and gift bags. $5 will supply wrapping for 15+ gifts. Hit them up before attempting expensive wrapping at other stores.</p>
+                </div>
+            </div>
+            
+            <div class="content-section" style="box-shadow: none; padding: 0;">
+                <h2>What NOT to Do (Common Mistakes)</h2>
+                <p>Let's talk about what makes gifts feel cheap in a bad way:</p>
+                <ul>
+                    <li><strong>Don't regift obviously used items</strong> - If it's noticeably worn or you can't clean it up nicely, skip it</li>
+                    <li><strong>Don't promise what you can't deliver</strong> - If you offer "free babysitting anytime," you better be available when they ask</li>
+                    <li><strong>Don't make excuses</strong> - Give your gift with confidence. Don't apologize for its price</li>
+                    <li><strong>Don't wait until the last second</strong> - Rushed gifts feel rushed. Plan ahead when possible</li>
+                    <li><strong>Don't give expired food items</strong> - Check dates on anything from your pantry</li>
+                    <li><strong>Don't forget presentation</strong> - Even free gifts need to be wrapped or packaged nicely</li>
+                    <li><strong>Don't give half-finished DIY projects</strong> - If you're making something, finish it properly</li>
+                </ul>
+                <div class="reality-check">
+                    <h3>Real Talk Moment</h3>
+                    <p>If you literally cannot afford any gift, even a free one that requires supplies—that's okay. Write a heartfelt card explaining you're thinking of them and wish you could do more. Most people will understand. The ones who don't aren't worth your stress.</p>
+                    <p>Your presence and effort matter more than presents. Show up to celebrations when you can. Participate in conversations. Be there. That's a gift too.</p>
+                </div>
+            </div>
+            
+            <div class="content-section" style="box-shadow: none; padding: 0;">
+                <h2>The Bottom Line</h2>
+                <p>Being broke doesn't mean you can't participate in gift-giving. It just means you need to be more creative, more thoughtful, and maybe a little more honest about your situation.</p>
+                <p>The best gifts I've ever received weren't expensive. They were:</p>
+                <ul>
+                    <li>A friend who cleaned my apartment when I was going through depression</li>
+                    <li>A homemade recipe book from my grandmother with her handwriting</li>
+                    <li>A photo album my sister made of our childhood</li>
+                    <li>A coworker who covered my shift so I could go to my kid's play</li>
+                </ul>
+                <p>None of those cost money. All of them mattered deeply.</p>
+                <p>So whether you're working with $0, $5, or $20 per person—you've got options. Choose ideas that match your actual budget. Put in the effort. Make it personal. And don't apologize for what you can afford.</p>
+                <div class="cta-box">
+                    <h3>One More Thing: Simplify Group Gifting</h3>
+                    <p>If you're organizing Secret Santa or any gift exchange, save yourself stress with <a href="https://secretsantamatch.com" target="_blank">SecretSantaMatch.com</a>. Set spending limits everyone can afford, organize in minutes, and make the whole process actually fun. <strong>Completely free. No signup. No emails collected.</strong></p>
+                </div>
+                <p>You've got this. Being thoughtful with limited resources is a skill, and you're learning it. That's something to be proud of.</p>
+            </div>
+            
+            <section class="resources-section">
+                <h2>More Holiday Resources & Fun Extras</h2>
+                <div id="resources-container"></div>
+            </section>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeColors = {
+                'Free Download': 'type-download',
+                'Guide & Tips': 'type-guide',
+                'Article': 'type-article',
+            };
+    
+            fetch('/resources.json')
+                .then(response => response.json())
+                .then(resources => {
+                    const container = document.getElementById('resources-container');
+                    if (!container) return;
+                    
+                    let html = '';
+                    resources.forEach(resource => {
+                        const typeClass = typeColors[resource.type] || 'type-article';
+                        html += `
+                            <a href="${resource.linkUrl}" class="resource-card">
+                                <div class="resource-card-img-wrapper">
+                                    <img src="${resource.thumbnailUrl}" alt="${resource.title}" class="resource-card-img">
+                                </div>
+                                <div class="resource-card-content">
+                                    <span class="resource-card-type ${typeClass}">
+                                      ${resource.type}
+                                    </span>
+                                    <h3>${resource.title}</h3>
+                                    <p>${resource.description}</p>
+                                </div>
+                            </a>
+                        `;
+                    });
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading resources:', error);
+                    const container = document.getElementById('resources-container');
+                    if(container) container.innerHTML = '<p>Could not load additional resources.</p>';
+                });
+        });
+    </script>
+</body>
+</html>
