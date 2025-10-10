@@ -234,16 +234,15 @@
         }
         
         .share-section {
-            background: #f7fafc;
-            padding: 25px 30px;
+            padding: 30px;
             margin: 40px 0;
             border-radius: 16px;
             text-align: center;
+            background: #f8f9fa;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         .share-section-title {
-            font-size: 1.25em;
+            font-size: 1.4em;
             font-weight: 700;
             color: #1e293b;
             margin-bottom: 20px;
@@ -257,6 +256,7 @@
         .share-btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             padding: 12px 20px;
             border: none;
@@ -268,17 +268,22 @@
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 120px;
         }
         .share-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        .share-btn img, .share-btn svg {
+        .share-btn img {
+            width: 20px;
+            height: 20px;
+            filter: none;
+        }
+        .share-btn svg {
             width: 20px;
             height: 20px;
         }
         .share-pinterest { background-color: #E60023; }
-        .share-pinterest img { filter: brightness(0) invert(1); }
         .share-facebook { background-color: #1877F2; }
         .share-twitter { background-color: #1DA1F2; }
         .share-copy { background-color: #475569; }
@@ -396,19 +401,19 @@
             <p class="share-section-title">Share this Post</p>
             <div class="share-buttons">
                 <a id="share-pinterest" href="#" target="_blank" class="share-btn share-pinterest">
-                    <img src="/pinterest_logo.png" alt="Pin on Pinterest">
+                    <img src="/pinterest_logo.png" alt="Pin on Pinterest" style="width: 20px; height: 20px; filter: none;">
                     Pin It
                 </a>
                 <a id="share-facebook" href="#" target="_blank" class="share-btn share-facebook">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px;"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
                     Share
                 </a>
                 <a id="share-twitter" href="#" target="_blank" class="share-btn share-twitter">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px;"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"></path></svg>
                     Tweet
                 </a>
                 <button id="share-copy" class="share-btn share-copy">
-                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM5 11a1 1 0 100 2h4a1 1 0 100-2H5z"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                     Copy Link
                 </button>
             </div>
