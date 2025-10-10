@@ -254,13 +254,17 @@
             transform: translateY(-4px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
-        .resource-card-img {
-            width: 150px;
-            height: 112px;
-            object-cover;
-            border-radius: 8px;
-            margin-right: 20px;
+        .resource-card-img-wrapper {
+            width: 33.333333%;
             flex-shrink: 0;
+            margin-right: 20px;
+        }
+        .resource-card-img {
+            width: 100%;
+            border-radius: 8px;
+            object-fit: contain;
+            aspect-ratio: 4 / 3;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .resource-card-content h3 {
             margin: 0 0 10px 0;
@@ -300,11 +304,10 @@
                 flex-direction: column;
                 text-align: center;
             }
-            .resource-card-img {
+            .resource-card-img-wrapper {
+                width: 100%;
                 margin-right: 0;
                 margin-bottom: 15px;
-                width: 100%;
-                height: auto;
             }
         }
     </style>
@@ -561,7 +564,9 @@
         <section class="resources-section">
             <h2>More Holiday Resources & Fun Extras</h2>
             <a href="/how-to-organize-secret-santa.html" class="resource-card">
-                <img src="/posts/secretsantamatchhowto1.png" alt="How to Organize a Secret Santa guide thumbnail" class="resource-card-img">
+                <div class="resource-card-img-wrapper">
+                    <img src="/posts/secretsantamatchhowto1.png" alt="How to Organize a Secret Santa guide thumbnail" class="resource-card-img">
+                </div>
                 <div class="resource-card-content">
                     <span class="resource-card-type type-guide">Guide & Tips</span>
                     <h3>How to Organize a Secret Santa: A Complete Guide</h3>
@@ -569,7 +574,9 @@
                 </div>
             </a>
             <a href="/secret-santa-bingo-guide.html" class="resource-card">
-                <img src="/posts/Free_Secret_Santa_Bingo_Card_Guide.png" alt="Secret Santa Bingo guide thumbnail" class="resource-card-img">
+                 <div class="resource-card-img-wrapper">
+                    <img src="/posts/Free_Secret_Santa_Bingo_Card_Guide.png" alt="Secret Santa Bingo guide thumbnail" class="resource-card-img">
+                </div>
                 <div class="resource-card-content">
                     <span class="resource-card-type type-guide">Guide & Tips</span>
                     <h3>How to Make Your Secret Santa Party Actually Fun</h3>
@@ -577,7 +584,9 @@
                 </div>
             </a>
             <a href="/secret-santa-questionnaire.html" class="resource-card">
-                <img src="/posts/secret_santa_questionnaire_thumbnail.png" alt="Secret Santa Questionnaire thumbnail" class="resource-card-img">
+                 <div class="resource-card-img-wrapper">
+                    <img src="/posts/secret_santa_questionnaire_thumbnail.png" alt="Secret Santa Questionnaire thumbnail" class="resource-card-img">
+                </div>
                 <div class="resource-card-content">
                     <span class="resource-card-type type-download">Free Download</span>
                     <h3>Free Secret Santa Questionnaire</h3>
