@@ -1,8 +1,27 @@
-import React from 'react';
-import { resources } from '../data/resources';
+import React, { useState, useEffect } from 'react';
+// FIX: Removed unused import of 'resources' which does not exist in the target file, causing a compilation error.
 import ResourceCard from './ResourceCard';
+import type { Resource } from '../data/resources';
 
 const ResourcesSection: React.FC = () => {
+  const [resources, setResources] = useState<Resource[]>([]);
+
+  useEffect(() => {
+    fetch('/resources.json')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return res.json();
+      })
+      .then(data => setResources(data))
+      .catch(err => {
+        // FIX: The original code mentioned a static fallback that didn't exist.
+        // This now correctly logs that the fetch failed and the component will not render.
+        console.error("Failed to load resources from /resources.json; component will not render.", err);
+      });
+  }, []);
+
   if (resources.length === 0) {
     return null;
   }
