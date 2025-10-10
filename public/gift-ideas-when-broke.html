@@ -72,10 +72,11 @@
 
         .hero .tagline {
             font-size: 1.3em;
-            opacity: 0.95;
+            color: #FFFFFF;
+            opacity: 1;
             max-width: 700px;
             margin: 0 auto;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
         }
 
         .container {
@@ -409,7 +410,12 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        .share-btn img, .share-btn svg {
+        .share-btn img {
+             width: 20px;
+             height: 20px;
+             filter: none;
+        }
+        .share-btn svg {
             width: 20px;
             height: 20px;
         }
@@ -545,7 +551,7 @@
                 <p class="share-section-title">Share this Post</p>
                 <div class="share-buttons">
                     <a id="share-pinterest" href="#" target="_blank" class="share-btn share-pinterest">
-                        <img src="/pinterest_logo.png" alt="Pin on Pinterest" style="width: 20px; height: 20px;">
+                        <img src="/pinterest_logo.png" alt="Pin on Pinterest" style="width: 20px; height: 20px; filter: none;">
                         Pin It
                     </a>
                     <a id="share-facebook" href="#" target="_blank" class="share-btn share-facebook">
