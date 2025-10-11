@@ -1,6 +1,3 @@
-// FIX: Removed unused and incorrect import of 'Packer' from 'pako'.
-// The 'Packer' type does not exist in the 'pako' library.
-
 export interface Participant {
   id: string;
   name: string;
@@ -78,10 +75,17 @@ export interface ExchangeData {
     pageTheme?: string;
 }
 
-// FIX: Removed the 'match' property. The function that uses this type generates
-// cards for a list of matches, so this property was incorrect and caused a type error
-// in src/components/ResultsPage.tsx.
 export interface PdfCardOptions extends CardStyleData {
   eventDetails: string;
   backgroundOptions: BackgroundOption[];
+}
+
+export interface Resource {
+  id: string;
+  type: 'Free Download' | 'Guide & Tips' | 'Article' | 'Guide & Printable';
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  linkUrl: string;
+  lastUpdated?: string;
 }
