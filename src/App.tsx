@@ -20,14 +20,9 @@ interface AppState {
   error: string | null;
 }
 
-const App: React.FC = () => {
-  // Simple path-based router
-  const { pathname } = window.location;
-  if (pathname === '/blog.html' || pathname === '/blog') {
-    return <BlogPage />;
-  }
-  
-  // Existing Generator/Results Page Logic
+// This new component contains all the logic for the main generator app,
+// ensuring hooks are called consistently.
+const MainApp: React.FC = () => {
   const [state, setState] = useState<AppState>({
     exchangeData: null,
     participantId: null,
@@ -114,6 +109,17 @@ const App: React.FC = () => {
   }
 
   return <GeneratorPage />;
+};
+
+// The main App component now acts as a simple router.
+const App: React.FC = () => {
+  const { pathname } = window.location;
+
+  if (pathname === '/blog.html' || pathname === '/blog') {
+    return <BlogPage />;
+  }
+  
+  return <MainApp />;
 };
 
 export default App;
