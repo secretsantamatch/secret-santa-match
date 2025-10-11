@@ -39,6 +39,7 @@ const Footer: React.FC = () => {
                         &copy; {currentYear} SecretSantaMatch.com
                     </div>
                     <div className="order-1 sm:order-2">
+                        <a href="/blog.html" className="font-semibold hover:text-slate-900 transition-colors px-3 py-2">Blog</a>
                         <a href="/privacy-policy.html" className="font-semibold hover:text-slate-900 transition-colors px-3 py-2">Privacy Policy</a>
                     </div>
                 </div>
