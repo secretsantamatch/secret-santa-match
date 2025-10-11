@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { Resource } from '../data/resources';
+import type { Resource } from '../types';
 import ResourceCard from './ResourceCard';
 import Footer from './Footer';
 import BackToTopButton from './BackToTopButton';
@@ -7,7 +7,7 @@ import BackToTopButton from './BackToTopButton';
 const BlogPage: React.FC = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
 
   useEffect(() => {
     // Always set the default theme for the blog page for a consistent look
@@ -18,10 +18,13 @@ const BlogPage: React.FC = () => {
         if (!response.ok) throw new Error('Network response was not ok');
         return response.json();
       })
-      .then(data => setResources(data))
+      .then(data => {
+        setResources(data);
+        setStatus('success');
+      })
       .catch(err => {
         console.error("Could not load resources:", err);
-        setError("Could not load resources. Please try refreshing the page.");
+        setStatus('error');
       });
   }, []);
 
@@ -34,6 +37,39 @@ const BlogPage: React.FC = () => {
       r.type.toLowerCase().includes(lowercasedFilter)
     );
   }, [resources, searchTerm]);
+
+  const renderContent = () => {
+    if (status === 'loading') {
+      return (
+        <div className="text-center py-16">
+          <p className="text-slate-500">Loading posts...</p>
+        </div>
+      );
+    }
+
+    if (status === 'error') {
+      return (
+        <div className="text-center py-16 bg-white rounded-2xl shadow-lg border">
+            <h2 className="text-2xl font-bold text-red-700">Error Loading Posts</h2>
+            <p className="text-slate-500 mt-2">Could not load resources. Please try refreshing the page.</p>
+        </div>
+      );
+    }
+
+    if (filteredResources.length > 0) {
+      return filteredResources.map(resource => (
+        <ResourceCard key={resource.id} resource={resource} />
+      ));
+    }
+
+    return (
+      <div className="text-center py-16 bg-white rounded-2xl shadow-lg border">
+        <h2 className="text-2xl font-bold text-slate-700">No Posts Found</h2>
+        <p className="text-slate-500 mt-2">Try adjusting your search term or clearing the search box.</p>
+      </div>
+    );
+  };
+
 
   return (
     <div className="bg-slate-50 min-h-screen">
@@ -77,21 +113,9 @@ const BlogPage: React.FC = () => {
 
 
       <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl mt-8">
-        {error && <p className="text-center text-red-500 bg-red-100 p-4 rounded-lg">{error}</p>}
-        {!error && (
           <div className="space-y-8">
-            {filteredResources.length > 0 ? (
-              filteredResources.map(resource => (
-                <ResourceCard key={resource.id} resource={resource} />
-              ))
-            ) : (
-              <div className="text-center py-16 bg-white rounded-2xl shadow-lg border">
-                <h2 className="text-2xl font-bold text-slate-700">No Posts Found</h2>
-                <p className="text-slate-500 mt-2">Try adjusting your search term or clearing the search box.</p>
-              </div>
-            )}
+            {renderContent()}
           </div>
-        )}
       </main>
       
       <Footer />
