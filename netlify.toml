@@ -1,11 +1,22 @@
-# This tells Netlify where to find your serverless function (for the blog posts).
-[functions]
-  directory = "netlify/functions/"
+# This rule specifically tells Netlify that any request for /blog or /blog.html
+# should be served by your main index.html file. This allows your React
+# router to take over and display the correct blog component.
+#
+# This rule does NOT affect any of your other static HTML files like
+# privacy-policy.html, which will continue to load normally.
 
-# This is the rule for Single-Page Applications (SPAs) like React.
-# It fixes the "Page not found" error by sending all visitors to your
-# main index.html file, allowing your app's code to handle what to show.
 [[redirects]]
-  from = "/*"
+  from = "/blog"
   to = "/index.html"
   status = 200
+
+[[redirects]]
+  from = "/blog.html"
+  to = "/index.html"
+  status = 200
+
+# Your get-blog-posts.ts function is disabled and returns an empty array.
+# You can safely remove this [functions] block if you are no longer using
+# Netlify functions for any part of your build or deployment process.
+[functions]
+  directory = "netlify/functions/"
