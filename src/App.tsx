@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import GeneratorPage from './components/GeneratorPage';
 import ResultsPage from './components/ResultsPage';
-import BlogPage from './components/BlogPage';
 import { decodeData } from './services/urlService';
 import type { ExchangeData } from './types';
 
@@ -111,14 +110,8 @@ const MainApp: React.FC = () => {
   return <GeneratorPage />;
 };
 
-// The main App component now acts as a simple router.
+// The main App component now only renders the main application.
 const App: React.FC = () => {
-  const { pathname } = window.location;
-
-  if (pathname === '/blog.html' || pathname === '/blog') {
-    return <BlogPage />;
-  }
-  
   return <MainApp />;
 };
 
