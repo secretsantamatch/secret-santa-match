@@ -4,6 +4,14 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        blog: 'public/blog.html'
+      }
+    }
+  },
   server: {
     // Proxy for Netlify functions during local development.
     // This forwards requests from the Vite dev server to the Netlify dev server.
