@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import type { Participant } from '../types';
 
-interface ShareLinksModalProps {
-  participants: Participant[];
-  getParticipantLink: (id: string) => string;
-  onClose: () => void;
-}
-
 const CopyIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -18,6 +12,31 @@ const CheckIcon = () => (
         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
     </svg>
 );
+
+const UserIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
+);
+
+const CopyAllIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h6a2 2 0 012 2v10a2 2 0 01-2 2h-1" />
+  </svg>
+);
+
+const ShareIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+  </svg>
+);
+
+
+interface ShareLinksModalProps {
+  participants: Participant[];
+  getParticipantLink: (id: string) => string;
+  onClose: () => void;
+}
 
 const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getParticipantLink, onClose }) => {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
@@ -51,20 +70,29 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getPart
   };
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${modalAnimating ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="share-links-title">
-      <div className={`bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-lg w-full transition-all duration-300 ${modalAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} onClick={e => e.stopPropagation()}>
-        <div className="text-center">
-            <h2 id="share-links-title" className="text-3xl font-bold text-slate-800 font-serif mb-2">Share Private Links</h2>
-            <p className="text-gray-600 mb-8">Copy each participant's unique link and send it to them privately.</p>
+    <div className={`fixed inset-0 bg-slate-800 bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${modalAnimating ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="share-links-title">
+      <div className={`bg-slate-50 rounded-2xl shadow-2xl max-w-lg w-full transition-all duration-300 ${modalAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} onClick={e => e.stopPropagation()}>
+        <div className="p-6 sm:p-8 text-center border-b border-slate-200">
+            <div className="mx-auto bg-gradient-to-br from-[var(--primary-color)] to-[var(--accent-color)] h-16 w-16 rounded-2xl flex items-center justify-center shadow-lg mb-4">
+              <ShareIcon />
+            </div>
+            <h2 id="share-links-title" className="text-2xl font-bold text-slate-800 font-serif">Share The Secrets!</h2>
+            <p className="text-slate-500 mt-2">Send each person their unique link. It's their secret to keep!</p>
         </div>
         
-        <div className="space-y-3 text-left max-h-[40vh] overflow-y-auto pr-2">
+        <div className="p-6 sm:p-8 space-y-3 text-left max-h-[40vh] overflow-y-auto">
           {participants.map(p => (
-            <div key={p.id} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
-              <span className="font-semibold text-slate-800">{p.name}'s Link</span>
+            <div key={p.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-3">
+                <UserIcon />
+                <span className="font-semibold text-slate-700">{p.name}</span>
+              </div>
               <button 
                 onClick={() => copyLink(p.id)}
-                className={`bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 text-sm rounded-lg transition-all flex items-center justify-center w-36 ${copiedLink === p.id ? 'bg-green-600' : ''}`}
+                className={`font-semibold py-2 px-4 text-sm rounded-lg transition-all flex items-center justify-center w-32 focus:outline-none focus:ring-2 focus:ring-offset-2 ${copiedLink === p.id 
+                    ? 'bg-emerald-500 text-white ring-emerald-300' 
+                    : 'bg-slate-800 hover:bg-slate-700 text-white ring-slate-400'
+                }`}
               >
                 {copiedLink === p.id ? <CheckIcon /> : <CopyIcon />}
                 <span className="ml-2">{copiedLink === p.id ? 'Copied!' : 'Copy Link'}</span>
@@ -73,19 +101,20 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getPart
           ))}
         </div>
 
-        <div className="mt-8 border-t border-slate-200 pt-6">
+        <div className="p-6 sm:p-8 border-t border-slate-200 bg-slate-100 rounded-b-2xl space-y-4">
           <button 
             onClick={handleCopyAllLinks} 
-            className={`w-full border font-bold py-3 px-4 rounded-lg transition-colors ${copiedLink === 'all' ? 'bg-green-600 border-green-700 text-white' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'}`}
+            className={`w-full border font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-3 text-lg ${copiedLink === 'all' 
+              ? 'bg-emerald-500 border-emerald-600 text-white' 
+              : 'bg-white hover:bg-slate-200 border-slate-300 text-slate-700'
+            }`}
           >
-            {copiedLink === 'all' ? 'All Links Copied!' : 'Copy All Links'}
+            {copiedLink === 'all' ? <CheckIcon /> : <CopyAllIcon />}
+            {copiedLink === 'all' ? 'All Links Copied!' : 'Copy All Links to Clipboard'}
           </button>
-        </div>
-
-        <div className="text-center">
-            <button onClick={onClose} className="mt-6 text-gray-500 hover:text-gray-700 font-semibold text-sm transition-colors py-2 px-4 rounded-full">
-            Close
-            </button>
+          <button onClick={onClose} className="w-full text-center text-slate-500 hover:text-slate-700 font-semibold text-sm transition-colors py-2 rounded-full">
+            Done
+          </button>
         </div>
       </div>
     </div>
