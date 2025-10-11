@@ -102,7 +102,7 @@ const BlogPage: React.FC = () => {
         <div className="container mx-auto p-4 sm:p-6 max-w-5xl">
           <div className="flex justify-between items-center">
              <a href="/" className="flex items-center gap-3">
-                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-16 h-16" />
+                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-20 h-20" />
                 <span className="hidden sm:inline text-xl font-bold text-slate-700">SecretSantaMatch.com</span>
               </a>
               <a href="/" className="bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-2 px-5 text-md rounded-full shadow-md transform hover:scale-105 transition-all">
