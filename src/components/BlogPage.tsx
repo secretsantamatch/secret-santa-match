@@ -4,13 +4,19 @@ import ResourceCard from './ResourceCard';
 import Footer from './Footer';
 import BackToTopButton from './BackToTopButton';
 
+const parseDate = (dateStr?: string): Date => {
+  if (!dateStr) return new Date(0); // Return a very old date for items without one
+  return new Date(dateStr);
+};
+
 const BlogPage: React.FC = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [sortOrder, setSortOrder] = useState('default');
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
 
   useEffect(() => {
-    // Always set the default theme for the blog page for a consistent look
     document.documentElement.dataset.theme = 'default';
 
     fetch('/resources.json')
@@ -28,15 +34,34 @@ const BlogPage: React.FC = () => {
       });
   }, []);
 
+  const categories = useMemo(() => {
+    if (resources.length === 0) return [];
+    const uniqueTypes = [...new Set(resources.map(r => r.type))];
+    return ['All', ...uniqueTypes];
+  }, [resources]);
+
   const filteredResources = useMemo(() => {
-    if (!searchTerm) return resources;
     const lowercasedFilter = searchTerm.toLowerCase();
-    return resources.filter(r => 
-      r.title.toLowerCase().includes(lowercasedFilter) ||
-      r.description.toLowerCase().includes(lowercasedFilter) ||
-      r.type.toLowerCase().includes(lowercasedFilter)
-    );
-  }, [resources, searchTerm]);
+    
+    let filtered = selectedCategory === 'All'
+        ? resources
+        : resources.filter(r => r.type === selectedCategory);
+
+    if (searchTerm) {
+      filtered = filtered.filter(r => 
+        r.title.toLowerCase().includes(lowercasedFilter) ||
+        r.description.toLowerCase().includes(lowercasedFilter)
+      );
+    }
+
+    const sorted = [...filtered];
+
+    if (sortOrder === 'newest') {
+      sorted.sort((a, b) => parseDate(b.lastUpdated).getTime() - parseDate(a.lastUpdated).getTime());
+    }
+
+    return sorted;
+  }, [resources, searchTerm, selectedCategory, sortOrder]);
 
   const renderContent = () => {
     if (status === 'loading') {
@@ -65,7 +90,7 @@ const BlogPage: React.FC = () => {
     return (
       <div className="text-center py-16 bg-white rounded-2xl shadow-lg border">
         <h2 className="text-2xl font-bold text-slate-700">No Posts Found</h2>
-        <p className="text-slate-500 mt-2">Try adjusting your search term or clearing the search box.</p>
+        <p className="text-slate-500 mt-2">Try adjusting your search or category filter.</p>
       </div>
     );
   };
@@ -77,7 +102,7 @@ const BlogPage: React.FC = () => {
         <div className="container mx-auto p-4 sm:p-6 max-w-5xl">
           <div className="flex justify-between items-center">
              <a href="/" className="flex items-center gap-3">
-                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-12 h-12" />
+                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-16 h-16" />
                 <span className="hidden sm:inline text-xl font-bold text-slate-700">SecretSantaMatch.com</span>
               </a>
               <a href="/" className="bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-2 px-5 text-md rounded-full shadow-md transform hover:scale-105 transition-all">
@@ -91,7 +116,7 @@ const BlogPage: React.FC = () => {
         <div className="container mx-auto p-4 sm:p-6 md:py-12 max-w-5xl text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-orange-500 font-serif">The Secret Santa Blog</h1>
             <p className="text-lg text-gray-600 mt-4 max-w-3xl mx-auto">
-              Your go-to resource for gift exchange ideas, holiday tips, free printables, and party games.
+              Your go-to resource for gift exchange ideas, party planning guides, holiday tips, free printables, and fun games for any occasion.
             </p>
             <div className="mt-8 max-w-xl mx-auto">
               <div className="relative">
@@ -108,9 +133,37 @@ const BlogPage: React.FC = () => {
                 </svg>
               </div>
             </div>
+            <div className="mt-6 p-4 bg-slate-100 rounded-2xl flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4">
+              <div className="flex flex-wrap justify-center gap-3">
+                {categories.map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors duration-200 ${
+                      selectedCategory === category
+                        ? 'bg-[var(--primary-color)] text-white shadow'
+                        : 'bg-white text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <label htmlFor="sort-order" className="text-sm font-semibold text-slate-600">Sort by:</label>
+                <select
+                  id="sort-order"
+                  value={sortOrder}
+                  onChange={e => setSortOrder(e.target.value)}
+                  className="px-3 py-2 text-sm font-semibold rounded-full bg-white text-slate-700 border-transparent focus:ring-2 focus:ring-[var(--primary-color)]"
+                >
+                  <option value="default">Default</option>
+                  <option value="newest">Newest</option>
+                </select>
+              </div>
+            </div>
         </div>
       </div>
-
 
       <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl mt-8">
           <div className="space-y-8">
