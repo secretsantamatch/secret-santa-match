@@ -1,10 +1,19 @@
 [
+  {
+      "id": "minimum-payment-calculator",
+      "type": "Guide & Tips",
+      "title": "Minimum Payment Calculator: See Your Debt-Free Date",
+      "description": "Use this free calculator to see how long it will take to pay off credit card debt and find out how much you can save by paying more than the minimum.",
+      "thumbnailUrl": "/posts/debt-calculator.png",
+      "linkUrl": "/minimum-payment-calculator.html",
+      "lastUpdated": "October 16, 2025"
+    },
     {
       "id": "complete-secret-santa-comparison",
       "type": "Guide & Tips",
       "title": "The Complete 2025 Guide: Paper vs Apps for Secret Santa",
       "description": "An in-depth comparison of every way to organize Secret Santa, from traditional paper draws to the best free online tools. Find out which method saves you the most time and stress.",
-      "thumbnailUrl": "/thumbnails/how-to-organize.png",
+      "thumbnailUrl": "/posts/how-to-organize.png",
       "linkUrl": "/complete-secret-santa-comparison.html",
       "lastUpdated": "October 15, 2025"
     },   
