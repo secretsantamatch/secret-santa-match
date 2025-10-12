@@ -1,5 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -7,9 +11,9 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: 'index.html',
-        blog: 'blog.html',
-        'minimum-payment-calculator': 'minimum-payment-calculator.html'
+        main: resolve(__dirname, 'index.html'),
+        blog: resolve(__dirname, 'blog.html'),
+        'minimum-payment-calculator': resolve(__dirname, 'minimum-payment-calculator.html')
       }
     }
   },
