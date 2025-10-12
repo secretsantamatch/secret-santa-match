@@ -286,9 +286,15 @@ export default function MinimumPaymentCalculator() {
   };
 
   const formatTime = (months: number) => {
-    if (months === Infinity || isNaN(months)) return 'Never';
-    const years = Math.floor(months / 12);
-    const remainingMonths = Math.round(months % 12);
+    if (months === Infinity || isNaN(months) || months < 0) return 'Never';
+
+    const totalMonths = Math.round(months);
+    const years = Math.floor(totalMonths / 12);
+    const remainingMonths = totalMonths % 12;
+
+    if (years === 0 && remainingMonths === 0 && months > 0) {
+        return 'Less than a month';
+    }
     if (years === 0) return `${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
     if (remainingMonths === 0) return `${years} year${years !== 1 ? 's' : ''}`;
     return `${years} year${years !== 1 ? 's' : ''}, ${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
@@ -1044,12 +1050,20 @@ Visit SecretSantaMatch.com for more free tools!
               <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl p-8 text-center">
                 <h3 className="text-3xl font-black mb-4">Your Turn - Start Today!</h3>
                 <p className="mb-6 text-xl">Every day you wait, more interest piles up</p>
-                <button
-                  onClick={() => setShowBlogModal(false)}
-                  className="bg-white text-orange-600 font-bold px-10 py-4 rounded-xl hover:bg-gray-100 transition text-xl"
-                >
-                  Go Back & Make Your Plan
-                </button>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={() => setShowBlogModal(false)}
+                    className="bg-white text-orange-600 font-bold px-10 py-4 rounded-xl hover:bg-gray-100 transition text-xl"
+                  >
+                    Go Back & Make Your Plan
+                  </button>
+                  <a
+                    href="/blog.html"
+                    className="bg-transparent border-2 border-white text-white font-bold px-10 py-4 rounded-xl hover:bg-white/10 transition text-xl flex items-center justify-center"
+                  >
+                    Explore More Resources
+                  </a>
+                </div>
               </div>
             </div>
           </div>
