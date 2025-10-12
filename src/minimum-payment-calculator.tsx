@@ -2,6 +2,14 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { DollarSign, TrendingDown, Zap, Download, AlertTriangle, TrendingUp, Coffee, Smartphone, CreditCard, PiggyBank, Clock, Award, Target, Flame, Plus, Trash2, X, BookOpen, ArrowRight, CheckCircle, Lightbulb, PlayCircle, Package, Home, Car, Book, Scissors, Wrench, Heart, ShoppingCart, Repeat, Share } from 'lucide-react';
 
+interface Account {
+  id: number;
+  name: string;
+  balance: string;
+  apr: string;
+  minPayment: string;
+}
+
 const ShareModal = ({ onClose }: { onClose: () => void }) => {
   const url = window.location.href;
   const text = "Check out this shocking minimum payment calculator to see how long you'll really be in debt!";
@@ -52,7 +60,6 @@ const ShareModal = ({ onClose }: { onClose: () => void }) => {
 const AdSenseBlock = () => {
     useEffect(() => {
         try {
-            // FIX: Cast window to `any` to allow access to `adsbygoogle`, which is added by an external script.
             ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
         } catch (e) {
             console.error("AdSense error: ", e);
@@ -74,7 +81,7 @@ const AdSenseBlock = () => {
 
 
 export default function MinimumPaymentCalculator() {
-  const [accounts, setAccounts] = useState([
+  const [accounts, setAccounts] = useState<Account[]>([
     { id: 1, name: 'Credit Card 1', balance: '5000', apr: '19.99', minPayment: '100' }
   ]);
   const [showResults, setShowResults] = useState(false);
@@ -99,7 +106,7 @@ export default function MinimumPaymentCalculator() {
     }
   };
 
-  const updateAccount = (id: number, field: string, value: string) => {
+  const updateAccount = (id: number, field: keyof Omit<Account, 'id'>, value: string) => {
     setAccounts(accounts.map(a => 
       a.id === id ? { ...a, [field]: value } : a
     ));
@@ -381,7 +388,6 @@ Visit SecretSantaMatch.com for more free tools!
     URL.revokeObjectURL(url);
   };
 
-  // FIX: Added types for `active` and `payload` props passed by Recharts Tooltip.
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: any[] }) => {
     if (active && payload && payload.length) {
       return (
@@ -847,7 +853,7 @@ Visit SecretSantaMatch.com for more free tools!
                   const newPayment = results.totalMinPayment + tip.amount;
                   const newResults = calculatePayoff(newPayment, results.totalBalance, results.weightedAPR);
                   const savings = results.scenarios[0].totalInterest - newResults.totalInterest;
-                  const timeSaved = results.scenarios[0].months - newResults.months;
+                  
                   const newYear = newResults.months === Infinity ? '∞' : new Date().getFullYear() + Math.ceil(newResults.months / 12);
                   
                   return (
@@ -1049,50 +1055,6 @@ Visit SecretSantaMatch.com for more free tools!
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(20px, -50px) scale(1.1); }
-          50% { transform: translate(-20px, 20px) scale(0.9); }
-          75% { transform: translate(50px, 50px) scale(1.05); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-        .slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: linear-gradient(to right, #3b82f6, #8b5cf6);
-          cursor: pointer;
-          box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
-        }
-        .slider::-moz-range-thumb {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: linear-gradient(to right, #3b82f6, #8b5cf6);
-          cursor: pointer;
-          border: none;
-          box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
-        }
-      `}</style>
     </div>
   );
 }
