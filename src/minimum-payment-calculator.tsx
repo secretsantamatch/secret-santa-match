@@ -287,17 +287,27 @@ export default function MinimumPaymentCalculator() {
 
   const formatTime = (months: number) => {
     if (months === Infinity || isNaN(months) || months < 0) return 'Never';
-
-    const totalMonths = Math.round(months);
+  
+    // Use Math.floor for consistency and to prevent rounding up.
+    const totalMonths = Math.floor(months);
+  
+    if (totalMonths === 0) {
+      // Handle the "0" case explicitly for clarity.
+      if (months > 0) return 'Less than a month';
+      return '0 months';
+    }
+  
     const years = Math.floor(totalMonths / 12);
     const remainingMonths = totalMonths % 12;
-
-    if (years === 0 && remainingMonths === 0 && months > 0) {
-        return 'Less than a month';
+  
+    const yearString = years > 0 ? `${years} year${years !== 1 ? 's' : ''}` : '';
+    const monthString = remainingMonths > 0 ? `${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}` : '';
+  
+    // Join the parts with a comma only if both exist.
+    if (yearString && monthString) {
+      return `${yearString}, ${monthString}`;
     }
-    if (years === 0) return `${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
-    if (remainingMonths === 0) return `${years} year${years !== 1 ? 's' : ''}`;
-    return `${years} year${years !== 1 ? 's' : ''}, ${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
+    return yearString || monthString;
   };
 
   const handleCalculate = () => {
