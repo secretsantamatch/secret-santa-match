@@ -13,7 +13,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         blog: resolve(__dirname, 'blog.html'),
-        'minimum-payment-calculator': resolve(__dirname, 'minimum-payment-calculator.html')
+        'minimum-payment-calculator': resolve(__dirname, 'public/minimum-payment-calculator.html')
       }
     }
   },
