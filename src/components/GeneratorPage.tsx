@@ -128,16 +128,20 @@ const GeneratorPage: React.FC = () => {
 
     while (attempts < maxAttempts && !generatedMatches) {
       attempts++;
-      const participantMap = new Map(validParticipants.map(p => [p.id, p]));
+      // FIX: Explicitly type the Map. This helps TypeScript correctly infer the types
+      // of 'giver' and 'receiver' later, preventing the 'property id does not exist on type unknown' error.
+      const participantMap: Map<string, Participant> = new Map(validParticipants.map(p => [p.id, p]));
       const assignedMatches: Match[] = [];
       const assignedGiverIds = new Set<string>();
       const assignedReceiverIds = new Set<string>();
 
-      for(const assignment of assignments) {
+      // FIX: Cast `assignments` to `Assignment[]` to prevent type inference issues.
+      for(const assignment of (assignments as Assignment[])) {
           const giver = participantMap.get(assignment.giverId);
           const receiver = participantMap.get(assignment.receiverId);
           if (giver && receiver) {
-              assignedMatches.push({ giver, receiver });
+              // FIX: Ensure giver and receiver conform to Participant type for the Match
+              assignedMatches.push({ giver: giver as Participant, receiver: receiver as Participant });
               assignedGiverIds.add(giver.id);
               assignedReceiverIds.add(receiver.id);
           }
@@ -155,15 +159,18 @@ const GeneratorPage: React.FC = () => {
       const availableReceivers = new Set(remainingReceivers);
       let possible = true;
 
-      for (const giver of remainingGivers) {
-        const potentialReceivers = Array.from(availableReceivers).filter(receiver => {
+      // FIX: Cast `remainingGivers` to `Participant[]` to ensure `giver` is correctly typed.
+      for (const giver of (remainingGivers as Participant[])) {
+        // FIX: Cast Array.from result to Participant[] to fix type inference issues.
+        const potentialReceivers = (Array.from(availableReceivers) as Participant[]).filter(receiver => {
           if (giver.id === receiver.id) return false;
           return !exclusions.some(ex => (ex.p1 === giver.id && ex.p2 === receiver.id) || (ex.p2 === giver.id && ex.p1 === receiver.id));
         });
 
         if (potentialReceivers.length > 0) {
           const receiver = potentialReceivers[Math.floor(Math.random() * potentialReceivers.length)];
-          currentMatches.push({ giver, receiver });
+          // FIX: Explicitly cast to ensure type correctness when pushing to `currentMatches`.
+          currentMatches.push({ giver: giver as Participant, receiver: receiver as Participant });
           availableReceivers.delete(receiver);
         } else {
           possible = false;
