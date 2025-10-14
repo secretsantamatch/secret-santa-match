@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Holiday Budget Calculator 2025 - Secret Santa Cost Calculator & Credit Impact Tool</title>
+    <meta name="description" content="Calculate your exact holiday spending across all Secret Santa exchanges. See credit score impact, get personalized budget recommendations, and avoid holiday debt. Free tool, no signup required.">
+    <meta name="keywords" content="holiday budget calculator, secret santa calculator, christmas spending calculator, credit score impact, holiday debt calculator, gift exchange budget">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="I calculated my holiday spending and it's way more than I thought! 😱">
+    <meta property="og:description" content="Free calculator shows your real holiday costs + credit impact. Calculate yours now!">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://secretsantamatch.com/calculator-preview.jpg">
+    
+    <!-- Pinterest -->
+    <meta name="pinterest-rich-pin" content="true">
+    <meta name="p:domain_verify" content="bc322d28f428cbc03973572de2259667"/>
+    <script type="text/javascript">
+      !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(
+      Array.prototype.slice.call(arguments))};var
+      n=window.pintrk;n.queue=[],n.version="3.0";var
+      t=document.createElement("script");t.async=!0,t.src=e;var
+      r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
+      pintrk('load', '2612962984250');
+      pintrk('page');
+      pintrk('track', 'pagevisit');
+    </script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3037944530219260" crossorigin="anonymous"></script>
+    
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-HG140X6CQ6');
+    </script>
+    
+    <!-- Schema.org markup for Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Holiday Budget Calculator",
+      "description": "Calculate your total holiday spending including Secret Santa exchanges and see credit impact",
+      "applicationCategory": "FinanceApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            line-height: 1.6;
+        }
+
+        .nav-bar {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.2em;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: #667eea;
+        }
+
+        .nav-link.highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.5;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 3em;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 20px rgba(0,0,0,0.3);
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3em;
+            opacity: 0.95;
+            margin-bottom: 30px;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-number {
+            font-size: 2.5em;
+            font-weight: 800;
+            display: block;
+        }
+
+        .hero-stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: -40px auto 0;
+            padding: 0 20px 60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .section-icon {
+            font-size: 2.5em;
+            margin-right: 15px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .section-subtitle {
+            color: #94a3b8;
+            margin-top: 5px;
+            font-size: 0.95em;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        label {
+            display: block;
+            color: #cbd5e1;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 14px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            color: #f8fafc;
+            font-size: 1.05em;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            background: #1e293b;
+        }
+
+        .exchange-card {
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .exchange-card:hover {
+            border-color: #667eea;
+        }
+
+        .exchange-number {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85em;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .live-total {
+            position: sticky;
+            top: 80px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3);
+            margin-bottom: 30px;
+            z-index: 50;
+        }
+
+        .live-total-label {
+            font-size: 0.9em;
+            opacity: 0.95;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .live-total-amount {
+            font-size: 4em;
+            font-weight: 900;
+            text-shadow: 2px 2px 20px rgba(0,0,0,0.3);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .live-total-breakdown {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        /* Charts and visualizations */
+        .chart-container {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            height: 400px;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #f1f5f9;
+            text-align: center;
+        }
+
+        .gauge-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .gauge {
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .gauge-circle {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 15px;
+            position: relative;
+        }
+
+        .gauge-svg {
+            transform: rotate(-90deg);
+        }
+
+        .gauge-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            font-weight: 800;
+        }
+
+        .gauge-label {
+            font-size: 0.9em;
+            color: #94a3b8;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .comparison-item {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #334155;
+        }
+
+        .comparison-value {
+            font-size: 2em;
+            font-weight: 800;
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .comparison-label {
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
+
+        /* Credit Karma CTAs - Science-backed design */
+        .ck-cta-mega {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 40px 0;
+            box-shadow: 0 20px 60px rgba(5, 150, 105, 0.5);
+            border: 3px solid #10b981;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ck-cta-mega::before {
+            content: "⚠️";
+            position: absolute;
+            font-size: 200px;
+            opacity: 0.05;
+            top: -50px;
+            right: -50px;
+        }
+
+        .ck-cta-mega h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .ck-benefit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .ck-benefit {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .ck-benefit-icon {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .ck-benefit-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .ck-btn-primary {
+            background: white;
+            color: #047857;
+            padding: 22px 50px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 900;
+            font-size: 1.3em;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: none;
+            cursor: pointer;
+            margin: 20px 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ck-btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .trust-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+            opacity: 0.95;
+        }
+
+        .trust-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Print button */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .action-btn {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 14px 28px;
+            border-radius: 10px;
+            border: 2px solid #334155;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1em;
+        }
+
+        .action-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .share-section {
+            text-align: center;
+            padding: 40px;
+            background: #1e293b;
+            border-radius: 16px;
+            margin: 30px 0;
+        }
+
+        .share-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .share-subtitle {
+            color: #94a3b8;
+            margin-bottom: 25px;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            padding: 14px 28px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1em;
+        }
+
+        .share-btn.twitter {
+            background: #1da1f2;
+            color: white;
+        }
+
+        .share-btn.facebook {
+            background: #4267B2;
+            color: white;
+        }
+
+        .share-btn.linkedin {
+            background: #0077b5;
+            color: white;
+        }
+
+        .share-btn.pinterest {
+            background: #E60023;
+            color: white;
+        }
+
+        .share-btn.copy {
+            background: #667eea;
+            color: white;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .insight-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-left: 5px solid #667eea;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .insight-card.warning {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #422006 0%, #292524 100%);
+        }
+
+        .insight-card.danger {
+            border-left-color: #ef4444;
+            background: linear-gradient(135deg, #450a0a 0%, #292524 100%);
+        }
+
+        .insight-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media print {
+            .nav-bar, .share-section, .action-buttons, .ck-cta-mega, .hero {
+                display: none !important;
+            }
+            body {
+                background: white;
+                color: black;
+            }
+            .card {
+                background: white;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero-stats {
+                gap: 20px;
+            }
+
+            .card {
+                padding: 25px;
+            }
+
+            .live-total-amount {
+                font-size: 2.5em;
+            }
+
+            .ck-cta-mega {
+                padding: 30px 20px;
+            }
+
+            .ck-cta-mega h2 {
+                font-size: 1.8em;
+            }
+
+            .ck-btn-primary {
+                width: 100%;
+                justify-content: center;
+                padding: 18px 30px;
+                font-size: 1.1em;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Zeigarnik Effect - Create tension with incomplete info */
+        .incomplete-warning {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 700;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Credit Karma Banner Placements */
+        .ck-banner-container {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 16px;
+            margin: 30px 0;
+            border: 2px solid #334155;
+        }
+
+        .ck-banner-label {
+            font-size: 0.75em;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .ck-banner-desktop {
+            display: block;
+        }
+
+        .ck-banner-mobile {
+            display: none;
+        }
+
+        .ck-banner-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        /* Sticky mobile banner for high visibility */
+        .ck-sticky-mobile {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1e293b;
+            padding: 10px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+            z-index: 1000;
+            text-align: center;
+            border-top: 2px solid #667eea;
+        }
+
+        .ck-sticky-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .affiliate-disclaimer {
+            background: rgba(148, 163, 184, 0.1);
+            border-left: 3px solid #94a3b8;
+            padding: 15px 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+            font-size: 0.85em;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .ck-banner-desktop {
+                display: none;
+            }
+
+            .ck-banner-mobile {
+                display: block;
+            }
+
+            .ck-sticky-mobile {
+                display: block;
+            }
+
+            .ck-banner-container {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <noscript>
+      <img height="1" width="1" style="display:none;" alt=""
+      src="https://ct.pinterest.com/v3/?tid=2612962984250&noscript=1" />
+    </noscript>
+    
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <a href="https://secretsantamatch.com" class="nav-logo">SecretSantaMatch</a>
+            <div class="nav-links">
+                <a href="https://secretsantamatch.com" class="nav-link highlight">Free Generator</a>
+                <a href="https://secretsantamatch.com/minimum-payment-calculator.html" class="nav-link">Freedom Date Calculator</a>
+                <a href="https://secretsantamatch.com/blog.html" class="nav-link">Blog</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1>💸 Holiday Spending Reality Check</h1>
+            <p class="hero-subtitle">Calculate your real holiday costs + credit impact in 3 minutes</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-number">43%</span>
+                    <span class="hero-stat-label">Go into holiday debt</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">$920</span>
+                    <span class="hero-stat-label">Average spending</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">-100</span>
+                    <span class="hero-stat-label">Credit score drop</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="calculator">
+        <div class="live-total fade-in">
+            <div class="live-total-label">Your Total Holiday Spending</div>
+            <div class="live-total-amount" id="grand-total">$0</div>
+            <div class="live-total-breakdown" id="quick-breakdown">Start adding your gift exchanges below</div>
+        </div>
+
+        <div class="card fade-in">
+            <div class="section-header">
+                <div class="section-icon">🎁</div>
+                <div>
+                    <div class="section-title">Gift Exchanges & Secret Santas</div>
+                    <div class="section-subtitle">Add every exchange you're in — work, friends, family, clubs, etc.</div>
+                </div>
+            </div>
+
+            <div id="exchanges-container"></div>
+
+            <button class="add-btn" onclick="addExchange()">
+                <span>➕</span> Add Another Exchange
+            </button>
+        </div>
+
+        <div class="card fade-in">
+            <div class="section-header">
+                <div class="section-icon">👨‍👩‍👧‍👦</div>
+                <div>
+                    <div class="section-title">Other Holiday Spending</div>
+                    <div class="section-subtitle">Everything else — close family gifts, parties, decorations, etc.</div>
+                </div>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Close Family & Friends Gifts</label>
+                    <input type="number" id="family-gifts" placeholder="300" min="0" oninput="updateTotal()">
+                </div>
+                <div class="input-group">
+                    <label>Holiday Parties & Hosting</label>
+                    <input type="number" id="hosting" placeholder="0" min="0" oninput="updateTotal()">
+                </div>
+                <div class="input-group">
+                    <label>Decorations & Extras</label>
+                    <input type="number" id="extras" placeholder="0" min="0" oninput="updateTotal()">
+                </div>
+            </div>
+        </div>
+
+        <div class="card fade-in">
+            <div class="section-header">
+                <div class="section-icon">💳</div>
+                <div>
+                    <div class="section-title">Credit Health Check</div>
+                    <div class="section-subtitle">See how holiday spending will impact your credit score</div>
+                </div>
+            </div>
+
+            <div id="credit-missing-warning" class="incomplete-warning" style="display: none;">
+                ⚠️ Complete this section to see your credit score impact!
+            </div>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Current Credit Utilization</label>
+                    <select id="credit-utilization" onchange="updateTotal()">
+                        <option value="">Don't know? Check Credit Karma →</option>
+                        <option value="10">0-10% (Excellent)</option>
+                        <option value="20">10-30% (Good)</option>
+                        <option value="40">30-50% (Fair)</option>
+                        <option value="65">50-70% (Poor)</option>
+                        <option value="80">70%+ (Very Poor)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Total Credit Limits</label>
+                    <input type="number" id="credit-limit" placeholder="10000" min="0" oninput="updateTotal()">
+                </div>
+                <div class="input-group">
+                    <label>Current Card Balances</label>
+                    <input type="number" id="current-balance" placeholder="2000" min="0" oninput="updateTotal()">
+                </div>
+            </div>
+
+            <div class="insight-card">
+                <div class="insight-title">
+                    <span>💡</span> Don't Know These Numbers?
+                </div>
+                <p style="margin: 10px 0 20px 0; color: #cbd5e1;">Credit Karma shows ALL your credit cards in one place, calculates your utilization automatically, and monitors your score weekly. Takes 3 minutes to sign up.</p>
+                
+                <!-- Desktop Banner (468x60) -->
+                <div class="ck-banner-container">
+                    <div class="ck-banner-label">Partner Advertisement</div>
+                    <div class="ck-banner-desktop">
+                        <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
+                        <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597063&v=66532&q=486426&r=2612068">
+                            <img src="https://www.awin1.com/cshow.php?s=3597063&v=66532&q=486426&r=2612068" border="0" alt="Credit Karma - Check Your Credit">
+                        </a>
+                        <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+                    </div>
+                    <!-- Mobile Banner (320x50) -->
+                    <div class="ck-banner-mobile">
+                        <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
+                        <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597061&v=66532&q=486425&r=2612068">
+                            <img src="https://www.awin1.com/cshow.php?s=3597061&v=66532&q=486425&r=2612068" border="0" alt="Credit Karma - Check Your Credit">
+                        </a>
+                        <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+                    </div>
+                </div>
+
+                <div class="trust-indicators" style="margin-top: 15px; font-size: 0.85em; justify-content: center;">
+                    <div class="trust-indicator">✓ 100% Free Forever</div>
+                    <div class="trust-indicator">✓ No Credit Card Required</div>
+                    <div class="trust-indicator">✓ Won't Hurt Your Score</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="results-container"></div>
+
+        <div class="action-buttons">
+            <button class="action-btn" onclick="window.print()">
+                <span>🖨️</span> Print My Budget Plan
+            </button>
+            <button class="action-btn" onclick="downloadPDF()">
+                <span>📄</span> Export as PDF
+            </button>
+            <button class="action-btn" onclick="saveResults()">
+                <span>🔖</span> Bookmark My Results
+            </button>
+        </div>
+
+        <div class="share-section">
+            <div class="share-title">💬 Share This Tool</div>
+            <div class="share-subtitle">Help your friends avoid holiday debt too</div>
+            <div class="share-buttons">
+                <button class="share-btn twitter" onclick="shareTwitter()">
+                    <span>🐦</span> Tweet
+                </button>
+                <button class="share-btn facebook" onclick="shareFacebook()">
+                    <span>👥</span> Facebook
+                </button>
+                <button class="share-btn linkedin" onclick="shareLinkedIn()">
+                    <span>💼</span> LinkedIn
+                </button>
+                <button class="share-btn pinterest" onclick="sharePinterest()">
+                    <span>📌</span> Pin It
+                </button>
+                <button class="share-btn copy" onclick="copyLink()">
+                    <span>🔗</span> Copy Link
+                </button>
+            </div>
+        </div>
+
+        <div class="affiliate-disclaimer">
+            <strong>Affiliate Disclosure:</strong> This page contains affiliate links to Credit Karma. If you sign up through our links, we may earn a commission at no additional cost to you. We only recommend services that provide genuine value for holiday budget planning and financial management. All opinions and recommendations are our own. SecretSantaMatch.com calculator is 100% free to use with no affiliate relationship.
+        </div>
+
+        <div class="card fade-in">
+            <div class="section-header">
+                <div class="section-icon">🎅</div>
+                <div>
+                    <div class="section-title">Next Step: Organize Your Secret Santa</div>
+                    <div class="section-subtitle">Now that you know your budget, make coordination effortless</div>
+                </div>
+            </div>
+            <p style="margin-bottom: 20px; color: #cbd5e1;">Stop wasting hours on group texts and spreadsheets. SecretSantaMatch.com lets you organize any gift exchange in 5 minutes — free, no sign-up required.</p>
+            <a href="https://secretsantamatch.com" class="add-btn" style="display: inline-flex; font-size: 1.1em; padding: 16px 35px;">
+                Try Free Secret Santa Generator →
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let exchangeCount = 0;
+        let myChart = null;
+        let pieChart = null;
+
+        function addExchange() {
+            exchangeCount++;
+            const container = document.getElementById('exchanges-container');
+            
+            const exchangeCard = document.createElement('div');
+            exchangeCard.className = 'exchange-card fade-in';
+            exchangeCard.innerHTML = `
+                <div class="exchange-number">Exchange ${exchangeCount}</div>
+                ${exchangeCount > 1 ? '<button class="remove-btn" onclick="this.parentElement.remove(); updateTotal();">Remove</button>' : ''}
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Exchange Name</label>
+                        <input type="text" class="exchange-name" placeholder="Office Secret Santa" oninput="updateTotal()">
+                    </div>
+                    <div class="input-group">
+                        <label>Gift Budget ($)</label>
+                        <input type="number" class="exchange-budget" placeholder="25" min="0" oninput="updateTotal()">
+                    </div>
+                    <div class="input-group">
+                        <label>Shipping & Tax</label>
+                        <select class="exchange-shipping" onchange="updateTotal()">
+                            <option value="0">In person (no cost)</option>
+                            <option value="8">Standard shipping (~$8)</option>
+                            <option value="12">Express shipping (~$12)</option>
+                            <option value="15">International (~$15)</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(exchangeCard);
+            updateTotal();
+        }
+
+        function updateTotal() {
+            // Calculate exchanges
+            const exchanges = document.querySelectorAll('.exchange-card');
+            let totalExchanges = 0;
+            let exchangeCount = 0;
+            let exchangeDetails = [];
+            
+            exchanges.forEach(exchange => {
+                const name = exchange.querySelector('.exchange-name').value || 'Unnamed Exchange';
+                const budget = parseFloat(exchange.querySelector('.exchange-budget').value) || 0;
+                const shipping = parseFloat(exchange.querySelector('.exchange-shipping').value) || 0;
+                if (budget > 0) {
+                    const total = budget + shipping;
+                    totalExchanges += total;
+                    exchangeCount++;
+                    exchangeDetails.push({ name, total });
+                }
+            });
+
+            // Calculate other costs
+            const familyGifts = parseFloat(document.getElementById('family-gifts').value) || 0;
+            const hosting = parseFloat(document.getElementById('hosting').value) || 0;
+            const extras = parseFloat(document.getElementById('extras').value) || 0;
+
+            const grandTotal = totalExchanges + familyGifts + hosting + extras;
+
+            // Update live total
+            document.getElementById('grand-total').textContent = `$${grandTotal.toFixed(0)}`;
+            
+            if (grandTotal > 0) {
+                document.getElementById('quick-breakdown').innerHTML = `
+                    ${exchangeCount} exchanges ($${totalExchanges.toFixed(0)}) + Other ($${(familyGifts + hosting + extras).toFixed(0)})
+                `;
+            }
+
+            // Show warning if credit info missing
+            const creditUtil = document.getElementById('credit-utilization').value;
+            const creditLimit = document.getElementById('credit-limit').value;
+            const warningDiv = document.getElementById('credit-missing-warning');
+            
+            if (grandTotal > 0 && (!creditUtil || !creditLimit)) {
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+
+            // Generate results if we have data
+            if (grandTotal > 0) {
+                generateResults(grandTotal, totalExchanges, familyGifts + hosting + extras, exchangeDetails);
+            }
+        }
+
+        function generateResults(total, exchanges, other, exchangeDetails) {
+            const container = document.getElementById('results-container');
+            
+            // Get credit data
+            const utilizationPercent = document.getElementById('credit-utilization').value;
+            const creditLimit = parseFloat(document.getElementById('credit-limit').value) || 0;
+            const currentBalance = parseFloat(document.getElementById('current-balance').value) || 0;
+
+            let html = '';
+
+            // Visual spending breakdown
+            html += `
+                <div class="card fade-in">
+                    <div class="section-header">
+                        <div class="section-icon">📊</div>
+                        <div>
+                            <div class="section-title">Visual Spending Breakdown</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="spendingChart"></canvas>
+                    </div>
+                </div>
+            `;
+
+            // Budget comparison
+            const avgSpending = 920;
+            const percentVsAvg = ((total / avgSpending) * 100).toFixed(0);
+            
+            html += `
+                <div class="card fade-in">
+                    <div class="section-header">
+                        <div class="section-icon">📈</div>
+                        <div>
+                            <div class="section-title">How You Compare</div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-grid">
+                        <div class="comparison-item">
+                            <span class="comparison-value">${percentVsAvg}%</span>
+                            <span class="comparison-label">vs. average American</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-value">${Math.ceil(total / 25)}</span>
+                            <span class="comparison-label">total gifts to buy</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-value">$${(total / 12).toFixed(0)}</span>
+                            <span class="comparison-label">per month if saved ahead</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-value">$${((total * 0.2499) / 12).toFixed(0)}</span>
+                            <span class="comparison-label">monthly interest at 24.99% APR</span>
+                        </div>
+                    </div>
+
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+
+                    <!-- Strategic banner placement after interest shock -->
+                    <div style="margin: 30px 0; text-align: center; padding: 20px; background: rgba(251, 191, 36, 0.1); border-radius: 12px; border: 2px solid rgba(251, 191, 36, 0.3);">
+                        <p style="margin-bottom: 15px; font-size: 0.95em; color: #fbbf24; font-weight: 600;">💡 Want to avoid that interest charge? Check your credit health first:</p>
+                        <div class="ck-banner-desktop">
+                            <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
+                            <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597063&v=66532&q=486426&r=2612068">
+                                <img src="https://www.awin1.com/cshow.php?s=3597063&v=66532&q=486426&r=2612068" border="0" alt="Credit Karma - Check Your Credit" style="max-width: 100%; height: auto; border-radius: 8px;">
+                            </a>
+                            <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+                        </div>
+                        <div class="ck-banner-mobile">
+                            <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
+                            <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597061&v=66532&q=486425&r=2612068">
+                                <img src="https://www.awin1.com/cshow.php?s=3597061&v=66532&q=486425&r=2612068" border="0" alt="Credit Karma - Check Your Credit" style="max-width: 100%; height: auto; border-radius: 8px;">
+                            </a>
+                            <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Credit impact with gauges
+            if (creditLimit > 0 && currentBalance >= 0) {
+                const currentUtil = (currentBalance / creditLimit) * 100;
+                const newBalance = currentBalance + total;
+                const newUtil = (newBalance / creditLimit) * 100;
+                const utilIncrease = newUtil - currentUtil;
+
+                let scoreImpact = 0;
+                let impactLevel = 'low';
+                if (newUtil > 70) {
+                    scoreImpact = -80;
+                    impactLevel = 'high';
+                } else if (newUtil > 50) {
+                    scoreImpact = -50;
+                    impactLevel = 'medium';
+                } else if (newUtil > 30) {
+                    scoreImpact = -20;
+                    impactLevel = 'low';
+                }
+
+                html += `
+                    <div class="card fade-in">
+                        <div class="section-header">
+                            <div class="section-icon">💳</div>
+                            <div>
+                                <div class="section-title">Credit Score Impact Analysis</div>
+                            </div>
+                        </div>
+
+                        <div class="gauge-container">
+                            <div class="gauge">
+                                <div class="gauge-circle">
+                                    <svg class="gauge-svg" width="150" height="150">
+                                        <circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/>
+                                        <circle cx="75" cy="75" r="65" fill="none" stroke="#10b981" stroke-width="15"
+                                                stroke-dasharray="${(currentUtil/100) * 408} 408"
+                                                style="transition: all 0.5s ease;"/>
+                                    </svg>
+                                    <div class="gauge-value">${currentUtil.toFixed(0)}%</div>
+                                </div>
+                                <div class="gauge-label">Current Utilization</div>
+                            </div>
+                            
+                            <div class="gauge">
+                                <div class="gauge-circle">
+                                    <svg class="gauge-svg" width="150" height="150">
+                                        <circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/>
+                                        <circle cx="75" cy="75" r="65" fill="none" stroke="${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'}" stroke-width="15"
+                                                stroke-dasharray="${(newUtil/100) * 408} 408"
+                                                style="transition: all 0.5s ease;"/>
+                                    </svg>
+                                    <div class="gauge-value" style="color: ${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'};">${newUtil.toFixed(0)}%</div>
+                                </div>
+                                <div class="gauge-label">After Holiday Spending</div>
+                            </div>
+                        </div>
+
+                        ${scoreImpact < 0 ? `
+                            <div class="insight-card danger">
+                                <div class="insight-title">
+                                    <span>🚨</span> CRITICAL: Your Credit Score Is At Risk
+                                </div>
+                                <p style="margin: 15px 0; font-size: 1.1em; line-height: 1.6;">
+                                    Adding $${total.toFixed(0)} to your current balances will push your utilization from ${currentUtil.toFixed(0)}% to ${newUtil.toFixed(0)}%. 
+                                    <strong>This could drop your credit score by ${Math.abs(scoreImpact)} points</strong>, costing you thousands in higher interest rates on future loans.
+                                </p>
+                                <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-top: 20px;">
+                                    <div style="font-size: 1.3em; font-weight: 800; margin-bottom: 10px; color: #fca5a5;">
+                                        What This Costs You:
+                                    </div>
+                                    <ul style="margin: 15px 0; padding-left: 20px;">
+                                        <li>Auto loan: +$1,500 over 5 years</li>
+                                        <li>Mortgage: +$50,000 over 30 years</li>
+                                        <li>Credit cards: +24.99% interest rates</li>
+                                        <li>Insurance premiums increase</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="insight-card" style="border-left-color: #10b981; background: linear-gradient(135deg, #064e3b 0%, #292524 100%);">
+                                <div class="insight-title">
+                                    <span>✅</span> Your Credit Should Be Safe
+                                </div>
+                                <p style="margin: 10px 0; color: #cbd5e1;">
+                                    Your holiday spending will keep utilization at ${newUtil.toFixed(0)}%, which should have minimal impact on your credit score. 
+                                    Still smart to monitor it weekly on Credit Karma.
+                                </p>
+                            </div>
+                        `}
+                    </div>
+                `;
+
+                // Peak-End Rule: Put strongest CTA right after scary credit info
+                if (scoreImpact < 0) {
+                    html += `
+                        <div class="ck-cta-mega">
+                            <h2>⚠️ Check Your Real Credit Health RIGHT NOW</h2>
+                            <p>Before you spend another dollar this holiday season, see EXACTLY where you stand.</p>
+                            
+                            <div class="ck-benefit-grid">
+                                <div class="ck-benefit">
+                                    <span class="ck-benefit-icon">🎯</span>
+                                    <div class="ck-benefit-title">Real-Time Monitoring</div>
+                                    <div>See all your cards, balances, and utilization automatically calculated</div>
+                                </div>
+                                <div class="ck-benefit">
+                                    <span class="ck-benefit-icon">🔔</span>
+                                    <div class="ck-benefit-title">Instant Alerts</div>
+                                    <div>Get notified if your utilization gets too high or score drops</div>
+                                </div>
+                                <div class="ck-benefit">
+                                    <span class="ck-benefit-icon">💡</span>
+                                    <div class="ck-benefit-title">Smart Recommendations</div>
+                                    <div>See which cards to pay first and debt consolidation options</div>
+                                </div>
+                                <div class="ck-benefit">
+                                    <span class="ck-benefit-icon">📊</span>
+                                    <div class="ck-benefit-title">Credit Simulator</div>
+                                    <div>Preview how purchases will affect your score BEFORE you buy</div>
+                                </div>
+                            </div>
+
+                            <!-- Desktop Banner (468x60) at peak emotional moment -->
+                            <div style="margin: 30px 0;">
+                                <div class="ck-banner-desktop">
+                                    <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
+                                    <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597063&v=66532&q=486426&r=2612068">
+                                        <img src="https://www.awin1.com/cshow.php?s=3597063&v=66532&q=486426&r=2612068" border="0" alt="Credit Karma - Check Your Credit" style="max-width: 100%; height: auto; border-radius: 8px;">
+                                    </a>
+                                    <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+                                </div>
+                                <!-- Mobile Banner (320x50) -->
+                                <div class="ck-banner-mobile">
+                                    <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
+                                    <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597061&v=66532&q=486425&r=2612068">
+                                        <img src="https://www.awin1.com/cshow.php?s=3597061&v=66532&q=486425&r=2612068" border="0" alt="Credit Karma - Check Your Credit" style="max-width: 100%; height: auto; border-radius: 8px;">
+                                    </a>
+                                    <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+                                </div>
+                            </div>
+
+                            <div class="trust-indicators">
+                                <div class="trust-indicator">✓ 100% Free Forever</div>
+                                <div class="trust-indicator">✓ No Credit Card Required</div>
+                                <div class="trust-indicator">✓ Won't Hurt Your Score</div>
+                                <div class="trust-indicator">✓ 3 Minute Sign Up</div>
+                            </div>
+
+                            <p style="margin-top: 20px; font-size: 0.95em; opacity: 0.9;">
+                                110+ million people trust Credit Karma. Join them and protect your financial future this holiday season.
+                            </p>
+                        </div>
+                    `;
+                }
+            } else {
+                // Zeigarnik Effect: Create tension with incomplete info
+                html += `
+                    <div class="ck-cta-mega">
+                        <h2>⚠️ You're Missing Critical Information</h2>
+                        <p style="font-size: 1.1em; margin-bottom: 30px;">You can't see your credit impact because you don't know your current utilization. This is exactly why you need Credit Karma.</p>
+                        
+                        <div class="ck-benefit-grid">
+                            <div class="ck-benefit">
+                                <span class="ck-benefit-icon">👀</span>
+                                <div class="ck-benefit-title">See Everything</div>
+                                <div>All your credit cards, balances, and limits in one dashboard</div>
+                            </div>
+                            <div class="ck-benefit">
+                                <span class="ck-benefit-icon">🧮</span>
+                                <div class="ck-benefit-title">Auto-Calculate</div>
+                                <div>Your utilization is calculated automatically — no math required</div>
+                            </div>
+                            <div class="ck-benefit">
+                                <span class="ck-benefit-icon">📈</span>
+                                <div class="ck-benefit-title">Weekly Updates</div>
+                                <div>Your score and credit report update every 7 days</div>
+                            </div>
+                            <div class="ck-benefit">
+                                <span class="ck-benefit-icon">💳</span>
+                                <div class="ck-benefit-title">Find Hidden Issues</div>
+                                <div>Discover accounts you forgot about or errors hurting your score</div>
+                            </div>
+                        </div>
+
+                        <!-- Desktop Banner (468x60) -->
+                        <div style="margin: 30px 0;">
+                            <div class="ck-banner-desktop">
+                                <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
+                                <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597063&v=66532&q=486426&r=2612068">
+                                    <img src="https://www.awin1.com/cshow.php?s=3597063&v=66532&q=486426&r=2612068" border="0" alt="Credit Karma - Check Your Credit" style="max-width: 100%; height: auto; border-radius: 8px;">
+                                </a>
+                                <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+                            </div>
+                            <!-- Mobile Banner (320x50) -->
+                            <div class="ck-banner-mobile">
+                                <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
+                                <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597061&v=66532&q=486425&r=2612068">
+                                    <img src="https://www.awin1.com/cshow.php?s=3597061&v=66532&q=486425&r=2612068" border="0" alt="Credit Karma - Check Your Credit" style="max-width: 100%; height: auto; border-radius: 8px;">
+                                </a>
+                                <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+                            </div>
+                        </div>
+
+                        <div class="trust-indicators">
+                            <div class="trust-indicator">✓ 100% Free Forever</div>
+                            <div class="trust-indicator">✓ No Credit Card Required</div>
+                            <div class="trust-indicator">✓ Won't Hurt Your Score</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            // Create charts after DOM is updated
+            setTimeout(() => {
+                createSpendingChart(exchanges, other, exchangeDetails);
+                createComparisonChart(total);
+            }, 100);
+        }
+
+        function createSpendingChart(exchangeTotal, other, exchangeDetails) {
+            const ctx = document.getElementById('spendingChart');
+            if (!ctx) return;
+
+            // Destroy existing chart
+            if (pieChart) {
+                pieChart.destroy();
+            }
+
+            const labels = [...exchangeDetails.map(e => e.name), 'Other Holiday Costs'];
+            const data = [...exchangeDetails.map(e => e.total), other];
+            const colors = [
+                '#667eea', '#764ba2', '#f093fb', '#f5576c', 
+                '#10b981', '#fbbf24', '#3b82f6', '#8b5cf6'
+            ];
+
+            pieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 3,
+                        borderColor: '#1e293b'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#f8fafc',
+                                font: { size: 14 },
+                                padding: 15
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Where Your Money Goes',
+                            color: '#f8fafc',
+                            font: { size: 18, weight: 'bold' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createComparisonChart(userTotal) {
+            const ctx = document.getElementById('comparisonChart');
+            if (!ctx) return;
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            const avgSpending = 920;
+            
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['You', 'Average American', 'Debt-Free Target'],
+                    datasets: [{
+                        label: 'Holiday Spending',
+                        data: [userTotal, avgSpending, 300],
+                        backgroundColor: [
+                            userTotal > avgSpending ? '#ef4444' : '#10b981',
+                            '#fbbf24',
+                            '#10b981'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Your Spending vs. Others',
+                            color: '#f8fafc',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            },
+                            grid: {
+                                color: '#334155'
+                            }
+                        },
+                        x: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Social sharing functions
+        function shareTwitter() {
+            const total = document.getElementById('grand-total').textContent;
+            const text = `I just calculated my holiday spending and it's ${total}! 😱 Check yours with this free calculator before you overspend:`;
+            const url = window.location.href;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function shareFacebook() {
+            const url = window.location.href;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function shareLinkedIn() {
+            const url = window.location.href;
+            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function sharePinterest() {
+            const url = window.location.href;
+            const description = 'Free holiday budget calculator - see your real spending + credit impact before you overspend this season!';
+            window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(description)}`, '_blank');
+        }
+
+        function copyLink() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = event.target.closest('.share-btn');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<span>✓</span> Link Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                }, 2000);
+            });
+        }
+
+        function downloadPDF() {
+            window.print();
+        }
+
+        function saveResults() {
+            const total = document.getElementById('grand-total').textContent;
+            const url = new URL(window.location.href);
+            url.hash = `total-${total}`;
+            
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                alert('🔖 Bookmark link copied! Paste it anywhere to save your results.');
+            });
+        }
+
+        // Initialize with one exchange
+        addExchange();
+
+        // Track when user completes credit info (conversion event)
+        document.getElementById('credit-utilization').addEventListener('change', function() {
+            if (this.value) {
+                // Could send analytics event here
+                console.log('User engaged with credit info');
+            }
+        });
+
+        // Sticky mobile banner close functionality
+        const closeSticky = () => {
+            document.getElementById('sticky-banner').style.display = 'none';
+            localStorage.setItem('ck_banner_closed', 'true');
+        };
+
+        // Check if user previously closed the banner
+        if (!localStorage.getItem('ck_banner_closed')) {
+            // Show banner after 30 seconds of engagement
+            setTimeout(() => {
+                const stickyBanner = document.getElementById('sticky-banner');
+                if (stickyBanner && window.innerWidth <= 768) {
+                    stickyBanner.style.display = 'block';
+                }
+            }, 30000);
+        }
+    </script>
+
+    <!-- Sticky Mobile Banner (appears after 30 seconds on mobile) -->
+    <div id="sticky-banner" class="ck-sticky-mobile" style="display: none;">
+        <button class="ck-sticky-close" onclick="this.parentElement.style.display='none'; localStorage.setItem('ck_banner_closed', 'true');">×</button>
+        <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
+        <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597061&v=66532&q=486425&r=2612068">
+            <img src="https://www.awin1.com/cshow.php?s=3597061&v=66532&q=486425&r=2612068" border="0" alt="Credit Karma - Check Your Credit" style="max-width: 100%; height: auto;">
+        </a>
+        <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+    </div>
+
+</body>
+</html>
