@@ -1,5 +1,14 @@
 [
   {
+    "id": "holiday-budget-calculator",
+    "type": "Guide & Printable",
+    "title": "Free Holiday Budget Calculator (Credit Impact Tool)",
+    "description": "Calculate your exact holiday spending across all Secret Santa exchanges. See credit score impact, get personalized budget recommendations, and avoid holiday debt. Free tool, no signup required.",
+    "thumbnailUrl": "/posts/holiday-budget-calculator.png",
+    "linkUrl": "/holiday-budget-calculator.html",
+    "lastUpdated": "Oct 12, 2025"
+  },  
+  {
       "id": "credit-vs-debit-holiday",
       "type": "Guide & Tips",
       "title": "Credit Card vs. Debit Card for Holiday Shopping: 2025 Guide",
