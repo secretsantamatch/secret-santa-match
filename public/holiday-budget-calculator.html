@@ -441,6 +441,79 @@
             font-size: 0.9em;
         }
 
+        /* Credit Karma Banner (styled) */
+        .ck-banner {
+            background-color: #166534; /* Dark green */
+            padding: 24px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            text-align: center;
+        }
+        @media (min-width: 768px) {
+            .ck-banner {
+                flex-direction: row;
+                text-align: left;
+            }
+        }
+        .ck-banner-logo div {
+            font-variant: small-caps;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            color: #d1d5db;
+        }
+        .ck-banner-logo h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.05em;
+            margin-top: -4px;
+        }
+        .ck-banner-text {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+            line-height: 1.5;
+            flex: 1;
+        }
+        .ck-banner-text span {
+            color: #facc15; /* Yellow */
+        }
+        .ck-banner-button {
+            background-color: #facc15; /* Yellow */
+            color: #1e293b;
+            font-weight: 800;
+            padding: 12px 32px;
+            border-radius: 9999px;
+            text-decoration: none;
+            transition: background-color 0.2s, transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+        .ck-banner-button:hover {
+            background-color: #fde047;
+            transform: scale(1.05);
+        }
+
+        /* Compact Banner for 'How You Compare' section */
+        .ck-banner-compact {
+            padding: 16px;
+        }
+        .ck-banner-compact .ck-banner-logo h3 {
+            font-size: 1.25rem;
+        }
+        .ck-banner-compact .ck-banner-text {
+            font-size: 1rem;
+        }
+        .ck-banner-compact .ck-banner-button {
+            padding: 10px 24px;
+            font-size: 0.875rem;
+        }
+
+
         /* Credit Karma CTAs - Science-backed design */
         .ck-cta-mega {
             background: linear-gradient(135deg, #059669 0%, #047857 100%);
@@ -466,7 +539,12 @@
         .ck-cta-mega h2 {
             font-size: 2.5em;
             margin-bottom: 20px;
+            color: white;
             animation: pulse 2s infinite;
+        }
+
+        .ck-cta-mega p {
+            color: #a7f3d0;
         }
 
         .ck-benefit-grid {
@@ -482,6 +560,7 @@
             padding: 20px;
             border-radius: 12px;
             backdrop-filter: blur(10px);
+            color: white;
         }
 
         .ck-benefit-icon {
@@ -495,29 +574,9 @@
             margin-bottom: 5px;
         }
 
-        .ck-btn-primary {
-            background: white;
-            color: #047857;
-            padding: 22px 50px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 900;
-            font-size: 1.3em;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border: none;
-            cursor: pointer;
-            margin: 20px 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .ck-btn-primary:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        .ck-benefit div:not(.ck-benefit-title) {
+            color: #d1fae5;
+            font-size: 0.9em;
         }
 
         .trust-indicators {
@@ -528,6 +587,7 @@
             flex-wrap: wrap;
             font-size: 0.9em;
             opacity: 0.95;
+            color: #d1fae5;
         }
 
         .trust-indicator {
@@ -661,73 +721,6 @@
             align-items: center;
             gap: 10px;
         }
-        
-        /* New Custom CK Banner Styles */
-        .ck-custom-banner {
-            background: #166534;
-            padding: 24px;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .ck-custom-banner-logo .logo-intuit {
-            font-size: 10px;
-            letter-spacing: 0.1em;
-            font-weight: 600;
-            color: #cbd5e1;
-            text-transform: uppercase;
-        }
-
-        .ck-custom-banner-logo .logo-ck {
-            font-size: 24px;
-            font-weight: 800;
-            color: white;
-            line-height: 1;
-            margin-top: -2px;
-        }
-
-        .ck-custom-banner-text {
-            color: white;
-            font-size: 1.25rem;
-            font-weight: 600;
-            line-height: 1.4;
-            flex: 1;
-            margin: 0;
-        }
-
-        .ck-custom-banner-text span {
-            color: #facc15;
-        }
-
-        .ck-custom-banner-btn {
-            background: #facc15;
-            color: #1e293b;
-            font-weight: 800;
-            padding: 12px 32px;
-            border-radius: 9999px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-        .ck-custom-banner:hover .ck-custom-banner-btn {
-            background: #fde047;
-            transform: scale(1.05);
-        }
-
-        @media (min-width: 768px) {
-            .ck-custom-banner {
-                flex-direction: row;
-                text-align: left;
-            }
-            .ck-custom-banner-logo {
-                align-items: flex-start;
-            }
-        }
 
         @media print {
             .nav-bar, .share-section, .action-buttons, .ck-cta-mega, .hero {
@@ -773,13 +766,6 @@
                 font-size: 1.8em;
             }
 
-            .ck-btn-primary {
-                width: 100%;
-                justify-content: center;
-                padding: 18px 30px;
-                font-size: 1.1em;
-            }
-
             .input-grid {
                 grid-template-columns: 1fr;
             }
@@ -819,69 +805,7 @@
             25% { transform: translateX(-10px); }
             75% { transform: translateX(10px); }
         }
-
-        /* Credit Karma Banner Placements */
-        .ck-banner-container {
-            text-align: center;
-            padding: 30px;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-radius: 16px;
-            margin: 30px 0;
-            border: 2px solid #334155;
-        }
-
-        .ck-banner-label {
-            font-size: 0.75em;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-        }
-
-        .ck-banner-desktop {
-            display: block;
-        }
-
-        .ck-banner-mobile {
-            display: none;
-        }
-
-        .ck-banner-container img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-
-        /* Sticky mobile banner for high visibility */
-        .ck-sticky-mobile {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1e293b;
-            padding: 10px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
-            z-index: 1000;
-            text-align: center;
-            border-top: 2px solid #667eea;
-        }
-
-        .ck-sticky-close {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            line-height: 1;
-        }
-
+        
         .affiliate-disclaimer {
             background: rgba(148, 163, 184, 0.1);
             border-left: 3px solid #94a3b8;
@@ -891,24 +815,6 @@
             font-size: 0.85em;
             color: #94a3b8;
             line-height: 1.6;
-        }
-
-        @media (max-width: 768px) {
-            .ck-banner-desktop {
-                display: none;
-            }
-
-            .ck-banner-mobile {
-                display: block;
-            }
-
-            .ck-sticky-mobile {
-                display: block;
-            }
-
-            .ck-banner-container {
-                padding: 20px 15px;
-            }
         }
     </style>
 </head>
@@ -1034,25 +940,15 @@
                 </div>
                 <p style="margin: 10px 0 20px 0; color: #cbd5e1;">Credit Karma shows ALL your credit cards in one place, calculates your utilization automatically, and monitors your score weekly. Takes 3 minutes to sign up.</p>
                 
-                <!-- Desktop Banner (728x90) -->
-                <div class="ck-banner-container">
-                    <div class="ck-banner-label">Partner Advertisement</div>
-                    <div class="ck-banner-desktop">
-                        <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
-                        <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068">
-                            <img src="https://www.awin1.com/cshow.php?s=4000505&v=66532&q=475592&r=2612068" border="0">
-                        </a>
-                        <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
+                 <!-- Styled Credit Karma Banner -->
+                <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner">
+                    <div class="ck-banner-logo">
+                        <div>INTUIT</div>
+                        <h3>creditkarma</h3>
                     </div>
-                    <!-- Mobile Banner (480x184) -->
-                    <div class="ck-banner-mobile">
-                        <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
-                        <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000508&v=66532&q=475592&r=2612068">
-                            <img src="https://www.awin1.com/cshow.php?s=4000508&v=66532&q=475592&r=2612068" border="0">
-                        </a>
-                        <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
-                    </div>
-                </div>
+                    <p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p>
+                    <div class="ck-banner-button">Sign Up</div>
+                </a>
 
                 <div class="trust-indicators" style="margin-top: 15px; font-size: 0.85em; justify-content: center;">
                     <div class="trust-indicator">✓ 100% Free Forever</div>
@@ -1092,7 +988,7 @@
                 <button class="share-btn pinterest" onclick="sharePinterest()">
                     <span>📌</span> Pin It
                 </button>
-                <button class="share-btn copy" onclick="copyLink()">
+                <button class="share-btn copy" onclick="copyLink(event)">
                     <span>🔗</span> Copy Link
                 </button>
             </div>
@@ -1121,19 +1017,6 @@
         let exchangeCount = 0;
         let myChart = null;
         let pieChart = null;
-
-        const ckCustomBannerHTML = `
-            <a href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" target="_blank" rel="sponsored" class="ck-custom-banner">
-                <div class="ck-custom-banner-logo">
-                    <span class="logo-intuit">INTUIT</span>
-                    <span class="logo-ck">creditkarma</span>
-                </div>
-                <p class="ck-custom-banner-text">
-                    Get <span>personalized tips</span> to build a credit score that'll make you proud.
-                </p>
-                <div class="ck-custom-banner-btn">Sign Up</div>
-            </a>
-        `;
 
         function addExchange() {
             exchangeCount++;
@@ -1202,6 +1085,8 @@
                 document.getElementById('quick-breakdown').innerHTML = `
                     ${exchangeCount} exchanges ($${totalExchanges.toFixed(0)}) + Other ($${(familyGifts + hosting + extras).toFixed(0)})
                 `;
+            } else {
+                 document.getElementById('quick-breakdown').textContent = `Start adding your gift exchanges below`;
             }
 
             // Show warning if credit info missing
@@ -1218,21 +1103,18 @@
             // Generate results if we have data
             if (grandTotal > 0) {
                 generateResults(grandTotal, totalExchanges, familyGifts + hosting + extras, exchangeDetails);
+            } else {
+                document.getElementById('results-container').innerHTML = ''; // Clear results if total is 0
             }
         }
 
         function generateResults(total, exchanges, other, exchangeDetails) {
             const container = document.getElementById('results-container');
             
-            // Get credit data
-            const utilizationPercent = document.getElementById('credit-utilization').value;
             const creditLimit = parseFloat(document.getElementById('credit-limit').value) || 0;
             const currentBalance = parseFloat(document.getElementById('current-balance').value) || 0;
 
-            let html = '';
-
-            // Visual spending breakdown
-            html += `
+            let html = `
                 <div class="card fade-in">
                     <div class="section-header">
                         <div class="section-icon">📊</div>
@@ -1247,7 +1129,6 @@
                 </div>
             `;
 
-            // Budget comparison
             const avgSpending = 920;
             const percentVsAvg = ((total / avgSpending) * 100).toFixed(0);
             
@@ -1283,200 +1164,111 @@
                         <canvas id="comparisonChart"></canvas>
                     </div>
 
-                    <!-- Strategic banner placement after interest shock -->
-                    <div style="margin: 30px 0; text-align: center; padding: 20px; background: rgba(251, 191, 36, 0.1); border-radius: 12px; border: 2px solid rgba(251, 191, 36, 0.3);">
-                        <p style="margin-bottom: 15px; font-size: 0.95em; color: #fbbf24; font-weight: 600;">💡 Want to avoid that interest charge? Check your credit health first:</p>
-                        <div class="ck-banner-desktop">
-                            <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
-                            <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068">
-                                <img src="https://www.awin1.com/cshow.php?s=4000505&v=66532&q=475592&r=2612068" border="0">
-                            </a>
-                            <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
-                        </div>
-                        <div class="ck-banner-mobile">
-                            <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
-                            <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000508&v=66532&q=475592&r=2612068">
-                                <img src="https://www.awin1.com/cshow.php?s=4000508&v=66532&q=475592&r=2612068" border="0">
-                            </a>
-                            <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
-                        </div>
+                    <div style="margin: 30px 0; padding: 20px; background: rgba(251, 191, 36, 0.1); border-radius: 12px; border: 2px solid rgba(251, 191, 36, 0.3);">
+                        <p style="margin-bottom: 15px; font-size: 0.95em; color: #fbbf24; font-weight: 600; text-align: center;">💡 Want to avoid that interest charge? Check your credit health first:</p>
+                        <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner ck-banner-compact">
+                            <div class="ck-banner-logo">
+                                <div>INTUIT</div>
+                                <h3>creditkarma</h3>
+                            </div>
+                            <p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p>
+                            <div class="ck-banner-button">Sign Up</div>
+                        </a>
                     </div>
                 </div>
             `;
 
-            // Credit impact with gauges
             if (creditLimit > 0 && currentBalance >= 0) {
                 const currentUtil = (currentBalance / creditLimit) * 100;
                 const newBalance = currentBalance + total;
                 const newUtil = (newBalance / creditLimit) * 100;
-                const utilIncrease = newUtil - currentUtil;
 
                 let scoreImpact = 0;
-                let impactLevel = 'low';
-                if (newUtil > 70) {
-                    scoreImpact = -80;
-                    impactLevel = 'high';
-                } else if (newUtil > 50) {
-                    scoreImpact = -50;
-                    impactLevel = 'medium';
-                } else if (newUtil > 30) {
-                    scoreImpact = -20;
-                    impactLevel = 'low';
-                }
+                if (newUtil > 70) scoreImpact = -80;
+                else if (newUtil > 50) scoreImpact = -50;
+                else if (newUtil > 30) scoreImpact = -20;
 
                 html += `
                     <div class="card fade-in">
                         <div class="section-header">
                             <div class="section-icon">💳</div>
-                            <div>
-                                <div class="section-title">Credit Score Impact Analysis</div>
-                            </div>
+                            <div><div class="section-title">Credit Score Impact Analysis</div></div>
                         </div>
 
                         <div class="gauge-container">
                             <div class="gauge">
-                                <div class="gauge-circle">
-                                    <svg class="gauge-svg" width="150" height="150">
-                                        <circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/>
-                                        <circle cx="75" cy="75" r="65" fill="none" stroke="#10b981" stroke-width="15"
-                                                stroke-dasharray="${(currentUtil/100) * 408} 408"
-                                                style="transition: all 0.5s ease;"/>
-                                    </svg>
-                                    <div class="gauge-value">${currentUtil.toFixed(0)}%</div>
-                                </div>
+                                <div class="gauge-circle"><svg class="gauge-svg" width="150" height="150"><circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/><circle cx="75" cy="75" r="65" fill="none" stroke="#10b981" stroke-width="15" stroke-dasharray="${(currentUtil/100) * 408} 408" style="transition: all 0.5s ease;"/></svg><div class="gauge-value">${currentUtil.toFixed(0)}%</div></div>
                                 <div class="gauge-label">Current Utilization</div>
                             </div>
-                            
                             <div class="gauge">
-                                <div class="gauge-circle">
-                                    <svg class="gauge-svg" width="150" height="150">
-                                        <circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/>
-                                        <circle cx="75" cy="75" r="65" fill="none" stroke="${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'}" stroke-width="15"
-                                                stroke-dasharray="${(newUtil/100) * 408} 408"
-                                                style="transition: all 0.5s ease;"/>
-                                    </svg>
-                                    <div class="gauge-value" style="color: ${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'};">${newUtil.toFixed(0)}%</div>
-                                </div>
+                                <div class="gauge-circle"><svg class="gauge-svg" width="150" height="150"><circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/><circle cx="75" cy="75" r="65" fill="none" stroke="${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'}" stroke-width="15" stroke-dasharray="${(newUtil/100) * 408} 408" style="transition: all 0.5s ease;"/></svg><div class="gauge-value" style="color: ${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'};">${newUtil.toFixed(0)}%</div></div>
                                 <div class="gauge-label">After Holiday Spending</div>
                             </div>
                         </div>
 
                         ${scoreImpact < 0 ? `
                             <div class="insight-card danger">
-                                <div class="insight-title">
-                                    <span>🚨</span> CRITICAL: Your Credit Score Is At Risk
-                                </div>
-                                <p style="margin: 15px 0; font-size: 1.1em; line-height: 1.6;">
-                                    Adding $${total.toFixed(0)} to your current balances will push your utilization from ${currentUtil.toFixed(0)}% to ${newUtil.toFixed(0)}%. 
-                                    <strong>This could drop your credit score by ${Math.abs(scoreImpact)} points</strong>, costing you thousands in higher interest rates on future loans.
-                                </p>
-                                <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-top: 20px;">
-                                    <div style="font-size: 1.3em; font-weight: 800; margin-bottom: 10px; color: #fca5a5;">
-                                        What This Costs You:
-                                    </div>
-                                    <ul style="margin: 15px 0; padding-left: 20px;">
-                                        <li>Auto loan: +$1,500 over 5 years</li>
-                                        <li>Mortgage: +$50,000 over 30 years</li>
-                                        <li>Credit cards: +24.99% interest rates</li>
-                                        <li>Insurance premiums increase</li>
-                                    </ul>
-                                </div>
+                                <div class="insight-title"><span>🚨</span> CRITICAL: Your Credit Score Is At Risk</div>
+                                <p style="margin: 15px 0; font-size: 1.1em; line-height: 1.6;">Adding $${total.toFixed(0)} to your balances will push utilization from ${currentUtil.toFixed(0)}% to ${newUtil.toFixed(0)}%. <strong>This could drop your score by ${Math.abs(scoreImpact)} points.</strong></p>
                             </div>
                         ` : `
                             <div class="insight-card" style="border-left-color: #10b981; background: linear-gradient(135deg, #064e3b 0%, #292524 100%);">
-                                <div class="insight-title">
-                                    <span>✅</span> Your Credit Should Be Safe
-                                </div>
-                                <p style="margin: 10px 0; color: #cbd5e1;">
-                                    Your holiday spending will keep utilization at ${newUtil.toFixed(0)}%, which should have minimal impact on your credit score. 
-                                    Still smart to monitor it weekly on Credit Karma.
-                                </p>
+                                <div class="insight-title"><span>✅</span> Your Credit Should Be Safe</div>
+                                <p style="margin: 10px 0; color: #cbd5e1;">Your spending will keep utilization at ${newUtil.toFixed(0)}%, which should have minimal impact on your score.</p>
                             </div>
                         `}
                     </div>
                 `;
-
-                // Peak-End Rule: Put strongest CTA right after scary credit info
-                if (scoreImpact < 0) {
+                 if (scoreImpact < 0) {
                     html += `
                         <div class="ck-cta-mega">
                             <h2>⚠️ Check Your Real Credit Health RIGHT NOW</h2>
-                            <p>Before you spend another dollar this holiday season, see EXACTLY where you stand.</p>
-                            
+                            <p>Before you spend another dollar, see EXACTLY where you stand.</p>
                             <div class="ck-benefit-grid">
-                                <div class="ck-benefit">
-                                    <span class="ck-benefit-icon">🎯</span>
-                                    <div class="ck-benefit-title">Real-Time Monitoring</div>
-                                    <div>See all your cards, balances, and utilization automatically calculated</div>
-                                </div>
-                                <div class="ck-benefit">
-                                    <span class="ck-benefit-icon">🔔</span>
-                                    <div class="ck-benefit-title">Instant Alerts</div>
-                                    <div>Get notified if your utilization gets too high or score drops</div>
-                                </div>
-                                <div class="ck-benefit">
-                                    <span class="ck-benefit-icon">💡</span>
-                                    <div class="ck-benefit-title">Smart Recommendations</div>
-                                    <div>See which cards to pay first and debt consolidation options</div>
-                                </div>
-                                <div class="ck-benefit">
-                                    <span class="ck-benefit-icon">📊</span>
-                                    <div class="ck-benefit-title">Credit Simulator</div>
-                                    <div>Preview how purchases will affect your score BEFORE you buy</div>
-                                </div>
+                                <div class="ck-benefit"><span class="ck-benefit-icon">🎯</span><div class="ck-benefit-title">Real-Time Monitoring</div><div>See all cards, balances, and utilization calculated for you</div></div>
+                                <div class="ck-benefit"><span class="ck-benefit-icon">🔔</span><div class="ck-benefit-title">Instant Alerts</div><div>Get notified if utilization gets high or your score drops</div></div>
+                                <div class="ck-benefit"><span class="ck-benefit-icon">💡</span><div class="ck-benefit-title">Smart Recommendations</div><div>See which cards to pay first and get debt consolidation options</div></div>
+                                <div class="ck-benefit"><span class="ck-benefit-icon">📊</span><div class="ck-benefit-title">Credit Simulator</div><div>Preview how purchases affect your score BEFORE you buy</div></div>
                             </div>
-
                             <div style="margin: 30px 0;">
-                                ${ckCustomBannerHTML}
+                                <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner">
+                                    <div class="ck-banner-logo">
+                                        <div>INTUIT</div>
+                                        <h3>creditkarma</h3>
+                                    </div>
+                                    <p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p>
+                                    <div class="ck-banner-button">Sign Up</div>
+                                </a>
                             </div>
-
                             <div class="trust-indicators">
                                 <div class="trust-indicator">✓ 100% Free Forever</div>
                                 <div class="trust-indicator">✓ No Credit Card Required</div>
                                 <div class="trust-indicator">✓ Won't Hurt Your Score</div>
-                                <div class="trust-indicator">✓ 3 Minute Sign Up</div>
                             </div>
-
-                            <p style="margin-top: 20px; font-size: 0.95em; opacity: 0.9;">
-                                110+ million people trust Credit Karma. Join them and protect your financial future this holiday season.
-                            </p>
                         </div>
                     `;
                 }
             } else {
-                // Zeigarnik Effect: Create tension with incomplete info
                 html += `
                     <div class="ck-cta-mega">
                         <h2>⚠️ You're Missing Critical Information</h2>
                         <p style="font-size: 1.1em; margin-bottom: 30px;">You can't see your credit impact because you don't know your current utilization. This is exactly why you need Credit Karma.</p>
-                        
                         <div class="ck-benefit-grid">
-                            <div class="ck-benefit">
-                                <span class="ck-benefit-icon">👀</span>
-                                <div class="ck-benefit-title">See Everything</div>
-                                <div>All your credit cards, balances, and limits in one dashboard</div>
-                            </div>
-                            <div class="ck-benefit">
-                                <span class="ck-benefit-icon">🧮</span>
-                                <div class="ck-benefit-title">Auto-Calculate</div>
-                                <div>Your utilization is calculated automatically — no math required</div>
-                            </div>
-                            <div class="ck-benefit">
-                                <span class="ck-benefit-icon">📈</span>
-                                <div class="ck-benefit-title">Weekly Updates</div>
-                                <div>Your score and credit report update every 7 days</div>
-                            </div>
-                            <div class="ck-benefit">
-                                <span class="ck-benefit-icon">💳</span>
-                                <div class="ck-benefit-title">Find Hidden Issues</div>
-                                <div>Discover accounts you forgot about or errors hurting your score</div>
-                            </div>
+                            <div class="ck-benefit"><span class="ck-benefit-icon">👀</span><div class="ck-benefit-title">See Everything</div><div>All your credit cards, balances, and limits in one dashboard</div></div>
+                            <div class="ck-benefit"><span class="ck-benefit-icon">🧮</span><div class="ck-benefit-title">Auto-Calculate</div><div>Your utilization is calculated automatically — no math required</div></div>
+                            <div class="ck-benefit"><span class="ck-benefit-icon">📈</span><div class="ck-benefit-title">Weekly Updates</div><div>Your score and credit report update every 7 days</div></div>
+                            <div class="ck-benefit"><span class="ck-benefit-icon">💳</span><div class="ck-benefit-title">Find Hidden Issues</div><div>Discover accounts you forgot about or errors hurting your score</div></div>
                         </div>
-
                         <div style="margin: 30px 0;">
-                           ${ckCustomBannerHTML}
+                            <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner">
+                                <div class="ck-banner-logo">
+                                    <div>INTUIT</div>
+                                    <h3>creditkarma</h3>
+                                </div>
+                                <p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p>
+                                <div class="ck-banner-button">Sign Up</div>
+                            </a>
                         </div>
-
                         <div class="trust-indicators">
                             <div class="trust-indicator">✓ 100% Free Forever</div>
                             <div class="trust-indicator">✓ No Credit Card Required</div>
@@ -1488,7 +1280,6 @@
 
             container.innerHTML = html;
 
-            // Create charts after DOM is updated
             setTimeout(() => {
                 createSpendingChart(exchanges, other, exchangeDetails);
                 createComparisonChart(total);
@@ -1498,201 +1289,30 @@
         function createSpendingChart(exchangeTotal, other, exchangeDetails) {
             const ctx = document.getElementById('spendingChart');
             if (!ctx) return;
-
-            // Destroy existing chart
-            if (pieChart) {
-                pieChart.destroy();
-            }
-
+            if (pieChart) pieChart.destroy();
             const labels = [...exchangeDetails.map(e => e.name), 'Other Holiday Costs'];
             const data = [...exchangeDetails.map(e => e.total), other];
-            const colors = [
-                '#667eea', '#764ba2', '#f093fb', '#f5576c', 
-                '#10b981', '#fbbf24', '#3b82f6', '#8b5cf6'
-            ];
-
-            pieChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: colors,
-                        borderWidth: 3,
-                        borderColor: '#1e293b'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#f8fafc',
-                                font: { size: 14 },
-                                padding: 15
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Where Your Money Goes',
-                            color: '#f8fafc',
-                            font: { size: 18, weight: 'bold' }
-                        }
-                    }
-                }
-            });
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#10b981', '#fbbf24', '#3b82f6', '#8b5cf6'];
+            pieChart = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 3, borderColor: '#1e293b' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 14 }, padding: 15 } }, title: { display: true, text: 'Where Your Money Goes', color: '#f8fafc', font: { size: 18, weight: 'bold' } } } } });
         }
 
         function createComparisonChart(userTotal) {
             const ctx = document.getElementById('comparisonChart');
             if (!ctx) return;
-
-            if (myChart) {
-                myChart.destroy();
-            }
-
+            if (myChart) myChart.destroy();
             const avgSpending = 920;
-            
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['You', 'Average American', 'Debt-Free Target'],
-                    datasets: [{
-                        label: 'Holiday Spending',
-                        data: [userTotal, avgSpending, 300],
-                        backgroundColor: [
-                            userTotal > avgSpending ? '#ef4444' : '#10b981',
-                            '#fbbf24',
-                            '#10b981'
-                        ],
-                        borderWidth: 0,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Your Spending vs. Others',
-                            color: '#f8fafc',
-                            font: { size: 16, weight: 'bold' }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#94a3b8',
-                                callback: function(value) {
-                                    return '$' + value;
-                                }
-                            },
-                            grid: {
-                                color: '#334155'
-                            }
-                        },
-                        x: {
-                            ticks: { color: '#94a3b8' },
-                            grid: { display: false }
-                        }
-                    }
-                }
-            });
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: ['You', 'Average American', 'Debt-Free Target'], datasets: [{ label: 'Holiday Spending', data: [userTotal, avgSpending, 300], backgroundColor: [userTotal > avgSpending ? '#ef4444' : '#10b981', '#fbbf24', '#10b981'], borderWidth: 0, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Your Spending vs. Others', color: '#f8fafc', font: { size: 16, weight: 'bold' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8', callback: (v) => '$' + v }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { display: false } } } } });
         }
 
-        // Social sharing functions
-        function shareTwitter() {
-            const total = document.getElementById('grand-total').textContent;
-            const text = `I just calculated my holiday spending and it's ${total}! 😱 Check yours with this free calculator before you overspend:`;
-            const url = window.location.href;
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
-        }
-
-        function shareFacebook() {
-            const url = window.location.href;
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
-        }
-
-        function shareLinkedIn() {
-            const url = window.location.href;
-            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
-        }
-
-        function sharePinterest() {
-            const url = window.location.href;
-            const description = 'Free holiday budget calculator - see your real spending + credit impact before you overspend this season!';
-            window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(description)}`, '_blank');
-        }
-
-        function copyLink(event) {
-            const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-                const btn = event.target.closest('.share-btn');
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = '<span>✓</span> Link Copied!';
-                setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                }, 2000);
-            });
-        }
-
-        function downloadPDF() {
-            window.print();
-        }
-
-        function saveResults() {
-            const total = document.getElementById('grand-total').textContent;
-            const url = new URL(window.location.href);
-            url.hash = `total-${total}`;
-            
-            navigator.clipboard.writeText(url.toString()).then(() => {
-                alert('🔖 Bookmark link copied! Paste it anywhere to save your results.');
-            });
-        }
-
-        // Initialize with one exchange
+        function shareTwitter() { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just calculated my holiday spending and it's ${document.getElementById('grand-total').textContent}! 😱 Check yours: `)}&url=${encodeURIComponent(window.location.href)}`, '_blank'); }
+        function shareFacebook() { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); }
+        function shareLinkedIn() { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); }
+        function sharePinterest() { window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(window.location.href)}&description=${encodeURIComponent('Free holiday budget calculator - see your real spending + credit impact!')}`, '_blank'); }
+        function copyLink(event) { navigator.clipboard.writeText(window.location.href).then(() => { const btn = event.target.closest('.share-btn'), original = btn.innerHTML; btn.innerHTML = '<span>✓</span> Copied!'; setTimeout(() => { btn.innerHTML = original; }, 2000); }); }
+        function downloadPDF() { window.print(); }
+        function saveResults() { const url = new URL(window.location.href); url.hash = `total-${document.getElementById('grand-total').textContent}`; navigator.clipboard.writeText(url.toString()).then(() => alert('🔖 Bookmark link copied!')); }
+        
         addExchange();
-
-        // Track when user completes credit info (conversion event)
-        document.getElementById('credit-utilization').addEventListener('change', function() {
-            if (this.value) {
-                // Could send analytics event here
-                console.log('User engaged with credit info');
-            }
-        });
-
-        // Sticky mobile banner close functionality
-        const closeSticky = () => {
-            document.getElementById('sticky-banner').style.display = 'none';
-            localStorage.setItem('ck_banner_closed', 'true');
-        };
-
-        // Check if user previously closed the banner
-        if (!localStorage.getItem('ck_banner_closed')) {
-            // Show banner after 30 seconds of engagement
-            setTimeout(() => {
-                const stickyBanner = document.getElementById('sticky-banner');
-                if (stickyBanner && window.innerWidth <= 768) {
-                    stickyBanner.style.display = 'block';
-                }
-            }, 30000);
-        }
     </script>
-
-    <!-- Sticky Mobile Banner (appears after 30 seconds on mobile) -->
-    <div id="sticky-banner" class="ck-sticky-mobile" style="display: none;">
-        <button class="ck-sticky-close" onclick="this.parentElement.style.display='none'; localStorage.setItem('ck_banner_closed', 'true');">×</button>
-        <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
-        <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597061&v=66532&q=486425&r=2612068">
-            <img src="https://www.awin1.com/cshow.php?s=3597061&v=66532&q=486425&r=2612068" border="0" alt="Credit Karma - Check Your Credit" style="max-width: 100%; height: auto;">
-        </a>
-        <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
-    </div>
-
 </body>
 </html>
