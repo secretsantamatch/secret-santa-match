@@ -661,6 +661,73 @@
             align-items: center;
             gap: 10px;
         }
+        
+        /* New Custom CK Banner Styles */
+        .ck-custom-banner {
+            background: #166534;
+            padding: 24px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .ck-custom-banner-logo .logo-intuit {
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-transform: uppercase;
+        }
+
+        .ck-custom-banner-logo .logo-ck {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+            margin-top: -2px;
+        }
+
+        .ck-custom-banner-text {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.4;
+            flex: 1;
+            margin: 0;
+        }
+
+        .ck-custom-banner-text span {
+            color: #facc15;
+        }
+
+        .ck-custom-banner-btn {
+            background: #facc15;
+            color: #1e293b;
+            font-weight: 800;
+            padding: 12px 32px;
+            border-radius: 9999px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .ck-custom-banner:hover .ck-custom-banner-btn {
+            background: #fde047;
+            transform: scale(1.05);
+        }
+
+        @media (min-width: 768px) {
+            .ck-custom-banner {
+                flex-direction: row;
+                text-align: left;
+            }
+            .ck-custom-banner-logo {
+                align-items: flex-start;
+            }
+        }
 
         @media print {
             .nav-bar, .share-section, .action-buttons, .ck-cta-mega, .hero {
@@ -1055,6 +1122,19 @@
         let myChart = null;
         let pieChart = null;
 
+        const ckCustomBannerHTML = `
+            <a href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" target="_blank" rel="sponsored" class="ck-custom-banner">
+                <div class="ck-custom-banner-logo">
+                    <span class="logo-intuit">INTUIT</span>
+                    <span class="logo-ck">creditkarma</span>
+                </div>
+                <p class="ck-custom-banner-text">
+                    Get <span>personalized tips</span> to build a credit score that'll make you proud.
+                </p>
+                <div class="ck-custom-banner-btn">Sign Up</div>
+            </a>
+        `;
+
         function addExchange() {
             exchangeCount++;
             const container = document.getElementById('exchanges-container');
@@ -1346,23 +1426,8 @@
                                 </div>
                             </div>
 
-                            <!-- Desktop Banner (728x90) at peak emotional moment -->
                             <div style="margin: 30px 0;">
-                                <div class="ck-banner-desktop">
-                                    <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
-                                    <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068">
-                                        <img src="https://www.awin1.com/cshow.php?s=4000505&v=66532&q=475592&r=2612068" border="0">
-                                    </a>
-                                    <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
-                                </div>
-                                <!-- Mobile Banner (480x184) -->
-                                <div class="ck-banner-mobile">
-                                    <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
-                                    <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000508&v=66532&q=475592&r=2612068">
-                                        <img src="https://www.awin1.com/cshow.php?s=4000508&v=66532&q=475592&r=2612068" border="0">
-                                    </a>
-                                    <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
-                                </div>
+                                ${ckCustomBannerHTML}
                             </div>
 
                             <div class="trust-indicators">
@@ -1408,23 +1473,8 @@
                             </div>
                         </div>
 
-                        <!-- Desktop Banner (728x90) -->
                         <div style="margin: 30px 0;">
-                            <div class="ck-banner-desktop">
-                                <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
-                                <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068">
-                                    <img src="https://www.awin1.com/cshow.php?s=4000505&v=66532&q=475592&r=2612068" border="0">
-                                </a>
-                                <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
-                            </div>
-                            <!-- Mobile Banner (480x184) -->
-                            <div class="ck-banner-mobile">
-                                <!-- START ADVERTISER: Credit Karma (US) from awin.com -->
-                                <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000508&v=66532&q=475592&r=2612068">
-                                    <img src="https://www.awin1.com/cshow.php?s=4000508&v=66532&q=475592&r=2612068" border="0">
-                                </a>
-                                <!-- END ADVERTISER: Credit Karma (US) from awin.com -->
-                            </div>
+                           ${ckCustomBannerHTML}
                         </div>
 
                         <div class="trust-indicators">
