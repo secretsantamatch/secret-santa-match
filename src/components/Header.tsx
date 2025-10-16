@@ -2,9 +2,14 @@ import React from 'react';
 
 const Header: React.FC = () => {
     return (
-        <header className="text-center py-4">
+        <header className="text-center py-4 relative">
+            <div className="absolute top-4 right-0">
+                <a href="/blog.html" className="text-sm text-slate-500 hover:text-orange-500 font-semibold transition-colors">
+                    Visit the Blog →
+                </a>
+            </div>
             <div className="inline-block mb-4">
-                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-24 h-24" />
+                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-16 h-16" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-orange-500 font-serif">Secret Santa Generator</h1>
             <h2 className="text-xl md:text-2xl font-bold text-slate-700 mt-2">The Easiest Way to Draw Names Online</h2>
