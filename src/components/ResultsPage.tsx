@@ -110,6 +110,16 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   };
 
   const handleDownload = async (type: 'cards' | 'list' | 'both') => {
+      // Fire GA event for PDF download
+      if (typeof (window as any).gtag === 'function') {
+        (window as any).gtag('event', 'download_pdf', {
+          'event_category': 'engagement',
+          'event_label': `Download PDF - ${type}`,
+          'download_type': type,
+          'participant_count': participants.length
+        });
+      }
+
       setShowDownloadOptionsModal(false);
       
       await performPdfGeneration(async () => {
@@ -124,6 +134,18 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
       setShowDownloadConfirmationModal(true);
   };
   
+  const handleShareClick = () => {
+    // Fire GA event for sharing links
+    if (typeof (window as any).gtag === 'function') {
+      (window as any).gtag('event', 'share_links_click', {
+        'event_category': 'engagement',
+        'event_label': 'Organizer Clicks Share',
+        'participant_count': participants.length
+      });
+    }
+    setShowShareModal(true);
+  };
+
   const getParticipantLink = (participantId: string) => {
     const baseUrl = window.location.href.split('#')[0];
     const hash = window.location.hash.split('?')[0];
@@ -161,7 +183,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                             <p className="text-purple-100 mt-2 mb-8 max-w-2xl mx-auto">Your matches are ready. Share the private links with each person so they can see who they're gifting to.</p>
                             
                             <button 
-                              onClick={() => setShowShareModal(true)} 
+                              onClick={handleShareClick} 
                               className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out"
                             >
                                 Share Private Links
