@@ -184,6 +184,15 @@ const GeneratorPage: React.FC = () => {
     }
 
     if (generatedMatches) {
+        // Fire the conversion event to Google Analytics
+        if (typeof (window as any).gtag === 'function') {
+          (window as any).gtag('event', 'generate_matches', {
+            'event_category': 'engagement',
+            'event_label': 'Successful Generation',
+            'participant_count': validParticipants.length
+          });
+        }
+
         const exchangeData: ExchangeData = {
             p: validParticipants,
             matches: generatedMatches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
