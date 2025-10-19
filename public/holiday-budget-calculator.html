@@ -13,10 +13,11 @@
     <meta property="og:title" content="I calculated my holiday spending and it's way more than I thought! 😱">
     <meta property="og:description" content="Free calculator shows your real holiday costs + credit impact. Calculate yours now!">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://secretsantamatch.com/calculator-preview.jpg">
+    <meta property="og:image" content="https://secretsantamatch.com/posts/holiday-budget-calculator-thumb.webp">
     
     <!-- Pinterest -->
     <meta name="pinterest-rich-pin" content="true">
+    <meta property="p:image" content="https://secretsantamatch.com/posts/holiday-budget-calculator.webp">
     
     <!-- Schema.org markup for Google -->
     <script type="application/ld+json">
@@ -42,6 +43,10 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
@@ -448,6 +453,7 @@
             align-items: center;
             gap: 24px;
             text-align: center;
+            text-decoration: none;
         }
         @media (min-width: 768px) {
             .ck-banner {
@@ -510,8 +516,6 @@
             font-size: 0.875rem;
         }
 
-
-        /* Credit Karma CTAs - Science-backed design */
         .ck-cta-mega {
             background: linear-gradient(135deg, #059669 0%, #047857 100%);
             padding: 50px;
@@ -593,7 +597,6 @@
             gap: 8px;
         }
 
-        /* Print button */
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -650,47 +653,31 @@
         }
 
         .share-btn {
-            padding: 14px 28px;
-            border-radius: 10px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
             border: none;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1em;
-        }
-
-        .share-btn.twitter {
-            background: #1da1f2;
+            justify-content: center;
             color: white;
         }
-
-        .share-btn.facebook {
-            background: #4267B2;
-            color: white;
-        }
-
-        .share-btn.linkedin {
-            background: #0077b5;
-            color: white;
-        }
-
-        .share-btn.pinterest {
-            background: #E60023;
-            color: white;
-        }
-
-        .share-btn.copy {
-            background: #667eea;
-            color: white;
-        }
-
         .share-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transform: translateY(-4px) scale(1.1);
         }
+        .share-btn svg, .share-btn img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .share-btn.twitter { background: #1da1f2; }
+        .share-btn.facebook { background: #4267B2; }
+        .share-btn.linkedin { background: #0077b5; }
+        .share-btn.pinterest { background: #E60023; }
+        .share-btn.copy { background: #667eea; }
 
         .insight-card {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -719,59 +706,17 @@
             gap: 10px;
         }
 
-        @media print {
-            .nav-bar, .share-section, .action-buttons, .ck-cta-mega, .hero {
-                display: none !important;
-            }
-            body {
-                background: white;
-                color: black;
-            }
-            .card {
-                background: white;
-                border: 1px solid #ccc;
-                page-break-inside: avoid;
-            }
+        .affiliate-disclaimer {
+            background: rgba(148, 163, 184, 0.1);
+            border-left: 3px solid #94a3b8;
+            padding: 15px 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+            font-size: 0.85em;
+            color: #94a3b8;
+            line-height: 1.6;
         }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .hero-stats {
-                gap: 20px;
-            }
-
-            .card {
-                padding: 25px;
-            }
-
-            .live-total-amount {
-                font-size: 2.5em;
-            }
-
-            .ck-cta-mega {
-                padding: 30px 20px;
-            }
-
-            .ck-cta-mega h2 {
-                font-size: 1.8em;
-            }
-
-            .input-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .chart-container {
-                height: 300px;
-            }
-        }
-
+        
         .fade-in {
             animation: fadeIn 0.6s ease-in;
         }
@@ -786,7 +731,6 @@
             50% { transform: scale(1.05); }
         }
 
-        /* Zeigarnik Effect - Create tension with incomplete info */
         .incomplete-warning {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             padding: 20px;
@@ -803,15 +747,124 @@
             75% { transform: translateX(10px); }
         }
         
-        .affiliate-disclaimer {
-            background: rgba(148, 163, 184, 0.1);
-            border-left: 3px solid #94a3b8;
-            padding: 15px 20px;
-            margin: 30px 0;
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: slideIn 0.4s ease-out;
+            overflow: hidden;
+            color: #f8fafc;
+        }
+
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .modal-body {
+            padding: 2rem;
+            line-height: 1.7;
+        }
+        
+        .modal-body p, .modal-body li {
+            color: #cbd5e1;
+        }
+        .modal-body strong {
+            color: #f8fafc;
+        }
+        .modal-body ul {
+            list-style-position: inside;
+            margin: 1rem 0;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            background: #0f172a;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .modal-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
             border-radius: 8px;
-            font-size: 0.85em;
-            color: #94a3b8;
-            line-height: 1.6;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .modal-btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .modal-btn-primary:hover {
+            background: #5a67d8;
+        }
+        .modal-btn-secondary {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .modal-btn-secondary:hover {
+            background: #475569;
+        }
+
+        @media print {
+            .nav-bar, .share-section, .action-buttons, .ck-cta-mega, .hero, .modal-overlay {
+                display: none !important;
+            }
+            body {
+                background: white;
+                color: black;
+            }
+            .card {
+                background: white;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+                box-shadow: none;
+                color: black;
+            }
+            .section-title, label, .insight-title, p, h1, h2, h3, .nav-logo {
+                color: black !important;
+            }
+            .live-total {
+                background: #eee;
+                color: black;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; }
+            .nav-links { display: none; }
+            .hero-stats { gap: 20px; }
+            .card { padding: 25px; }
+            .live-total-amount { font-size: 2.5em; }
+            .ck-cta-mega { padding: 30px 20px; }
+            .ck-cta-mega h2 { font-size: 1.8em; }
+            .input-grid { grid-template-columns: 1fr; }
+            .chart-container { height: 300px; }
         }
     </style>
 </head>
@@ -849,6 +902,17 @@
     </div>
 
     <div class="container" id="calculator">
+        <div style="margin: 20px auto 40px; text-align: center; max-width: 600px;">
+            <a href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fsecretsantamatch.com%2Fholiday-budget-calculator.html&media=https%3A%2F%2Fsecretsantamatch.com%2Fposts%2Fholiday-budget-calculator.webp&description=I%20calculated%20my%20holiday%20spending%20and%20it's%20way%20more%20than%20I%20thought!%20%F0%9F%98%B1%20Free%20calculator%20shows%20your%20real%20holiday%20costs%20%2B%20credit%20impact.%20Calculate%20yours%20now!" target="_blank" rel="noopener noreferrer" style="display: inline-block; position: relative; border: none; text-decoration: none;">
+                <img src="/posts/holiday-budget-calculator.webp" alt="A festive image prompting users to pin the holiday budget calculator on Pinterest." style="max-width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                <div style="position: absolute; top: 1rem; right: 1rem; background: #E60023; color: white; padding: 0.5rem 1rem; border-radius: 50px; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <img src="/pinterest_logo.png" alt="Pinterest logo" style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
+                    Pin Me!
+                </div>
+            </a>
+            <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 1rem;">Click the image to save this tool on Pinterest!</p>
+        </div>
+
         <div class="live-total fade-in">
             <div class="live-total-label">Your Total Holiday Spending</div>
             <div class="live-total-amount" id="grand-total">$0</div>
@@ -863,12 +927,8 @@
                     <div class="section-subtitle">Add every exchange you're in — work, friends, family, clubs, etc.</div>
                 </div>
             </div>
-
             <div id="exchanges-container"></div>
-
-            <button class="add-btn" onclick="addExchange()">
-                <span>➕</span> Add Another Exchange
-            </button>
+            <button class="add-btn" onclick="addExchange()"><span>➕</span> Add Another Exchange</button>
         </div>
 
         <div class="card fade-in">
@@ -879,20 +939,10 @@
                     <div class="section-subtitle">Everything else — close family gifts, parties, decorations, etc.</div>
                 </div>
             </div>
-
             <div class="input-grid">
-                <div class="input-group">
-                    <label>Close Family & Friends Gifts</label>
-                    <input type="number" id="family-gifts" placeholder="300" min="0" oninput="updateTotal()">
-                </div>
-                <div class="input-group">
-                    <label>Holiday Parties & Hosting</label>
-                    <input type="number" id="hosting" placeholder="0" min="0" oninput="updateTotal()">
-                </div>
-                <div class="input-group">
-                    <label>Decorations & Extras</label>
-                    <input type="number" id="extras" placeholder="0" min="0" oninput="updateTotal()">
-                </div>
+                <div class="input-group"><label>Close Family & Friends Gifts</label><input type="number" id="family-gifts" placeholder="300" min="0" oninput="updateTotal()"></div>
+                <div class="input-group"><label>Holiday Parties & Hosting</label><input type="number" id="hosting" placeholder="0" min="0" oninput="updateTotal()"></div>
+                <div class="input-group"><label>Decorations & Extras</label><input type="number" id="extras" placeholder="0" min="0" oninput="updateTotal()"></div>
             </div>
         </div>
 
@@ -904,109 +954,55 @@
                     <div class="section-subtitle">See how holiday spending will impact your credit score</div>
                 </div>
             </div>
-
-            <div id="credit-missing-warning" class="incomplete-warning" style="display: none;">
-                ⚠️ Complete this section to see your credit score impact!
-            </div>
-
+            <div id="credit-missing-warning" class="incomplete-warning" style="display: none;">⚠️ Complete this section to see your credit score impact!</div>
             <div class="input-grid">
-                <div class="input-group">
-                    <label>Current Credit Utilization</label>
-                    <select id="credit-utilization" onchange="updateTotal()">
-                        <option value="">Don't know? Check Credit Karma →</option>
-                        <option value="10">0-10% (Excellent)</option>
-                        <option value="20">10-30% (Good)</option>
-                        <option value="40">30-50% (Fair)</option>
-                        <option value="65">50-70% (Poor)</option>
-                        <option value="80">70%+ (Very Poor)</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Total Credit Limits</label>
-                    <input type="number" id="credit-limit" placeholder="10000" min="0" oninput="updateTotal()">
-                </div>
-                <div class="input-group">
-                    <label>Current Card Balances</label>
-                    <input type="number" id="current-balance" placeholder="2000" min="0" oninput="updateTotal()">
-                </div>
+                <div class="input-group"><label>Current Credit Utilization</label><select id="credit-utilization" onchange="updateTotal()"><option value="">Don't know? Check Credit Karma →</option><option value="10">0-10% (Excellent)</option><option value="20">10-30% (Good)</option><option value="40">30-50% (Fair)</option><option value="65">50-70% (Poor)</option><option value="80">70%+ (Very Poor)</option></select></div>
+                <div class="input-group"><label>Total Credit Limits</label><input type="number" id="credit-limit" placeholder="10000" min="0" oninput="updateTotal()"></div>
+                <div class="input-group"><label>Current Card Balances</label><input type="number" id="current-balance" placeholder="2000" min="0" oninput="updateTotal()"></div>
             </div>
-
             <div class="insight-card">
-                <div class="insight-title">
-                    <span>💡</span> Don't Know These Numbers?
-                </div>
+                <div class="insight-title"><span>💡</span> Don't Know These Numbers?</div>
                 <p style="margin: 10px 0 20px 0; color: #cbd5e1;">Credit Karma shows ALL your credit cards in one place, calculates your utilization automatically, and monitors your score weekly. Takes 3 minutes to sign up.</p>
-                
-                 <!-- Styled Credit Karma Banner -->
-                <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner">
-                    <div class="ck-banner-logo">
-                        <div>INTUIT</div>
-                        <h3>creditkarma</h3>
-                    </div>
-                    <p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p>
-                    <div class="ck-banner-button">Sign Up</div>
-                </a>
-
-                <div class="trust-indicators" style="margin-top: 15px; font-size: 0.85em; justify-content: center;">
-                    <div class="trust-indicator">✓ 100% Free Forever</div>
-                    <div class="trust-indicator">✓ No Credit Card Required</div>
-                    <div class="trust-indicator">✓ Won't Hurt Your Score</div>
-                </div>
+                <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner"><div class="ck-banner-logo"><div>INTUIT</div><h3>creditkarma</h3></div><p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p><div class="ck-banner-button">Sign Up</div></a>
+                <div class="trust-indicators" style="margin-top: 15px; font-size: 0.85em; justify-content: center;"><div class="trust-indicator">✓ 100% Free Forever</div><div class="trust-indicator">✓ No Credit Card Required</div><div class="trust-indicator">✓ Won't Hurt Your Score</div></div>
             </div>
         </div>
 
         <div id="results-container"></div>
 
         <div class="action-buttons">
-            <button class="action-btn" onclick="window.print()">
-                <span>🖨️</span> Print My Budget Plan
-            </button>
-            <button class="action-btn" onclick="downloadPDF()">
-                <span>📄</span> Export as PDF
-            </button>
-            <button class="action-btn" onclick="saveResults()">
-                <span>🔖</span> Bookmark My Results
-            </button>
+            <button class="action-btn" onclick="openPrintModal()"><span>🖨️</span> Print / Save as PDF</button>
+            <button class="action-btn" onclick="saveResults()"><span>🔖</span> Bookmark My Results</button>
         </div>
 
         <div class="share-section">
             <div class="share-title">💬 Share This Tool</div>
             <div class="share-subtitle">Help your friends avoid holiday debt too</div>
             <div class="share-buttons">
-                <button class="share-btn twitter" onclick="shareTwitter()">
-                    <span>🐦</span> Tweet
-                </button>
-                <button class="share-btn facebook" onclick="shareFacebook()">
-                    <span>👥</span> Facebook
-                </button>
-                <button class="share-btn linkedin" onclick="shareLinkedIn()">
-                    <span>💼</span> LinkedIn
-                </button>
-                <button class="share-btn pinterest" onclick="sharePinterest()">
-                    <span>📌</span> Pin It
-                </button>
-                <button class="share-btn copy" onclick="copyLink(event)">
-                    <span>🔗</span> Copy Link
-                </button>
+                <button class="share-btn twitter" onclick="shareTwitter()" aria-label="Share on Twitter"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></button>
+                <button class="share-btn facebook" onclick="shareFacebook()" aria-label="Share on Facebook"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/></svg></button>
+                <button class="share-btn linkedin" onclick="shareLinkedIn()" aria-label="Share on LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-2.022.404-4.138 3.158-4.138 2.755 0 2.755 2.562 2.755 4.138v8.399h4.988v-10.131c0-4.87-2.584-7.824-6.421-7.824-3.13 0-4.39 1.55-5.234 3.021h.044v-2.569h-4.988v16h4.988v-8.399c0-2.022.404-4.138 3.158-4.138 2.755 0 2.755 2.562 2.755 4.138v8.399h4.988v-10.131c0-4.87-2.584-7.824-6.421-7.824-3.13 0-4.39 1.55-5.234 3.021z"/></svg></button>
+                <button class="share-btn pinterest" onclick="sharePinterest()" aria-label="Pin on Pinterest"><img src="/pinterest_logo.png" alt="Pinterest" style="filter: brightness(0) invert(1);"></button>
+                <button class="share-btn copy" onclick="copyLink(this)" aria-label="Copy Link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
             </div>
         </div>
 
-        <div class="affiliate-disclaimer">
-            <strong>Affiliate Disclosure:</strong> This page contains affiliate links to Credit Karma. If you sign up through our links, we may earn a commission at no additional cost to you. We only recommend services that provide genuine value for holiday budget planning and financial management. All opinions and recommendations are our own. SecretSantaMatch.com calculator is 100% free to use with no affiliate relationship.
-        </div>
+        <div class="affiliate-disclaimer"><strong>Affiliate Disclosure:</strong> This page contains affiliate links to Credit Karma. If you sign up through our links, we may earn a commission at no additional cost to you. We only recommend services that provide genuine value for holiday budget planning and financial management. All opinions and recommendations are our own. SecretSantaMatch.com calculator is 100% free to use with no affiliate relationship.</div>
 
         <div class="card fade-in">
-            <div class="section-header">
-                <div class="section-icon">🎅</div>
-                <div>
-                    <div class="section-title">Next Step: Organize Your Secret Santa</div>
-                    <div class="section-subtitle">Now that you know your budget, make coordination effortless</div>
-                </div>
-            </div>
+            <div class="section-header"><div class="section-icon">🎅</div><div><div class="section-title">Next Step: Organize Your Secret Santa</div><div class="section-subtitle">Now that you know your budget, make coordination effortless</div></div></div>
             <p style="margin-bottom: 20px; color: #cbd5e1;">Stop wasting hours on group texts and spreadsheets. SecretSantaMatch.com lets you organize any gift exchange in 5 minutes — free, no sign-up required.</p>
-            <a href="https://secretsantamatch.com" class="add-btn" style="display: inline-flex; font-size: 1.1em; padding: 16px 35px;">
-                Try Free Secret Santa Generator →
-            </a>
+            <a href="https://secretsantamatch.com" class="add-btn" style="display: inline-flex; font-size: 1.1em; padding: 16px 35px;">Try Free Secret Santa Generator →</a>
+        </div>
+    </div>
+    
+    <div id="modal-container" class="modal-overlay" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header"><h2 id="modal-title" class="modal-title">Modal Title</h2></div>
+            <div class="modal-body" id="modal-body">Modal content goes here.</div>
+            <div class="modal-footer" id="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Close</button>
+            </div>
         </div>
     </div>
 
@@ -1014,52 +1010,25 @@
         let exchangeCount = 0;
         let myChart = null;
         let pieChart = null;
+        let resultsGenerated = false;
 
         function addExchange() {
             exchangeCount++;
             const container = document.getElementById('exchanges-container');
-            
             const exchangeCard = document.createElement('div');
             exchangeCard.className = 'exchange-card fade-in';
-            exchangeCard.innerHTML = `
-                <div class="exchange-number">Exchange ${exchangeCount}</div>
-                ${exchangeCount > 1 ? '<button class="remove-btn" onclick="this.parentElement.remove(); updateTotal();">Remove</button>' : ''}
-                <div class="input-grid">
-                    <div class="input-group">
-                        <label>Exchange Name</label>
-                        <input type="text" class="exchange-name" placeholder="Office Secret Santa" oninput="updateTotal()">
-                    </div>
-                    <div class="input-group">
-                        <label>Gift Budget ($)</label>
-                        <input type="number" class="exchange-budget" placeholder="25" min="0" oninput="updateTotal()">
-                    </div>
-                    <div class="input-group">
-                        <label>Shipping & Tax</label>
-                        <select class="exchange-shipping" onchange="updateTotal()">
-                            <option value="0">In person (no cost)</option>
-                            <option value="8">Standard shipping (~$8)</option>
-                            <option value="12">Express shipping (~$12)</option>
-                            <option value="15">International (~$15)</option>
-                        </select>
-                    </div>
-                </div>
-            `;
-            
+            exchangeCard.innerHTML = `<div class="exchange-number">Exchange ${exchangeCount}</div> ${exchangeCount > 1 ? '<button class="remove-btn" onclick="this.parentElement.remove(); updateTotal();">Remove</button>' : ''} <div class="input-grid"><div class="input-group"><label>Exchange Name</label><input type="text" class="exchange-name" placeholder="Office Secret Santa" oninput="updateTotal()"></div><div class="input-group"><label>Gift Budget ($)</label><input type="number" class="exchange-budget" placeholder="25" min="0" oninput="updateTotal()"></div><div class="input-group"><label>Shipping & Tax</label><select class="exchange-shipping" onchange="updateTotal()"><option value="0">In person (no cost)</option><option value="8">Standard shipping (~$8)</option><option value="12">Express shipping (~$12)</option><option value="15">International (~$15)</option></select></div></div>`;
             container.appendChild(exchangeCard);
             updateTotal();
         }
 
         function updateTotal() {
-            // Calculate exchanges
             const exchanges = document.querySelectorAll('.exchange-card');
-            let totalExchanges = 0;
-            let exchangeCount = 0;
-            let exchangeDetails = [];
-            
-            exchanges.forEach(exchange => {
-                const name = exchange.querySelector('.exchange-name').value || 'Unnamed Exchange';
-                const budget = parseFloat(exchange.querySelector('.exchange-budget').value) || 0;
-                const shipping = parseFloat(exchange.querySelector('.exchange-shipping').value) || 0;
+            let totalExchanges = 0, exchangeCount = 0, exchangeDetails = [];
+            exchanges.forEach(ex => {
+                const name = ex.querySelector('.exchange-name').value || `Exchange #${exchangeDetails.length + 1}`;
+                const budget = parseFloat(ex.querySelector('.exchange-budget').value) || 0;
+                const shipping = parseFloat(ex.querySelector('.exchange-shipping').value) || 0;
                 if (budget > 0) {
                     const total = budget + shipping;
                     totalExchanges += total;
@@ -1068,246 +1037,98 @@
                 }
             });
 
-            // Calculate other costs
             const familyGifts = parseFloat(document.getElementById('family-gifts').value) || 0;
             const hosting = parseFloat(document.getElementById('hosting').value) || 0;
             const extras = parseFloat(document.getElementById('extras').value) || 0;
-
             const grandTotal = totalExchanges + familyGifts + hosting + extras;
 
-            // Update live total
             document.getElementById('grand-total').textContent = `$${grandTotal.toFixed(0)}`;
-            
-            if (grandTotal > 0) {
-                document.getElementById('quick-breakdown').innerHTML = `
-                    ${exchangeCount} exchanges ($${totalExchanges.toFixed(0)}) + Other ($${(familyGifts + hosting + extras).toFixed(0)})
-                `;
-            } else {
-                 document.getElementById('quick-breakdown').textContent = `Start adding your gift exchanges below`;
-            }
+            document.getElementById('quick-breakdown').innerHTML = grandTotal > 0 ? `${exchangeCount} exchanges ($${totalExchanges.toFixed(0)}) + Other ($${(familyGifts + hosting + extras).toFixed(0)})` : `Start adding your gift exchanges below`;
 
-            // Show warning if credit info missing
             const creditUtil = document.getElementById('credit-utilization').value;
             const creditLimit = document.getElementById('credit-limit').value;
-            const warningDiv = document.getElementById('credit-missing-warning');
-            
-            if (grandTotal > 0 && (!creditUtil || !creditLimit)) {
-                warningDiv.style.display = 'block';
-            } else {
-                warningDiv.style.display = 'none';
-            }
+            document.getElementById('credit-missing-warning').style.display = (grandTotal > 0 && (!creditUtil || !creditLimit)) ? 'block' : 'none';
 
-            // Generate results if we have data
-            if (grandTotal > 0) {
-                generateResults(grandTotal, totalExchanges, familyGifts + hosting + extras, exchangeDetails);
-            } else {
-                document.getElementById('results-container').innerHTML = ''; // Clear results if total is 0
-            }
+            if (grandTotal > 0) generateResults(grandTotal, totalExchanges, familyGifts + hosting + extras, exchangeDetails);
+            else document.getElementById('results-container').innerHTML = '';
         }
 
         function generateResults(total, exchanges, other, exchangeDetails) {
             const container = document.getElementById('results-container');
-            
             const creditLimit = parseFloat(document.getElementById('credit-limit').value) || 0;
             const currentBalance = parseFloat(document.getElementById('current-balance').value) || 0;
-
-            let html = `
-                <div class="card fade-in">
-                    <div class="section-header">
-                        <div class="section-icon">📊</div>
-                        <div>
-                            <div class="section-title">Visual Spending Breakdown</div>
-                        </div>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <canvas id="spendingChart"></canvas>
-                    </div>
-                </div>
-            `;
-
+            
+            let html = `<div class="card fade-in"><div class="section-header"><div class="section-icon">📊</div><div><div class="section-title">Visual Spending Breakdown</div></div></div><div class="chart-container"><canvas id="spendingChart"></canvas></div></div>`;
+            
             const avgSpending = 920;
             const percentVsAvg = ((total / avgSpending) * 100).toFixed(0);
             
-            html += `
-                <div class="card fade-in">
-                    <div class="section-header">
-                        <div class="section-icon">📈</div>
-                        <div>
-                            <div class="section-title">How You Compare</div>
-                        </div>
-                    </div>
-
-                    <div class="comparison-grid">
-                        <div class="comparison-item">
-                            <span class="comparison-value">${percentVsAvg}%</span>
-                            <span class="comparison-label">vs. average American</span>
-                        </div>
-                        <div class="comparison-item">
-                            <span class="comparison-value">${Math.ceil(total / 25)}</span>
-                            <span class="comparison-label">total gifts to buy</span>
-                        </div>
-                        <div class="comparison-item">
-                            <span class="comparison-value">$${(total / 12).toFixed(0)}</span>
-                            <span class="comparison-label">per month if saved ahead</span>
-                        </div>
-                        <div class="comparison-item">
-                            <span class="comparison-value">$${((total * 0.2499) / 12).toFixed(0)}</span>
-                            <span class="comparison-label">monthly interest at 24.99% APR</span>
-                        </div>
-                    </div>
-
-                    <div class="chart-container" style="height: 300px;">
-                        <canvas id="comparisonChart"></canvas>
-                    </div>
-
-                    <div style="margin: 30px 0; padding: 20px; background: rgba(251, 191, 36, 0.1); border-radius: 12px; border: 2px solid rgba(251, 191, 36, 0.3);">
-                        <p style="margin-bottom: 15px; font-size: 0.95em; color: #fbbf24; font-weight: 600; text-align: center;">💡 Want to avoid that interest charge? Check your credit health first:</p>
-                        <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner ck-banner-compact">
-                            <div class="ck-banner-logo">
-                                <div>INTUIT</div>
-                                <h3>creditkarma</h3>
-                            </div>
-                            <p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p>
-                            <div class="ck-banner-button">Sign Up</div>
-                        </a>
-                    </div>
-                </div>
-            `;
-
+            html += `<div class="card fade-in"><div class="section-header"><div class="section-icon">📈</div><div><div class="section-title">How You Compare</div></div></div><div class="comparison-grid"><div class="comparison-item"><span class="comparison-value">${percentVsAvg}%</span><span class="comparison-label">vs. average American</span></div><div class="comparison-item"><span class="comparison-value">${Math.ceil(total / 25)}</span><span class="comparison-label">total gifts to buy</span></div><div class="comparison-item"><span class="comparison-value">$${(total / 12).toFixed(0)}</span><span class="comparison-label">per month if saved ahead</span></div><div class="comparison-item"><span class="comparison-value">$${((total * 0.2499) / 12).toFixed(0)}</span><span class="comparison-label">monthly interest at 24.99% APR</span></div></div><div class="chart-container" style="height: 300px;"><canvas id="comparisonChart"></canvas></div><div style="margin: 30px 0; padding: 20px; background: rgba(251, 191, 36, 0.1); border-radius: 12px; border: 2px solid rgba(251, 191, 36, 0.3);"><p style="margin-bottom: 15px; font-size: 0.95em; color: #fbbf24; font-weight: 600; text-align: center;">💡 Want to avoid that interest charge? Check your credit health first:</p><a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner ck-banner-compact"><div class="ck-banner-logo"><div>INTUIT</div><h3>creditkarma</h3></div><p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p><div class="ck-banner-button">Sign Up</div></a></div></div>`;
+            
             if (creditLimit > 0 && currentBalance >= 0) {
                 const currentUtil = (currentBalance / creditLimit) * 100;
                 const newBalance = currentBalance + total;
                 const newUtil = (newBalance / creditLimit) * 100;
-
-                let scoreImpact = 0;
-                if (newUtil > 70) scoreImpact = -80;
-                else if (newUtil > 50) scoreImpact = -50;
-                else if (newUtil > 30) scoreImpact = -20;
-
-                html += `
-                    <div class="card fade-in">
-                        <div class="section-header">
-                            <div class="section-icon">💳</div>
-                            <div><div class="section-title">Credit Score Impact Analysis</div></div>
-                        </div>
-
-                        <div class="gauge-container">
-                            <div class="gauge">
-                                <div class="gauge-circle"><svg class="gauge-svg" width="150" height="150"><circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/><circle cx="75" cy="75" r="65" fill="none" stroke="#10b981" stroke-width="15" stroke-dasharray="${(currentUtil/100) * 408} 408" style="transition: all 0.5s ease;"/></svg><div class="gauge-value">${currentUtil.toFixed(0)}%</div></div>
-                                <div class="gauge-label">Current Utilization</div>
-                            </div>
-                            <div class="gauge">
-                                <div class="gauge-circle"><svg class="gauge-svg" width="150" height="150"><circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/><circle cx="75" cy="75" r="65" fill="none" stroke="${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'}" stroke-width="15" stroke-dasharray="${(newUtil/100) * 408} 408" style="transition: all 0.5s ease;"/></svg><div class="gauge-value" style="color: ${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'};">${newUtil.toFixed(0)}%</div></div>
-                                <div class="gauge-label">After Holiday Spending</div>
-                            </div>
-                        </div>
-
-                        ${scoreImpact < 0 ? `
-                            <div class="insight-card danger">
-                                <div class="insight-title"><span>🚨</span> CRITICAL: Your Credit Score Is At Risk</div>
-                                <p style="margin: 15px 0; font-size: 1.1em; line-height: 1.6;">Adding $${total.toFixed(0)} to your balances will push utilization from ${currentUtil.toFixed(0)}% to ${newUtil.toFixed(0)}%. <strong>This could drop your score by ${Math.abs(scoreImpact)} points.</strong></p>
-                            </div>
-                        ` : `
-                            <div class="insight-card" style="border-left-color: #10b981; background: linear-gradient(135deg, #064e3b 0%, #292524 100%);">
-                                <div class="insight-title"><span>✅</span> Your Credit Should Be Safe</div>
-                                <p style="margin: 10px 0; color: #cbd5e1;">Your spending will keep utilization at ${newUtil.toFixed(0)}%, which should have minimal impact on your score.</p>
-                            </div>
-                        `}
-                    </div>
-                `;
-                 if (scoreImpact < 0) {
-                    html += `
-                        <div class="ck-cta-mega">
-                            <h2>⚠️ Check Your Real Credit Health RIGHT NOW</h2>
-                            <p>Before you spend another dollar, see EXACTLY where you stand.</p>
-                            <div class="ck-benefit-grid">
-                                <div class="ck-benefit"><span class="ck-benefit-icon">🎯</span><div class="ck-benefit-title">Real-Time Monitoring</div><div>See all cards, balances, and utilization calculated for you</div></div>
-                                <div class="ck-benefit"><span class="ck-benefit-icon">🔔</span><div class="ck-benefit-title">Instant Alerts</div><div>Get notified if utilization gets high or your score drops</div></div>
-                                <div class="ck-benefit"><span class="ck-benefit-icon">💡</span><div class="ck-benefit-title">Smart Recommendations</div><div>See which cards to pay first and get debt consolidation options</div></div>
-                                <div class="ck-benefit"><span class="ck-benefit-icon">📊</span><div class="ck-benefit-title">Credit Simulator</div><div>Preview how purchases affect your score BEFORE you buy</div></div>
-                            </div>
-                            <div style="margin: 30px 0;">
-                                <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner">
-                                    <div class="ck-banner-logo">
-                                        <div>INTUIT</div>
-                                        <h3>creditkarma</h3>
-                                    </div>
-                                    <p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p>
-                                    <div class="ck-banner-button">Sign Up</div>
-                                </a>
-                            </div>
-                            <div class="trust-indicators">
-                                <div class="trust-indicator">✓ 100% Free Forever</div>
-                                <div class="trust-indicator">✓ No Credit Card Required</div>
-                                <div class="trust-indicator">✓ Won't Hurt Your Score</div>
-                            </div>
-                        </div>
-                    `;
-                }
+                let scoreImpact = newUtil > 70 ? -80 : newUtil > 50 ? -50 : newUtil > 30 ? -20 : 0;
+                html += `<div class="card fade-in"><div class="section-header"><div class="section-icon">💳</div><div><div class="section-title">Credit Score Impact Analysis</div></div></div><div class="gauge-container"><div class="gauge"><div class="gauge-circle"><svg class="gauge-svg" width="150" height="150"><circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/><circle cx="75" cy="75" r="65" fill="none" stroke="#10b981" stroke-width="15" stroke-dasharray="${(currentUtil/100) * 408} 408" style="transition: all 0.5s ease;"/></svg><div class="gauge-value">${currentUtil.toFixed(0)}%</div></div><div class="gauge-label">Current Utilization</div></div><div class="gauge"><div class="gauge-circle"><svg class="gauge-svg" width="150" height="150"><circle cx="75" cy="75" r="65" fill="none" stroke="#334155" stroke-width="15"/><circle cx="75" cy="75" r="65" fill="none" stroke="${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'}" stroke-width="15" stroke-dasharray="${(newUtil/100) * 408} 408" style="transition: all 0.5s ease;"/></svg><div class="gauge-value" style="color: ${newUtil > 70 ? '#ef4444' : newUtil > 50 ? '#f59e0b' : '#10b981'};">${newUtil.toFixed(0)}%</div></div><div class="gauge-label">After Holiday Spending</div></div></div>${scoreImpact < 0 ? `<div class="insight-card danger"><div class="insight-title"><span>🚨</span> CRITICAL: Your Credit Score Is At Risk</div><p style="margin: 15px 0; font-size: 1.1em; line-height: 1.6;">Adding $${total.toFixed(0)} to your balances will push utilization from ${currentUtil.toFixed(0)}% to ${newUtil.toFixed(0)}%. <strong>This could drop your score by ${Math.abs(scoreImpact)} points.</strong></p></div>` : `<div class="insight-card" style="border-left-color: #10b981; background: linear-gradient(135deg, #064e3b 0%, #292524 100%);"><div class="insight-title"><span>✅</span> Your Credit Should Be Safe</div><p style="margin: 10px 0; color: #cbd5e1;">Your spending will keep utilization at ${newUtil.toFixed(0)}%, which should have minimal impact on your score.</p></div>`}</div>`;
+                if (scoreImpact < 0) html += createCKMegaCTA();
             } else {
-                html += `
-                    <div class="ck-cta-mega">
-                        <h2>⚠️ You're Missing Critical Information</h2>
-                        <p style="font-size: 1.1em; margin-bottom: 30px;">You can't see your credit impact because you don't know your current utilization. This is exactly why you need Credit Karma.</p>
-                        <div class="ck-benefit-grid">
-                            <div class="ck-benefit"><span class="ck-benefit-icon">👀</span><div class="ck-benefit-title">See Everything</div><div>All your credit cards, balances, and limits in one dashboard</div></div>
-                            <div class="ck-benefit"><span class="ck-benefit-icon">🧮</span><div class="ck-benefit-title">Auto-Calculate</div><div>Your utilization is calculated automatically — no math required</div></div>
-                            <div class="ck-benefit"><span class="ck-benefit-icon">📈</span><div class="ck-benefit-title">Weekly Updates</div><div>Your score and credit report update every 7 days</div></div>
-                            <div class="ck-benefit"><span class="ck-benefit-icon">💳</span><div class="ck-benefit-title">Find Hidden Issues</div><div>Discover accounts you forgot about or errors hurting your score</div></div>
-                        </div>
-                        <div style="margin: 30px 0;">
-                            <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner">
-                                <div class="ck-banner-logo">
-                                    <div>INTUIT</div>
-                                    <h3>creditkarma</h3>
-                                </div>
-                                <p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p>
-                                <div class="ck-banner-button">Sign Up</div>
-                            </a>
-                        </div>
-                        <div class="trust-indicators">
-                            <div class="trust-indicator">✓ 100% Free Forever</div>
-                            <div class="trust-indicator">✓ No Credit Card Required</div>
-                            <div class="trust-indicator">✓ Won't Hurt Your Score</div>
-                        </div>
-                    </div>
-                `;
+                html += createCKMegaCTA("⚠️ You're Missing Critical Information", "You can't see your credit impact because you don't know your current utilization. This is exactly why you need Credit Karma.");
             }
-
             container.innerHTML = html;
+            setTimeout(() => { createSpendingChart(exchanges, other, exchangeDetails); createComparisonChart(total); if (!resultsGenerated) { document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' }); resultsGenerated = true; } }, 100);
+        }
 
-            setTimeout(() => {
-                createSpendingChart(exchanges, other, exchangeDetails);
-                createComparisonChart(total);
-            }, 100);
+        function createCKMegaCTA(title = "⚠️ Check Your Real Credit Health RIGHT NOW", subtitle = "Before you spend another dollar, see EXACTLY where you stand.") {
+            return `<div class="ck-cta-mega"><h2>${title}</h2><p>${subtitle}</p><div class="ck-benefit-grid"><div class="ck-benefit"><span class="ck-benefit-icon">🎯</span><div class="ck-benefit-title">Real-Time Monitoring</div><div>See all cards, balances, and utilization calculated for you</div></div><div class="ck-benefit"><span class="ck-benefit-icon">🔔</span><div class="ck-benefit-title">Instant Alerts</div><div>Get notified if utilization gets high or your score drops</div></div><div class="ck-benefit"><span class="ck-benefit-icon">💡</span><div class="ck-benefit-title">Smart Recommendations</div><div>See which cards to pay first and get debt consolidation options</div></div><div class="ck-benefit"><span class="ck-benefit-icon">📊</span><div class="ck-benefit-title">Credit Simulator</div><div>Preview how purchases affect your score BEFORE you buy</div></div></div><div style="margin: 30px 0;"><a rel="sponsored" href="https://www.awin1.com/cread.php?s=4000505&v=66532&q=475592&r=2612068" class="ck-banner"><div class="ck-banner-logo"><div>INTUIT</div><h3>creditkarma</h3></div><p class="ck-banner-text">Get <span>personalized tips</span> to build a credit score that'll make you proud.</p><div class="ck-banner-button">Sign Up</div></a></div><div class="trust-indicators"><div class="trust-indicator">✓ 100% Free Forever</div><div class="trust-indicator">✓ No Credit Card Required</div><div class="trust-indicator">✓ Won't Hurt Your Score</div></div></div>`;
         }
 
         function createSpendingChart(exchangeTotal, other, exchangeDetails) {
-            const ctx = document.getElementById('spendingChart');
-            if (!ctx) return;
-            if (pieChart) pieChart.destroy();
-            const labels = [...exchangeDetails.map(e => e.name), 'Other Holiday Costs'];
-            const data = [...exchangeDetails.map(e => e.total), other];
-            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#10b981', '#fbbf24', '#3b82f6', '#8b5cf6'];
+            const ctx = document.getElementById('spendingChart'); if (!ctx) return; if (pieChart) pieChart.destroy();
+            const labels = [...exchangeDetails.map(e => e.name), 'Other Holiday Costs']; const data = [...exchangeDetails.map(e => e.total), other]; const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#10b981', '#fbbf24', '#3b82f6', '#8b5cf6'];
             pieChart = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 3, borderColor: '#1e293b' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 14 }, padding: 15 } }, title: { display: true, text: 'Where Your Money Goes', color: '#f8fafc', font: { size: 18, weight: 'bold' } } } } });
         }
 
         function createComparisonChart(userTotal) {
-            const ctx = document.getElementById('comparisonChart');
-            if (!ctx) return;
-            if (myChart) myChart.destroy();
+            const ctx = document.getElementById('comparisonChart'); if (!ctx) return; if (myChart) myChart.destroy();
             const avgSpending = 920;
             myChart = new Chart(ctx, { type: 'bar', data: { labels: ['You', 'Average American', 'Debt-Free Target'], datasets: [{ label: 'Holiday Spending', data: [userTotal, avgSpending, 300], backgroundColor: [userTotal > avgSpending ? '#ef4444' : '#10b981', '#fbbf24', '#10b981'], borderWidth: 0, borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Your Spending vs. Others', color: '#f8fafc', font: { size: 16, weight: 'bold' } } }, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8', callback: (v) => '$' + v }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { display: false } } } } });
         }
 
+        // Modal Functions
+        function openModal(title, body, footer) {
+            document.getElementById('modal-title').innerHTML = title;
+            document.getElementById('modal-body').innerHTML = body;
+            const footerEl = document.getElementById('modal-footer');
+            if (footer) { footerEl.innerHTML = footer; footerEl.style.display = 'flex'; }
+            else { footerEl.style.display = 'none'; }
+            document.getElementById('modal-container').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('modal-container').style.display = 'none'; }
+        
+        function openPrintModal() {
+            const title = '🖨️ Print / Save Your Budget Plan';
+            const body = `<p>This will open your browser's print dialog. From there, you can either print to a physical printer or save your plan as a PDF file.</p>
+                          <p style="margin-top: 1rem;"><strong>To Save as PDF:</strong> In the print dialog, look for the 'Destination' or 'Printer' dropdown and select 'Save as PDF'.</p>`;
+            const footer = `<button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button class="modal-btn modal-btn-primary" onclick="window.print(); closeModal();">Print Now</button>`;
+            openModal(title, body, footer);
+        }
+
+        function saveResults() {
+            const url = new URL(window.location.href);
+            url.hash = `total-${document.getElementById('grand-total').textContent}`;
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                openModal('🔖 Bookmark Link Copied!', '<p>Your unique results URL has been copied to your clipboard. You can paste it in your browser\'s bookmark manager to save your results.</p>', `<button class="modal-btn modal-btn-secondary" onclick="closeModal()">Got it!</button>`);
+            });
+        }
+        
+        // Share Functions
         function shareTwitter() { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just calculated my holiday spending and it's ${document.getElementById('grand-total').textContent}! 😱 Check yours: `)}&url=${encodeURIComponent(window.location.href)}`, '_blank'); }
         function shareFacebook() { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); }
         function shareLinkedIn() { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); }
-        function sharePinterest() { window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(window.location.href)}&description=${encodeURIComponent('Free holiday budget calculator - see your real spending + credit impact!')}`, '_blank'); }
-        function copyLink(event) { navigator.clipboard.writeText(window.location.href).then(() => { const btn = event.target.closest('.share-btn'), original = btn.innerHTML; btn.innerHTML = '<span>✓</span> Copied!'; setTimeout(() => { btn.innerHTML = original; }, 2000); }); }
-        function downloadPDF() { window.print(); }
-        function saveResults() { const url = new URL(window.location.href); url.hash = `total-${document.getElementById('grand-total').textContent}`; navigator.clipboard.writeText(url.toString()).then(() => alert('🔖 Bookmark link copied!')); }
+        function sharePinterest() { window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(window.location.href)}&media=${encodeURIComponent('https://secretsantamatch.com/posts/holiday-budget-calculator.webp')}&description=${encodeURIComponent('Free holiday budget calculator - see your real spending + credit impact!')}`, '_blank'); }
+        function copyLink(button) { navigator.clipboard.writeText(window.location.href).then(() => { const original = button.innerHTML; button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17l-3.59-3.59L4 14l5 5 9-9-1.41-1.41L9 16.17z"/></svg>'; setTimeout(() => { button.innerHTML = original; }, 2000); }); }
         
         addExchange();
     </script>
