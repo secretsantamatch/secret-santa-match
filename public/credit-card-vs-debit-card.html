@@ -254,6 +254,16 @@
             border-radius: 12px;
         }
 
+        .info-box {
+            background: #fefce8;
+            border-left: 5px solid #eab308;
+            padding: 1.5rem 2rem;
+            margin: 2.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .info-box p { margin-bottom: 0.5rem; }
+        .info-box strong { color: #ca8a04; }
+
         .highlight-box {
             background: #fffbeb;
             border-left: 5px solid var(--gold);
@@ -304,39 +314,72 @@
             background-color: rgba(252, 211, 77, 0.1);
             border-bottom-color: #fcd34d;
         }
-
-        .share-section {
-            text-align: center;
-            padding: 2.5rem;
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2.5rem;
+        }
+        
+        .comparison-card {
             background: #f8fafc;
-            border-radius: 16px;
-            margin: 3rem 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
         }
-        .share-buttons {
+        
+        .comparison-card h3 {
+            font-family: 'Inter', sans-serif;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
             display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 1.5rem;
-        }
-        .share-btn {
-            padding: 0.8rem 1.5rem;
-            border-radius: 50px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            text-decoration: none;
         }
-        .share-btn:hover { transform: translateY(-3px); }
-        .share-btn svg, .share-btn img { width: 18px; height: 18px; }
-        .share-btn.pinterest { background: #E60023; color: white; }
-        .share-btn.twitter { background: #1da1f2; color: white; }
-        .share-btn.facebook { background: #1877F2; color: white; }
-        .share-btn.copy { background: #334155; color: white; }
+        
+        .comparison-card p {
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .comparison-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .comparison-list li {
+            padding-left: 2rem;
+            position: relative;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+        .comparison-list li::before {
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .upside li::before { content: '✓'; color: var(--primary-green); }
+        .downside li::before { content: '✗'; color: var(--primary-red); }
+
+        .list-title {
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+            margin-top: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         
         footer {
             margin-top: 3rem;
@@ -346,47 +389,6 @@
             color: #64748b;
             font-size: 0.9rem;
         }
-        
-        /* Modal for calculator */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            animation: slideIn 0.4s ease-out;
-            overflow: hidden;
-        }
-        .modal-header {
-            background: linear-gradient(135deg, var(--primary-red), var(--primary-green));
-            padding: 2rem;
-            text-align: center;
-        }
-        .modal-header h2 {
-            color: white; margin: 0; border: none; font-size: 1.8rem;
-        }
-        .modal-body { padding: 2rem; }
-        .modal-body h3 { margin-top: 0; }
-        .close-button {
-            position: absolute;
-            top: 1rem; right: 1rem;
-            background: none; border: none;
-            color: white; font-size: 2rem;
-            cursor: pointer; line-height: 1;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     </style>
 </head>
@@ -430,24 +432,57 @@
                 <p style="font-size: 0.9rem; color: #64748b; margin-top: 1rem;">Click the image to save this guide on Pinterest!</p>
             </div>
 
+            <div class="info-box">
+                <p><strong>Worth knowing:</strong> The National Retail Federation expects holiday retail sales to hit $980 billion in 2025. That's not just big—it's "fund a small nation" big. And here's the kicker: 58% of shoppers plan to use credit cards, while 35% are Team Debit, with the rest experimenting with newer payment methods like buy now, pay later.</p>
+            </div>
+
             <div class="ad-space">
                 <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3037944530219260" data-ad-slot="9876543210" data-ad-format="auto" data-full-width-responsive="true"></ins>
                 <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
             </div>
 
             <h2>The Credit Card Case (Or: How I Learned to Love Rewards)</h2>
-            <p>Credit cards get a bad rap. But when used responsibly, they're brilliant for holiday shopping. Think of them as your shopping bodyguards with benefits. Someone steals your card number? That's the bank's problem. Buy a gift that breaks? Many cards extend the warranty. Plus, you're earning cash back or points on every purchase.</p>
-            <ul>
-                <li><strong>Pros:</strong> Cash back/points, zero fraud liability, purchase protection, extended warranties, builds credit.</li>
-                <li><strong>Cons:</strong> Easy to overspend, high interest rates (avg. 21.47%), the "I'll pay it off later" trap.</li>
-            </ul>
+            <p>Credit cards get a bad rap. They're the financial equivalent of that friend who's fun at parties but might convince you to make questionable decisions at 2 AM. But when used responsibly—and that's the key phrase here—they're actually pretty brilliant for holiday shopping.</p>
+            <p>Think of credit cards as your holiday shopping bodyguards with benefits. Someone steals your card number? That's the bank's problem, not yours. Buy a gift that breaks a week after Christmas? Many cards extend the manufacturer's warranty. Find that same sweater for 30% less two weeks later? Some cards will refund you the difference.</p>
 
             <h2>The Debit Card Defense (Your Built-In Budget)</h2>
-            <p>A debit card is your financial reality check. You can only spend what you have, which makes it impossible to go into holiday debt. It forces budget discipline because when the money's gone, it's gone. The spending feels more "real."</p>
-            <ul>
-                <li><strong>Pros:</strong> Natural spending limit, forces discipline, no interest, no debt hangover.</li>
-                <li><strong>Cons:</strong> If fraud hits, your actual money is frozen; zero rewards; overdraft fees can be costly.</li>
-            </ul>
+            <p>A debit card is your financial reality check. It makes it impossible to go into holiday debt. It forces budget discipline because when the money's gone, it's gone. The spending feels more "real."</p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h3>Credit Cards</h3>
+                    <p>Your rewards-earning, fraud-fighting shopping companion</p>
+                    <div class="list-title">The Upside</div>
+                    <ul class="comparison-list upside">
+                        <li>Cash back or points (1-5% back adds up fast when you're dropping four figures)</li>
+                        <li>Zero liability for fraud—your money is never at risk</li>
+                        <li>Purchase protection & extended warranties</li>
+                        <li>Builds your credit score (if you pay it off!)</li>
+                    </ul>
+                    <div class="list-title">The Downside</div>
+                    <ul class="comparison-list downside">
+                        <li>Deceptively easy to overspend</li>
+                        <li>Brutal interest rates (avg. 21.47%)</li>
+                        <li>The "I'll pay it off later" mindset is a trap</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h3>Debit Cards</h3>
+                    <p>The "you can only spend what you have" reality check</p>
+                    <div class="list-title">The Upside</div>
+                    <ul class="comparison-list upside">
+                        <li>Natural spending limit—can't go into debt if you tried</li>
+                        <li>Forces budget discipline (when the money's gone, it's gone)</li>
+                        <li>No interest, no debt hangover in January</li>
+                    </ul>
+                     <div class="list-title">The Downside</div>
+                    <ul class="comparison-list downside">
+                        <li>If fraud hits, your actual money is frozen during investigation</li>
+                        <li>Zero rewards or perks</li>
+                        <li>Overdraft fees can be surprisingly costly</li>
+                    </ul>
+                </div>
+            </div>
 
             <h2>The Wild Card: Buy Now, Pay Later (BNPL)</h2>
             <p>Services like Afterpay and Klarna are everywhere. The pitch is seductive: split a $200 gift into four interest-free payments of $50. It feels like a hack, but it can be a trap.</p>
@@ -509,10 +544,5 @@
         </article>
     </div>
 
-    <!-- Modal for calculator - can be re-added if needed, but linking directly is cleaner for now. -->
-
-    <script>
-        // JS for modal can be placed here if re-implemented.
-    </script>
 </body>
 </html>
