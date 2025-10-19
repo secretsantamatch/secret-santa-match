@@ -40,7 +40,7 @@ const BlogPage: React.FC = () => {
     return ['All', ...uniqueTypes];
   }, [resources]);
 
-  const filteredResources = useMemo(() => {
+  const { featuredPost, regularPosts, hasResults } = useMemo(() => {
     const lowercasedFilter = searchTerm.toLowerCase();
     
     let filtered = selectedCategory === 'All'
@@ -60,8 +60,19 @@ const BlogPage: React.FC = () => {
       sorted.sort((a, b) => parseDate(b.lastUpdated).getTime() - parseDate(a.lastUpdated).getTime());
     }
 
-    return sorted;
+    return {
+        featuredPost: sorted[0] || null,
+        regularPosts: sorted.slice(1),
+        hasResults: sorted.length > 0,
+    };
   }, [resources, searchTerm, selectedCategory, sortOrder]);
+
+  const typeColors: Record<string, string> = {
+    'Free Download': 'bg-emerald-100 text-emerald-800',
+    'Guide & Tips': 'bg-blue-100 text-blue-800',
+    'Article': 'bg-slate-100 text-slate-800',
+    'Guide & Printable': 'bg-purple-100 text-purple-800',
+  };
 
   const renderContent = () => {
     if (status === 'loading') {
@@ -81,18 +92,81 @@ const BlogPage: React.FC = () => {
       );
     }
 
-    if (filteredResources.length > 0) {
-      return filteredResources.map(resource => (
-        <ResourceCard key={resource.id} resource={resource} />
-      ));
+    if (!hasResults) {
+      return (
+        <div className="text-center py-16 bg-white rounded-2xl shadow-lg border">
+          <h2 className="text-2xl font-bold text-slate-700">No Posts Found</h2>
+          <p className="text-slate-500 mt-2">Try adjusting your search or category filter.</p>
+        </div>
+      );
     }
 
     return (
-      <div className="text-center py-16 bg-white rounded-2xl shadow-lg border">
-        <h2 className="text-2xl font-bold text-slate-700">No Posts Found</h2>
-        <p className="text-slate-500 mt-2">Try adjusting your search or category filter.</p>
-      </div>
-    );
+        <>
+            {featuredPost && (
+                <section aria-labelledby="featured-post-heading" className="mb-12 animate-fade-in">
+                    <h2 id="featured-post-heading" className="text-3xl font-bold text-slate-800 font-serif mb-6">
+                        Latest & Greatest
+                    </h2>
+                    <a 
+                      href={featuredPost.linkUrl} 
+                      className="group grid md:grid-cols-2 items-center bg-white rounded-2xl shadow-lg border border-gray-200 transition-shadow hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary-color)] overflow-hidden"
+                    >
+                      <div className="w-full h-full overflow-hidden">
+                        <img 
+                          src={featuredPost.thumbnailUrl} 
+                          alt={featuredPost.title} 
+                          className="w-full h-full object-cover aspect-[16/9] md:aspect-auto group-hover:scale-105 transition-transform duration-300" 
+                        />
+                      </div>
+                      <div className="p-8">
+                        <div>
+                          <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full ${typeColors[featuredPost.type] || typeColors['Article']}`}>
+                            {featuredPost.type}
+                          </span>
+                          {featuredPost.lastUpdated && (
+                            <span className="text-xs text-slate-400 font-semibold ml-4">{featuredPost.lastUpdated}</span>
+                          )}
+                        </div>
+                        <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 group-hover:text-[var(--primary-color)] transition-colors mt-3">
+                          {featuredPost.title}
+                        </h3>
+                        <p className="text-slate-600 mt-3 text-base leading-relaxed">
+                          {featuredPost.description}
+                        </p>
+                        <span className="mt-4 inline-block font-bold text-[var(--primary-color)] group-hover:underline">
+                          Read More &rarr;
+                        </span>
+                      </div>
+                    </a>
+                </section>
+            )}
+
+            {regularPosts.length > 0 && (
+              <section aria-labelledby="all-posts-heading">
+                <h2 id="all-posts-heading" className="text-3xl font-bold text-slate-800 font-serif mb-8 border-t pt-8 mt-12">
+                  More Posts
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {regularPosts.map((resource, index) => (
+                    <React.Fragment key={resource.id}>
+                      <ResourceCard resource={resource} />
+                      {index === 1 && (
+                        <div className="bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center flex items-center justify-center min-h-[250px] md:col-span-2">
+                          <div className="text-slate-500">
+                            <p className="font-semibold text-lg">Want to reach holiday planners?</p>
+                            <p className="text-sm">This space is available for advertising.</p>
+                            {/* In a real app, an AdSense component would go here */}
+                          </div>
+                        </div>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </section>
+            )}
+        </>
+    )
   };
 
 
@@ -102,7 +176,7 @@ const BlogPage: React.FC = () => {
         <div className="container mx-auto p-4 sm:p-6 max-w-5xl">
           <div className="flex justify-between items-center">
              <a href="/" className="flex items-center gap-3">
-                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-20 h-20" />
+                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-12 h-12 sm:w-16 sm:h-16" />
                 <span className="hidden sm:inline text-xl font-bold text-slate-700">SecretSantaMatch.com</span>
               </a>
               <a href="/" className="bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-2 px-5 text-md rounded-full shadow-md transform hover:scale-105 transition-all">
@@ -166,13 +240,20 @@ const BlogPage: React.FC = () => {
       </div>
 
       <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl mt-8">
-          <div className="space-y-8">
-            {renderContent()}
-          </div>
+          {renderContent()}
       </main>
       
       <Footer />
       <BackToTopButton />
+      <style>{`
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.5s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
