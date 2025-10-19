@@ -477,7 +477,7 @@
         .trust-indicator { display: flex; align-items: center; gap: 8px; }
         .action-buttons { display: flex; flex-direction: column; gap: 15px; margin: 30px 0; }
         @media (min-width: 768px) { .action-buttons { flex-direction: row; justify-content: center; } }
-        .action-btn { background: #1e293b; color: #f8fafc; padding: 1rem 2rem; border-radius: 12px; border: 2px solid #334155; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.1em; width: 100%; }
+        .action-btn { background: #1e293b; color: #f8fafc; padding: 1.25rem 2.5rem; border-radius: 16px; border: 2px solid #334155; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.2em; width: 100%; }
         @media (min-width: 768px) { .action-btn { width: auto; } }
         .action-btn:hover { border-color: #667eea; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .share-section { text-align: center; padding: 40px; background: #1e293b; border-radius: 16px; margin: 30px 0; }
@@ -607,9 +607,6 @@
                  data-ad-slot="1234567890" 
                  data-ad-format="auto"
                  data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
         </div>
 
         <div class="card fade-in">
@@ -663,6 +660,16 @@
                 </button>
             </div>
         </div>
+        
+        <div class="ad-space">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3037944530219260"
+                 data-ad-slot="9876543210" 
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+        </div>
+
 
         <div class="affiliate-disclaimer"><strong>Affiliate Disclosure:</strong> This page contains affiliate links to Credit Karma. If you sign up through our links, we may earn a commission at no additional cost to you. We only recommend services that provide genuine value for holiday budget planning and financial management. All opinions and recommendations are our own. SecretSantaMatch.com calculator is 100% free to use with no affiliate relationship.</div>
 
@@ -765,7 +772,14 @@
                 html += createCKMegaCTA("⚠️ You're Missing Critical Information", "You can't see your credit impact because you don't know your current utilization. This is exactly why you need Credit Karma.");
             }
             container.innerHTML = html;
-            setTimeout(() => { createSpendingChart(exchanges, other, exchangeDetails); createComparisonChart(total); }, 100);
+            setTimeout(() => { 
+                createSpendingChart(exchanges, other, exchangeDetails); 
+                createComparisonChart(total);
+                try {
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                } catch(e) { console.error('Adsense push error', e) }
+            }, 100);
         }
 
         function createCKMegaCTA(title = "⚠️ Check Your Real Credit Health RIGHT NOW", subtitle = "Before you spend another dollar, see EXACTLY where you stand.") {
@@ -818,6 +832,15 @@
         function copyLink(button) { navigator.clipboard.writeText(window.location.href).then(() => { const original = button.innerHTML; button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17l-3.59-3.59L4 14l5 5 9-9-1.41-1.41L9 16.17z"/></svg>'; setTimeout(() => { button.innerHTML = original; }, 2000); }); }
         
         addExchange();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#total-')) {
+                // This is a placeholder for potential future functionality to load saved results.
+                // For now, it just ensures the calculator starts fresh.
+            }
+        });
+
     </script>
 </body>
 </html>
