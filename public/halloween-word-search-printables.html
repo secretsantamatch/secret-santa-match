@@ -380,7 +380,7 @@
             text-decoration: none;
         }
         .share-btn:hover { transform: translateY(-3px); }
-        .share-btn svg { width: 18px; height: 18px; }
+        .share-btn svg, .share-btn img { width: 18px; height: 18px; }
         .share-btn.pinterest { background: #E60023; color: white; }
         .share-btn.twitter { background: #1da1f2; color: white; }
         .share-btn.facebook { background: #1877F2; color: white; }
@@ -490,7 +490,7 @@
                 <a href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fsecretsantamatch.com%2Fhalloween-word-search-printables.html&media=https%3A%2F%2Fsecretsantamatch.com%2Fposts%2Fhalloween-games.webp&description=Free%20Halloween%20Word%20Search%20Printables%20(13%20Unique%20Cards!)" target="_blank" rel="noopener noreferrer" style="display: inline-block; position: relative; border: none; text-decoration: none;">
                     <img src="/posts/halloween-games.webp" alt="Free Halloween Word Search Printable for kids and parties. 13 unique cards with 20 spooky words. Click to pin this image." style="max-width: 400px; width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
                     <div style="position: absolute; top: 1rem; right: 1rem; background: #E60023; color: white; padding: 0.5rem 1rem; border-radius: 50px; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; backdrop-filter: blur(5px); box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 0 0-2.915 15.452c.247.045.336-.108.336-.241 0-.12-.004-.546-.007-1.07-2.643.57-3.2-1.12-3.32-1.378-.08-.204-.42-.816-.71-1.01-.24-.16-.58-.46-.01-.47.53-.01.9.52.98.73.59 1.01 1.56 1.11 1.94.84.06-.65.23-1.09.42-1.34-2.02-.23-4.14-1-4.14-4.48 0-.99.35-1.8.94-2.43-.09-.23-.41-1.15.09-2.39 0 0 .76-.24 2.5 1.48A8.5 8.5 0 0 1 8 5.25a8.5 8.5 0 0 1 2.27.3c1.74-1.72 2.5-1.48 2.5-1.48.5 1.24.18 2.16.09 2.39.59.63.94 1.44.94 2.43 0 3.49-2.13 4.25-4.16 4.48.24.21.45.62.45 1.25 0 .9-.01 1.63-.01 1.85 0 .13.09.28.34.24A8.01 8.01 0 0 0 8 0z"/></svg>
+                        <img src="/pinterest_logo.png" alt="Pinterest logo" style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
                         Pin Me!
                     </div>
                 </a>
@@ -595,7 +595,10 @@
                 <h3>💌 Share The Spooky Fun!</h3>
                 <p>Think a friend or teacher would love these? Share this post!</p>
                 <div class="share-buttons">
-                    <button class="share-btn pinterest" onclick="sharePinterest()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.18 11.23c-.34.34-.78.53-1.25.53-.47 0-.91-.19-1.25-.53l-1.42-1.42c-.7-.7-.7-1.83 0-2.53.7-.7 1.83-.7 2.53 0l1.42 1.42c.7.7.7 1.83 0 2.53zm-6.36 0c-.34.34-.78.53-1.25.53s-.91-.19-1.25-.53c-.7-.7-.7-1.83 0-2.53.7-.7 1.83-.7 2.53 0 .7.7.7 1.83 0 2.53z"/></svg> Pin It</button>
+                    <button class="share-btn pinterest" onclick="sharePinterest()">
+                        <img src="/pinterest_logo.png" alt="Pinterest logo" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
+                        Pin It
+                    </button>
                     <button class="share-btn twitter" onclick="shareTwitter()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg> Tweet</button>
                     <button class="share-btn facebook" onclick="shareFacebook()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/></svg> Share</button>
                     <button class="share-btn copy" onclick="copyLink(this)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copy Link</button>
