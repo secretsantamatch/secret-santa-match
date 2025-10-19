@@ -476,17 +476,17 @@
         .trust-indicators { display: flex; justify-content: center; gap: 30px; margin-top: 25px; flex-wrap: wrap; font-size: 0.9em; opacity: 0.95; color: #d1fae5; }
         .trust-indicator { display: flex; align-items: center; gap: 8px; }
         .action-buttons { display: flex; flex-direction: column; gap: 15px; margin: 30px 0; }
-        @media (min-width: 768px) { .action-buttons { flex-direction: row; justify-content: center; } }
-        .action-btn { background: #1e293b; color: #f8fafc; padding: 1.25rem 2.5rem; border-radius: 16px; border: 2px solid #334155; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.2em; width: 100%; }
+        @media (min-width: 768px) { .action-buttons { flex-direction: row; justify-content: center; gap: 20px; } }
+        .action-btn { background: #1e293b; color: #f8fafc; padding: 1.5rem 3rem; border-radius: 16px; border: 2px solid #334155; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.25em; width: 100%; text-align: center; }
         @media (min-width: 768px) { .action-btn { width: auto; } }
-        .action-btn:hover { border-color: #667eea; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .action-btn:hover { border-color: #667eea; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .share-section { text-align: center; padding: 40px; background: #1e293b; border-radius: 16px; margin: 30px 0; }
         .share-title { font-size: 1.5em; margin-bottom: 10px; font-weight: 700; }
         .share-subtitle { color: #94a3b8; margin-bottom: 25px; }
         .share-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .share-btn { width: 56px; height: 56px; border-radius: 50%; border: none; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; color: white; }
+        .share-btn { width: 64px; height: 64px; border-radius: 50%; border: none; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; color: white; }
         .share-btn:hover { transform: translateY(-4px) scale(1.1); }
-        .share-btn svg { width: 24px; height: 24px; }
+        .share-btn svg, .share-btn img { width: 32px; height: 32px; }
         .share-btn.twitter { background: #1da1f2; }
         .share-btn.facebook { background: #4267B2; }
         .share-btn.linkedin { background: #0077b5; }
@@ -507,7 +507,7 @@
         @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-header { padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .modal-title { font-size: 1.5rem; font-weight: 700; }
-        .modal-body { padding: 2rem; line-height: 1.7; }
+        .modal-body { padding: 2rem; line-height: 1.7; max-height: 60vh; overflow-y: auto; }
         .modal-body p, .modal-body li { color: #cbd5e1; }
         .modal-body strong { color: #f8fafc; }
         .modal-body ul { list-style-position: inside; margin: 1rem 0; }
@@ -518,26 +518,6 @@
         .modal-btn-secondary { background: #334155; color: #f8fafc; }
         .modal-btn-secondary:hover { background: #475569; }
         .ad-space { background: #1e293b; border: 1px solid #334155; min-height: 90px; display: flex; align-items: center; justify-content: center; margin: 40px auto; border-radius: 12px; }
-        
-        .pinterest-icon {
-            background-color: white;
-            -webkit-mask-image: url(/pinterest_logo.png);
-            mask-image: url(/pinterest_logo.png);
-            -webkit-mask-size: contain;
-            mask-size: contain;
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
-            -webkit-mask-position: center;
-            mask-position: center;
-        }
-        .pinterest-icon-sm {
-            width: 16px;
-            height: 16px;
-        }
-        .pinterest-icon-lg {
-            width: 24px;
-            height: 24px;
-        }
 
         @media print { .nav-bar, .share-section, .action-buttons, .ck-cta-mega, .hero, .modal-overlay, .ad-space { display: none !important; } body { background: white; color: black; } .card { background: white; border: 1px solid #ccc; page-break-inside: avoid; box-shadow: none; color: black; } .section-title, label, .insight-title, p, h1, h2, h3, .nav-logo { color: black !important; } .live-total { background: #eee; color: black; } }
         @media (max-width: 768px) { h1 { font-size: 2em; } .nav-links { display: none; } .hero-stats { gap: 20px; } .card { padding: 25px; } .live-total-amount { font-size: 2.5em; } .ck-cta-mega { padding: 30px 20px; } .ck-cta-mega h2 { font-size: 1.8em; } .input-grid { grid-template-columns: 1fr; } .chart-container { height: 300px; } }
@@ -581,7 +561,7 @@
             <a href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fsecretsantamatch.com%2Fholiday-budget-calculator.html&media=https%3A%2F%2Fsecretsantamatch.com%2Fposts%2Fholiday-budget-calculator.webp&description=I%20calculated%20my%20holiday%20spending%20and%20it's%20way%20more%20than%20I%20thought!%20%F0%9F%98%B1%20Free%20calculator%20shows%20your%20real%20holiday%20costs%20%2B%20credit%20impact.%20Calculate%20yours%20now!" target="_blank" rel="noopener noreferrer" style="display: inline-block; position: relative; border: none; text-decoration: none;">
                 <img src="/posts/holiday-budget-calculator.webp" alt="A festive image prompting users to pin the holiday budget calculator on Pinterest." style="max-width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
                 <div style="position: absolute; top: 1rem; right: 1rem; background: #E60023; color: white; padding: 0.5rem 1rem; border-radius: 50px; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <div class="pinterest-icon pinterest-icon-sm"></div>
+                    <img src="/pinterest_logo.png" alt="Pinterest logo" style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
                     Pin Me!
                 </div>
             </a>
@@ -651,6 +631,15 @@
                 <div class="trust-indicators" style="margin-top: 15px; font-size: 0.85em; justify-content: center;"><div class="trust-indicator">✓ 100% Free Forever</div><div class="trust-indicator">✓ No Credit Card Required</div><div class="trust-indicator">✓ Won't Hurt Your Score</div></div>
             </div>
         </div>
+        
+        <div class="ad-space">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3037944530219260"
+                 data-ad-slot="9876543210" 
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+        </div>
 
         <div id="results-container"></div>
 
@@ -664,7 +653,7 @@
             <div class="share-title">💬 Share This Tool</div>
             <div class="share-subtitle">Help your friends avoid holiday debt too</div>
             <div class="share-buttons">
-                <button class="share-btn twitter" onclick="shareTwitter()" aria-label="Share on Twitter">
+                <button class="share-btn twitter" onclick="shareTwitter()" aria-label="Share on X/Twitter">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 </button>
                 <button class="share-btn facebook" onclick="shareFacebook()" aria-label="Share on Facebook">
@@ -674,23 +663,13 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
                 </button>
                 <button class="share-btn pinterest" onclick="sharePinterest()" aria-label="Pin on Pinterest">
-                    <div class="pinterest-icon pinterest-icon-lg"></div>
+                    <img src="/pinterest_logo.png" alt="Pinterest logo" style="width: 24px; height: 24px; filter: brightness(0) invert(1);">
                 </button>
                 <button class="share-btn copy" onclick="copyLink(this)" aria-label="Copy Link">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                 </button>
             </div>
         </div>
-        
-        <div class="ad-space">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-3037944530219260"
-                 data-ad-slot="9876543210" 
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-        </div>
-
 
         <div class="affiliate-disclaimer"><strong>Affiliate Disclosure:</strong> This page contains affiliate links to Credit Karma. If you sign up through our links, we may earn a commission at no additional cost to you. We only recommend services that provide genuine value for holiday budget planning and financial management. All opinions and recommendations are our own. SecretSantaMatch.com calculator is 100% free to use with no affiliate relationship.</div>
 
@@ -758,9 +737,12 @@
             if (grandTotal > 0) {
                 const isFirstTime = !resultsGenerated;
                 generateResults(grandTotal, totalExchanges, familyGifts + hosting + extras, exchangeDetails);
-                if (isFirstTime) {
-                    setTimeout(() => {
-                        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (isFirstTime && document.getElementById('calculator')) {
+                     setTimeout(() => {
+                        const resultsEl = document.getElementById('results-container');
+                        if (resultsEl) {
+                           resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
                         resultsGenerated = true;
                     }, 300);
                 }
@@ -797,8 +779,8 @@
                 createSpendingChart(exchanges, other, exchangeDetails); 
                 createComparisonChart(total);
                 try {
-                     (adsbygoogle = window.adsbygoogle || []).push({});
-                     (adsbygoogle = window.adsbygoogle || []).push({});
+                     (window.adsbygoogle = window.adsbygoogle || []).push({});
+                     (window.adsbygoogle = window.adsbygoogle || []).push({});
                 } catch(e) { console.error('Adsense push error', e) }
             }, 100);
         }
@@ -832,7 +814,14 @@
         function openPrintModal() {
             const title = '🖨️ Print / Save Your Budget Plan';
             const body = `<p>This will open your browser's print dialog. From there, you can either print to a physical printer or save your plan as a PDF file.</p>
-                          <p style="margin-top: 1rem;"><strong>To Save as PDF:</strong> In the print dialog, look for the 'Destination' or 'Printer' dropdown and select 'Save as PDF'.</p>`;
+                          <p style="margin-top: 1rem;"><strong>To Save as PDF:</strong> In the print dialog, look for the 'Destination' or 'Printer' dropdown and select 'Save as PDF'.</p>
+                          <h3 style="color: #f1f5f9; margin-top: 1.5rem; font-size: 1.2em;">What's Included:</h3>
+                          <ul>
+                            <li>✓ Your total holiday spending breakdown.</li>
+                            <li>✓ A visual chart of where your money is going.</li>
+                            <li>✓ Your holiday spending vs. the national average.</li>
+                            <li>✓ Your credit utilization impact report.</li>
+                          </ul>`;
             const footer = `<button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancel</button>
                             <button class="modal-btn modal-btn-primary" onclick="window.print(); closeModal();">Print Now</button>`;
             openModal(title, body, footer);
@@ -840,9 +829,9 @@
 
         function saveResults() {
             const url = new URL(window.location.href);
-            url.hash = `total-${document.getElementById('grand-total').textContent}`;
+            url.hash = `total-${document.getElementById('grand-total').textContent.replace('$', '')}`;
             navigator.clipboard.writeText(url.toString()).then(() => {
-                openModal('🔖 Bookmark Link Copied!', '<p>Your unique results URL has been copied to your clipboard. You can paste it in your browser\'s bookmark manager to save your results.</p>', `<button class="modal-btn modal-btn-secondary" onclick="closeModal()">Got it!</button>`);
+                openModal('🔖 Bookmark Link Copied!', '<p>Your unique results URL has been copied to your clipboard. You can paste it in your browser\'s bookmark manager to save your results for later.</p><p style="margin-top: 1rem; color: #94a3b8; font-size: 0.9em;">Note: This saves the final total but not the individual form entries.</p>', `<button class="modal-btn modal-btn-primary" onclick="closeModal()">Got it!</button>`);
             });
         }
         
@@ -850,15 +839,31 @@
         function shareFacebook() { window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank'); }
         function shareLinkedIn() { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank'); }
         function sharePinterest() { window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(window.location.href)}&media=${encodeURIComponent('https://secretsantamatch.com/posts/holiday-budget-calculator.webp')}&description=${encodeURIComponent('Free holiday budget calculator - see your real spending + credit impact!')}`, '_blank'); }
-        function copyLink(button) { navigator.clipboard.writeText(window.location.href).then(() => { const original = button.innerHTML; button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17l-3.59-3.59L4 14l5 5 9-9-1.41-1.41L9 16.17z"/></svg>'; setTimeout(() => { button.innerHTML = original; }, 2000); }); }
+        function copyLink(button) { 
+          navigator.clipboard.writeText(window.location.href).then(() => { 
+            const original = button.innerHTML; 
+            button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17l-3.59-3.59L4 14l5 5 9-9-1.41-1.41L9 16.17z"/></svg>'; 
+            setTimeout(() => { button.innerHTML = original; }, 2000); 
+          }); 
+        }
         
         addExchange();
 
         document.addEventListener('DOMContentLoaded', () => {
-            const hash = window.location.hash;
-            if (hash && hash.startsWith('#total-')) {
-                // This is a placeholder for potential future functionality to load saved results.
-                // For now, it just ensures the calculator starts fresh.
+             // Handle auto-scrolling to calculator from URL parameter
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('action') === 'calculate') {
+                const calculatorEl = document.getElementById('calculator');
+                if (calculatorEl) {
+                    calculatorEl.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+
+            try {
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.error("AdSense initial push error", e);
             }
         });
 
