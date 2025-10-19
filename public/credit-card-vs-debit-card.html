@@ -9,11 +9,15 @@
     <meta property="og:title" content="Credit Card vs Debit Card for Holiday Shopping: Your 2025 Guide">
     <meta property="og:description" content="Make smarter holiday shopping decisions with our comprehensive guide to credit cards vs debit cards this festive season.">
     <meta property="og:type" content="article">
-    <meta property="og:image" content="https://secretsantamatch.com/thumbnails/credit-vs-debit.png">
+    <meta property="og:image" content="https://secretsantamatch.com/posts/credit-vs-debit-thumb.webp">
     <title>Should I Use Credit Card or Debit Card for Holiday Shopping? 2025 Guide</title>
     
     <!-- Pinterest Verification -->
     <meta name="p:domain_verify" content="bc322d28f428cbc03973572de2259667"/>
+    <meta name="pinterest-rich-pin" content="true">
+    <meta property="p:image" content="https://secretsantamatch.com/posts/credit-vs-debit.webp">
+    <meta name="p:keywords" content="credit card vs debit card, holiday shopping, financial tips, budgeting, BNPL, smart spending, personal finance, holiday budget">
+
 
     <!-- Pinterest Tag -->
     <script type="text/javascript">
@@ -99,1493 +103,416 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --winter-white: #fdfcfb;
-            --holly-red: #c41e3a;
-            --pine-green: #1e4d3d;
-            --gold-accent: #d4af37;
-            --soft-cream: #f8f6f3;
-            --charcoal: #2c2c2c;
-            --silver-mist: #e8e8e8;
-            --warm-grey: #5a5a5a;
+            --primary-red: #D42426;
+            --primary-green: #0F7C3F;
+            --gold: #FFD700;
+            --dark-bg: #1a1a2d;
+            --light-bg: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #475569;
+            --orange: #f97316;
+            --purple: #7e22ce;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.7;
-            color: var(--charcoal);
-            background: var(--winter-white);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        .ad-space {
-            max-width: 970px;
-            margin: 40px auto;
-            min-height: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+
+        html {
+            scroll-behavior: smooth;
         }
 
-        /* Elegant header */
-        .hero {
-            background: linear-gradient(165deg, var(--holly-red) 0%, #8b1a2f 100%);
-            padding: 80px 20px 100px;
-            position: relative;
-            overflow: hidden;
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.8;
+            color: var(--text-light);
+            background: var(--light-bg);
         }
-        
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        
-        .hero::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 100px;
-            background: var(--winter-white);
-            clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 100%);
-        }
-        
-        .container {
-            max-width: 820px;
-            margin: 0 auto;
-            padding: 0 20px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .hero-content {
-            max-width: 700px;
-            margin: 0 auto;
+
+        .nav-bar {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
             text-align: center;
-            position: relative;
-            z-index: 3;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         
-        .category-tag {
-            display: inline-block;
-            color: rgba(255,255,255,0.9);
-            font-size: 0.75rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+        .nav-bar a {
             font-weight: 600;
-            margin-bottom: 20px;
-            padding: 8px 16px;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
+            color: var(--primary-red);
+            text-decoration: none;
+            margin: 0 1rem;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-bar a:hover {
+            color: var(--primary-green);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary-red), var(--primary-green));
+            color: white;
+            padding: 5rem 1.5rem 7rem;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: -4rem auto 0;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 10;
+        }
+        
+        article {
+            background: white;
+            padding: 3rem clamp(1.5rem, 5vw, 4rem);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
         }
         
         h1 {
             font-family: 'Playfair Display', serif;
-            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            font-size: clamp(2.2rem, 5vw, 3rem);
             font-weight: 900;
-            color: white;
-            line-height: 1.15;
-            margin-bottom: 24px;
-            letter-spacing: -0.02em;
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 1rem;
         }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            color: rgba(255,255,255,0.95);
-            font-weight: 400;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-        
-        .meta {
-            color: rgba(255,255,255,0.8);
+
+        .post-meta {
+            color: #64748b;
             font-size: 0.9rem;
             font-weight: 500;
         }
-        
-        .meta span {
-            margin: 0 12px;
-        }
-        
-        /* Main content area */
-        article {
-            max-width: 760px;
-            margin: -50px auto 60px;
-            background: white;
-            padding: 60px clamp(30px, 6vw, 70px);
-            border-radius: 12px;
-            box-shadow: 0 30px 90px rgba(0,0,0,0.08);
-            position: relative;
-        }
-        
-        /* Typography refinements */
-        .lede {
-            font-size: 1.3rem;
-            line-height: 1.75;
-            color: var(--warm-grey);
-            margin-bottom: 2rem;
-            font-weight: 400;
-        }
-        
-        .lede::first-letter {
-            font-size: 3.5rem;
-            font-family: 'Playfair Display', serif;
-            font-weight: 700;
-            float: left;
-            line-height: 0.85;
-            margin: 8px 12px 0 0;
-            color: var(--holly-red);
-        }
-        
-        p {
-            font-size: 1.05rem;
-            line-height: 1.8;
-            margin-bottom: 1.5rem;
-            color: var(--charcoal);
-        }
-        
+
         h2 {
             font-family: 'Playfair Display', serif;
             font-size: 2.2rem;
             font-weight: 700;
-            color: var(--charcoal);
+            color: var(--text-dark);
             margin: 3.5rem 0 1.5rem;
             line-height: 1.3;
-            letter-spacing: -0.01em;
-        }
-        
-        h2:first-of-type {
-            margin-top: 2rem;
+            border-bottom: 3px solid var(--primary-red);
+            padding-bottom: 0.5rem;
+            display: inline-block;
         }
         
         h3 {
-            font-family: 'Inter', sans-serif;
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--charcoal);
+            color: var(--text-dark);
             margin: 2.5rem 0 1rem;
             line-height: 1.4;
         }
-        
-        /* Pull quote styling */
-        .pullquote {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
-            line-height: 1.5;
-            color: var(--holly-red);
-            margin: 3rem 0;
-            padding: 2rem;
-            border-left: 4px solid var(--gold-accent);
-            background: linear-gradient(135deg, #fef8f8 0%, #fefefe 100%);
-            border-radius: 0 8px 8px 0;
-            font-weight: 600;
-            font-style: italic;
-        }
-        
-        /* Stat callouts */
-        .stat-highlight {
-            background: linear-gradient(135deg, var(--soft-cream) 0%, white 100%);
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2.5rem 0;
-            border-top: 3px solid var(--gold-accent);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
-        }
-        
-        .stat-highlight strong {
-            color: var(--holly-red);
-            font-weight: 700;
-        }
-        
-        /* Comparison cards - sophisticated layout */
-        .comparison-section {
-            margin: 3rem 0;
-        }
-        
-        .payment-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-        
-        .payment-card {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            border: 2px solid var(--silver-mist);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .payment-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--holly-red), var(--pine-green));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.4s ease;
-        }
-        
-        .payment-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.12);
-            border-color: var(--gold-accent);
-        }
-        
-        .payment-card:hover::before {
-            transform: scaleX(1);
-        }
-        
-        .payment-card.debit::before {
-            background: linear-gradient(90deg, var(--pine-green), var(--gold-accent));
-        }
-        
-        .payment-card.bnpl::before {
-            background: linear-gradient(90deg, #8b5cf6, var(--gold-accent));
-        }
-        
-        .card-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-        
-        .card-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
-            font-weight: 700;
+
+        p {
             margin-bottom: 1.5rem;
-            color: var(--charcoal);
-        }
-        
-        .pros-cons-list {
-            margin-top: 1.5rem;
-        }
-        
-        .pros-cons-list h4 {
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--warm-grey);
-            margin-bottom: 0.75rem;
-        }
-        
-        .pros-cons-list ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .pros-cons-list li {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            padding: 0.5rem 0 0.5rem 1.8rem;
-            position: relative;
-        }
-        
-        .pros-cons-list li::before {
-            position: absolute;
-            left: 0;
-            font-weight: 700;
             font-size: 1.1rem;
         }
-        
-        .pros li::before {
-            content: '✓';
-            color: var(--pine-green);
-        }
-        
-        .cons li::before {
-            content: '×';
-            color: var(--holly-red);
-        }
-        
-        /* Sophisticated tables */
-        .comparison-table {
-            width: 100%;
-            margin: 2.5rem 0;
-            border-collapse: separate;
-            border-spacing: 0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-        }
-        
-        .comparison-table thead {
-            background: linear-gradient(135deg, var(--charcoal) 0%, #3a3a3a 100%);
-        }
-        
-        .comparison-table th {
-            color: white;
-            padding: 1.2rem 1.5rem;
-            text-align: left;
+
+        a {
+            color: var(--primary-red);
+            text-decoration: none;
             font-weight: 600;
-            font-size: 0.95rem;
-            letter-spacing: 0.3px;
+            border-bottom: 2px solid rgba(212, 36, 38, 0.3);
+            transition: all 0.2s;
         }
         
-        .comparison-table td {
-            padding: 1.2rem 1.5rem;
-            border-bottom: 1px solid var(--silver-mist);
-            font-size: 0.95rem;
-            line-height: 1.6;
+        a:hover {
+            background-color: rgba(212, 36, 38, 0.1);
+            border-bottom-color: var(--primary-red);
         }
-        
-        .comparison-table tbody tr {
-            background: white;
-            transition: background 0.2s ease;
-        }
-        
-        .comparison-table tbody tr:hover {
-            background: var(--soft-cream);
-        }
-        
-        .comparison-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        
-        /* Alert boxes - refined */
-        .alert-box {
-            padding: 2rem;
-            border-radius: 12px;
+
+        ul, ol { margin: 1.5rem 0 1.5rem 1.2rem; }
+        li { margin-bottom: 0.8rem; padding-left: 0.5rem; }
+        li::marker { color: var(--primary-red); font-weight: bold; }
+
+        .ad-space {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin: 2.5rem 0;
-            border-left: 5px solid;
-            position: relative;
+            border-radius: 12px;
         }
-        
-        .alert-box.danger {
-            background: linear-gradient(135deg, #fff5f5 0%, #fef8f8 100%);
-            border-color: var(--holly-red);
+
+        .highlight-box {
+            background: #fffbeb;
+            border-left: 5px solid var(--gold);
+            padding: 2rem;
+            margin: 2.5rem 0;
+            border-radius: 12px;
         }
-        
-        .alert-box.info {
-            background: linear-gradient(135deg, #f0f9ff 0%, #f8fbff 100%);
-            border-color: #3b82f6;
-        }
-        
-        .alert-box.success {
-            background: linear-gradient(135deg, #f0fdf4 0%, #f8fef9 100%);
-            border-color: var(--pine-green);
-        }
-        
-        .alert-box h4 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            color: var(--charcoal);
-        }
-        
-        /* CTA Section - elegant */
-        .cta-section {
-            background: linear-gradient(135deg, var(--pine-green) 0%, #0f3028 100%);
-            padding: 3rem 2.5rem;
-            border-radius: 16px;
-            margin: 4rem 0;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(30, 77, 61, 0.3);
-        }
-        
-        .cta-section::before {
-            content: '✨';
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            font-size: 3rem;
-            opacity: 0.2;
-            animation: twinkle 3s ease-in-out infinite;
-        }
-        
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.2; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(1.1); }
-        }
-        
-        .cta-section h3 {
-            font-family: 'Playfair Display', serif;
-            color: white;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-        
-        .cta-section p {
-            color: rgba(255,255,255,0.9);
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-            line-height: 1.7;
-        }
+        .highlight-box h3 { margin-top: 0; }
         
         .cta-button {
             display: inline-block;
-            background: white;
-            color: var(--pine-green);
-            padding: 16px 40px;
+            background: linear-gradient(135deg, var(--primary-red), #a01829);
+            color: white;
+            padding: 1rem 2.5rem;
             border-radius: 50px;
+            font-weight: 700;
             text-decoration: none;
-            font-weight: 700;
-            font-size: 1.05rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border: 2px solid transparent;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-            border-color: var(--gold-accent);
-        }
-        
-        /* FAQ Section - magazine style */
-        .faq-section {
-            margin: 4rem 0;
-        }
-        
-        .faq-item {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-            transition: all 0.3s ease;
-        }
-        
-        .faq-item:hover {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-            transform: translateX(4px);
-        }
-        
-        .faq-item:nth-child(odd) {
-            border-color: var(--holly-red);
-        }
-        
-        .faq-item:nth-child(even) {
-            border-color: var(--pine-green);
-        }
-        
-        .faq-item h4 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: var(--charcoal);
-            line-height: 1.4;
-        }
-        
-        .faq-item p {
-            margin: 0;
-            color: var(--warm-grey);
-        }
-        
-        /* Resources grid */
-        .resources-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        
-        .resource-card {
-            background: linear-gradient(135deg, var(--soft-cream) 0%, white 100%);
-            padding: 2rem 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        
-        .resource-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--gold-accent);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-        }
-        
-        .resource-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-        
-        .resource-card h4 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--charcoal);
-        }
-        
-        .resource-card p {
-            font-size: 0.9rem;
-            margin: 0;
-            color: var(--warm-grey);
-        }
-        
-        /* Modal styles - Premium redesign */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(12px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 20px;
-        }
-        
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal {
-            background: white;
-            border-radius: 24px;
-            max-width: 650px;
-            width: 100%;
-            position: relative;
-            transform: scale(0.85) translateY(50px);
-            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 40px 120px rgba(0,0,0,0.4);
-            overflow: hidden;
-        }
-        
-        .modal-overlay.active .modal {
-            transform: scale(1) translateY(0);
-        }
-        
-        .modal-header {
-            background: linear-gradient(135deg, #c41e3a 0%, #8b1a2f 50%, #6b1423 100%);
-            padding: 3.5rem 3rem 12rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Decorative elements */
-        .modal-header::before {
-            content: '';
-            position: absolute;
-            top: -100px;
-            right: -100px;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: pulse 3s ease-in-out infinite;
-        }
-        
-        .modal-header::after {
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            left: -50px;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.15; }
-            50% { transform: scale(1.1); opacity: 0.25; }
-        }
-        
-        .modal-close {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.3);
-            color: white;
-            font-size: 1.5rem;
+            border: none;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 4px 15px rgba(212, 36, 38, 0.4);
             transition: all 0.3s ease;
-            z-index: 10;
-            font-weight: 300;
         }
-        
-        .modal-close:hover {
-            background: rgba(255,255,255,0.25);
-            border-color: rgba(255,255,255,0.5);
-            transform: rotate(90deg) scale(1.1);
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(212, 36, 38, 0.5);
         }
-        
-        .modal-header h3 {
+
+        .santa-box, .blog-link-box {
+            background: linear-gradient(135deg, var(--purple), var(--dark-bg));
+            color: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin: 3rem 0;
+            text-align: center;
+        }
+        .santa-box h3, .blog-link-box h3 {
             font-family: 'Playfair Display', serif;
             color: white;
-            font-size: 2.4rem;
-            margin: 0 0 1rem 0;
-            font-weight: 700;
-            position: relative;
-            z-index: 2;
-            letter-spacing: -0.02em;
-        }
-        
-        .modal-header p {
-            color: rgba(255,255,255,0.95);
-            margin: 0;
-            font-size: 1.15rem;
-            position: relative;
-            z-index: 2;
-            line-height: 1.6;
-        }
-        
-        /* Calculator illustration */
-        .calculator-illustration {
-            position: absolute;
-            bottom: -80px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 160px;
-            height: 160px;
-            background: white;
-            border-radius: 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            border: 4px solid var(--gold-accent);
-            z-index: 10;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-10px); }
-        }
-        
-        .calculator-illustration::before {
-            content: '💰';
-            font-size: 4rem;
-            margin-bottom: 0.5rem;
-            animation: bounce 2s ease-in-out infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-        
-        .calculator-illustration::after {
-            content: '📊';
-            font-size: 2rem;
-            position: absolute;
-            bottom: 15px;
-            opacity: 0.6;
-        }
-        
-        .modal-body {
-            padding: 6rem 3rem 3rem;
-            background: linear-gradient(to bottom, #fafafa 0%, white 50%);
-        }
-        
-        .modal-content {
-            text-align: center;
-        }
-        
-        .modal-content h4 {
-            font-family: 'Playfair Display', serif;
             font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 1.25rem;
-            color: var(--charcoal);
-            line-height: 1.3;
-        }
-        
-        .modal-content p {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: var(--warm-grey);
             margin-bottom: 1rem;
         }
-        
-        /* Stats showcase */
-        .modal-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin: 2rem 0 2.5rem;
-            padding: 2rem;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        .santa-box p, .blog-link-box p { color: rgba(255,255,255,0.9); }
+        .santa-box a, .blog-link-box a {
+            color: #fcd34d;
+            border-bottom-color: rgba(252, 211, 77, 0.5);
         }
-        
-        .modal-stat {
+        .santa-box a:hover, .blog-link-box a:hover {
+            background-color: rgba(252, 211, 77, 0.1);
+            border-bottom-color: #fcd34d;
+        }
+
+        .share-section {
             text-align: center;
+            padding: 2.5rem;
+            background: #f8fafc;
+            border-radius: 16px;
+            margin: 3rem 0;
         }
-        
-        .modal-stat-value {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--holly-red);
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-        
-        .modal-stat-label {
-            font-size: 0.85rem;
-            color: var(--warm-grey);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-        
-        .modal-buttons {
+        .share-buttons {
             display: flex;
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
+            margin-top: 1.5rem;
         }
-        
-        .modal-button {
-            padding: 16px 36px;
+        .share-btn {
+            padding: 0.8rem 1.5rem;
             border-radius: 50px;
-            font-weight: 700;
-            font-size: 1.05rem;
+            border: none;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
+            transition: all 0.3s;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            border: 2px solid;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .modal-button.primary {
-            background: linear-gradient(135deg, var(--holly-red) 0%, #8b1a2f 100%);
-            color: white;
-            border-color: var(--holly-red);
-            box-shadow: 0 8px 25px rgba(196, 30, 58, 0.3);
-        }
-        
-        .modal-button.primary:hover {
-            background: linear-gradient(135deg, #a01829 0%, #6b1423 100%);
-            border-color: #a01829;
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(196, 30, 58, 0.4);
-        }
-        
-        .modal-button.primary::after {
-            content: '→';
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
-        }
-        
-        .modal-button.primary:hover::after {
-            transform: translateX(4px);
-        }
-        
-        .modal-button.secondary {
-            background: white;
-            color: var(--warm-grey);
-            border-color: var(--silver-mist);
-        }
-        
-        .modal-button.secondary:hover {
-            border-color: var(--charcoal);
-            color: var(--charcoal);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        /* Trust badges */
-        .modal-trust {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--silver-mist);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-        
-        .trust-badge {
-            display: flex;
-            align-items: center;
             gap: 0.5rem;
-            color: var(--warm-grey);
+            text-decoration: none;
+        }
+        .share-btn:hover { transform: translateY(-3px); }
+        .share-btn svg, .share-btn img { width: 18px; height: 18px; }
+        .share-btn.pinterest { background: #E60023; color: white; }
+        .share-btn.twitter { background: #1da1f2; color: white; }
+        .share-btn.facebook { background: #1877F2; color: white; }
+        .share-btn.copy { background: #334155; color: white; }
+        
+        footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            color: #64748b;
             font-size: 0.9rem;
         }
         
-        .trust-badge::before {
-            content: '✓';
-            color: var(--pine-green);
-            font-weight: 700;
-            font-size: 1.2rem;
+        /* Modal for calculator */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
         }
-        
-        /* Calculator trigger link */
-        .calculator-trigger {
-            color: var(--holly-red);
-            font-weight: 700;
-            text-decoration: none;
-            background: linear-gradient(to right, var(--gold-accent), var(--holly-red));
-            background-size: 0% 2px;
-            background-repeat: no-repeat;
-            background-position: left bottom;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            padding-bottom: 2px;
-            border-bottom: 2px solid var(--gold-accent);
-            position: relative;
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: slideIn 0.4s ease-out;
+            overflow: hidden;
         }
-        
-        .calculator-trigger:hover {
-            color: #8b1a2f;
-            background-size: 100% 2px;
-            padding-left: 4px;
-            padding-right: 4px;
-        }
-        
-        .calculator-trigger::after {
-            content: ' ↗';
-            font-size: 0.9em;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .calculator-trigger:hover::after {
-            opacity: 1;
-        }
-        
-        /* Footer */
-        footer {
-            max-width: 820px;
-            margin: 4rem auto 2rem;
-            padding: 3rem 2rem;
-            background: var(--soft-cream);
-            border-radius: 12px;
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-red), var(--primary-green));
+            padding: 2rem;
             text-align: center;
         }
-        
-        footer p {
-            color: var(--warm-grey);
-            font-size: 0.95rem;
-            margin-bottom: 1rem;
+        .modal-header h2 {
+            color: white; margin: 0; border: none; font-size: 1.8rem;
         }
-        
-        footer p:last-child {
-            margin-bottom: 0;
-            font-size: 0.85rem;
+        .modal-body { padding: 2rem; }
+        .modal-body h3 { margin-top: 0; }
+        .close-button {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: none; border: none;
+            color: white; font-size: 2rem;
+            cursor: pointer; line-height: 1;
         }
-        
-        footer a {
-            color: var(--holly-red);
-            text-decoration: none;
-            font-weight: 600;
-            border-bottom: 2px solid transparent;
-            transition: border-color 0.3s ease;
-        }
-        
-        footer a:hover {
-            border-bottom-color: var(--holly-red);
-        }
-        
-        /* Links */
-        a {
-            color: var(--holly-red);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        
-        a:hover {
-            color: #a01829;
-        }
-        
-        strong {
-            font-weight: 700;
-            color: var(--charcoal);
-        }
-        
-        em {
-            font-style: italic;
-            color: var(--holly-red);
-            font-weight: 600;
-        }
-        
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .hero {
-                padding: 60px 20px 80px;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .subtitle {
-                font-size: 1.05rem;
-            }
-            
-            article {
-                padding: 40px 25px;
-                margin: -40px 15px 40px;
-            }
-            
-            .lede {
-                font-size: 1.15rem;
-            }
-            
-            h2 {
-                font-size: 1.8rem;
-            }
-            
-            .payment-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal {
-                margin: 20px;
-            }
-            
-            .modal-header {
-                padding: 2.5rem 1.5rem 10rem;
-            }
-            
-            .modal-header h3 {
-                font-size: 1.8rem;
-            }
-            
-            .modal-body {
-                padding: 5rem 1.5rem 2rem;
-            }
-            
-            .modal-content h4 {
-                font-size: 1.4rem;
-            }
-            
-            .modal-stats {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-                padding: 1.5rem;
-            }
-            
-            .calculator-illustration {
-                width: 140px;
-                height: 140px;
-                bottom: -70px;
-            }
-            
-            .calculator-illustration::before {
-                font-size: 3rem;
-            }
-            
-            .modal-buttons {
-                flex-direction: column;
-            }
-            
-            .modal-button {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .modal-trust {
-                flex-direction: column;
-                gap: 1rem;
-            }
-        }
-        
-        /* Print styles */
-        @media print {
-            .modal-overlay,
-            .cta-section {
-                display: none;
-            }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
     </style>
 </head>
 <body>
     <noscript>
-      <img height="1" width="1" style="display:none;" alt=""
-      src="https://ct.pinterest.com/v3/?tid=2612962984250&noscript=1" />
+      <img height="1" width="1" style="display:none;" alt="" src="https://ct.pinterest.com/v3/?tid=2612962984250&noscript=1" />
     </noscript>
 
-    <nav style="background: #fff; padding: 1rem; border-bottom: 1px solid #eee; text-align: center; font-family: 'Inter', sans-serif;">
-        <a href="/blog.html" style="font-weight: 600; color: var(--holly-red); text-decoration: none; margin: 0 1rem; font-size: 0.9rem;">← Back to All Articles</a>
-        <a href="/" style="font-weight: 600; color: var(--pine-green); text-decoration: none; margin: 0 1rem; font-size: 0.9rem;">Free Secret Santa Generator</a>
+    <nav class="nav-bar">
+        <div>
+            <a href="/">SecretSantaMatch.com</a>
+        </div>
+        <div>
+            <a href="/blog.html">← Back to Blog</a>
+        </div>
     </nav>
 
     <div class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="category-tag">Financial Wellness · Holiday 2025</div>
+        <!-- Hero content in article header -->
+    </div>
+
+    <div class="container">
+        <article>
+            <header>
                 <h1>Credit Card vs. Debit Card: The Holiday Shopper's Dilemma</h1>
-                <p class="subtitle">Why your payment choice matters more than you think this festive season</p>
-                <div class="meta">
-                    <span>Updated October 11, 2025</span>
-                    <span>·</span>
-                    <span>8 min read</span>
-                </div>
+                <p class="post-meta">Updated October 11, 2025 • 8 min read</p>
+            </header>
+
+            <p>There's this moment that happens every November. You're standing in Target, cart already half-full with things that definitely weren't on your list, and you reach for your wallet. Credit card? Debit card? That new buy-now-pay-later thing? The choice feels small, but it's not.</p>
+
+            <p>With Americans projected to drop an average of $1,778 on holiday shopping this year, how you pay isn't just about convenience. It's about whether you'll be feeling financially cozy in January, or staring at credit card statements wondering where it all went wrong.</p>
+            
+            <div style="margin: 2.5rem 0; text-align: center;">
+                <a href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fsecretsantamatch.com%2Fcredit-card-vs-debit-card.html&media=https%3A%2F%2Fsecretsantamatch.com%2Fposts%2Fcredit-vs-debit.webp&description=Credit%20vs%20Debit%20for%20Holiday%20Shopping%3F%20An%20honest%20guide%20to%20rewards%2C%20debt%2C%20and%20making%20smart%20choices%20this%20festive%20season." target="_blank" rel="noopener noreferrer" style="display: inline-block; position: relative; border: none; text-decoration: none;">
+                    <img src="/posts/credit-vs-debit.webp" alt="Pinterest image showing a comparison of credit cards and debit cards for holiday shopping, with festive decorations." style="max-width: 400px; width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: #E60023; color: white; padding: 0.5rem 1rem; border-radius: 50px; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <img src="/pinterest_logo.png" alt="Pinterest logo" style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
+                        Pin Me!
+                    </div>
+                </a>
+                <p style="font-size: 0.9rem; color: #64748b; margin-top: 1rem;">Click the image to save this guide on Pinterest!</p>
             </div>
-        </div>
+
+            <div class="ad-space">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3037944530219260" data-ad-slot="9876543210" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+
+            <h2>The Credit Card Case (Or: How I Learned to Love Rewards)</h2>
+            <p>Credit cards get a bad rap. But when used responsibly, they're brilliant for holiday shopping. Think of them as your shopping bodyguards with benefits. Someone steals your card number? That's the bank's problem. Buy a gift that breaks? Many cards extend the warranty. Plus, you're earning cash back or points on every purchase.</p>
+            <ul>
+                <li><strong>Pros:</strong> Cash back/points, zero fraud liability, purchase protection, extended warranties, builds credit.</li>
+                <li><strong>Cons:</strong> Easy to overspend, high interest rates (avg. 21.47%), the "I'll pay it off later" trap.</li>
+            </ul>
+
+            <h2>The Debit Card Defense (Your Built-In Budget)</h2>
+            <p>A debit card is your financial reality check. You can only spend what you have, which makes it impossible to go into holiday debt. It forces budget discipline because when the money's gone, it's gone. The spending feels more "real."</p>
+            <ul>
+                <li><strong>Pros:</strong> Natural spending limit, forces discipline, no interest, no debt hangover.</li>
+                <li><strong>Cons:</strong> If fraud hits, your actual money is frozen; zero rewards; overdraft fees can be costly.</li>
+            </ul>
+
+            <h2>The Wild Card: Buy Now, Pay Later (BNPL)</h2>
+            <p>Services like Afterpay and Klarna are everywhere. The pitch is seductive: split a $200 gift into four interest-free payments of $50. It feels like a hack, but it can be a trap.</p>
+            <p><strong>The Danger:</strong> Multiple BNPL purchases create a chaotic web of payment dates. Miss one, and late fees can snowball. Use it only if you can afford the full price today and are just managing cash flow.</p>
+            
+            <div class="highlight-box">
+                <h3>⚠️ The Real Cost of "I'll Pay It Off Later"</h3>
+                <p>That $1,500 you put on a credit card? If you only make minimum payments, it could take you nearly <strong>4 years</strong> to pay off and cost you over <strong>$500 in interest alone</strong>. The bank makes a fortune off that "convenience."</p>
+                <p style="margin-top: 1rem;"><a href="/minimum-payment-calculator.html" target="_blank">Try our free minimum payment calculator</a> to see exactly how much those minimum payments are really costing you.</p>
+            </div>
+            
+            <div class="ad-space">
+                 <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3037944530219260" data-ad-slot="8765432109" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                 <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+
+            <h2>So Which One Should You Actually Use?</h2>
+            <p>Be brutally honest with yourself. If you track spending and pay balances in full, use a credit card and reap the rewards. If you know credit cards are a temptation, stick with debit. There's zero shame in that.</p>
+            <p><strong>The Hybrid Approach (What Smart Shoppers Do):</strong></p>
+            <ul>
+                <li><strong>Credit Cards for:</strong> Large, planned purchases and online shopping (for better fraud protection).</li>
+                <li><strong>Debit Cards for:</strong> In-store "danger zones" like Target runs and smaller purchases where you need to feel the spending.</li>
+                <li><strong>BNPL for:</strong> A specific, planned purchase you can comfortably pay off, but want to spread out over a few paychecks.</li>
+            </ul>
+            
+            <div class="santa-box">
+                <h3>🎁 Making Your Holiday Budget?</h3>
+                <p>Organizing a Secret Santa? Don't let the chaos eat your budget. <a href="https://secretsantamatch.com">SecretSantaMatch.com</a> takes the stress out of group gifting—set budgets, share wish lists, and keep everything organized. It's completely free, no email required.</p>
+            </div>
+
+            <h2>Your Pre-Shopping Battle Plan</h2>
+            <ol>
+                <li><strong>Get Specific with Your Budget:</strong> Not "around $1,500," but an exact number for each category (family, friends, coworkers).</li>
+                <li><strong>Set Up Spending Alerts:</strong> Real-time notifications on your phone are proven to reduce overspending by over 20%.</li>
+                <li><strong>Track As You Go:</strong> Use an app or a simple spreadsheet. Log every purchase the day you make it. Don't wait until January.</li>
+                <li><strong>Do the Rewards Math:</strong> That 2% cash back is great, but one month of 21% interest will wipe out years of rewards. Only use credit if you can pay it off.</li>
+            </ol>
+            
+            <div class="ad-space">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3037944530219260" data-ad-slot="7654321098" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+
+            <h2>Quick Answers to Common Questions</h2>
+            <h3>Is credit or debit better for Christmas shopping?</h3>
+            <p>Credit, if you're disciplined enough to pay it off in full. You get rewards and better protection. Debit, if you want to avoid debt at all costs.</p>
+            <h3>Should I use Afterpay or Klarna?</h3>
+            <p>Only if you're using it to manage cash flow, not to afford something you otherwise couldn't. If you wouldn't buy it with a debit card today, don't BNPL it.</p>
+            <h3>What's the safest way to shop online?</h3>
+            <p>Credit cards offer the best protection. If fraud happens, it's the bank's money at risk, not yours. Your actual bank account is never exposed.</p>
+
+            <h2>The Bottom Line</h2>
+            <p>The payment method matters, but the mindset matters more. The holidays should add to your life, not your debt. The best choice is the one that lets you enjoy January without a financial hangover. Make this the year you remember for the memories, not the minimum payments.</p>
+
+            <footer>
+                <p><strong>About SecretSantaMatch.com</strong></p>
+                <p>We make holiday celebrations easier. Our free Secret Santa generator helps organize gift exchanges with zero hassle—no email required, just simple, joyful giving.</p>
+            </footer>
+        </article>
     </div>
 
-    <article>
-        <p class="lede">There's this moment that happens every November. You're standing in Target, cart already half-full with things that definitely weren't on your list, and you reach for your wallet. Credit card? Debit card? That new buy-now-pay-later thing your phone keeps suggesting? The choice feels small, almost automatic—but here's the thing: it's not.</p>
-
-        <p>With Americans projected to drop an average of $1,778 on holiday shopping this year (and let's be honest, that number climbs higher when you factor in those "just one more" purchases), how you pay isn't just about convenience. It's about whether you'll be sipping hot cocoa in January feeling financially cozy, or staring at credit card statements wondering where it all went wrong.</p>
-
-        <div class="stat-highlight">
-            <strong>Worth knowing:</strong> The National Retail Federation expects holiday retail sales to hit $980 billion in 2025. That's not just big—it's "fund a small nation" big. And here's the kicker: 58% of shoppers plan to use credit cards, while 35% are Team Debit, with the rest experimenting with newer payment methods like buy now, pay later.
-        </div>
-        
-        <div class="ad-space">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-3037944530219260"
-                 data-ad-slot="9876543210"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-
-        <h2>The Credit Card Case (Or: How I Learned to Love Rewards)</h2>
-
-        <p>Look, credit cards get a bad rap. They're the financial equivalent of that friend who's fun at parties but might convince you to make questionable decisions at 2 AM. But when used responsibly—and that's the key phrase here—they're actually pretty brilliant for holiday shopping.</p>
-
-        <p>Think of credit cards as your shopping bodyguards with benefits. You're not just swiping plastic; you're activating a whole ecosystem of protections. Someone steals your card number and goes wild on Amazon? That's the bank's problem, not yours. Buy a gift that breaks a week after Christmas? Many cards extend the manufacturer's warranty. Find that same sweater for 30% less two weeks later? Some cards will refund you the difference.</p>
-
-        <div class="comparison-section">
-            <div class="payment-cards">
-                <div class="payment-card credit">
-                    <span class="card-icon">💳</span>
-                    <h3 class="card-title">Credit Cards</h3>
-                    <p style="margin-bottom: 1.5rem; color: var(--warm-grey);">Your rewards-earning, fraud-fighting shopping companion</p>
-                    
-                    <div class="pros-cons-list">
-                        <h4>The Upside</h4>
-                        <ul class="pros">
-                            <li>Cash back or points (1-5% back adds up fast when you're dropping four figures)</li>
-                            <li>Zero liability for fraud—your actual money never leaves your account</li>
-                            <li>Purchase protection that debit cards can't match</li>
-                            <li>Extended warranties on electronics and appliances</li>
-                            <li>Building credit while you shop (assuming you pay on time)</li>
-                            <li>Bonus perks like travel insurance and concierge services on premium cards</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="pros-cons-list">
-                        <h4>The Downside</h4>
-                        <ul class="cons">
-                            <li>Makes overspending feel too easy (your brain doesn't register "spending" the same way)</li>
-                            <li>Interest rates averaging 21.47% in 2025—ouch</li>
-                            <li>That "I'll pay it off later" mindset that turns January into regret season</li>
-                            <li>Minimum payments are a trap designed to keep you paying forever</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="payment-card debit">
-                    <span class="card-icon">🏦</span>
-                    <h3 class="card-title">Debit Cards</h3>
-                    <p style="margin-bottom: 1.5rem; color: var(--warm-grey);">The "you can only spend what you have" reality check</p>
-                    
-                    <div class="pros-cons-list">
-                        <h4>The Upside</h4>
-                        <ul class="pros">
-                            <li>Natural spending limit—can't go into debt if you tried</li>
-                            <li>Forces budget discipline (when the money's gone, it's gone)</li>
-                            <li>No interest charges, no debt hangover</li>
-                            <li>Psychological benefit: spending feels more "real"</li>
-                            <li>No annual fees or credit checks needed</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="pros-cons-list">
-                        <h4>The Downside</h4>
-                        <ul class="cons">
-                            <li>When fraud hits, it's your actual money that's frozen</li>
-                            <li>Zero rewards (you're leaving money on the table)</li>
-                            <li>Overdraft fees can stack up to $35+ per transaction</li>
-                            <li>Doesn't help build credit</li>
-                            <li>Less protection for online purchases</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <h2>Enter the Wild Card: Buy Now, Pay Later</h2>
-
-        <p>Remember when Afterpay and Klarna felt like this niche thing only super online people knew about? Yeah, those days are over. BNPL usage jumped 38% last holiday season, and 2025 is shaping up to make that look quaint.</p>
-
-        <p>The pitch is seductive: split that $200 gift into four payments of $50, spread over six weeks, with zero interest. It's like having your cake and eating it too, except the cake is a kitchen mixer you're buying for your mom.</p>
-
-        <div class="pullquote">
-            "If you're considering buy now, pay later because you can't afford something right now, that's your answer. You can't afford it."
-        </div>
-
-        <div class="payment-cards">
-            <div class="payment-card bnpl">
-                <span class="card-icon">💜</span>
-                <h3 class="card-title">Buy Now, Pay Later</h3>
-                <p style="margin-bottom: 1rem;"><strong>The major players:</strong></p>
-                <ul style="list-style: none; padding: 0; margin-bottom: 1.5rem; line-height: 1.8;">
-                    <li><strong>Afterpay:</strong> 4 payments, biweekly, minimal late fees</li>
-                    <li><strong>Klarna:</strong> Flexible terms, some interest-bearing options</li>
-                    <li><strong>Affirm:</strong> 3-36 month terms, 0-36% APR</li>
-                    <li><strong>PayPal Pay in 4:</strong> No interest, no fees (if you pay on time)</li>
-                    <li><strong>Apple Pay Later:</strong> Clean, simple, very Apple</li>
-                </ul>
-                
-                <div class="pros-cons-list">
-                    <h4>Why People Love It</h4>
-                    <ul class="pros">
-                        <li>Zero interest when you're on schedule</li>
-                        <li>Spreads big purchases across paychecks</li>
-                        <li>Soft credit checks won't ding your score</li>
-                        <li>Easier approval than traditional credit</li>
-                    </ul>
-                </div>
-                
-                <div class="pros-cons-list">
-                    <h4>Why Financial Advisors Worry</h4>
-                    <ul class="cons">
-                        <li>Makes expensive things feel affordable (dangerous)</li>
-                        <li>Multiple purchases = payment date chaos</li>
-                        <li>Late fees cascade fast</li>
-                        <li>No rewards (unlike credit cards)</li>
-                        <li>Some now report to credit bureaus</li>
-                        <li>Auto-pay can overdraw your checking account</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="alert-box danger">
-            <h4>⚠️ The BNPL Math Nobody Talks About</h4>
-            <p>Picture this: You use BNPL for five holiday purchases—$150 for your brother, $200 for your partner, $180 for that office gift exchange, $120 for your best friend, and $250 for your parents. Sounds manageable, right?</p>
-            <p style="margin-top: 1rem;">Wrong. That's 20 separate payment due dates to track over the next 6-8 weeks. Miss even one and you're looking at late fees that can snowball to $140+ across all services. Consumer Financial Protection Bureau research found that 43% of BNPL users have made a late payment, and 72% say their financial situation got worse after repeated use.</p>
-        </div>
-
-        <h3>The Three-Way Showdown</h3>
-
-        <table class="comparison-table">
-            <thead>
-                <tr>
-                    <th>What Matters</th>
-                    <th>Credit Card</th>
-                    <th>Debit Card</th>
-                    <th>BNPL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>Interest Rate</strong></td>
-                    <td>0-29.99% APR</td>
-                    <td>None (it's your money)</td>
-                    <td>0% if on time</td>
-                </tr>
-                <tr>
-                    <td><strong>Rewards Game</strong></td>
-                    <td>1-5% cash back</td>
-                    <td>Rarely any</td>
-                    <td>None</td>
-                </tr>
-                <tr>
-                    <td><strong>Fraud Protection</strong></td>
-                    <td>Excellent</td>
-                    <td>Good (but slower)</td>
-                    <td>Varies</td>
-                </tr>
-                <tr>
-                    <td><strong>Keeps You Honest</strong></td>
-                    <td>Not really</td>
-                    <td>Very much yes</td>
-                    <td>Sort of</td>
-                </tr>
-                <tr>
-                    <td><strong>Builds Credit</strong></td>
-                    <td>Yes</td>
-                    <td>No</td>
-                    <td>Sometimes</td>
-                </tr>
-                <tr>
-                    <td><strong>Late Payment Pain</strong></td>
-                    <td>$25-40 + interest</td>
-                    <td>$35 overdraft</td>
-                    <td>$0-10 per payment</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <h2>The Real Cost of "I'll Pay It Off Later"</h2>
-
-        <p>Here's where things get uncomfortable. Studies show that credit card debt balloons by an average of 26% during November and December. Even more sobering? 42% of people who charge their holiday shopping are still paying it off six months later.</p>
-
-        <p>Let's run the math with real numbers, not vague warnings. Say you spend $1,500 on gifts using a credit card with a 21% APR (about average these days). You figure you'll just make the minimum payment of $45 a month until it's gone.</p>
-
-        <div class="alert-box danger">
-            <h4>💰 The Real Cost of Minimum Payments</h4>
-            <p>That $1,500 purchase will end up costing you over $2,000 and take you nearly 4 years to pay off. The bank makes an extra $500 just because you paid the minimum.</p>
-            <p style="margin-top: 1.5rem;"><strong>Want to see the actual damage?</strong> <span class="calculator-trigger" onclick="openCalculator()">Try our free minimum payment calculator</span> to see exactly how much that "convenient" minimum payment really costs you.</p>
-        </div>
-
-        <div class="ad-space">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-3037944530219260"
-                 data-ad-slot="8765432109"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-
-        <div class="cta-section">
-            <h3>🎁 While We're Talking Smart Money Moves...</h3>
-            <p>If you're organizing a Secret Santa or gift exchange this year, don't let the chaos eat your budget. <span style="color: white; font-weight: 700; text-decoration: underline; text-decoration-color: var(--gold-accent); text-underline-offset: 3px;">SecretSantaMatch.com</span> takes the stress out of group gifting—set budget limits, share wish lists, create gorgeous custom cards, and keep everything organized. Best part? It's completely free, no email required.</p>
-            <p>Whether you're team credit card rewards or team debit discipline, having a solid plan makes all the difference.</p>
-            <a href="https://secretsantamatch.com" class="cta-button" target="_blank">Set Up Your Secret Santa Free →</a>
-        </div>
-
-        <h2>So Which One Should You Actually Use?</h2>
-
-        <p>The honest answer? It depends entirely on your relationship with money. And I don't mean that in a patronizing "be responsible" way—I mean you need to be really, brutally honest with yourself about your spending patterns.</p>
-
-        <p>Credit cards are fantastic tools for people who have their financial act together. If you're someone who tracks spending, pays balances in full, and views credit cards as a way to earn rewards on purchases you'd make anyway—go forth and swipe that plastic. That 2-5% cash back adds up to real money when you're dropping $1,500-2,000 on holiday shopping.</p>
-
-        <p>But if you're reading this and thinking "I should probably pay off my current balance first"—or worse, you're not entirely sure what your current balance is—debit is your friend. There's zero shame in recognizing that credit cards make it too easy to overspend. The psychological difference between spending "future money" and "actual money" is huge.</p>
-
-        <div class="alert-box success">
-            <h4>🎯 The Hybrid Approach (What Most Smart Shoppers Actually Do)</h4>
-            <p><strong>Credit cards for:</strong> Big-ticket planned purchases (that kitchen mixer you researched for weeks), online shopping (better fraud protection), and anything you know you can pay off when the statement comes.</p>
-            <p style="margin-top: 1rem;"><strong>Debit cards for:</strong> In-store impulse-prone shopping (Target runs, anyone?), smaller purchases where rewards don't matter much, and times when you need that hard psychological stop of "this is real money leaving right now."</p>
-            <p style="margin-top: 1rem;"><strong>BNPL for:</strong> That one specific item that's slightly over budget this paycheck, but you know you've got it covered over the next month—and ONLY if you're tracking those payment dates obsessively.</p>
-        </div>
-
-        <h3>Your Pre-Shopping Battle Plan</h3>
-
-        <p>Look, I could give you some generic advice about "being smart with your money," but you're already here reading this, so you're clearly trying to be smart. Here's what actually works:</p>
-
-        <div class="stat-highlight">
-            <strong>1. Get specific with your budget.</strong> Not "around $1,500" but exactly: "$500 for immediate family, $350 for friends, $200 for coworkers and that office Secret Santa, $300 for that big dinner you're hosting, and $150 buffer for those inevitable last-minute additions." Write it down. Put it in your phone. Make it real.
-        </div>
-
-        <div class="stat-highlight">
-            <strong>2. Set up alerts for everything.</strong> Real-time purchase notifications might feel annoying, but they're magic for preventing overspending. Studies show it reduces holiday overspending by about 23%. Your future self will thank you.
-        </div>
-
-        <div class="stat-highlight">
-            <strong>3. Track as you go, not after.</strong> Download a free budget tracker or use a spreadsheet—whatever works for your brain. Log every purchase the day you make it. Waiting until January to tally everything up is how people end up shocked by their spending.
-        </div>
-
-        <div class="stat-highlight">
-            <strong>4. Consider the rewards math.</strong> If you're going credit card route, make sure the rewards actually matter. A 2% cash back card on $1,500 in spending nets you $30—nice, but not life-changing. Only worth it if you're paying that balance in full. <span class="calculator-trigger" onclick="openCalculator()">Check our calculator</span> to see how interest wipes out rewards instantly.
-        </div>
-        
-        <div class="ad-space">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-3037944530219260"
-                 data-ad-slot="7654321098"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-
-        <h2>Questions Everyone Asks (But Maybe Feels Weird About)</h2>
-
-        <div class="faq-section">
-            <div class="faq-item">
-                <h4>Is it better to use credit or debit for Christmas shopping?</h4>
-                <p>Depends on your discipline level, honestly. Credit cards win on rewards and protection, but only if you pay the balance in full. Debit cards win on keeping you from overspending and avoiding debt. Most savvy shoppers use both strategically—credit for big planned purchases, debit for impulse-prone situations.</p>
-            </div>
-
-            <div class="faq-item">
-                <h4>Should I use Afterpay or Klarna for holiday shopping?</h4>
-                <p>Only if you're treating it like a short-term cash flow tool, not a "I can afford this now" enabler. If you wouldn't buy it with a debit card today, you probably shouldn't BNPL it either. The interest-free aspect is great, but the ease of accumulating multiple payment obligations is dangerous.</p>
-            </div>
-
-            <div class="faq-item">
-                <h4>What's the safest payment method for online shopping?</h4>
-                <p>Credit cards, hands down. When fraud happens (and it does), it's the bank's money at risk, not yours. Plus you get dispute resolution rights and chargebacks. Debit cards expose your actual bank account, which can be frozen during fraud investigations. Not fun during the holidays.</p>
-            </div>
-
-            <div class="faq-item">
-                <h4>How can I avoid going into debt this holiday season?</h4>
-                <p>Set a specific budget before you start shopping (not a range, an actual number). Use debit for anything unplanned. If using credit, transfer money to savings immediately so you can pay the full balance when the bill comes. And maybe most importantly: give yourself permission to spend less than you think you "should." Your loved ones care about you, not the gift price tags.</p>
-            </div>
-
-            <div class="faq-item">
-                <h4>Are credit card rewards actually worth it during the holidays?</h4>
-                <p>If—and this is crucial—you're paying the balance in full, yes. A 2% cash back card on $1,778 in holiday spending nets you about $35.56. A 5% category card (if you're shopping at qualifying stores) could get you nearly $90. But one month of 21% interest wipes out years of rewards, so it's only worth it if you're playing the game right.</p>
-            </div>
-
-            <div class="faq-item">
-                <h4>What happens if I miss a buy now pay later payment?</h4>
-                <p>Depends on the service, but nothing good. Most charge late fees ($0-10 per missed payment), some report to credit bureaus now (damaging your score), and you might lose access to the service for future purchases. More concerning: if you're juggling multiple BNPL accounts, one missed payment can cascade into several, racking up fees fast.</p>
-            </div>
-
-            <div class="faq-item">
-                <h4>Can I use a credit card to pay off buy now pay later?</h4>
-                <p>Some services allow it, but it defeats the entire purpose of interest-free financing. You're essentially borrowing to pay off borrowing. Only makes sense if you're using a 0% APR promotional credit card and can pay it off before the promo ends—and even then, it's playing with fire.</p>
-            </div>
-        </div>
-
-        <h2>More Ways to Make This Season Less Stressful</h2>
-
-        <p>Since you're here trying to make smart financial decisions (good for you, seriously), you might find these helpful too. Our <strong><a href="https://secretsantamatch.com/blog.html">blog</a></strong> is full of practical stuff that actually helps:</p>
-
-        <div class="resources-grid">
-            <div class="resource-card">
-                <span class="resource-icon">🎁</span>
-                <h4>Gift Guides</h4>
-                <p>Thoughtful ideas at every budget, from under $20 to splurge-worthy</p>
-            </div>
-
-            <div class="resource-card">
-                <span class="resource-icon">💰</span>
-                <h4>Money-Saving Strategies</h4>
-                <p>Cashback hacks, shopping timelines, and when to actually buy things</p>
-            </div>
-
-            <div class="resource-card">
-                <span class="resource-icon">📋</span>
-                <h4>Free Printables</h4>
-                <p>Budget trackers, gift lists, and planning worksheets</p>
-            </div>
-
-            <div class="resource-card">
-                <span class="resource-icon">🎄</span>
-                <h4>Organization Tools</h4>
-                <p>Secret Santa generators, gift exchange planners, budget calculators</p>
-            </div>
-        </div>
-
-        <h2>The Bottom Line</h2>
-
-        <p>Here's what nobody tells you about holiday shopping: the payment method matters, but the mindset matters more. You can have the best rewards credit card in the world and still end up in debt if you're not intentional about spending. Conversely, you can use a basic debit card and feel totally in control.</p>
-
-        <p>The holidays should add to your life, not subtract from your financial security. Whether you're team credit rewards, team debit discipline, or team strategic BNPL, the best choice is the one that lets you enjoy January without regret.</p>
-
-        <p>Make this the year you remember for the memories, not the minimum payments.</p>
-
-        <div style="text-align: center; margin-top: 50px; padding: 30px; background: var(--soft-cream); border-radius: 12px;">
-            <p style="font-size: 1.2rem; color: var(--charcoal); font-weight: 600; margin: 0;">Happy holidays, and may your credit score remain forever in your favor. 🎄</p>
-        </div>
-    </article>
-
-    <footer>
-        <p><strong>About SecretSantaMatch.com</strong></p>
-        <p>We make holiday celebrations easier and more meaningful. Our free Secret Santa generator helps organize gift exchanges with beautiful cards, budget controls, and zero hassle—no email required, just simple, joyful giving.</p>
-        <p style="margin-top: 20px;"><strong>📚 More Resources:</strong> Check out our <a href="https://secretsantamatch.com/blog.html">blog</a> for gift guides, money-saving tips, free printables, and holiday planning tools.</p>
-        <p style="margin-top: 20px; font-size: 0.85em; color: var(--warm-grey);">This article is for informational purposes only and doesn't constitute financial advice. Consult with a qualified financial advisor for personalized guidance. Last updated: October 11, 2025.</p>
-    </footer>
-
-    <!-- Modal -->
-    <div class="modal-overlay" id="calculatorModal" onclick="closeModal(event)">
-        <div class="modal" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <button class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
-                <h3>See What You're Really Paying</h3>
-                <p>That minimum payment looks manageable—until you see the real numbers.</p>
-                <div class="calculator-illustration"></div>
-            </div>
-            <div class="modal-body">
-                <div class="modal-content">
-                    <h4>The $1,500 Holiday Spending Reality Check</h4>
-                    <p>At 21% APR with minimum payments, here's what actually happens:</p>
-                    
-                    <div class="modal-stats">
-                        <div class="modal-stat">
-                            <span class="modal-stat-value">46</span>
-                            <span class="modal-stat-label">Months to Pay Off</span>
-                        </div>
-                        <div class="modal-stat">
-                            <span class="modal-stat-value">$545</span>
-                            <span class="modal-stat-label">Interest Paid</span>
-                        </div>
-                        <div class="modal-stat">
-                            <span class="modal-stat-value">$2,045</span>
-                            <span class="modal-stat-label">Total Cost</span>
-                        </div>
-                    </div>
-                    
-                    <p style="font-size: 1.05rem; margin-bottom: 2rem;"><strong>Our free calculator shows you exactly how different payment amounts and interest rates affect your payoff timeline.</strong> No signup, no judgment—just honest math to help you make better decisions.</p>
-                    
-                    <div class="modal-buttons">
-                        <a href="/minimum-payment-calculator.html" target="_blank" class="modal-button primary">Calculate Your Real Cost</a>
-                        <button onclick="closeModal()" class="modal-button secondary">Maybe Later</button>
-                    </div>
-                    
-                    <div class="modal-trust">
-                        <div class="trust-badge">100% Free Tool</div>
-                        <div class="trust-badge">No Email Required</div>
-                        <div class="trust-badge">Instant Results</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Modal for calculator - can be re-added if needed, but linking directly is cleaner for now. -->
 
     <script>
-        function openCalculator() {
-            document.getElementById('calculatorModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal(event) {
-            // Updated to handle closing via button click (event is undefined)
-            if (!event || event.target === document.getElementById('calculatorModal')) {
-                document.getElementById('calculatorModal').classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        }
-
-        // Close modal on Escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
-        });
+        // JS for modal can be placed here if re-implemented.
     </script>
 </body>
 </html>
