@@ -60,7 +60,20 @@ const GiftCategorySlider: React.FC<{ category: GiftCategory, totalBudget: number
     );
 };
 
-const CalculatorView: React.FC<any> = ({
+interface CalculatorViewProps {
+    totalBudget: number;
+    setTotalBudget: (value: number) => void;
+    householdIncome: number;
+    setHouseholdIncome: (value: number) => void;
+    familySize: number;
+    setFamilySize: (value: number) => void;
+    recommendedBudget: number;
+    giftCategories: GiftCategory[];
+    handleCategoryChange: (id: string, field: 'budget', value: number) => void;
+    totalGiftSpending: number;
+}
+
+const CalculatorView: React.FC<CalculatorViewProps> = ({
     totalBudget, setTotalBudget,
     householdIncome, setHouseholdIncome,
     familySize, setFamilySize,
@@ -187,7 +200,14 @@ const PaymentStrategyView: React.FC<{totalGiftSpending: number}> = ({ totalGiftS
     );
 };
 
-const SummaryView: React.FC<any> = ({ totalBudget, recommendedBudget, totalGiftSpending, giftCategories }) => {
+interface SummaryViewProps {
+  totalBudget: number;
+  recommendedBudget: number;
+  totalGiftSpending: number;
+  giftCategories: GiftCategory[];
+}
+
+const SummaryView: React.FC<SummaryViewProps> = ({ totalBudget, recommendedBudget, totalGiftSpending, giftCategories }) => {
     const pieData = giftCategories.filter(c => c.budget > 0).map(c => ({ name: c.label, value: c.budget }));
     const COLORS = ['#e60049', '#0bb4ff', '#50e991', '#e6d800', '#9b19f5', '#ffa300'];
     const amountOverUnder = totalBudget - totalGiftSpending;
@@ -223,7 +243,7 @@ const SummaryView: React.FC<any> = ({ totalBudget, recommendedBudget, totalGiftS
                     <ResponsiveContainer>
                         <PieChart>
                             <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                                {pieData.map((entry, index) => (
+                                {pieData.map((entry: { name: string, value: number }, index: number) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
