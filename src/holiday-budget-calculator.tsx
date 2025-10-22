@@ -208,18 +208,18 @@ const CalculatorView: React.FC<CalculatorViewProps> = ({
         <div className="space-y-12">
             <section>
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3"><DollarSign className="w-7 h-7 text-green-600"/>Your Holiday Budget</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                     <div>
-                        <label htmlFor="total-budget" className="font-semibold text-slate-600 block mb-1 min-h-[40px]">Total Available Budget</label>
+                        <label htmlFor="total-budget" className="font-semibold text-slate-600 block mb-2 h-12">Total Available Budget</label>
                         <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span><input id="total-budget" type="number" value={totalBudget} onChange={e => setTotalBudget(parseInt(e.target.value) || 0)} className="w-full pl-7 pr-2 py-2 border border-slate-300 rounded-md"/></div>
                     </div>
                      <div>
-                        <label htmlFor="household-income" className="font-semibold text-slate-600 block mb-1 min-h-[40px]">Household Income (Optional)</label>
+                        <label htmlFor="household-income" className="font-semibold text-slate-600 block mb-2 h-12">Household Income (Optional)</label>
                         <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span><input id="household-income" type="number" value={householdIncome} onChange={e => setHouseholdIncome(parseInt(e.target.value) || 0)} className="w-full pl-7 pr-2 py-2 border border-slate-300 rounded-md"/></div>
                     </div>
                      <div>
-                        <label htmlFor="family-size" className="font-semibold text-slate-600 block mb-1 min-h-[40px]">Family Size</label>
-                        <input id="family-size" type="number" value={familySize} onChange={e => setFamilySize(parseInt(e.target.value) || 0)} className="w-full px-3 py-2 border border-slate-300 rounded-md"/>
+                        <label htmlFor="family-size" className="font-semibold text-slate-600 block mb-2 h-12">Family Size</label>
+                        <div className="relative"><input id="family-size" type="number" value={familySize} onChange={e => setFamilySize(parseInt(e.target.value) || 0)} className="w-full px-3 py-2 border border-slate-300 rounded-md"/></div>
                     </div>
                 </div>
                 {householdIncome > 0 && (
@@ -277,9 +277,10 @@ const CalculatorView: React.FC<CalculatorViewProps> = ({
                 {creditHealth ? (
                     <div className="bg-slate-50 p-6 rounded-xl border">
                         <h3 className="font-bold text-center text-lg mb-4">Credit Utilization Impact</h3>
-                        <div className="flex justify-around items-center">
+                        <div className="flex flex-col sm:flex-row justify-around items-center gap-8 sm:gap-4">
                             <Gauge value={creditHealth.currentUtil} label="Current" color="#10b981" />
-                            <ArrowRight className="w-8 h-8 text-slate-400" />
+                            <ArrowRight className="w-8 h-8 text-slate-400 hidden sm:block" />
+                            <TrendingDown className="w-8 h-8 text-slate-400 sm:hidden" />
                             <Gauge value={creditHealth.newUtil} label="After Holiday Spend" color={creditHealth.newUtilColor} />
                         </div>
                         {creditHealth.scoreImpact < 0 ? (
@@ -345,7 +346,7 @@ const CalculatorView: React.FC<CalculatorViewProps> = ({
 
                 <div className="mt-8">
                     <h3 className="text-xl font-bold mb-4 text-center">Budget Allocation</h3>
-                    <div style={{ width: '100%', height: 300 }}>
+                    <div className="w-full h-[300px] md:h-[350px]">
                         <ResponsiveContainer>
                             <PieChart>
                                 <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={false} labelLine={false}>
@@ -460,15 +461,15 @@ const SummaryView: React.FC<SummaryViewProps> = ({ totalBudget, plannedSpending,
     const COLORS = ['#e60049', '#0bb4ff', '#50e991', '#e6d800', '#9b19f5', '#ffa300', '#dc2626', '#16a34a', '#fbbf24', '#4f46e5', '#db2777', '#f59e0b'];
     
     const RADIAN = Math.PI / 180;
-    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value }: any) => {
-        if (value === 0) return null;
-        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, percent }: any) => {
+        if (value === 0 || percent < 0.05) return null; // Hide label for small slices
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
         const x = cx + radius * Math.cos(-midAngle * RADIAN);
         const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
         return (
-            <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="12" fontWeight="bold" style={{ textShadow: '0 0 3px black' }}>
-            {formatCurrency(value, 0)}
+            <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="12" fontWeight="bold" style={{ textShadow: '0 0 5px rgba(0,0,0,0.8)' }}>
+                {formatCurrency(value, 0)}
             </text>
         );
     };
@@ -482,7 +483,6 @@ const SummaryView: React.FC<SummaryViewProps> = ({ totalBudget, plannedSpending,
 
              <div className="space-y-4 max-w-lg mx-auto text-lg">
                 <div className="flex justify-between font-semibold"><span className="text-slate-600">Available Budget:</span><span>{formatCurrency(totalBudget, 2)}</span></div>
-                {/* FIX: Add recommendedBudget to the summary view */}
                 {recommendedBudget > 0 && (
                     <div className="flex justify-between font-semibold"><span className="text-slate-600">Recommended Budget:</span><span>{formatCurrency(recommendedBudget, 2)}</span></div>
                 )}
@@ -492,7 +492,7 @@ const SummaryView: React.FC<SummaryViewProps> = ({ totalBudget, plannedSpending,
 
             <div>
                 <h3 className="text-xl font-bold mb-4 text-center">Budget Allocation</h3>
-                <div style={{ width: '100%', height: 350 }}>
+                <div className="w-full h-[350px] md:h-[400px]">
                     <ResponsiveContainer>
                         <PieChart>
                             <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="40%" outerRadius={100} labelLine={false} label={renderCustomizedLabel}>
@@ -501,7 +501,7 @@ const SummaryView: React.FC<SummaryViewProps> = ({ totalBudget, plannedSpending,
                                 ))}
                             </Pie>
                             <Tooltip formatter={(value: number) => formatCurrency(value, 2)} />
-                            <Legend wrapperStyle={{ bottom: 0, left: 0, right: 0 }}/>
+                            <Legend />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
