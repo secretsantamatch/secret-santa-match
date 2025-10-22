@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-// FIX: Import ArrowRight icon from lucide-react.
-import { Gift, Users, DollarSign, Lightbulb, Home, Sparkles, Info, BookOpen, Calendar, PiggyBank, CreditCard, ClipboardList, Banknote, ShieldCheck, TrendingUp, TrendingDown, Briefcase, PartyPopper, Utensils, Plane, Heart, Package, Shirt, GlassWater, MoreHorizontal, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Gift, Users, DollarSign, Lightbulb, Home, Sparkles, Info, BookOpen, Calendar, PiggyBank, CreditCard, ClipboardList, Banknote, ShieldCheck, TrendingUp, TrendingDown, Briefcase, PartyPopper, Utensils, Plane, Heart, Package, Shirt, MoreHorizontal, AlertTriangle, ArrowRight, Download, Printer } from 'lucide-react';
 
 // Interfaces for our state
 interface GiftCategory {
@@ -129,6 +128,22 @@ const ExpenseSlider: React.FC<{ label: string; icon: React.ElementType; value: n
     );
 };
 
+const handleCKClick = () => {
+    if (typeof (window as any).gtag === 'function') {
+        (window as any).gtag('event', 'click', { 'event_category': 'affiliate', 'event_label': 'Credit Karma Banner - Holiday Budget' });
+    }
+};
+
+const CreditKarmaCTA: React.FC<{text: string}> = ({ text }) => (
+    <div className="mt-8 p-4 bg-blue-50 border-t-4 border-blue-500 rounded-b-lg">
+        <h3 className="font-bold text-blue-800 mb-2">Supercharge Your Finances</h3>
+        <p className="text-blue-700 mb-4 text-sm">{text}</p>
+        <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3597062&v=66532&q=475589&r=2612068" target="_blank" onClick={handleCKClick} className="block bg-blue-600 text-white rounded-lg p-3 no-underline hover:bg-blue-700 transition-colors text-center">
+            <div className="font-bold">Check Your Score Free on Credit Karma</div>
+            <div className="text-xs opacity-80">Won't affect your score</div>
+        </a>
+    </div>
+);
 
 interface CalculatorViewProps {
     totalBudget: number;
@@ -188,12 +203,6 @@ const CalculatorView: React.FC<CalculatorViewProps> = ({
 
         return { currentUtil, newUtil, scoreImpact, newUtilColor: getUtilColor(newUtil) };
     }, [creditLimit, currentBalance, plannedSpending]);
-
-    const handleCKClick = () => {
-        if (typeof (window as any).gtag === 'function') {
-            (window as any).gtag('event', 'click', { 'event_category': 'affiliate', 'event_label': 'Credit Karma Banner - Holiday Budget' });
-        }
-    };
     
     return (
         <div className="space-y-12">
@@ -201,15 +210,15 @@ const CalculatorView: React.FC<CalculatorViewProps> = ({
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3"><DollarSign className="w-7 h-7 text-green-600"/>Your Holiday Budget</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label htmlFor="total-budget" className="font-semibold text-slate-600 block mb-1">Total Available Budget</label>
+                        <label htmlFor="total-budget" className="font-semibold text-slate-600 block mb-1 min-h-[40px]">Total Available Budget</label>
                         <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span><input id="total-budget" type="number" value={totalBudget} onChange={e => setTotalBudget(parseInt(e.target.value) || 0)} className="w-full pl-7 pr-2 py-2 border border-slate-300 rounded-md"/></div>
                     </div>
                      <div>
-                        <label htmlFor="household-income" className="font-semibold text-slate-600 block mb-1">Household Income (Optional)</label>
+                        <label htmlFor="household-income" className="font-semibold text-slate-600 block mb-1 min-h-[40px]">Household Income (Optional)</label>
                         <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span><input id="household-income" type="number" value={householdIncome} onChange={e => setHouseholdIncome(parseInt(e.target.value) || 0)} className="w-full pl-7 pr-2 py-2 border border-slate-300 rounded-md"/></div>
                     </div>
                      <div>
-                        <label htmlFor="family-size" className="font-semibold text-slate-600 block mb-1">Family Size</label>
+                        <label htmlFor="family-size" className="font-semibold text-slate-600 block mb-1 min-h-[40px]">Family Size</label>
                         <input id="family-size" type="number" value={familySize} onChange={e => setFamilySize(parseInt(e.target.value) || 0)} className="w-full px-3 py-2 border border-slate-300 rounded-md"/>
                     </div>
                 </div>
@@ -339,13 +348,13 @@ const CalculatorView: React.FC<CalculatorViewProps> = ({
                     <div style={{ width: '100%', height: 300 }}>
                         <ResponsiveContainer>
                             <PieChart>
-                                {/* FIX: Ensure 'percent' is treated as a number to prevent type errors. */}
-                                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} labelLine={false} label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}>
+                                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={false} labelLine={false}>
                                     {pieData.map((_entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
                                 <Tooltip formatter={(value: number) => formatCurrency(value, 2)} />
+                                <Legend />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
@@ -399,6 +408,7 @@ const SavingsPlanView: React.FC<{totalGiftSpending: number}> = ({ totalGiftSpend
                     <li className="flex items-start gap-3"><Calendar className="w-5 h-5 mt-1 text-green-500 flex-shrink-0"/><span><strong>Cash Windfalls:</strong> Dedicate any unexpected money (like a bonus or a small windfall) directly to your holiday fund.</span></li>
                 </ul>
             </div>
+            <CreditKarmaCTA text="Credit Karma can help you find savings on loans and cards, freeing up more cash for your holiday goals." />
         </div>
     );
 };
@@ -432,20 +442,37 @@ const PaymentStrategyView: React.FC<{totalGiftSpending: number}> = ({ totalGiftS
             <div className="mt-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
                 <strong>Warning:</strong> If you charge <strong>{formatCurrency(totalGiftSpending, 2)}</strong> and only make minimum payments, it could take years to pay off and cost you hundreds in interest!
             </div>
+            <CreditKarmaCTA text="Choosing the right card matters. Check your credit score and see your best card options for free with Credit Karma." />
         </div>
     );
 };
 
 interface SummaryViewProps {
   totalBudget: number;
-  recommendedBudget: number;
   plannedSpending: number;
   pieData: { name: string; value: number }[];
+  onDownloadClick: () => void;
+  recommendedBudget: number;
 }
 
-const SummaryView: React.FC<SummaryViewProps> = ({ totalBudget, recommendedBudget, plannedSpending, pieData }) => {
+const SummaryView: React.FC<SummaryViewProps> = ({ totalBudget, plannedSpending, pieData, onDownloadClick, recommendedBudget }) => {
     const amountOverUnder = totalBudget - plannedSpending;
     const COLORS = ['#e60049', '#0bb4ff', '#50e991', '#e6d800', '#9b19f5', '#ffa300', '#dc2626', '#16a34a', '#fbbf24', '#4f46e5', '#db2777', '#f59e0b'];
+    
+    const RADIAN = Math.PI / 180;
+    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value }: any) => {
+        if (value === 0) return null;
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+        return (
+            <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="12" fontWeight="bold" style={{ textShadow: '0 0 3px black' }}>
+            {formatCurrency(value, 0)}
+            </text>
+        );
+    };
+
     return (
         <div className="space-y-8">
             <header className="text-center">
@@ -455,26 +482,37 @@ const SummaryView: React.FC<SummaryViewProps> = ({ totalBudget, recommendedBudge
 
              <div className="space-y-4 max-w-lg mx-auto text-lg">
                 <div className="flex justify-between font-semibold"><span className="text-slate-600">Available Budget:</span><span>{formatCurrency(totalBudget, 2)}</span></div>
+                {/* FIX: Add recommendedBudget to the summary view */}
+                {recommendedBudget > 0 && (
+                    <div className="flex justify-between font-semibold"><span className="text-slate-600">Recommended Budget:</span><span>{formatCurrency(recommendedBudget, 2)}</span></div>
+                )}
                 <div className="flex justify-between font-semibold"><span className="text-slate-600">Planned Spending:</span><span className="text-red-600">{formatCurrency(plannedSpending, 2)}</span></div>
                 <div className="flex justify-between font-bold text-xl border-t pt-3"><span className="text-slate-800">Remaining:</span><span className={amountOverUnder >= 0 ? 'text-green-600' : 'text-orange-600'}>{formatCurrency(amountOverUnder, 2)}</span></div>
             </div>
 
             <div>
                 <h3 className="text-xl font-bold mb-4 text-center">Budget Allocation</h3>
-                <div style={{ width: '100%', height: 300 }}>
+                <div style={{ width: '100%', height: 350 }}>
                     <ResponsiveContainer>
                         <PieChart>
-                            <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                            <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="40%" outerRadius={100} labelLine={false} label={renderCustomizedLabel}>
                                 {pieData.map((_entry, index: number) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
                             <Tooltip formatter={(value: number) => formatCurrency(value, 2)} />
-                            <Legend />
+                            <Legend wrapperStyle={{ bottom: 0, left: 0, right: 0 }}/>
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
             </div>
+            <div className="text-center">
+                <button onClick={onDownloadClick} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 text-lg rounded-full shadow-md transition-transform transform hover:scale-105 flex items-center gap-2 mx-auto">
+                    <Download className="w-5 h-5"/>
+                    Download Your Budget Plan
+                </button>
+            </div>
+            <CreditKarmaCTA text="Your budget is set! Now, track your credit score for free as you shop to see your progress in real-time." />
         </div>
     );
 };
@@ -482,6 +520,7 @@ const SummaryView: React.FC<SummaryViewProps> = ({ totalBudget, recommendedBudge
 
 const HolidayBudgetCalculator: React.FC = () => {
   const [activeTab, setActiveTab] = useState('Calculator');
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [totalBudget, setTotalBudget] = useState(1000);
   const [householdIncome, setHouseholdIncome] = useState(50000);
   const [familySize, setFamilySize] = useState(4);
@@ -503,7 +542,6 @@ const HolidayBudgetCalculator: React.FC = () => {
   const totalGiftSpending = useMemo(() => giftCategories.reduce((sum, cat) => sum + cat.budget, 0), [giftCategories]);
   const totalOtherSpending = useMemo(() => Object.values(otherExpenses).reduce((s, v) => s + v, 0), [otherExpenses]);
   const plannedSpending = useMemo(() => totalGiftSpending + totalOtherSpending, [totalGiftSpending, totalOtherSpending]);
-  const amountOverUnder = useMemo(() => totalBudget - plannedSpending, [totalBudget, plannedSpending]);
 
   const pieData = useMemo(() => {
     const giftData = giftCategories.filter(c => c.budget > 0).map(c => ({ name: c.label, value: c.budget }));
@@ -520,6 +558,11 @@ const HolidayBudgetCalculator: React.FC = () => {
   const handleOtherExpenseChange = (key: OtherExpenseKey, value: number) => {
       setOtherExpenses(prev => ({ ...prev, [key]: value }));
   };
+
+  const handlePrint = () => {
+    window.print();
+    setIsDownloadModalOpen(false);
+  };
   
   const renderTabContent = () => {
     switch (activeTab) {
@@ -533,6 +576,7 @@ const HolidayBudgetCalculator: React.FC = () => {
                       recommendedBudget={recommendedBudget}
                       plannedSpending={plannedSpending}
                       pieData={pieData}
+                      onDownloadClick={() => setIsDownloadModalOpen(true)}
                     />;
         case 'Calculator':
         default:
@@ -547,7 +591,7 @@ const HolidayBudgetCalculator: React.FC = () => {
                 otherExpenses={otherExpenses}
                 handleOtherExpenseChange={handleOtherExpenseChange}
                 plannedSpending={plannedSpending}
-                amountOverUnder={amountOverUnder}
+                amountOverUnder={totalBudget - plannedSpending}
                 pieData={pieData}
                 setActiveTab={setActiveTab}
                 creditLimit={creditLimit} setCreditLimit={setCreditLimit}
@@ -558,17 +602,21 @@ const HolidayBudgetCalculator: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
-      <div className="bg-slate-100 p-3 text-center text-sm text-slate-600 border-b border-slate-200">
+      <div className="no-print bg-slate-100 p-3 text-center text-sm text-slate-600 border-b border-slate-200">
         <div className="max-w-4xl mx-auto flex items-center justify-center gap-2">
             <Info className="w-4 h-4 text-slate-500 flex-shrink-0"/>
             <span>
-                <strong>Affiliate Disclosure:</strong> We may earn a commission when you click links to financial products or services. This helps keep our tools free for everyone. Our recommendations are based on thorough research and are not influenced by advertising partnerships.
+                <strong>Affiliate Disclosure:</strong> We may earn a commission when you click links. This helps keep our tools free. Our recommendations are based on thorough research.
             </span>
         </div>
       </div>
       
       <main className="max-w-4xl mx-auto p-4 md:p-8">
-        <header className="mb-6">
+        <div className="no-print flex justify-between items-center mb-4 text-sm">
+            <a href="/" className="font-bold text-slate-700 hover:text-red-600 transition-colors">← SecretSantaMatch.com</a>
+            <a href="/blog.html" className="font-semibold text-slate-500 hover:text-red-600 transition-colors">Visit the Blog →</a>
+        </div>
+        <header className="no-print mb-6">
           <div className="p-6 bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
             <Sparkles className="w-16 h-16 text-amber-400 flex-shrink-0" />
             <div>
@@ -578,7 +626,7 @@ const HolidayBudgetCalculator: React.FC = () => {
           </div>
         </header>
         
-        <div className="relative">
+        <div className="no-print relative">
             <div className="bg-white rounded-t-xl p-2 inline-block">
                 <div className="flex border-b border-slate-200">
                     {['Calculator', 'Savings Plan', 'Payment Strategy', 'Summary'].map(tab => (
@@ -598,51 +646,64 @@ const HolidayBudgetCalculator: React.FC = () => {
             </div>
         </div>
 
-        <div className="bg-white p-6 md:p-10 rounded-b-2xl rounded-tr-2xl shadow-lg border border-slate-200">
+        <div className="printable-area bg-white p-6 md:p-10 rounded-b-2xl rounded-tr-2xl shadow-lg border border-slate-200">
             {renderTabContent()}
         </div>
       </main>
 
-       <footer className="text-center py-8 mt-4 border-t text-slate-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} SecretSantaMatch.com - Making holidays easier.</p>
+       <footer className="no-print text-center py-8 mt-4 border-t text-slate-500 text-sm">
+        <div className="max-w-4xl mx-auto px-4">
+            <div className="mt-4 pt-4 border-t border-slate-200">
+                <h3 className="font-bold text-center text-slate-600 mb-3">Related Financial Tools</h3>
+                <div className="flex justify-center gap-4 md:gap-8 flex-wrap">
+                    <a href="/minimum-payment-calculator.html" className="font-semibold text-blue-600 hover:underline">Minimum Payment Calculator</a>
+                    <a href="/credit-card-vs-debit-card.html" className="font-semibold text-blue-600 hover:underline">Credit vs. Debit Card Guide</a>
+                </div>
+            </div>
+            <div className="mt-6 text-xs text-slate-400 max-w-2xl mx-auto text-left">
+                <p><strong>Disclaimer:</strong> This calculator is for informational and illustrative purposes only and does not constitute financial advice. The results are estimates based on the data you provide and are not a guarantee of actual outcomes. Please consult with a qualified financial professional before making any financial decisions.</p>
+            </div>
+            <p className="mt-6">&copy; {new Date().getFullYear()} SecretSantaMatch.com - Making holidays easier.</p>
+        </div>
       </footer>
+
+      {isDownloadModalOpen && (
+          <div className="no-print fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setIsDownloadModalOpen(false)}>
+              <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 text-center" onClick={e => e.stopPropagation()}>
+                  <Printer className="w-16 h-16 mx-auto text-indigo-500" />
+                  <h2 className="text-2xl font-bold mt-4 mb-2">Download Your Budget Plan</h2>
+                  <p className="text-slate-600 mb-6">This will prepare a print-friendly version of your summary. In your browser's print dialog, you can choose to "Save as PDF" or send it to a printer.</p>
+                  <div className="p-4 bg-slate-50 rounded-lg mb-6 text-left text-sm text-slate-500">
+                      <h3 className="font-bold text-slate-700 mb-2">While you're here, check out our other free tools:</h3>
+                      <ul className="list-disc list-inside space-y-1">
+                          <li><a href="/" className="text-blue-600 font-semibold hover:underline">Free Secret Santa Generator</a></li>
+                          <li><a href="/minimum-payment-calculator.html" className="text-blue-600 font-semibold hover:underline">Debt Payoff Calculator</a></li>
+                      </ul>
+                  </div>
+                  <div className="flex justify-center gap-4">
+                      <button onClick={() => setIsDownloadModalOpen(false)} className="px-6 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold hover:bg-slate-300 transition-colors">Cancel</button>
+                      <button onClick={handlePrint} className="px-6 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors">Download Now</button>
+                  </div>
+              </div>
+          </div>
+      )}
       
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Playfair+Display:wght@700&display=swap');
         
-        input[type="range"]::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 24px;
-          height: 24px;
-          background: #fff;
-          border: 3px solid #3b82f6;
-          cursor: pointer;
-          border-radius: 50%;
-          margin-top: -8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        input[type="range"]::-moz-range-thumb {
-          width: 24px;
-          height: 24px;
-          background: #fff;
-          border: 3px solid #3b82f6;
-          cursor: pointer;
-          border-radius: 50%;
-        }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; background: #fff; border: 3px solid #3b82f6; cursor: pointer; border-radius: 50%; margin-top: -8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; background: #fff; border: 3px solid #3b82f6; cursor: pointer; border-radius: 50%; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Montserrat', sans-serif; }
+        .recharts-legend-item-text { color: #475569 !important; }
+        .recharts-text.recharts-label { font-size: 14px; }
         
-        .font-serif {
-            font-family: 'Playfair Display', serif;
-        }
-        .font-sans {
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .recharts-pie-label-text {
-            fill: #334155;
-            font-size: 12px;
-            font-weight: bold;
+        @media print {
+            body * { visibility: hidden; }
+            .printable-area, .printable-area * { visibility: visible; }
+            .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; border: none; box-shadow: none; }
+            .no-print, .no-print * { display: none !important; }
+            .recharts-wrapper { margin: 0 auto; }
         }
       `}</style>
     </div>
