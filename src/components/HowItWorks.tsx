@@ -14,7 +14,7 @@ const HowItWorks: React.FC = () => {
                 {/* Step 1 */}
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 w-full md:w-1/3 text-center transition-transform transform hover:-translate-y-1">
                     <div className="flex justify-center mb-4">
-                        <img src="/step_1.png" alt="Add Names" className="h-12 w-12" />
+                        <img src="/step_1.webp" alt="Add Names" className="h-12 w-12" width="48" height="48" />
                     </div>
                     <h3 className="text-xl font-bold text-[#c62828]">1. Add Names</h3>
                     <p className="text-slate-600 mt-2 text-sm leading-relaxed">Easily enter participant names one by one or use the bulk add feature. It's fast, free, and requires no sign-ups or apps.</p>
@@ -27,7 +27,7 @@ const HowItWorks: React.FC = () => {
                 {/* Step 2 */}
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 w-full md:w-1/3 text-center transition-transform transform hover:-translate-y-1">
                     <div className="flex justify-center mb-4">
-                        <img src="/step_2.png" alt="Set Rules & Styles" className="h-12 w-12" />
+                        <img src="/step_2.webp" alt="Set Rules & Styles" className="h-12 w-12" width="48" height="48" />
                     </div>
                     <h3 className="text-xl font-bold text-[#c62828]">2. Set Rules &amp; Styles</h3>
                     <p className="text-slate-600 mt-2 text-sm leading-relaxed">Add exclusions to prevent people from drawing each other, then customize beautiful, printable cards for a personal touch.</p>
@@ -40,7 +40,7 @@ const HowItWorks: React.FC = () => {
                 {/* Step 3 */}
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 w-full md:w-1/3 text-center transition-transform transform hover:-translate-y-1">
                     <div className="flex justify-center mb-4">
-                        <img src="/step_3.png" alt="Share Links & Cards" className="h-12 w-12" />
+                        <img src="/step_3.webp" alt="Share Links & Cards" className="h-12 w-12" width="48" height="48" />
                     </div>
                     <h3 className="text-xl font-bold text-[#c62828]">3. Share Links &amp; Cards</h3>
                     <p className="text-slate-600 mt-2 text-sm leading-relaxed">Instantly share private links so everyone can see their match online, or download the styled cards for your in-person party.</p>
