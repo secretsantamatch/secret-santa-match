@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
-import { fileURLToPath, URL } from 'url'
+// FIX: In an ES module, `__dirname` is not available. `dirname` from `path` and `fileURLToPath` from `url` are imported to define it.
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-// FIX: __dirname is not available in ES modules. This defines it for use in this file.
-const __dirname = fileURLToPath(new URL('.', import.meta.url))
+// FIX: Define `__filename` and `__dirname` for ES module scope to resolve path correctly.
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // https://vitejs.dev/config/
 export default defineConfig({
