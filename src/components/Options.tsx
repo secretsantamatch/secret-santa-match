@@ -105,13 +105,13 @@ const Options: React.FC<OptionsProps> = ({
             <div>
                 <h3 className="text-lg font-semibold text-slate-700 mb-2">Exclusions (Optional)</h3>
                 <p className="text-slate-500 mb-4 text-sm">Prevent certain people from being matched together.</p>
-                <div className="flex items-center gap-2 mb-4 p-4 bg-slate-50 rounded-lg border">
-                    <select value={exclusionP1} onChange={e => setExclusionP1(e.target.value)} className="p-2 border rounded-md w-full bg-white" aria-label="Select first person for exclusion">
+                <div className="flex flex-wrap items-center gap-2 mb-4 p-4 bg-slate-50 rounded-lg border">
+                    <select value={exclusionP1} onChange={e => setExclusionP1(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select first person for exclusion">
                         <option value="">Select Person 1</option>
                         {participants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                     <span className="font-semibold text-slate-500 flex-shrink-0">can't draw</span>
-                    <select value={exclusionP2} onChange={e => setExclusionP2(e.target.value)} className="p-2 border rounded-md w-full bg-white" aria-label="Select second person for exclusion">
+                    <select value={exclusionP2} onChange={e => setExclusionP2(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select second person for exclusion">
                          <option value="">Select Person 2</option>
                          {participants.filter(p => p.id !== exclusionP1).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
@@ -130,13 +130,13 @@ const Options: React.FC<OptionsProps> = ({
             <div>
                  <h3 className="text-lg font-semibold text-slate-700 mb-2">Assignments (Optional)</h3>
                 <p className="text-slate-500 mb-4 text-sm">Force a specific person to be another's Secret Santa.</p>
-                <div className="flex items-center gap-2 mb-4 p-4 bg-slate-50 rounded-lg border">
-                    <select value={assignmentGiver} onChange={e => setAssignmentGiver(e.target.value)} className="p-2 border rounded-md w-full bg-white" aria-label="Select giver for assignment">
+                <div className="flex flex-wrap items-center gap-2 mb-4 p-4 bg-slate-50 rounded-lg border">
+                    <select value={assignmentGiver} onChange={e => setAssignmentGiver(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select giver for assignment">
                         <option value="">Select Giver</option>
                         {participants.filter(p => !assignments.some(a => a.giverId === p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                     <span className="font-semibold text-slate-500 flex-shrink-0">must draw</span>
-                    <select value={assignmentReceiver} onChange={e => setAssignmentReceiver(e.target.value)} className="p-2 border rounded-md w-full bg-white" aria-label="Select receiver for assignment">
+                    <select value={assignmentReceiver} onChange={e => setAssignmentReceiver(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select receiver for assignment">
                          <option value="">Select Receiver</option>
                          {participants.filter(p => p.id !== assignmentGiver && !assignments.some(a => a.receiverId === p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
