@@ -1,3 +1,4 @@
+
 export interface Participant {
   id: string;
   name: string;
@@ -88,4 +89,5 @@ export interface Resource {
   thumbnailUrl: string;
   linkUrl: string;
   lastUpdated?: string;
+  keywords?: string[];
 }
