@@ -46,16 +46,16 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
         <div className="space-y-4">
             {participants.map((participant, index) => (
                 <div key={participant.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 transition-all">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                         <span className="text-slate-500 font-semibold mr-1 w-6 text-center">{index + 1}.</span>
                         <input
                             type="text"
                             placeholder={`Participant #${index + 1}`}
                             value={participant.name}
                             onChange={(e) => handleParticipantChange(participant.id, 'name', e.target.value)}
-                            className="flex-grow p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                            className="flex-1 min-w-[120px] p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                         />
-                        <button onClick={() => toggleDetails(participant.id)} className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold p-2 whitespace-nowrap">
+                        <button onClick={() => toggleDetails(participant.id)} className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold p-2 whitespace-nowrap ml-auto">
                             {expanded.has(participant.id) ? 'Hide Details' : 'Details'}
                         </button>
                         {participants.length > 1 && (
