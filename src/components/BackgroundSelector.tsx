@@ -31,6 +31,7 @@ interface BackgroundSelectorProps {
     setIntroText: (text: string) => void;
     wishlistLabelText: string;
     setWishlistLabelText: (text: string) => void;
+    trackEvent: (eventName: string, eventParams?: Record<string, any>) => void;
 }
 
 const InfoIcon = () => (
@@ -41,7 +42,7 @@ const InfoIcon = () => (
 
 
 const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
-    participants, eventDetails, backgroundOptions, selectedBackground, setSelectedBackground, customBackground, setCustomBackground, textColor, setTextColor, useTextOutline, setUseTextOutline, outlineColor, setOutlineColor, outlineSize, setOutlineSize, fontSizeSetting, setFontSizeSetting, fontTheme, setFontTheme, lineSpacing, setLineSpacing, greetingText, setGreetingText, introText, setIntroText, wishlistLabelText, setWishlistLabelText
+    participants, eventDetails, backgroundOptions, selectedBackground, setSelectedBackground, customBackground, setCustomBackground, textColor, setTextColor, useTextOutline, setUseTextOutline, outlineColor, setOutlineColor, outlineSize, setOutlineSize, fontSizeSetting, setFontSizeSetting, fontTheme, setFontTheme, lineSpacing, setLineSpacing, greetingText, setGreetingText, introText, setIntroText, wishlistLabelText, setWishlistLabelText, trackEvent
 }) => {
     
     const [filter, setFilter] = useState('');
@@ -102,6 +103,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
             const result = reader.result as string;
             setCustomBackground(result);
             setSelectedBackground('plain-white');
+            trackEvent('upload_custom_background');
         };
         reader.onerror = () => {
             setUploadError('Failed to read the file.');
