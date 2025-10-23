@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Participant } from '../types';
+import { Info } from 'lucide-react';
 
 const CopyIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -81,6 +82,18 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getPart
         </div>
         
         <div className="p-6 sm:p-8 space-y-3 text-left max-h-[40vh] overflow-y-auto">
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm text-left mb-6 flex items-start gap-3">
+            <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-bold">Why are the links so long?</p>
+              <p className="mt-1">For your privacy! All your group's information is stored securely <em>inside</em> the link itself, not on our servers. This means we never see or save any of your private data.</p>
+              <p className="font-bold mt-3">Pro Tip: Sharing Your Links</p>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li>For a cleaner look, use a free URL shortener like <a href="https://tinyurl.com/" target="_blank" rel="noopener noreferrer" className="font-bold underline">TinyURL</a> before sending.</li>
+                <li>In an email, you can hyperlink text. Write "Click here to see your match," highlight it, and add the long link.</li>
+              </ul>
+            </div>
+          </div>
           {participants.map(p => (
             <div key={p.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
               <div className="flex items-center gap-3">
