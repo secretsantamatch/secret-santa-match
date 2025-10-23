@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Participant, Exclusion, Match, BackgroundOption, Assignment, FontSizeSetting, OutlineSizeSetting, FontTheme, ExchangeData } from '../types';
 import Header from './Header';
 import HowItWorks from './HowItWorks';
@@ -11,6 +11,26 @@ import FaqSection from './FaqSection';
 import ResourcesSection from './ResourcesSection';
 import BackToTopButton from './BackToTopButton';
 import BulkAddModal from './BulkAddModal';
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+import { HelpCircle } from 'lucide-react';
+
+// Allow TypeScript to recognize the gtag function on the window object
+declare global {
+  interface Window {
+    gtag: (...args: any[]) => void;
+  }
+}
+
+// Helper function to send events to Google Analytics
+const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) => {
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', eventName, eventParams);
+  } else {
+    console.log(`Analytics Event (gtag not found): ${eventName}`, eventParams);
+  }
+};
+
 
 // This function determines the seasonal theme. It's now managed in App.tsx
 // but we need it here to pass to the ExchangeData
@@ -87,6 +107,17 @@ const GeneratorPage: React.FC = () => {
       });
   }, []);
 
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+    }
+    if (background) {
+        trackEvent('select_theme', { theme_id: background });
+    }
+  }, [background]);
+
   useEffect(() => {
     if (backgroundOptions.length === 0 || !background) return;
     const selectedTheme = backgroundOptions.find(opt => opt.id === background);
@@ -99,6 +130,35 @@ const GeneratorPage: React.FC = () => {
         }
     }
   }, [background, backgroundOptions]);
+
+  // Onboarding Tour Logic
+  const startTour = () => {
+    const driverObj = driver({
+      showProgress: true,
+      steps: [
+        { element: '#step-1-participants', popover: { title: 'Step 1: Add Your Group', description: "Start by adding everyone's name. Click 'Details' for wishlists and budgets, or use 'Bulk Add' to paste a list!" } },
+        { element: '#step-2-rules', popover: { title: 'Step 2: Set the Rules', description: 'Add party details and set \'Exclusions\' to prevent people (like couples) from drawing each other. You can also force specific matches with \'Assignments\'.' } },
+        { element: '#step-3-styling', popover: { title: 'Step 3: Get Creative!', description: 'Style the printable cards! Choose a festive theme, upload your own background, and customize the text. See a live preview on the right.' } },
+        { element: '#generate-button', popover: { title: 'Step 4: Generate!', description: "When you're ready, click here to magically draw the names. Good luck!" } }
+      ],
+      onCloseClick: () => {
+        localStorage.setItem('ssm_hasSeenTour', 'true');
+        driverObj.destroy();
+      },
+    });
+    driverObj.drive();
+  }
+
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem('ssm_hasSeenTour');
+    if (!hasSeenTour) {
+        const tourTimeout = setTimeout(() => {
+            startTour();
+        }, 1500);
+        return () => clearTimeout(tourTimeout);
+    }
+  }, []);
+
 
   const handleGenerateMatches = () => {
     setError('');
@@ -184,14 +244,11 @@ const GeneratorPage: React.FC = () => {
     }
 
     if (generatedMatches) {
-        // Fire the conversion event to Google Analytics
-        if (typeof (window as any).gtag === 'function') {
-          (window as any).gtag('event', 'generate_matches', {
-            'event_category': 'engagement',
-            'event_label': 'Successful Generation',
-            'participant_count': validParticipants.length
-          });
-        }
+        trackEvent('generate_matches', {
+            participant_count: validParticipants.length,
+            exclusion_count: exclusions.length,
+            assignment_count: assignments.length
+        });
 
         const exchangeData: ExchangeData = {
             p: validParticipants,
@@ -250,10 +307,13 @@ const GeneratorPage: React.FC = () => {
         <HowItWorks />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div id="step-1-participants" className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
               <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
               Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
+              <button onClick={startTour} className="ml-3 text-slate-400 hover:text-slate-600 transition-colors" aria-label="Show help tour">
+                <HelpCircle size={20} />
+              </button>
             </h2>
             <p className="text-gray-600 mb-6 ml-11">Enter each person's name. Click 'Details' to add gift ideas and a spending budget.</p>
             <ParticipantManager 
@@ -264,7 +324,7 @@ const GeneratorPage: React.FC = () => {
             />
           </div>
 
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div id="step-2-rules" className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">2</span>
                 Add Details & Rules
@@ -281,7 +341,7 @@ const GeneratorPage: React.FC = () => {
             />
           </div>
           
-          <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div id="step-3-styling" className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
                 <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">3</span>
                 Style Your Cards <span className="text-[var(--primary-color)] ml-2">*</span>
@@ -314,13 +374,14 @@ const GeneratorPage: React.FC = () => {
                 setIntroText={setIntroText}
                 wishlistLabelText={wishlistLabelText}
                 setWishlistLabelText={setWishlistLabelText}
+                trackEvent={trackEvent}
              />
           </div>
 
           <div className="text-center pt-4">
             {error && <p className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-center">{error}</p>}
             
-            <button onClick={handleGenerateMatches} disabled={isGenerating} className="bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
+            <button id="generate-button" onClick={handleGenerateMatches} disabled={isGenerating} className="bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out disabled:opacity-50 disabled:scale-100">
               {isGenerating ? 'Generating...' : '🎁 Generate Matches'}
             </button>
           </div>
