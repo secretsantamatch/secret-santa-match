@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import type { ExchangeData, Participant, Match, CardStyleData } from '../types';
+import type { ExchangeData, Participant, Match, CardStyleData, Resource } from '../types';
 import { generateIndividualCardsPdf, generateMasterListPdf } from '../services/pdfService';
 import PrintableCard from './PrintableCard';
 import CountdownTimer from './CountdownTimer';
@@ -8,11 +9,29 @@ import Footer from './Footer';
 import ShareButtons from './ShareButtons';
 import ResultsDisplay from './ResultsDisplay';
 import ShareLinksModal from './ShareLinksModal';
+import ResourceCard from './ResourceCard';
 
 interface ResultsPageProps {
   data: ExchangeData;
   currentParticipantId: string | null;
 }
+
+// Allow TypeScript to recognize the gtag function on the window object
+declare global {
+  interface Window {
+    gtag: (...args: any[]) => void;
+  }
+}
+
+// Helper function to send events to Google Analytics
+const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) => {
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', eventName, eventParams);
+  } else {
+    console.log(`Analytics Event (gtag not found): ${eventName}`, eventParams);
+  }
+};
+
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
   const [isRevealed, setIsRevealed] = useState(false);
@@ -21,6 +40,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   const [showShareModal, setShowShareModal] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [showDownloadConfirmationModal, setShowDownloadConfirmationModal] = useState(false);
+  const [allResources, setAllResources] = useState<Resource[]>([]);
   
   const downloadModalRef = useRef<HTMLDivElement>(null);
   
@@ -66,7 +86,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    // Fetch resources for gift suggestions on participant view
+    if (currentParticipantId) {
+        fetch('/resources.json')
+            .then(res => res.json())
+            .then(data => setAllResources(data))
+            .catch(err => console.error("Failed to load resources for suggestions:", err));
+    }
+  }, [currentParticipantId]);
   
   useEffect(() => {
     if (showDownloadOptionsModal) {
@@ -110,17 +137,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   };
 
   const handleDownload = async (type: 'cards' | 'list' | 'both') => {
-      // Fire GA event for PDF download
-      if (typeof (window as any).gtag === 'function') {
-        (window as any).gtag('event', 'download_pdf', {
-          'event_category': 'engagement',
-          'event_label': `Download PDF - ${type}`,
-          'download_type': type,
-          'participant_count': participants.length
-        });
-      }
-
       setShowDownloadOptionsModal(false);
+      trackEvent('download_pdf', { download_type: type });
       
       await performPdfGeneration(async () => {
         if (type === 'cards' || type === 'both') {
@@ -134,23 +152,64 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
       setShowDownloadConfirmationModal(true);
   };
   
-  const handleShareClick = () => {
-    // Fire GA event for sharing links
-    if (typeof (window as any).gtag === 'function') {
-      (window as any).gtag('event', 'share_links_click', {
-        'event_category': 'engagement',
-        'event_label': 'Organizer Clicks Share',
-        'participant_count': participants.length
-      });
-    }
-    setShowShareModal(true);
-  };
-
   const getParticipantLink = (participantId: string) => {
     const baseUrl = window.location.href.split('#')[0];
     const hash = window.location.hash.split('?')[0];
     return `${baseUrl}${hash}?id=${participantId}`;
   };
+
+  const handleOpenShareModal = () => {
+    trackEvent('open_share_modal', {
+        participant_count: participants.length
+    });
+    setShowShareModal(true);
+  };
+
+  // Participant view variables
+  const participant = currentParticipantId ? participants.find((p: Participant) => p.id === currentParticipantId) : null;
+  const match = participant ? matches.find(m => m.giver.id === participant.id) : null;
+
+  const suggestedPosts = useMemo((): Resource[] => {
+    if (!isRevealed || !match || allResources.length === 0) {
+        return [];
+    }
+
+    const notes = match.receiver.notes.toLowerCase();
+    const budget = parseInt(match.receiver.budget) || 999;
+    const suggestions: { resource: Resource; score: number }[] = [];
+
+    allResources.forEach(resource => {
+        let score = 0;
+        const resourceKeywords = resource.keywords || [];
+
+        resourceKeywords.forEach(keyword => {
+            if (notes.includes(keyword)) {
+                score += 1;
+            }
+        });
+
+        if (resource.id === 'gifts-when-broke' && budget <= 25) {
+            score += 5; // High priority boost for low budget
+        }
+
+        if (score > 0) {
+            suggestions.push({ resource, score });
+        }
+    });
+
+    suggestions.sort((a, b) => b.score - a.score);
+    const topSuggestions = suggestions.slice(0, 2).map(s => s.resource);
+
+    if (topSuggestions.length === 0) {
+        const defaultSuggestion = allResources.find(r => r.id === 'questionnaire');
+        if (defaultSuggestion) {
+            return [defaultSuggestion];
+        }
+    }
+
+    return topSuggestions;
+  }, [isRevealed, match, allResources]);
+
 
   if (!currentParticipantId) { // Organizer View
     if (isRevealTime) {
@@ -183,7 +242,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                             <p className="text-purple-100 mt-2 mb-8 max-w-2xl mx-auto">Your matches are ready. Share the private links with each person so they can see who they're gifting to.</p>
                             
                             <button 
-                              onClick={handleShareClick} 
+                              onClick={handleOpenShareModal} 
                               className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out"
                             >
                                 Share Private Links
@@ -264,7 +323,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                             <button onClick={() => handleDownload('cards')} className="w-full bg-slate-700 hover:bg-slate-800 text-white p-6 rounded-xl shadow-md transition-colors text-left flex flex-col justify-between items-start min-h-[10rem]">
                                 <div>
                                     <div className="p-2 bg-white/20 rounded-lg mb-3 inline-block">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2H5a2 2 0 00-2 2v2m14 0h0z" />
                                         </svg>
                                     </div>
@@ -276,7 +335,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                             <button onClick={() => handleDownload('list')} className="w-full bg-slate-700 hover:bg-slate-800 text-white p-6 rounded-xl shadow-md transition-colors text-left flex flex-col justify-between items-start min-h-[10rem]">
                                <div>
                                   <div className="p-2 bg-white/20 rounded-lg mb-3 inline-block">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                                       </svg>
                                   </div>
@@ -316,9 +375,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   }
 
   // Participant View
-  const participant = participants.find((p: Participant) => p.id === currentParticipantId);
-  const match = participant ? matches.find(m => m.giver.id === participant.id) : null;
-
   if (isRevealTime) {
       return (
          <div className="bg-slate-50 min-h-screen">
@@ -353,6 +409,23 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                            />
                         </div>
                     </div>
+
+                    {isRevealed && suggestedPosts.length > 0 && (
+                      <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+                        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 font-serif mb-2 text-center">
+                          Need Some Gift Ideas?
+                        </h2>
+                        <p className="text-slate-600 mb-8 text-center max-w-xl mx-auto">
+                          Based on <strong>{match.receiver.name}'s</strong> details, these guides might help you find the perfect gift!
+                        </p>
+                        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                          {suggestedPosts.map(post => (
+                            <ResourceCard key={post.id} resource={post} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                      {targetTime > 0 && (
                         <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200 text-center">
                            <CountdownTimer targetTime={targetTime} onComplete={() => window.location.reload()} />
