@@ -1,7 +1,5 @@
-// FIX: Add missing React import and useState for accordion functionality.
 import React, { useState } from 'react';
 
-// FIX: Define the missing FaqItem component to handle accordion-style questions and answers.
 interface FaqItemProps {
   question: string;
   children: React.ReactNode;
@@ -31,7 +29,7 @@ const FaqItem: React.FC<FaqItemProps> = ({ question, children }) => {
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-screen mt-4' : 'max-h-0'}`}
       >
-        <div className="text-slate-600 space-y-4">
+        <div className="text-slate-600 space-y-4 prose">
           {children}
         </div>
       </div>
@@ -40,7 +38,6 @@ const FaqItem: React.FC<FaqItemProps> = ({ question, children }) => {
 };
 
 
-// FIX: Correctly define the FaqSection functional component.
 const FaqSection: React.FC = () => {
     return (
         <section className="py-12 bg-slate-50">
@@ -48,37 +45,63 @@ const FaqSection: React.FC = () => {
                 <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
                     <h2 className="text-3xl font-bold text-center text-slate-800 font-serif mb-8">Frequently Asked Questions</h2>
                     <div className="max-w-3xl mx-auto">
-                        <FaqItem question="How do I use this Secret Santa generator?">
-                            <p>It's easy! Just follow these steps:<br/>
-                                1. <strong>Add Participants:</strong> Enter the names of everyone playing.<br/>
-                                2. <strong>Add Rules & Styles:</strong> Set any exclusions (e.g., no couples) and customize the look of your printable cards.<br/>
-                                3. <strong>Generate Matches:</strong> Click the button to instantly draw names!<br/>
-                            </p>
-                            <p>Once you have your matches, you can either download the printable cards for an in-person exchange or use the 'Share Private Links' button to send each person their secret match online.</p>
+                        <FaqItem question="How does SecretSantaMatch.com work?">
+                            <p>Our free Secret Santa generator randomly matches each person in your group to buy a gift for someone else. Enter participant names, set your preferences (like budget and exclusions), then generate matches instantly. You'll get private reveal links for each person—no sign-up or email required!</p>
                         </FaqItem>
-                        <FaqItem question="Is this site really free?">
-                            <p>Yes, SecretSantaMatch.com is 100% free to use! The tool is supported by the generous tips from users and through affiliate links (like Amazon). If you make a purchase through an affiliate link, we may receive a small commission at no extra cost to you. This helps us keep the service free for everyone.</p>
+                        <FaqItem question="Do I need to create an account or provide my email?">
+                            <p>Nope! SecretSantaMatch.com is completely free with zero sign-ups, no accounts, and no email required. Just come to the site, create your exchange, and you're done in minutes.</p>
                         </FaqItem>
-                        <FaqItem question="Do I need to enter emails or sign up?">
-                            <p>No, and that's one of the best features! To protect your privacy and make the process as fast as possible, we do not require any sign-ups, accounts, or email addresses. You, the organizer, are in complete control of sharing the private links with your participants.</p>
+                         <FaqItem question="How do participants find out who they got?">
+                            <p>After you generate matches, you'll receive unique private reveal links for each participant. You can share these links however you want—text message, WhatsApp, Facebook Messenger, Slack, or any messaging app. Each person clicks their link to see who they're buying for. It's that simple!</p>
                         </FaqItem>
-                        <FaqItem question="Why are the shareable links so long?">
-                            <p>The links are long for your privacy! All your event data (names, matches, styles) is stored securely in the link itself, not on our servers. This means we don't see or save any of your private information. The best way to share them is to copy and paste the link into a private message or email.</p>
-                        </FaqItem>
-                        <FaqItem question="Is this generator just for Christmas?">
-                           <p>While it's perfect for a Christmas Secret Santa, you can use it for any gift exchange! It's great for office parties, family holidays (like Hanukkah or Diwali), 'Favorite Things' parties, birthdays, or even a fun Valentine's Day gift swap. The card styling options let you create a look for any occasion.</p>
-                        </FaqItem>
-                         <FaqItem question="Can I prevent certain people from drawing each other?">
+                        <FaqItem question="Can I prevent certain people from being matched together?">
                             <p>Absolutely. In the "Add Details & Rules" section, you'll find an "Exclusions" feature. This allows you to create rules to prevent specific people (like couples or family members in the same household) from being matched together.</p>
                         </FaqItem>
-                        <FaqItem question="What happens if I make a mistake?">
-                            <p>No problem! On the organizer's results page, click the 'Make Changes or Start a New Game' button. This takes you back to the main page with all your info saved, so you can easily edit names or rules and then generate the matches again.</p>
+                         <FaqItem question="Can I download and print the assignments instead?">
+                            <p>Yes! We offer two ways to distribute matches:</p>
+                            <ul>
+                                <li><strong>Digital:</strong> Share private reveal links (great for remote teams or virtual exchanges).</li>
+                                <li><strong>Physical:</strong> Download beautiful, printable cards—perfect for office parties or family gatherings where you want to hand out assignments in person.</li>
+                            </ul>
                         </FaqItem>
-                        <FaqItem question="How does the name drawing work? Is it truly random?">
-                            <p>The generator uses a proven randomization algorithm to shuffle the list of receivers before assigning them to givers. It ensures that no one can be assigned to themselves and respects all the exclusion rules you set. The process is designed to be as fair and random as drawing names from a hat.</p>
+                        <FaqItem question="How is this different from other Secret Santa websites?">
+                           <p>Most sites require you and your friends to create an account, provide email addresses, and wait for emails to send. <strong>We are different:</strong></p>
+                            <ul>
+                                <li>✅ No sign-up required</li>
+                                <li>✅ No emails needed</li>
+                                <li>✅ Instant results</li>
+                                <li>✅ Your data never touches our servers for complete privacy</li>
+                            </ul>
                         </FaqItem>
-                        <FaqItem question="Can the organizer participate in the gift exchange?">
-                            <p>Yes! The organizer can and should add their own name to the list of participants. While the organizer has access to the master list of all matches, each participant (including the organizer) receives their own private link. As long as the organizer only opens their own link, their own Secret Santa assignment will remain a surprise!</p>
+                        <FaqItem question="Is my information private and secure?">
+                            <p>Completely! We don't store ANY of your information on our servers. All match details are encoded in the private links themselves, which means your Secret Santa data stays between you and your participants—we never see or store it.</p>
+                        </FaqItem>
+                        <FaqItem question="Why are the shareable links so long?">
+                            <p>The links are long for your privacy! All your event data (names, matches, styles) is stored securely in the link itself, not on our servers. This means we don't see or save any of your private information. See the next question for tips on how to share them easily!</p>
+                        </FaqItem>
+                        <FaqItem question="The links look messy. How can I share them more easily?">
+                            <p>You have several simple options:</p>
+                            <ul>
+                                <li><strong>Use a link shortener:</strong> Copy a reveal link into a free service like TinyURL.com to create a shorter, cleaner link.</li>
+                                <li><strong>Embed in text:</strong> Instead of sending the raw link, create clickable text. In an email or most messaging apps, you can type "Click here for your match!" and add the long URL as a hyperlink to that text.</li>
+                                <li><strong>QR Codes:</strong> For in-person events, use a free online QR code generator to turn each link into a scannable code!</li>
+                            </ul>
+                        </FaqItem>
+                        <FaqItem question="What's a good budget for a Secret Santa exchange?">
+                            <p>For office or casual friend groups, a budget of <strong>$20 to $30</strong> is most common. For close family, the budget might be higher, from <strong>$50 to $100</strong>. The most important thing is to choose a budget that everyone in your group is comfortable with.</p>
+                        </FaqItem>
+                        <FaqItem question="How many people do I need for Secret Santa?">
+                           <p>You need a minimum of <strong>3 participants</strong> for a successful exchange. There's no maximum—our generator can handle groups of any size, from a small family to a large office of 100+ people.</p>
+                        </FaqItem>
+                         <FaqItem question="Can I use this for remote or virtual teams?">
+                            <p>Yes, it's perfect for it! Since you share private links, everyone can participate from anywhere in the world. No need to gather in person to draw names. This is the easiest way to organize a virtual gift exchange.</p>
+                        </FaqItem>
+                        <FaqItem question="What if someone loses their reveal link?">
+                           <p>As the organizer, you keep a master list of all the matches and their reveal links. On the results page, you can easily copy and resend the link to anyone who needs it.</p>
+                        </FaqItem>
+                        <FaqItem question="What's the difference between Secret Santa and White Elephant?">
+                            <p><strong>Secret Santa:</strong> You're assigned a specific person to buy a thoughtful gift for. Identities stay secret until the reveal.</p>
+                            <p><strong>White Elephant (Yankee Swap):</strong> Everyone brings one wrapped gift. Players take turns choosing a gift from the pile or "stealing" an already-opened gift from someone else. It's more of a game with funny or strange gifts.</p>
                         </FaqItem>
                     </div>
                 </div>
