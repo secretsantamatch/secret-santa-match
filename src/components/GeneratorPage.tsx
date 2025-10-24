@@ -14,6 +14,7 @@ import BulkAddModal from './BulkAddModal';
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { HelpCircle } from 'lucide-react';
+import FeaturedResources from './FeaturedResources';
 
 // Allow TypeScript to recognize the gtag function on the window object
 declare global {
@@ -305,6 +306,7 @@ const GeneratorPage: React.FC = () => {
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
         <Header />
         <HowItWorks />
+        <FeaturedResources />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
           <div id="step-1-participants" className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
