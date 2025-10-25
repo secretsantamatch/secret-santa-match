@@ -68,7 +68,15 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         style={dynamicStyles}
     >
       {backgroundImageUrl && (
-        <img src={backgroundImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" crossOrigin="anonymous" />
+        <img 
+          src={backgroundImageUrl} 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover" 
+          crossOrigin="anonymous" 
+          loading="lazy"
+          width="338"
+          height="450"
+        />
       )}
       <div className="relative z-10 text-center flex flex-col h-full w-full">
         <div className="flex-grow flex flex-col items-center justify-center text-center">
