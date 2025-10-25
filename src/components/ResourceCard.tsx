@@ -23,7 +23,10 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
         <img 
           src={resource.thumbnailUrl} 
           alt={resource.title} 
-          className="w-full object-cover aspect-[16/9] group-hover:scale-105 transition-transform duration-300" 
+          className="w-full object-cover aspect-[16/9] group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+          width="320"
+          height="180"
         />
       </div>
       <div className="flex-grow p-6 flex flex-col">
