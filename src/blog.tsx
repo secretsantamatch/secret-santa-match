@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import BlogPage from './components/BlogPage';
-import './index.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
