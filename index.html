@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo_256.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Secret Santa Generator | Free, No Email, Instant Match</title>
+    <title>Secret Santa Generator | Free, No Signup, No Email, Instant Generation</title>
     <meta name="description" content="The best free Secret Santa generator for your gift exchange! Instantly draw names, add exclusions, download printable cards, and share private links with each participant—all with no sign-ups required.">
     <meta name="keywords" content="secret santa generator, secret santa, draw names, gift exchange, free secret santa, online secret santa, no email secret santa">
     <link rel="manifest" href="/manifest.json" />
@@ -17,11 +17,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- 1. Load CRITICAL fonts needed for initial pre-rendered content (BLOCKING) -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;700&display=swap">
-
-    <!-- 2. Load the rest of the fonts NON-BLOCKING -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;900&family=Montserrat:wght@500;600&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    <!-- Load ALL fonts NON-BLOCKING -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap" media="print" onload="this.media='all'">
     
     <!-- Fallback for browsers that don't support JS-based loading -->
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap"></noscript>
@@ -122,6 +119,6 @@
         </div>
       </div>
     </div>
-    <script type="module" src="/src/index.tsx"></script>
+    <script type="module" defer src="/src/index.tsx"></script>
   </body>
 </html>
