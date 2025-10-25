@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import MinimumPaymentCalculator from './minimum-payment-calculator';
-import './index.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
