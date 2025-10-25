@@ -53,6 +53,77 @@
           .steps-container-critical { flex-direction: row; gap: 1.5rem; }
           .chevron-critical { display: block; color: #cbd5e0; }
       }
+      
+      /* Inlined src/index.css */
+      @tailwind base;
+      @tailwind components;
+      @tailwind utilities;
+
+      :root, :root[data-theme="default"], :root[data-theme="christmas"] {
+          --primary-color: #c62828; /* A nice Christmas red */
+          --primary-color-hover: #a52121;
+          --accent-color: #2e7d32; /* A festive green */
+          --accent-color-hover: #266a2a;
+      }
+      :root[data-theme="halloween"] {
+          --primary-color: #f97316; /* Orange */
+          --primary-color-hover: #ea580c;
+          --accent-color: #4f46e5; /* Indigo */
+          --accent-color-hover: #4338ca;
+      }
+      :root[data-theme="valentines"] {
+          --primary-color: #dc2626; /* Red */
+          --primary-color-hover: #b91c1c;
+          --accent-color: #ec4899; /* Pink */
+          --accent-color-hover: #db2777;
+      }
+
+      body {
+          font-family: 'Montserrat', sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          background-color: #f8fafc; /* A light slate/gray color */
+          color: #334155;
+      }
+
+      /* Custom styles for Driver.js tour */
+      :root {
+        --driver-bg-color: #ffffff;
+        --driver-popover-bg-color: #ffffff;
+        --driver-popover-arrow-color: #ffffff;
+        --driver-popover-title-color: var(--primary-color);
+        --driver-popover-description-color: #334155;
+        --driver-popover-close-btn-bg-color: #e5e7eb;
+        --driver-popover-close-btn-color: #4b5563;
+        --driver-nav-btn-bg-color: var(--primary-color);
+        --driver-nav-btn-color: #ffffff;
+        --driver-nav-btn-hover-bg-color: var(--primary-color-hover);
+        --driver-progress-text-color: #4b5563;
+        --driver-overlay-color: #0f172a;
+        --driver-popover-border-radius: 12px;
+        --driver-popover-padding: 24px;
+        --driver-popover-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .driver-popover-title {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+      }
+
+      .driver-popover-description {
+        font-family: 'Montserrat', sans-serif !important;
+        font-size: 1rem !important;
+        line-height: 1.6 !important;
+      }
+
+      .driver-popover-progress-text {
+          font-family: 'Montserrat', sans-serif !important;
+      }
+
+      .driver-popover-navigation-btns {
+          font-family: 'Montserrat', sans-serif !important;
+      }
     </style>
 <script type="importmap">
 {
