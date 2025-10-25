@@ -33,13 +33,13 @@ const Footer: React.FC = () => {
                     <h3 className="font-bold text-lg text-slate-800 mb-4">Follow Us</h3>
                      <div className="flex justify-center gap-6">
                         <a href="https://pinterest.com/SecretSantaMatch/" target="_blank" rel="noopener noreferrer" className="transition-transform transform hover:scale-110" aria-label="Follow us on Pinterest">
-                           <img src="/pinterest-logo.webp" alt="Follow us on Pinterest" className="w-10 h-10" />
+                           <img src="/pinterest-logo.webp" alt="Follow us on Pinterest" className="w-10 h-10" loading="lazy" width="40" height="40" />
                         </a>
                         <a href="https://www.youtube.com/@SecretSantaMatch" target="_blank" rel="noopener noreferrer" className="transition-transform transform hover:scale-110" aria-label="Follow us on YouTube">
-                           <img src="/youtube-logo.webp" alt="Follow us on YouTube" className="w-10 h-10" />
+                           <img src="/youtube-logo.webp" alt="Follow us on YouTube" className="w-10 h-10" loading="lazy" width="40" height="40" />
                         </a>
                          <a href="https://www.tiktok.com/@secretsantamatch" target="_blank" rel="noopener noreferrer" className="transition-transform transform hover:scale-110" aria-label="Follow us on TikTok">
-                            <img src="/tiktok-logo.webp" alt="Follow us on TikTok" className="w-10 h-10" />
+                            <img src="/tiktok-logo.webp" alt="Follow us on TikTok" className="w-10 h-10" loading="lazy" width="40" height="40" />
                         </a>
                     </div>
                 </div>
