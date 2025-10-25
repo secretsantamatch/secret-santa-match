@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo_256.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Free Minimum Payment Calculator | See Your Debt-Free Date</title>
+    <title>Minimum Payment Calculator | See Your Debt-Free Date</title>
     <meta name="description" content="Free minimum payment calculator to see how long it will take to pay off credit card debt. Find out how much you can save by paying more than the minimum.">
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#c62828">
@@ -12,10 +12,17 @@
     <!-- Pinterest Verification -->
     <meta name="p:domain_verify" content="bc322d28f428cbc03973572de2259667"/>
 
-    <!-- Optimized Font Loading -->
+    <!-- Optimized Font Loading Strategy -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap" media="print" onload="this.media='all'">
+
+    <!-- 1. Load CRITICAL fonts needed for initial render BLOCKING -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Montserrat:wght@400;500;600;700&display=swap">
+
+    <!-- 2. Load the rest of the fonts NON-BLOCKING -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    
+    <!-- Fallback for browsers that don't support JS-based loading -->
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap"></noscript>
 </head>
   <body>
