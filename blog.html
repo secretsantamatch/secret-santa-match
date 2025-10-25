@@ -16,17 +16,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- 1. Load CRITICAL fonts needed for initial render BLOCKING -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Montserrat:wght@400;500;600;700&display=swap">
-
-    <!-- 2. Load the rest of the fonts NON-BLOCKING -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    <!-- Load ALL fonts NON-BLOCKING -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap" media="print" onload="this.media='all'">
     
     <!-- Fallback for browsers that don't support JS-based loading -->
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap"></noscript>
 </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/blog.tsx"></script>
+    <script type="module" defer src="/src/blog.tsx"></script>
   </body>
 </html>
