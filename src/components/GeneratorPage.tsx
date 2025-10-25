@@ -12,7 +12,6 @@ import ResourcesSection from './ResourcesSection';
 import BackToTopButton from './BackToTopButton';
 import BulkAddModal from './BulkAddModal';
 import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
 import { HelpCircle } from 'lucide-react';
 import FeaturedResources from './FeaturedResources';
 
