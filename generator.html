@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo_256.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secret Santa Generator | Free, No Email, Instant Match</title>
+    <meta name="description" content="The best free Secret Santa generator for your gift exchange! Instantly draw names, add exclusions, download printable cards, and share private links with each participant—all with no sign-ups required.">
+    <meta name="keywords" content="secret santa generator, secret santa, draw names, gift exchange, free secret santa, online secret santa, no email secret santa">
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#c62828">
+    
+    <!-- Pinterest Verification -->
+    <meta name="p:domain_verify" content="bc322d28f428cbc03973572de2259667"/>
+
+    <!-- Optimized Font Loading Strategy -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Load ALL fonts NON-BLOCKING -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    
+    <!-- Fallback for browsers that don't support JS-based loading -->
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap"></noscript>
+    
+    <!-- Asynchronously load Driver.js CSS to prevent render-blocking -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"></noscript>
+
+    <style>
+      /* Critical CSS */
+      :root { --primary-color: #c62828; }
+      body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #334155; margin: 0; }
+      .container-critical { max-width: 64rem; margin-left: auto; margin-right: auto; padding: 1rem; }
+      @media (min-width: 640px) { .container-critical { padding: 1.5rem; } }
+      @media (min-width: 768px) { .container-critical { padding: 2rem; } }
+      
+      .header-critical { text-align: center; padding-top: 1rem; padding-bottom: 1rem; }
+      .header-critical img { width: 4rem; height: 4rem; display: inline-block; margin-bottom: 1rem; }
+      .header-critical h1 { font-family: 'Playfair Display', serif; font-size: 2.25rem; font-weight: 700; color: #f97316; margin: 0; }
+      .header-critical h2 { font-size: 1.25rem; font-weight: 700; color: #334155; margin-top: 0.5rem; }
+      .header-critical p { margin-top: 1rem; max-width: 48rem; margin-left: auto; margin-right: auto; color: #4b5563; font-size: 1rem; }
+
+      .how-it-works-critical { margin-top: 2.5rem; margin-bottom: 2.5rem; }
+      .how-it-works-critical h2 { text-align: center; font-family: 'Playfair Display', serif; font-size: 1.875rem; font-weight: 700; color: #1e293b; margin-bottom: 2rem; }
+      .steps-container-critical { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; }
+      .step-card-critical { background-color: #fff; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); border: 1px solid #e5e7eb; padding: 1.5rem; width: 100%; text-align: center; }
+      .step-card-critical img { height: 3rem; width: 3rem; margin-left: auto; margin-right: auto; margin-bottom: 1rem; }
+      .step-card-critical h3 { font-size: 1.25rem; font-weight: 700; color: #c62828; margin: 0; }
+      .step-card-critical p { color: #475569; margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.6; }
+      .chevron-critical { display: none; }
+
+      @media (min-width: 768px) {
+          .header-critical h1 { font-size: 3rem; }
+          .header-critical h2 { font-size: 1.5rem; }
+          .how-it-works-critical { margin-top: 4rem; margin-bottom: 4rem; }
+          .steps-container-critical { flex-direction: row; gap: 1.5rem; }
+          .chevron-critical { display: block; color: #cbd5e0; }
+      }
+      
+      /* Inlined src/index.css */
+      @tailwind base;
+      @tailwind components;
+      @tailwind utilities;
+
+      :root, :root[data-theme="default"], :root[data-theme="christmas"] {
+          --primary-color: #c62828; /* A nice Christmas red */
+          --primary-color-hover: #a52121;
+          --accent-color: #2e7d32; /* A festive green */
+          --accent-color-hover: #266a2a;
+      }
+      :root[data-theme="halloween"] {
+          --primary-color: #f97316; /* Orange */
+          --primary-color-hover: #ea580c;
+          --accent-color: #4f46e5; /* Indigo */
+          --accent-color-hover: #4338ca;
+      }
+      :root[data-theme="valentines"] {
+          --primary-color: #dc2626; /* Red */
+          --primary-color-hover: #b91c1c;
+          --accent-color: #ec4899; /* Pink */
+          --accent-color-hover: #db2777;
+      }
+
+      body {
+          font-family: 'Montserrat', sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          background-color: #f8fafc; /* A light slate/gray color */
+          color: #334155;
+      }
+
+      /* Custom styles for Driver.js tour */
+      :root {
+        --driver-bg-color: #ffffff;
+        --driver-popover-bg-color: #ffffff;
+        --driver-popover-arrow-color: #ffffff;
+        --driver-popover-title-color: var(--primary-color);
+        --driver-popover-description-color: #334155;
+        --driver-popover-close-btn-bg-color: #e5e7eb;
+        --driver-popover-close-btn-color: #4b5563;
+        --driver-nav-btn-bg-color: var(--primary-color);
+        --driver-nav-btn-color: #ffffff;
+        --driver-nav-btn-hover-bg-color: var(--primary-color-hover);
+        --driver-progress-text-color: #4b5563;
+        --driver-overlay-color: #0f172a;
+        --driver-popover-border-radius: 12px;
+        --driver-popover-padding: 24px;
+        --driver-popover-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .driver-popover-title {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+      }
+
+      .driver-popover-description {
+        font-family: 'Montserrat', sans-serif !important;
+        font-size: 1rem !important;
+        line-height: 1.6 !important;
+      }
+
+      .driver-popover-progress-text {
+          font-family: 'Montserrat', sans-serif !important;
+      }
+
+      .driver-popover-navigation-btns {
+          font-family: 'Montserrat', sans-serif !important;
+      }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "vite": "https://aistudiocdn.com/vite@^7.1.12",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.4",
+    "path": "https://aistudiocdn.com/path@^0.12.7",
+    "url": "https://aistudiocdn.com/url@^0.11.4",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.546.0",
+    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.3",
+    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^5.0.2",
+    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
+    "pako": "https://aistudiocdn.com/pako@^2.1.0",
+    "driver.js": "https://aistudiocdn.com/driver.js@^1.3.6",
+    "driver.js/": "https://aistudiocdn.com/driver.js@^1.3.6/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.3.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root">
+      <div class="bg-slate-50">
+        <div class="container-critical">
+          <header class="header-critical">
+            <img src="/logo_256.png" alt="Secret Santa Generator Logo" width="64" height="64" />
+            <h1>Secret Santa Generator</h1>
+            <h2>The Easiest Way to Draw Names Online</h2>
+            <p>
+              The best free Secret Santa generator for your gift exchange! Instantly draw names,
+              add exclusions, download printable cards, and share private links with each
+              participant—all with no sign-ups required. Perfect for office, family, and friends.
+            </p>
+          </header>
+          <section class="how-it-works-critical">
+            <h2>How It Works</h2>
+            <div class="steps-container-critical">
+              <div class="step-card-critical">
+                <img src="/step_1.webp" alt="Add Names" width="48" height="48" />
+                <h3>1. Add Names</h3>
+                <p>Easily enter participant names one by one or use the bulk add feature. It's fast, free, and requires no sign-ups or apps.</p>
+              </div>
+              <div class="chevron-critical">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+              </div>
+              <div class="step-card-critical">
+                <img src="/step_2.webp" alt="Set Rules & Styles" width="48" height="48" />
+                <h3>2. Set Rules &amp; Styles</h3>
+                <p>Add exclusions to prevent people from drawing each other, then customize beautiful, printable cards for a personal touch.</p>
+              </div>
+              <div class="chevron-critical">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+              </div>
+              <div class="step-card-critical">
+                <img src="/step_3.webp" alt="Share Links & Cards" width="48" height="48" />
+                <h3>3. Share Links &amp; Cards</h3>
+                <p>Instantly share private links so everyone can see their match online, or download the styled cards for your in-person party.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <script type="module" defer src="/src/index.tsx"></script>
+  </body>
+</html>
