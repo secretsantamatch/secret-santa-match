@@ -1,5 +1,16 @@
 [
  {
+  "id": "nice-list-certificates",
+  "type": "Free Download",
+  "title": "Free Printable Nice List Certificates (6 Unique Designs!)",
+  "description": "Download 6 beautiful, official-looking Nice List certificates for free! Perfect for adding a touch of Christmas magic for kids, classrooms, and parties. No signup required.",
+  "thumbnailUrl": "/posts/nice-list-certificates-preview.webp",
+  "linkUrl": "/free-nice-list-certificates.html",
+  "lastUpdated": "Oct 25, 2025",
+  "keywords": ["nice list", "certificate", "free", "printable", "download", "kids", "santa", "christmas", "official", "template", "pdf"]
+},
+ 
+ {
     "id": "streaming-gifts-2025",
     "type": "Article",
     "title": "15 Last-Minute Gifts for Streaming Lovers in 2025",
@@ -7,6 +18,7 @@
     "thumbnailUrl": "/posts/streaming-gifts-thumb.webp",
     "linkUrl": "/streaming-gifts-2025.html",
     "lastUpdated": "Oct 11, 2025"
+   "keywords": ["streaming", "movie", "movies", "tv", "netflix", "hulu", "binge", "show", "film", "disney", "series", "binge-watch", "couch potato", "home theater", "max", "hbo", "apple tv", "prime video", "cinema", "tech", "gadgets"]
   },
   {
     "id": "halloween-word-search",
@@ -16,6 +28,7 @@
     "thumbnailUrl": "/posts/halloween-games-thumb.webp",
     "linkUrl": "/halloween-word-search-printables.html",
     "lastUpdated": "Oct 15, 2025"
+   "keywords": ["halloween", "game", "printable", "free", "kids", "party", "activity", "word search", "puzzle", "classroom"]
   }, 
   {
     "id": "holiday-budget-calculator",
@@ -25,6 +38,7 @@
     "thumbnailUrl": "/posts/holiday-budget-calculator-thumb.webp",
     "linkUrl": "/holiday-budget-calculator.html",
     "lastUpdated": "Oct 12, 2025"
+   "keywords": ["budget", "calculator", "holiday", "christmas", "spending", "money", "finance", "debt", "credit", "save money"]
   },  
   {
       "id": "credit-vs-debit-holiday",
@@ -34,6 +48,7 @@
       "thumbnailUrl": "/posts/credit-vs-debit-thumb.webp",
       "linkUrl": "/credit-card-vs-debit-card.html",
       "lastUpdated": "October 11, 2025"
+   "keywords": ["credit card", "debit card", "holiday", "shopping", "money", "finance", "budget", "debt", "bnpl", "afterpay", "klarna"]
     },
   
   {
@@ -44,6 +59,7 @@
       "thumbnailUrl": "/posts/debt-calculator.png",
       "linkUrl": "/minimum-payment-calculator.html",
       "lastUpdated": "October 13, 2025"
+   "keywords": ["debt", "calculator", "credit card", "finance", "money", "interest", "payment", "payoff"]
     },
 
     {
@@ -54,6 +70,7 @@
       "thumbnailUrl": "/posts/secret-santa-comparison-thumb.webp",
       "linkUrl": "/complete-secret-santa-comparison.html",
       "lastUpdated": "October 13, 2025"
+     "keywords": ["organize", "guide", "rules", "how to", "plan", "setup", "instructions", "manager", "host", "organizer", "comparison", "paper", "app"]
     },   
     {
         "id": "last-minute-drug-store-gifts",
@@ -63,6 +80,7 @@
         "thumbnailUrl": "/posts/drug-store-gifts.png",
         "linkUrl": "/last-minute-drug-store-gifts.html",
         "lastUpdated": "October 12, 2025"
+      "keywords": ["last minute", "drug store", "quick", "easy", "simple", "convenience", "pharmacy", "walgreens", "cvs", "rite aid", "last-minute", "forgot", "emergency", "gifts"]
     },
   {
   "id": "elfster-alternative",
@@ -72,6 +90,7 @@
   "thumbnailUrl": "/posts/elfster-alternative-thumb.webp",
   "linkUrl": "/elfster-alternative.html",
   "lastUpdated": "October 2025"
+   "keywords": ["alternative", "elfster", "drawnames", "private", "no email", "comparison", "vs", "no signup", "privacy", "competitor"]
 },
 {
   "id": "drawnames-alternative",
@@ -81,6 +100,7 @@
   "thumbnailUrl": "/posts/drawnames-alternative-thumb.webp",
   "linkUrl": "/drawnames-alternative.html",
   "lastUpdated": "October 2025"
+ "keywords": ["alternative", "elfster", "drawnames", "private", "no email", "comparison", "vs", "no signup", "privacy", "competitor"]
 },
 {
   "id": "gift-ideas-broke",
@@ -90,6 +110,7 @@
   "thumbnailUrl": "/posts/gift-ideas-when-broke.png",
   "linkUrl": "/gift-ideas-when-broke.html",
   "lastUpdated": "October 2025"
+ "keywords": ["broke", "cheap", "budget", "save money", "low cost", "inexpensive", "free", "affordable", "thrifty", "diy", "homemade", "under $25", "under $20", "on a budget", "gift ideas"]
 },
 {
   "id": "halloween-games",
@@ -99,6 +120,7 @@
   "thumbnailUrl": "/posts/Halloween-Bingo-Image-thumb.webp",
   "linkUrl": "/halloween-party-games.html",
   "lastUpdated": "October 2025"
+ "keywords": ["halloween", "game", "printable", "free", "kids", "party", "activity", "bingo", "adults", "icebreaker"]
 },
 {
   "id": "how-to-organize",
@@ -108,6 +130,7 @@
   "thumbnailUrl": "/posts/how-to-organize-thumb.webp",
   "linkUrl": "/how-to-organize-secret-santa.html",
   "lastUpdated": "September 2025"
+ "keywords": ["organize", "guide", "rules", "how to", "plan", "setup", "instructions", "manager", "host", "organizer"]
 },
 {
   "id": "bingo-guide",
@@ -117,6 +140,7 @@
   "thumbnailUrl": "/posts/Free_Secret_Santa_Bingo_Card_Guide-thumb.webp",
   "linkUrl": "/secret-santa-bingo-guide.html",
   "lastUpdated": "September 2025"
+ "keywords": ["game", "fun", "party", "icebreaker", "bingo", "activity", "games", "ice breaker", "entertainment", "secret santa"]
 },
 {
   "id": "questionnaire",
@@ -126,5 +150,6 @@
   "thumbnailUrl": "/posts/secret_santa_questionnaire-thumb.webp",
   "linkUrl": "/secret-santa-questionnaire.html",
   "lastUpdated": "September 2025"
+ "keywords": ["questionnaire", "ideas", "help", "guide", "gift ideas", "questions", "form", "survey", "profile", "hints", "clues", "wishlist", "printable"]
 }
 ]
