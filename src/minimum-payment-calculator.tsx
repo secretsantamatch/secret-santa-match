@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Calculator, Trash2, PlusCircle, Banknote, Coffee, Utensils, Tv, Phone, Pizza, TreePalm } from 'lucide-react';
 import CalculatorResults from './components/CalculatorResults';
+import type { CalculatorResult } from './types';
 
 // Dummy modals since the components are not provided but are used by CalculatorResults
 const ShareModal = ({ onClose }: { onClose: () => void }) => (
@@ -44,7 +45,7 @@ const MinimumPaymentCalculator: React.FC = () => {
         { id: 1, name: 'Credit Card 1', balance: 5000, apr: 21.99, minPayment: 150 },
         { id: 2, name: 'Personal Loan', balance: 10000, apr: 9.5, minPayment: 250 },
     ]);
-    const [results, setResults] = useState<any | null>(null);
+    const [results, setResults] = useState<CalculatorResult | null>(null);
     const [customPayment, setCustomPayment] = useState(100);
     const [showBlogModal, setShowBlogModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
