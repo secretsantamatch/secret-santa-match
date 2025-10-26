@@ -19,6 +19,7 @@ import FeaturedResources from './FeaturedResources';
 declare global {
   interface Window {
     gtag: (...args: any[]) => void;
+    adsbygoogle: any[];
   }
 }
 
@@ -29,6 +30,27 @@ const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) =>
   } else {
     console.log(`Analytics Event (gtag not found): ${eventName}`, eventParams);
   }
+};
+
+const AdUnit: React.FC<{ adSlot: string }> = ({ adSlot }) => {
+    useEffect(() => {
+        try {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (err) {
+            console.error("AdSense push error:", err);
+        }
+    }, []);
+
+    return (
+        <div className="my-10 text-center" key={adSlot}>
+             <ins className="adsbygoogle"
+                 style={{ display: 'block' }}
+                 data-ad-client="ca-pub-3037944530219260"
+                 data-ad-slot={adSlot}
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+        </div>
+    );
 };
 
 
@@ -302,10 +324,18 @@ const GeneratorPage: React.FC = () => {
 
   return (
     <div className="bg-slate-50 min-h-screen">
+       <div className="bg-gradient-to-r from-orange-500 to-red-600 p-3 text-white text-center shadow-md sticky top-0 z-50">
+        <div className="container mx-auto">
+          <a href="/" className="font-bold text-lg hover:underline">
+            &larr; Back to The Blog for Holiday Guides, Free Printables & More!
+          </a>
+        </div>
+      </div>
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
         <Header />
         <HowItWorks />
         <FeaturedResources />
+        <AdUnit adSlot="GENERATOR_TOP_AD_SLOT" />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
           <div id="step-1-participants" className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
@@ -389,6 +419,8 @@ const GeneratorPage: React.FC = () => {
 
         </main>
       </div>
+      
+      <AdUnit adSlot="GENERATOR_BOTTOM_AD_SLOT" />
 
       <FaqSection />
       <ResourcesSection />
