@@ -1,3 +1,4 @@
+import type React from 'react';
 
 export interface Participant {
   id: string;
@@ -90,4 +91,34 @@ export interface Resource {
   linkUrl: string;
   lastUpdated?: string;
   keywords?: string[];
+}
+
+// Types for Minimum Payment Calculator
+export interface MoneySavingTip {
+  label: string;
+  amount: number;
+  description: string;
+  icon: React.ElementType;
+}
+
+export interface PayoffResult {
+  months: number;
+  totalInterest: number;
+  totalPaid: number;
+}
+
+export interface ScenarioResult extends PayoffResult {
+  debtFreeYear: number | string;
+}
+
+export interface CalculatorResult {
+  totalMinPayment: number;
+  scenarios: ScenarioResult[];
+  customPaymentTotal: number;
+  customResults: PayoffResult;
+  customYear: number | string;
+  customInterestSaved: number;
+  weightedAPR: number;
+  interestVsPrincipal: { name: string; value: number; fill: string; }[];
+  moneySavingTips: MoneySavingTip[];
 }
