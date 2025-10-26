@@ -215,7 +215,7 @@ const MinimumPaymentCalculator: React.FC = () => {
                     </div>
 
                     <div ref={resultsRef}>
-                        {results && <CalculatorResults results={results} customPayment={customPayment} setCustomPayment={setCustomPayment} />}
+                        {results && <CalculatorResults debts={debts} results={results} customPayment={customPayment} setCustomPayment={setCustomPayment} />}
                     </div>
                 </main>
                 
