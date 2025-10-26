@@ -1,24 +1,23 @@
-import React, { useState, Dispatch, SetStateAction } from 'react';
+import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Zap, Flame, Award, Download, Share2, BookOpen, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Zap, Flame, Award, Download, Share2, BookOpen, ArrowRight, AlertTriangle, Lightbulb } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import type { CalculatorResult } from '../types';
+import type { CalculatorResult, Debt, PayoffResult } from '../types';
 
 interface CalculatorResultsProps {
+  debts: Debt[];
   results: CalculatorResult;
   customPayment: number;
   setCustomPayment: Dispatch<SetStateAction<number>>;
 }
 
-// FIX: Change gtag type to be consistent with other declarations in the project to avoid type errors.
 declare global {
   interface Window {
     gtag: (...args: any[]) => void;
   }
 }
 
-// FIX: Add trackEvent helper function to send analytics events.
 const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) => {
   if (typeof window.gtag === 'function') {
     window.gtag('event', eventName, eventParams);
@@ -60,8 +59,58 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
-const CalculatorResults: React.FC<CalculatorResultsProps> = ({ results, customPayment, setCustomPayment }) => {
+const CalculatorResults: React.FC<CalculatorResultsProps> = ({ debts, results, customPayment, setCustomPayment }) => {
     const [isPdfLoading, setIsPdfLoading] = useState(false);
+    const [dynamicCustomResults, setDynamicCustomResults] = useState<PayoffResult>(results.customResults);
+    const [dynamicInterestSaved, setDynamicInterestSaved] = useState<number>(results.customInterestSaved);
+
+    useEffect(() => {
+        const calculateMinimumPayment = (balance: number, percent: number, flat: number) => {
+            return Math.max(flat, balance * (percent / 100));
+        };
+
+        const calculatePayoff = (extraPayment: number): PayoffResult => {
+            let localDebts: (Debt & { balance: number })[] = JSON.parse(JSON.stringify(debts.filter(d => d.balance > 0)));
+            let months = 0;
+            let totalInterest = 0;
+            const initialPrincipal = localDebts.reduce((sum, d) => sum + d.balance, 0);
+
+            while (localDebts.reduce((sum, d) => sum + d.balance, 0) > 0) {
+                months++;
+                if (months > 1200) return { months: Infinity, totalInterest: Infinity, totalPaid: Infinity };
+                let totalMinPaymentThisMonth = 0;
+                let monthlyInterest = 0;
+                localDebts.forEach(debt => {
+                    totalMinPaymentThisMonth += calculateMinimumPayment(debt.balance, debt.minPaymentPercent, debt.minPaymentFlat);
+                    const interest = debt.balance * (debt.apr / 100 / 12);
+                    monthlyInterest += interest;
+                    debt.balance += interest;
+                });
+                totalInterest += monthlyInterest;
+                let paymentRemaining = totalMinPaymentThisMonth + extraPayment;
+                localDebts.sort((a, b) => b.apr - a.apr);
+                const nextTempDebts: (Debt & { balance: number })[] = [];
+                for (let debt of localDebts) {
+                    if (paymentRemaining <= 0) { nextTempDebts.push(debt); continue; }
+                    const payment = Math.min(debt.balance, paymentRemaining);
+                    debt.balance -= payment;
+                    paymentRemaining -= payment;
+                    if (debt.balance > 0.01) { nextTempDebts.push(debt); }
+                }
+                localDebts = nextTempDebts;
+            }
+            return { months, totalInterest, totalPaid: initialPrincipal + totalInterest };
+        };
+        
+        const handler = setTimeout(() => {
+            const newCustomResults = calculatePayoff(customPayment);
+            setDynamicCustomResults(newCustomResults);
+            setDynamicInterestSaved(results.scenarios[0].totalInterest - newCustomResults.totalInterest);
+        }, 100); // Debounce calculation
+
+        return () => clearTimeout(handler);
+
+    }, [customPayment, debts, results.scenarios]);
 
     if (!results) return null;
 
@@ -99,7 +148,6 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({ results, customPa
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Your Debt Freedom Plan</h2>
             </div>
 
-            {/* Results Grid */}
             <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-red-50 border-2 border-dashed border-red-200 rounded-2xl p-6 text-center">
                     <h3 className="font-bold text-red-800 text-lg">With Minimum Payments</h3>
@@ -108,19 +156,17 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({ results, customPa
                 </div>
                 <div className="bg-green-50 border-2 border-dashed border-green-200 rounded-2xl p-6 text-center">
                     <h3 className="font-bold text-green-800 text-lg">With Your Extra <span className="text-green-600">{formatCurrency(customPayment)}/mo</span></h3>
-                    <p className="text-5xl font-bold text-green-600 my-2">{formatTime(results.customResults.months)}</p>
-                    <p className="text-slate-600">You'll save <strong className="text-green-700">{formatCurrency(results.customInterestSaved)}</strong> in interest!</p>
+                    <p className="text-5xl font-bold text-green-600 my-2">{formatTime(dynamicCustomResults.months)}</p>
+                    <p className="text-slate-600">You'll save <strong className="text-green-700">{formatCurrency(dynamicInterestSaved)}</strong> in interest!</p>
                 </div>
             </div>
 
-            {/* Slider */}
             <div>
                 <label htmlFor="extra-payment-slider" className="block text-center text-lg font-bold mb-4 text-slate-700">How fast can you be debt-free? Slide to find out!</label>
                 <input id="extra-payment-slider" type="range" min="0" max="1000" step="10" value={customPayment} onChange={(e) => setCustomPayment(parseInt(e.target.value))} className="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer"/>
                 <div className="flex justify-between text-slate-500 mt-2 text-sm"><span>$0</span><span>$500</span><span>$1000</span></div>
             </div>
 
-            {/* Chart */}
             <div className="bg-slate-50 rounded-2xl p-6">
                 <h3 className="text-2xl font-bold text-slate-800 text-center mb-4">Understanding the True Cost of Debt</h3>
                 <div className="h-80 w-full">
@@ -139,7 +185,6 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({ results, customPa
                 </div>
             </div>
             
-             {/* Affiliate CTA */}
             <div className="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-6 text-center">
                 <h3 className="text-2xl font-bold text-indigo-800 font-serif mb-2">Your Next Step: Take Control</h3>
                 <p className="text-indigo-700 max-w-xl mx-auto mb-6">High interest rates slowing you down? See if you can lower your APR, consolidate debt, or find a better card. It's free and won't hurt your score.</p>
@@ -152,7 +197,29 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({ results, customPa
                 `}} />
             </div>
 
-            {/* Action Buttons */}
+            <div className="bg-sky-50 rounded-2xl p-6 md:p-8">
+                <h3 className="text-2xl font-bold text-slate-800 text-center mb-6 flex items-center justify-center gap-3"><Lightbulb className="w-7 h-7 text-sky-500"/>Find Extra Cash to Pay Down Debt Faster</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                    {results.moneySavingTips.map(tip => (
+                        <div key={tip.label} className="flex items-start gap-4 bg-white p-4 rounded-lg border">
+                            <tip.icon className="w-6 h-6 text-sky-600 mt-1 flex-shrink-0" />
+                            <div>
+                                <p className="font-bold text-slate-700">{tip.label} - Save ~{formatCurrency(tip.amount)}/mo</p>
+                                <p className="text-sm text-slate-500">{tip.description}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            
+            <div className="bg-slate-100 rounded-2xl p-6 text-center">
+                <h3 className="text-2xl font-bold text-slate-800 font-serif mb-2">Plan Your Holiday Spending</h3>
+                <p className="text-slate-600 max-w-xl mx-auto mb-6">Worried about holiday debt? Use our free Holiday Budget Calculator to plan your spending and see its impact on your credit before you shop.</p>
+                <a href="/holiday-budget-calculator.html" className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    Try the Holiday Budget Calculator <ArrowRight size={20} />
+                </a>
+            </div>
+
             <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row justify-center gap-4">
                 <button onClick={generatePDF} disabled={isPdfLoading} className="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50">
                     <Download size={20} /> {isPdfLoading ? 'Generating PDF...' : 'Download My Plan'}
