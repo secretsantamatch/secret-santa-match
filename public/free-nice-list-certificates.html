@@ -152,7 +152,7 @@
         .tip-card h4 { color: var(--green); margin-bottom: 12px; font-size: 1.3em; }
         .download-section { background: linear-gradient(135deg, var(--red) 0%, #8B0000 100%); padding: 60px 40px; border-radius: 20px; text-align: center; color: white; margin: 60px 0; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
         .download-section h3 { font-family: 'Playfair Display', serif; font-size: 2.5em; margin-bottom: 20px; }
-        .download-btn { background: white; color: var(--red); padding: 20px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.2em; display: inline-flex; align-items: center; justify-content: center; gap: 15px; transition: all 0.3s ease; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        .download-btn { background: white; color: var(--red); padding: 20px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.2em; display: inline-flex; align-items: center; justify-content: center; gap: 15px; transition: all 0.3s ease; box-shadow: 0 5px 20px rgba(0,0,0,0.2); border: none; cursor: pointer; }
         .download-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); background: var(--gold); color: var(--dark); }
         .related-section { padding: 50px; background: linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 100%); border-radius: 15px; margin: 60px 0; }
         .related-section h3 { font-family: 'Playfair Display', serif; color: var(--dark); font-size: 2.2em; margin-bottom: 35px; text-align: center; }
@@ -170,6 +170,22 @@
         .footer-cta h3 { font-family: 'Playfair Display', serif; font-size: 2.5em; margin-bottom: 20px; }
         .cta-btn { background: white; color: var(--green); padding: 20px 50px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.3em; display: inline-block; transition: all 0.3s ease; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
         .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); background: var(--gold); }
+
+        /* Modal styles */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(44, 62, 80, 0.85); backdrop-filter: blur(5px); animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content { background-color: #fefefe; border-radius: 15px; margin: 5% auto; padding: 40px; border: 5px solid var(--gold); width: 90%; max-width: 900px; position: relative; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-content h3 { font-family: 'Playfair Display', serif; color: var(--red); font-size: 2em; margin-bottom: 10px; text-align: center; }
+        .modal-content p { text-align: center; margin-bottom: 30px; color: var(--dark); font-size: 1.1em; }
+        .close-btn { color: #aaa; float: right; font-size: 38px; font-weight: bold; position: absolute; top: 15px; right: 25px; transition: color 0.3s ease; }
+        .close-btn:hover, .close-btn:focus { color: var(--red); text-decoration: none; cursor: pointer; }
+        .modal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .modal-item { text-decoration: none; color: inherit; display: block; border-radius: 10px; overflow: hidden; background: #f9f9f9; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; border: 1px solid #eee; }
+        .modal-item:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); border-color: var(--gold); }
+        .modal-item img { width: 100%; height: auto; display: block; }
+        .modal-item h4 { font-size: 1em; font-weight: 600; padding: 12px; background: var(--green); color: white; text-align: center; margin: 0; }
+
         @media (max-width: 768px) {
             .hero h1 { font-size: 2.2em; } .hero-subtitle { font-size: 1.1em; } .content { padding: 30px 20px; }
             .certificate-content { grid-template-columns: 1fr; } .certificate-section { padding: 30px 20px; }
@@ -201,6 +217,31 @@
                 <h2>Making Christmas Magic Since... Well, Right Now!</h2>
                 <p>There's something magical about getting an "official" certificate from Santa's workshop. Whether you're a parent encouraging good behavior, a teacher rewarding students, or just someone spreading holiday cheer, these free Nice List certificates are here to help you create that Christmas magic.</p>
                 <p style="margin-top: 20px;">We've created <strong>6 completely different designs</strong>, from traditional to modern, so you can find the perfect one. They're all absolutely FREE to download and print!</p>
+            </div>
+
+            <div style="background: #fdfcf9; padding: 50px 40px; border-radius: 15px; margin: 60px 0; border: 2px solid #f0e6d2;">
+                 <div style="text-align: center; border: none; justify-content: center;">
+                    <h3 style="font-family: 'Playfair Display', serif; color: var(--green); font-size: 2.5em;">Creative Ways to Use Nice List Certificates</h3>
+                </div>
+                <p style="text-align: center; font-size: 1.2em; margin-top: -10px; margin-bottom: 40px;">Go beyond just handing it over! Here are some magical ideas.</p>
+                <div class="tips-grid">
+                    <div class="tip-card" style="background: #eef2ff; border-top: 4px solid #6366f1;">
+                        <h4 style="color: #4338ca;">Elf on the Shelf's Grand Finale</h4>
+                        <p>Have your Elf deliver the certificate on their last day before returning to the North Pole. It's the perfect farewell gift and final report back to Santa.</p>
+                    </div>
+                    <div class="tip-card" style="background: #f0fdf4; border-top: 4px solid #16a34a;">
+                        <h4 style="color: #15803d;">A Stocking Stuffer Surprise</h4>
+                        <p>Roll the certificate up tightly, tie it with a ribbon, and let it be the first thing they see peeking out of their stocking on Christmas morning.</p>
+                    </div>
+                    <div class="tip-card" style="background: #fefce8; border-top: 4px solid #eab308;">
+                        <h4 style="color: #ca8a04;">The Advent Calendar Climax</h4>
+                        <p>Make the certificate the prize for the final day of your advent calendar on December 24th. It's the ultimate confirmation before Santa's big arrival!</p>
+                    </div>
+                    <div class="tip-card" style="background: #fdf2f8; border-top: 4px solid #db2777;">
+                        <h4 style="color: #be185d;">For the Grown-Ups, Too!</h4>
+                        <p>A 'Nice List' certificate can be a hilarious gift for a spouse or coworker. Fill in the "Deeds" with inside jokes like "For always making the coffee."</p>
+                    </div>
+                </div>
             </div>
             
             <div class="ad-space">
@@ -419,31 +460,6 @@
                 </div>
             </div>
 
-            <div class="certificate-section">
-                 <div class="certificate-header" style="border: none; justify-content: center;">
-                    <h3 style="font-size: 2.5em;">Creative Ways to Use Nice List Certificates</h3>
-                </div>
-                <p style="text-align: center; font-size: 1.2em; margin-top: -20px; margin-bottom: 40px;">Go beyond just handing it over! Here are some magical ideas.</p>
-                <div class="tips-grid">
-                    <div class="tip-card" style="background: #eef2ff; border-top-color: #6366f1;">
-                        <h4 style="color: #4338ca;">Elf on the Shelf's Grand Finale</h4>
-                        <p>Have your Elf deliver the certificate on their last day before returning to the North Pole. It's the perfect farewell gift and final report back to Santa.</p>
-                    </div>
-                    <div class="tip-card" style="background: #f0fdf4; border-top-color: #16a34a;">
-                        <h4 style="color: #15803d;">A Stocking Stuffer Surprise</h4>
-                        <p>Roll the certificate up tightly, tie it with a ribbon, and let it be the first thing they see peeking out of their stocking on Christmas morning.</p>
-                    </div>
-                    <div class="tip-card" style="background: #fefce8; border-top-color: #eab308;">
-                        <h4 style="color: #ca8a04;">The Advent Calendar Climax</h4>
-                        <p>Make the certificate the prize for the final day of your advent calendar on December 24th. It's the ultimate confirmation before Santa's big arrival!</p>
-                    </div>
-                    <div class="tip-card" style="background: #fdf2f8; border-top-color: #db2777;">
-                        <h4 style="color: #be185d;">For the Grown-Ups, Too!</h4>
-                        <p>A 'Nice List' certificate can be a hilarious gift for a spouse or coworker. Fill in the "Deeds" with inside jokes like "For always making the coffee."</p>
-                    </div>
-                </div>
-            </div>
-
             <div class="faq-section">
                 <h3>Frequently Asked Questions</h3>
                 <div class="faq-item">
@@ -473,12 +489,12 @@
             </div>
 
             <div class="download-section">
-                <h3>🎄 Ready to Download All of Them? 🎄</h3>
-                <p>Get all 6 certificate designs instantly in one convenient PDF. No signup, no email required, no nonsense. Just beautiful certificates ready to print!</p>
+                <h3>🎄 Ready to Download? 🎄</h3>
+                <p>Get your favorite certificate design instantly. No signup, no email required, no nonsense. Just beautiful certificates ready to print!</p>
                 <div style="margin-top: 25px;">
-                    <a href="/downloads/nice-list-all-certificates.pdf" class="download-btn" download onclick="trackDownload('all-certificates')">
-                        📥 Download All 6 Certificates (PDF)
-                    </a>
+                    <button class="download-btn" onclick="openModal()">
+                        📥 Choose & Download Certificate
+                    </button>
                 </div>
                 <p style="margin-top: 30px; font-size: 1.1em; opacity: 0.9;">
                     100% Free | Instant Download | Print Unlimited Copies
@@ -518,5 +534,59 @@
             </div>
         </div>
     </div>
+
+    <div id="downloadModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Choose Your Free Certificate</h3>
+            <p>Click on any design to download the individual high-quality PDF.</p>
+            <div class="modal-grid">
+                <a href="/downloads/nice-list-classic-gold.pdf" class="modal-item" download onclick="trackDownload('classic-gold-modal'); closeModal();">
+                    <img src="/posts/free-nice-list-certificate-1-400x300.webp" alt="Classic Gold">
+                    <h4>Classic Gold</h4>
+                </a>
+                <a href="/downloads/nice-list-winter-wonderland.pdf" class="modal-item" download onclick="trackDownload('winter-wonderland-modal'); closeModal();">
+                    <img src="/posts/free-nice-list-certificate-2-400x300.webp" alt="Winter Wonderland">
+                    <h4>Winter Wonderland</h4>
+                </a>
+                <a href="/downloads/nice-list-festive-gingerbread.pdf" class="modal-item" download onclick="trackDownload('festive-gingerbread-modal'); closeModal();">
+                    <img src="/posts/free-nice-list-certificate-3-400x300.webp" alt="Festive Gingerbread">
+                    <h4>Festive Gingerbread</h4>
+                </a>
+                <a href="/downloads/nice-list-toy-block.pdf" class="modal-item" download onclick="trackDownload('toy-block-modal'); closeModal();">
+                    <img src="/posts/free-nice-list-certificate-4-400x300.webp" alt="Toy Block Fun">
+                    <h4>Toy Block Fun</h4>
+                </a>
+                <a href="/downloads/nice-list-pink-fairytale.pdf" class="modal-item" download onclick="trackDownload('pink-fairytale-modal'); closeModal();">
+                    <img src="/posts/free-nice-list-certificate-5-400x300.webp" alt="Pink Fairytale">
+                    <h4>Pink Fairytale</h4>
+                </a>
+                <a href="/downloads/nice-list-kpop-dream.pdf" class="modal-item" download onclick="trackDownload('kpop-dream-modal'); closeModal();">
+                    <img src="/posts/free-nice-list-certificate-6-400x300.webp" alt="K-Pop Dream">
+                    <h4>K-Pop Dream</h4>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('downloadModal');
+        function openModal() {
+            if (modal) modal.style.display = 'block';
+        }
+        function closeModal() {
+            if (modal) modal.style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        });
+    </script>
 </body>
 </html>
