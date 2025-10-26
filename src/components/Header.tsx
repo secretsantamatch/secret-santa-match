@@ -20,7 +20,7 @@ const Header: React.FC = () => {
             .then(res => res.json())
             .then((data: Resource[]) => {
                 const navLinks = [
-                    { id: 'blog', title: 'The Main Blog', link: '/blog.html', icon: 'default' },
+                    { id: 'blog', title: 'The Main Blog', link: '/', icon: 'default' },
                     ...data
                         .filter(r => ['questionnaire', 'holiday-budget-calculator', 'bingo-guide'].includes(r.id))
                         .map(r => ({ id: r.id, title: r.title, link: r.linkUrl, icon: r.id }))
