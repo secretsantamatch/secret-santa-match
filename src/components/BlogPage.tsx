@@ -3,6 +3,7 @@ import type { Resource } from '../types';
 import ResourceCard from './ResourceCard';
 import Footer from './Footer';
 import BackToTopButton from './BackToTopButton';
+import FeaturedResources from './FeaturedResources';
 
 const parseDate = (dateStr?: string): Date => {
   if (!dateStr) return new Date(0); // Return a very old date for items without one
@@ -13,7 +14,8 @@ const BlogPage: React.FC = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sortOrder, setSortOrder] = useState('default');
+  const [selectedTopic, setSelectedTopic] = useState('All Topics');
+  const [sortOrder, setSortOrder] = useState('newest');
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
 
   useEffect(() => {
@@ -34,30 +36,61 @@ const BlogPage: React.FC = () => {
       });
   }, []);
 
-  const categories = useMemo(() => {
+  const primaryCategories = ['All', 'Downloads', 'Guides', 'Articles'];
+  
+  const topics = useMemo(() => {
     if (resources.length === 0) return [];
-    const uniqueTypes = [...new Set(resources.map(r => r.type))];
-    return ['All', ...uniqueTypes];
+    const keywordSet = new Set<string>();
+    const relevantKeywords = ['Christmas', 'Halloween', 'Holiday', 'Finance', 'Games', 'Gifts', 'Budget', 'Party', 'Planning'];
+    resources.forEach(r => {
+        r.keywords?.forEach(k => {
+            const keywordTitleCase = k.charAt(0).toUpperCase() + k.slice(1);
+            if (relevantKeywords.includes(keywordTitleCase)) {
+                keywordSet.add(keywordTitleCase);
+            }
+        });
+    });
+    return ['All Topics', ...Array.from(keywordSet).sort()];
   }, [resources]);
+
 
   const { featuredPost, regularPosts, hasResults } = useMemo(() => {
     const lowercasedFilter = searchTerm.toLowerCase();
     
-    let filtered = selectedCategory === 'All'
-        ? resources
-        : resources.filter(r => r.type === selectedCategory);
+    let filtered = resources;
+
+    // 1. Filter by primary category
+    if (selectedCategory !== 'All') {
+        const typesForCategory: { [key: string]: string[] } = {
+            'Downloads': ['Free Download', 'Guide & Printable'],
+            'Guides': ['Guide & Tips', 'Guide & Printable'],
+            'Articles': ['Article'],
+        };
+        const selectedTypes = typesForCategory[selectedCategory];
+        if (selectedTypes) {
+            filtered = filtered.filter(r => selectedTypes.includes(r.type));
+        }
+    }
+    
+    // 2. Filter by topic
+    if (selectedTopic !== 'All Topics') {
+        const topicKeyword = selectedTopic.toLowerCase();
+        filtered = filtered.filter(r => r.keywords?.some(k => k.toLowerCase() === topicKeyword));
+    }
 
     if (searchTerm) {
       filtered = filtered.filter(r => 
         r.title.toLowerCase().includes(lowercasedFilter) ||
-        r.description.toLowerCase().includes(lowercasedFilter)
+        r.description.toLowerCase().includes(lowercasedFilter) ||
+        (r.keywords && r.keywords.some(k => k.toLowerCase().includes(lowercasedFilter)))
       );
     }
 
     const sorted = [...filtered];
-
     if (sortOrder === 'newest') {
       sorted.sort((a, b) => parseDate(b.lastUpdated).getTime() - parseDate(a.lastUpdated).getTime());
+    } else if (sortOrder === 'oldest') {
+      sorted.sort((a, b) => parseDate(a.lastUpdated).getTime() - parseDate(b.lastUpdated).getTime());
     }
 
     return {
@@ -65,7 +98,7 @@ const BlogPage: React.FC = () => {
         regularPosts: sorted.slice(1),
         hasResults: sorted.length > 0,
     };
-  }, [resources, searchTerm, selectedCategory, sortOrder]);
+  }, [resources, searchTerm, selectedCategory, selectedTopic, sortOrder]);
 
   const typeColors: Record<string, string> = {
     'Free Download': 'bg-emerald-100 text-emerald-800',
@@ -96,7 +129,7 @@ const BlogPage: React.FC = () => {
       return (
         <div className="text-center py-16 bg-white rounded-2xl shadow-lg border">
           <h2 className="text-2xl font-bold text-slate-700">No Posts Found</h2>
-          <p className="text-slate-500 mt-2">Try adjusting your search or category filter.</p>
+          <p className="text-slate-500 mt-2">Try adjusting your search or filter.</p>
         </div>
       );
     }
@@ -105,8 +138,8 @@ const BlogPage: React.FC = () => {
         <>
             {featuredPost && (
                 <section aria-labelledby="featured-post-heading" className="mb-12 animate-fade-in">
-                    <h2 id="featured-post-heading" className="text-3xl font-bold text-slate-800 font-serif mb-6">
-                        Latest & Greatest
+                    <h2 id="all-posts-heading" className="text-3xl font-bold text-slate-800 font-serif mb-8">
+                      Latest Post
                     </h2>
                     <a 
                       href={featuredPost.linkUrl} 
@@ -117,6 +150,9 @@ const BlogPage: React.FC = () => {
                           src={featuredPost.thumbnailUrl} 
                           alt={featuredPost.title} 
                           className="w-full h-full object-cover aspect-[16/9] md:aspect-auto group-hover:scale-105 transition-transform duration-300" 
+                          loading="lazy"
+                          width="640"
+                          height="360"
                         />
                       </div>
                       <div className="p-8">
@@ -145,7 +181,7 @@ const BlogPage: React.FC = () => {
             {regularPosts.length > 0 && (
               <section aria-labelledby="all-posts-heading">
                 <h2 id="all-posts-heading" className="text-3xl font-bold text-slate-800 font-serif mb-8 border-t pt-8 mt-12">
-                  More Posts
+                  All Posts
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {regularPosts.map((resource, index) => (
@@ -156,7 +192,6 @@ const BlogPage: React.FC = () => {
                           <div className="text-slate-500">
                             <p className="font-semibold text-lg">Want to reach holiday planners?</p>
                             <p className="text-sm">This space is available for advertising.</p>
-                            {/* In a real app, an AdSense component would go here */}
                           </div>
                         </div>
                       )}
@@ -172,22 +207,23 @@ const BlogPage: React.FC = () => {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="container mx-auto p-4 sm:p-6 max-w-5xl">
-          <div className="flex justify-between items-center">
-             <a href="/" className="flex items-center gap-3">
-                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-12 h-12 sm:w-16 sm:h-16" />
-                <span className="hidden sm:inline text-xl font-bold text-slate-700">SecretSantaMatch.com</span>
-              </a>
-              <a href="/" className="bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-bold py-2 px-5 text-md rounded-full shadow-md transform hover:scale-105 transition-all">
-                &larr; Back to Generator
-              </a>
-          </div>
+       <div className="bg-gradient-to-r from-green-600 to-red-600 p-4 text-white text-center shadow-md sticky top-0 z-50">
+        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-4">
+          <p className="font-bold text-lg flex-grow text-center sm:text-left">
+            Ready to organize your gift exchange? 
+            <span className="hidden sm:inline"> Our free Secret Santa Generator is just a click away!</span>
+          </p>
+          <a href="/generator.html" className="flex-shrink-0 bg-white text-red-600 font-bold py-2 px-6 rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out">
+            Start Drawing Names &rarr;
+          </a>
         </div>
-      </header>
+      </div>
 
       <div className="bg-white border-b">
         <div className="container mx-auto p-4 sm:p-6 md:py-12 max-w-5xl text-center">
+            <div className="flex justify-center items-center gap-4 mb-4">
+                <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-16 h-16 sm:w-20 sm:h-20" />
+            </div>
             <h1 className="text-4xl md:text-5xl font-bold text-orange-500 font-serif">The Secret Santa Blog</h1>
             <p className="text-lg text-gray-600 mt-4 max-w-3xl mx-auto">
               Your go-to resource for gift exchange ideas, party planning guides, holiday tips, free printables, and fun games for any occasion.
@@ -207,9 +243,10 @@ const BlogPage: React.FC = () => {
                 </svg>
               </div>
             </div>
-            <div className="mt-6 p-4 bg-slate-100 rounded-2xl flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4">
-              <div className="flex flex-wrap justify-center gap-3">
-                {categories.map(category => (
+            <div className="mt-6 p-4 bg-slate-100 rounded-2xl flex flex-col sm:flex-row flex-wrap items-center justify-center gap-x-4 gap-y-3">
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                <span className="text-sm font-semibold text-slate-600 mr-2">Category:</span>
+                {primaryCategories.map(category => (
                   <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
@@ -223,16 +260,17 @@ const BlogPage: React.FC = () => {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
-                <label htmlFor="sort-order" className="text-sm font-semibold text-slate-600">Sort by:</label>
+              <div className="flex items-center gap-2 border-t sm:border-t-0 sm:border-l border-slate-300 pt-3 sm:pt-0 sm:pl-4 mt-3 sm:mt-0 sm:ml-2">
+                <label htmlFor="topic-filter" className="text-sm font-semibold text-slate-600">Topic:</label>
                 <select
-                  id="sort-order"
-                  value={sortOrder}
-                  onChange={e => setSortOrder(e.target.value)}
+                  id="topic-filter"
+                  value={selectedTopic}
+                  onChange={e => setSelectedTopic(e.target.value)}
                   className="px-3 py-2 text-sm font-semibold rounded-full bg-white text-slate-700 border-transparent focus:ring-2 focus:ring-[var(--primary-color)]"
                 >
-                  <option value="default">Default</option>
-                  <option value="newest">Newest</option>
+                  {topics.map(topic => (
+                    <option key={topic} value={topic}>{topic}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -240,6 +278,7 @@ const BlogPage: React.FC = () => {
       </div>
 
       <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl mt-8">
+          <FeaturedResources />
           {renderContent()}
       </main>
       
