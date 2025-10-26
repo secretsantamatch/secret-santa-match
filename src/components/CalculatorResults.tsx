@@ -1,110 +1,250 @@
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Zap, Flame, Award, Download, Share2, BookOpen, ArrowRight, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Calculator, Trash2, PlusCircle, Banknote, Coffee, Utensils, Tv, Phone, Pizza, TreePalm } from 'lucide-react';
+import CalculatorResults from './components/CalculatorResults';
 
-// Re-define helpers here to make the component self-contained
-const formatCurrency = (num: number) => {
-    if (num === Infinity || isNaN(num)) return '∞';
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: 'USD', 
-      minimumFractionDigits: 0, 
-      maximumFractionDigits: 0 
-    }).format(num);
-  };
-
-const formatTime = (totalMonths: number) => {
-    if (totalMonths === Infinity || isNaN(totalMonths) || totalMonths < 0) return 'Never';
-    if (totalMonths === 0) return '0 months';
-    const years = Math.floor(totalMonths / 12);
-    const months = Math.round(totalMonths % 12);
-    
-    if (years === 0) return `${months} month${months !== 1 ? 's' : ''}`;
-    if (months === 0) return `${years} year${years !== 1 ? 's' : ''}`;
-    
-    return `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}`;
-};
-
-const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-gray-900 text-white p-3 rounded-lg shadow-xl border border-gray-700">
-          <p className="font-semibold">{payload[0].payload.name}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {formatCurrency(entry.value)}
-            </p>
-          ))}
+// Dummy modals since the components are not provided but are used by CalculatorResults
+const ShareModal = ({ onClose }: { onClose: () => void }) => (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div className="bg-gray-800 text-white p-8 rounded-2xl max-w-lg w-full text-center">
+            <h2 className="text-3xl font-bold mb-4">Share this Tool!</h2>
+            <p className="mb-6">Help others understand their debt by sharing this free calculator.</p>
+            <div className="flex justify-center gap-4">
+                <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer" className="bg-blue-600 p-3 rounded-full">Facebook</a>
+                <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent("Check out this debt calculator!")}`} target="_blank" rel="noopener noreferrer" className="bg-sky-500 p-3 rounded-full">Twitter</a>
+                <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent("Check out this debt calculator: " + window.location.href)}`} target="_blank" rel="noopener noreferrer" className="bg-green-500 p-3 rounded-full">WhatsApp</a>
+            </div>
+            <button onClick={onClose} className="mt-8 bg-gray-600 px-6 py-2 rounded-lg">Close</button>
         </div>
-      );
-    }
-    return null;
-  };
+    </div>
+);
+
+const BlogModal = ({ onClose }: { onClose: () => void }) => (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div className="bg-gray-800 text-white p-8 rounded-2xl max-w-2xl w-full">
+            <h2 className="text-3xl font-bold mb-4">Debt Freedom Guide</h2>
+            <p className="mb-4">This is a placeholder for the full blog post content. You'd find detailed strategies here on how to tackle debt, from budgeting tips to advanced payoff methods like the Avalanche and Snowball techniques.</p>
+            <p>Check back later for the full guide!</p>
+            <button onClick={onClose} className="mt-8 bg-gray-600 px-6 py-2 rounded-lg">Close</button>
+        </div>
+    </div>
+);
+
+// Interfaces
+interface Debt {
+  id: number;
+  name: string;
+  balance: number;
+  apr: number;
+  minPayment: number;
+}
+
+// Main Component
+const MinimumPaymentCalculator: React.FC = () => {
+    const [debts, setDebts] = useState<Debt[]>([
+        { id: 1, name: 'Credit Card 1', balance: 5000, apr: 21.99, minPayment: 150 },
+        { id: 2, name: 'Personal Loan', balance: 10000, apr: 9.5, minPayment: 250 },
+    ]);
+    const [results, setResults] = useState<any | null>(null);
+    const [customPayment, setCustomPayment] = useState(100);
+    const [showBlogModal, setShowBlogModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const resultsRef = useRef<HTMLDivElement>(null);
+
+    const addDebt = () => {
+        setDebts([...debts, { id: Date.now(), name: `New Debt ${debts.length + 1}`, balance: 0, apr: 0, minPayment: 0 }]);
+    };
+
+    const removeDebt = (id: number) => {
+        setDebts(debts.filter(debt => debt.id !== id));
+    };
+
+    const handleDebtChange = (id: number, field: keyof Omit<Debt, 'id' | 'name'>, value: string) => {
+        const numericValue = parseFloat(value);
+        setDebts(debts.map(debt => debt.id === id ? { ...debt, [field]: isNaN(numericValue) ? 0 : numericValue } : debt));
+    };
+
+    const handleNameChange = (id: number, value: string) => {
+        setDebts(debts.map(debt => debt.id === id ? { ...debt, name: value } : debt));
+    };
+    
+    useEffect(() => {
+        if (results && resultsRef.current) {
+          resultsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [results]);
+
+    const handleCalculate = () => {
+        const calculatePayoff = (extraPayment: number) => {
+            let localDebts: Debt[] = JSON.parse(JSON.stringify(debts.filter(d => d.balance > 0)));
+            let months = 0;
+            let totalInterest = 0;
+            const totalMinPayment = debts.reduce((sum, d) => sum + d.minPayment, 0);
+            const totalPayment = totalMinPayment + extraPayment;
+            
+            while (localDebts.reduce((sum, d) => sum + d.balance, 0) > 0) {
+                months++;
+                if (months > 1200) { // Safety break for 100 years
+                    return { months: Infinity, totalInterest: Infinity, totalPaid: Infinity };
+                }
+
+                let monthlyInterest = 0;
+                localDebts.forEach(debt => {
+                    const interest = debt.balance * (debt.apr / 100 / 12);
+                    monthlyInterest += interest;
+                    debt.balance += interest;
+                });
+                totalInterest += monthlyInterest;
+
+                let paymentRemaining = totalPayment;
+                
+                // Pay minimums first
+                const tempDebts: Debt[] = [];
+                for (const debt of localDebts) {
+                    const payment = Math.min(debt.balance, debt.minPayment);
+                    debt.balance -= payment;
+                    paymentRemaining -= payment;
+                    if (debt.balance > 0.01) {
+                      tempDebts.push(debt);
+                    }
+                }
+                localDebts = tempDebts;
 
 
-const CalculatorResults = ({ results, customPayment, setCustomPayment, generatePDF, setShowBlogModal, setShowShareModal }: any) => {
+                // Avalanche method for extra payment
+                localDebts.sort((a, b) => b.apr - a.apr);
 
-    if (!results) return null;
+                const nextTempDebts: Debt[] = [];
+                for (let debt of localDebts) {
+                    if (paymentRemaining <= 0) {
+                      nextTempDebts.push(debt);
+                      continue;
+                    };
+                    const payment = Math.min(debt.balance, paymentRemaining);
+                    debt.balance -= payment;
+                    paymentRemaining -= payment;
+                    if (debt.balance > 0.01) {
+                        nextTempDebts.push(debt);
+                    }
+                }
+                localDebts = nextTempDebts;
+            }
+            const totalPrincipal = debts.reduce((sum, d) => sum + d.balance, 0);
+            return { months, totalInterest, totalPaid: totalPrincipal + totalInterest };
+        };
+
+        const minPayResults = calculatePayoff(0);
+        const customResults = calculatePayoff(customPayment);
+        
+        const totalPrincipal = debts.reduce((sum, d) => sum + d.balance, 0);
+        const totalMinPayment = debts.reduce((sum, d) => sum + d.minPayment, 0);
+        
+        const getEndDate = (start: Date, months: number) => {
+            if (months === Infinity) return null;
+            const endDate = new Date(start);
+            endDate.setMonth(endDate.getMonth() + months);
+            return endDate;
+        };
+
+        const now = new Date();
+        const minPayEndDate = getEndDate(now, minPayResults.months);
+        const customEndDate = getEndDate(now, customResults.months);
+        
+        const moneySavingTips = [
+            { label: 'Cancel Subscriptions', amount: 50, description: "Review and cancel unused streaming services, apps, or gym memberships.", icon: Tv },
+            { label: 'Brew Coffee at Home', amount: 100, description: "Skip the daily coffee shop run. A $5 coffee daily costs $150/month!", icon: Coffee },
+            { label: 'Pack Your Lunch', amount: 200, description: "Bringing lunch to work instead of buying it can save a surprising amount.", icon: Utensils },
+            { label: 'Eat Out Less', amount: 150, description: "Reduce restaurant meals and takeout. One less dinner out a week makes a big difference.", icon: Pizza },
+            { label: 'Use a Smart Thermostat', amount: 20, description: "Optimize your heating and cooling to save on your energy bill.", icon: TreePalm },
+            { label: 'Switch Phone Plans', amount: 40, description: "Compare carriers and switch to a cheaper plan that still meets your needs.", icon: Phone },
+        ];
+        
+        setResults({
+            totalMinPayment,
+            scenarios: [{
+                ...minPayResults,
+                debtFreeYear: minPayEndDate ? minPayEndDate.getFullYear() : 'Never',
+            }],
+            customPaymentTotal: totalMinPayment + customPayment,
+            customResults,
+            customYear: customEndDate ? customEndDate.getFullYear() : 'Never',
+            customInterestSaved: minPayResults.totalInterest - customResults.totalInterest,
+            weightedAPR: totalPrincipal > 0 ? debts.reduce((acc, d) => acc + d.balance * d.apr, 0) / totalPrincipal : 0,
+            interestVsPrincipal: [
+                { name: 'Total Principal', value: totalPrincipal, fill: '#16a34a' },
+                { name: `Interest with Min. Payments`, value: minPayResults.totalInterest, fill: '#dc2626' },
+            ],
+            moneySavingTips
+        });
+    };
 
     return (
-        <div id="results-section" className="space-y-8">
-            <div className="bg-gradient-to-r from-red-600 via-red-500 to-pink-600 rounded-3xl p-8 md:p-12 shadow-2xl border-4 border-red-400/50">
-                <div className="flex items-start gap-4 mb-6">
-                    <div className="bg-white/20 rounded-2xl p-4"><AlertTriangle className="w-12 h-12" /></div>
-                    <div>
-                    <h2 className="text-3xl md:text-5xl font-black mb-4">If You Keep Paying Just {formatCurrency(results.totalMinPayment)}/Month...</h2>
-                    <p className="text-xl md:text-2xl text-white/95">Here's the trap your bank sets for you:</p>
-                    </div>
-                </div>
-                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border-2 border-white/30 grid md:grid-cols-2 gap-8">
-                    <div>
-                        <p className="text-white/80 text-lg mb-2">YOU'LL BE DEBT-FREE IN...</p>
-                        <p className="text-7xl md:text-9xl font-black tracking-tighter mb-3">{results.scenarios[0].debtFreeYear}</p>
-                        <p className="text-2xl font-bold">That's <span className="text-yellow-300">{formatTime(results.scenarios[0].months)}</span> from now!</p>
-                    </div>
-                    <div>
-                        <p className="text-white/80 text-lg mb-2">YOU'LL PAY THIS MUCH IN TOTAL...</p>
-                        <p className="text-6xl md:text-8xl font-black text-yellow-300 mb-3">{formatCurrency(results.scenarios[0].totalPaid)}</p>
-                        <p className="text-2xl">That's <span className="text-red-200 font-bold">{formatCurrency(results.scenarios[0].totalInterest)}</span> burned on interest!</p>
-                    </div>
-                </div>
-            </div>
+        <div className="bg-gray-900 text-white min-h-screen font-sans p-4 md:p-8">
+            <div className="max-w-4xl mx-auto">
+                <header className="text-center mb-10">
+                    <h1 className="text-4xl md:text-6xl font-black mb-3">Minimum Payment TRAP Calculator</h1>
+                    <p className="text-xl text-gray-400">See how much money you're throwing away by only paying the minimum.</p>
+                </header>
 
-            <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-12 border border-white/20">
-              <div className="text-center mb-8"><h2 className="text-4xl font-black mb-3 flex items-center justify-center gap-3"><Zap className="w-10 h-10 text-yellow-400" /> Try It Yourself! Slide to See the Magic</h2><p className="text-xl text-gray-300">Move the slider to see how paying more changes everything</p></div>
-              <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
-                <div className="mb-8"><label className="block text-2xl font-bold mb-4 text-center">Add Extra Payment: <span className="text-yellow-300">{formatCurrency(customPayment)}</span> per month</label><input type="range" min="0" max="500" step="10" value={customPayment} onChange={(e) => setCustomPayment(parseInt(e.target.value))} className="w-full h-4 bg-white/20 rounded-lg appearance-none cursor-pointer slider" /><div className="flex justify-between text-white/60 mt-2 text-lg"><span>$0</span><span>$250</span><span>$500</span></div></div>
-                {customPayment > 0 && (
-                  <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-8">
-                    <h3 className="text-3xl font-bold mb-6 text-center">If You Pay {formatCurrency(results.customPaymentTotal)}/Month:</h3>
-                    <div className="grid md:grid-cols-3 gap-6">
-                      <div className="bg-white/20 rounded-xl p-6 text-center"><p className="text-white/80 text-lg mb-2">Debt-Free By</p><p className="text-6xl font-black text-yellow-300">{results.customYear}</p><p className="mt-2 text-lg">{formatTime(results.customResults.months)}</p></div>
-                      <div className="bg-white/20 rounded-xl p-6 text-center"><p className="text-white/80 text-lg mb-2">You'll Save</p>{results.weightedAPR > 0 ? <p className="text-5xl font-black text-yellow-300">{formatCurrency(results.customInterestSaved)}</p> : <p className="text-lg font-bold text-yellow-200 mt-4">(No interest to save with 0% APR)</p>}<p className="text-white/90 mt-2">vs minimum!</p></div>
-                      <div className="bg-white/20 rounded-xl p-6 text-center"><p className="text-white/80 text-lg mb-2">Debt-Free Sooner By</p><p className="text-5xl font-black">{formatTime(results.scenarios[0].months - results.customResults.months)}</p></div>
+                <main className="space-y-8">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-6 md:p-10 border border-white/20">
+                        <h2 className="text-3xl font-bold mb-6 flex items-center gap-3"><Banknote className="w-8 h-8 text-green-400" /> Enter Your Debts</h2>
+                        <div id="debt-list" className="space-y-4">
+                            {debts.map((debt) => (
+                                <div key={debt.id} className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center bg-white/5 p-4 rounded-xl">
+                                    <input type="text" value={debt.name} onChange={e => handleNameChange(debt.id, e.target.value)} placeholder="Debt Name (e.g., Chase Sapphire)" className="md:col-span-2 bg-transparent border-b-2 border-white/30 p-2 focus:outline-none focus:border-yellow-400" />
+                                    <div className="relative"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">$</span><input type="number" value={debt.balance} onChange={e => handleDebtChange(debt.id, 'balance', e.target.value)} placeholder="Balance" className="w-full bg-transparent border-b-2 border-white/30 p-2 pl-6 focus:outline-none focus:border-yellow-400" /></div>
+                                    <div className="relative"><span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">%</span><input type="number" value={debt.apr} onChange={e => handleDebtChange(debt.id, 'apr', e.target.value)} placeholder="APR" className="w-full bg-transparent border-b-2 border-white/30 p-2 pr-6 focus:outline-none focus:border-yellow-400" /></div>
+                                    <div className="flex items-center gap-2">
+                                    <div className="relative flex-grow"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">$</span><input type="number" value={debt.minPayment} onChange={e => handleDebtChange(debt.id, 'minPayment', e.target.value)} placeholder="Min. Payment" className="w-full bg-transparent border-b-2 border-white/30 p-2 pl-6 focus:outline-none focus:border-yellow-400" /></div>
+                                        <button onClick={() => removeDebt(debt.id)} className="text-red-400 hover:text-red-300"><Trash2 /></button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-6 flex gap-4">
+                            <button onClick={addDebt} className="flex items-center gap-2 bg-green-500/20 hover:bg-green-500/40 text-green-300 font-semibold px-4 py-2 rounded-lg transition-colors"><PlusCircle size={20} /> Add Debt</button>
+                        </div>
                     </div>
-                    <p className="text-center text-xl mt-6 font-semibold">🎉 That's the power of paying a little more!</p>
-                  </div>
-                )}
-              </div>
-            </div>
 
-            <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-6 md:p-10 border border-white/20">
-              <h2 className="text-3xl font-black mb-2 flex items-center gap-3"><Flame className="w-8 h-8 text-orange-400" /> See The Difference: Money Borrowed vs. Interest Burned</h2><p className="text-xl text-gray-300 mb-8">This chart shows why minimum payments are a trap.</p>
-              <div className="h-96 w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={results.interestVsPrincipal} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" /><XAxis type="number" stroke="#ffffff80" tickFormatter={(value) => formatCurrency(value as number)} /><YAxis type="category" dataKey="name" stroke="#ffffff80" width={150} tick={{ fill: '#ffffff' }} /><Tooltip content={<CustomTooltip />} /><Bar dataKey="value" radius={[0, 8, 8, 0]}><Cell key="cell-0" fill={results.interestVsPrincipal[0].fill} /><Cell key="cell-1" fill={results.interestVsPrincipal[1].fill} /></Bar></BarChart></ResponsiveContainer></div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl p-8 md:p-12 border-2 border-white/30">
-              <div className="text-center mb-10"><h2 className="text-4xl md:text-5xl font-black mb-4">💡 22 Proven Ways to Find Extra Money</h2><p className="text-2xl text-white/95 mb-3">Total potential: <span className="font-black text-yellow-300 text-3xl">{formatCurrency(results.moneySavingTips.reduce((sum: number, t: any) => sum + t.amount, 0))}/month!</span></p></div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">{results.moneySavingTips.map((tip: any, index: number) => {const Icon = tip.icon; return (<div key={index} className="bg-white/10 backdrop-blur-xl border-2 border-white/30 rounded-2xl p-6 hover:bg-white/20 transition-all group"><div className="flex items-start gap-4 mb-4"><div className="bg-white/20 rounded-xl p-3"><Icon className="w-8 h-8" /></div><div className="flex-1"><h3 className="text-xl font-bold leading-tight">{tip.label}</h3><p className="text-3xl font-black text-yellow-300 mt-2">+{formatCurrency(tip.amount)}/mo</p></div></div><p className="text-white/90 text-base mb-3">{tip.description}</p></div>);})}</div>
-              <div className="mt-10 text-center"><button onClick={() => setShowBlogModal(true)} className="inline-flex items-center gap-3 bg-white text-purple-600 hover:bg-gray-100 font-bold px-10 py-5 rounded-2xl transition-all transform hover:scale-[1.05] shadow-xl text-xl"><BookOpen className="w-6 h-6" /> Read The Complete Debt Freedom Guide <ArrowRight className="w-6 h-6" /></button></div>
-            </div>
+                    <div className="text-center">
+                        <button onClick={handleCalculate} className="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-black text-2xl px-12 py-5 rounded-2xl shadow-lg transform hover:scale-105 transition-all">
+                            Calculate My Freedom Date!
+                        </button>
+                    </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl shadow-2xl p-8 md:p-12 text-center border-2 border-white/30"><Award className="w-20 h-20 mx-auto mb-4" /><h3 className="text-4xl font-black mb-4">Take Control</h3><p className="text-xl text-white/95 mb-8">Download your personalized plan.</p><button onClick={generatePDF} className="inline-flex items-center gap-3 bg-white text-green-600 hover:bg-gray-100 font-bold px-8 py-4 rounded-2xl transition-all shadow-xl text-xl"><Download className="w-7 h-7" /> Download My Plan</button></div>
-              <div className="bg-gradient-to-br from-blue-500 to-sky-600 rounded-3xl shadow-2xl p-8 md:p-12 text-center border-2 border-white/30"><Share2 className="w-20 h-20 mx-auto mb-4" /><h3 className="text-4xl font-black mb-4">Share This Tool</h3><p className="text-xl text-white/95 mb-8">Help a friend see the truth about their debt.</p><button onClick={() => setShowShareModal(true)} className="inline-flex items-center gap-3 bg-white text-blue-600 hover:bg-gray-100 font-bold px-8 py-4 rounded-2xl transition-all shadow-xl text-xl"><Share2 className="w-7 h-7" /> Share Now</button></div>
+                    <div ref={resultsRef}>
+                        {results && <CalculatorResults results={results} customPayment={customPayment} setCustomPayment={setCustomPayment} setShowBlogModal={setShowBlogModal} setShowShareModal={setShowShareModal} />}
+                    </div>
+                </main>
+                {showBlogModal && <BlogModal onClose={() => setShowBlogModal(false)} />}
+                {showShareModal && <ShareModal onClose={() => setShowShareModal(false)} />}
+
+                <footer className="text-center mt-12 pt-8 border-t border-white/20">
+                    <p className="text-gray-500">Built by <a href="https://secretsantamatch.com" className="underline hover:text-gray-300">SecretSantaMatch.com</a> to help you have a happier, debt-free holiday.</p>
+                </footer>
+                 <style>{`
+                    .slider::-webkit-slider-thumb {
+                        -webkit-appearance: none;
+                        appearance: none;
+                        width: 32px;
+                        height: 32px;
+                        background: #facc15;
+                        cursor: pointer;
+                        border-radius: 50%;
+                        border: 4px solid #1f2937;
+                    }
+                    .slider::-moz-range-thumb {
+                        width: 24px;
+                        height: 24px;
+                        background: #facc15;
+                        cursor: pointer;
+                        border-radius: 50%;
+                        border: 4px solid #1f2937;
+                    }
+                `}</style>
             </div>
         </div>
     );
 };
 
-export default CalculatorResults;
+export default MinimumPaymentCalculator;
