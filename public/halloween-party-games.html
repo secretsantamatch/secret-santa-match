@@ -81,9 +81,20 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body { font-family: 'Inter', sans-serif; line-height: 1.8; color: var(--text-light); background: var(--light-bg); -webkit-font-smoothing: antialiased; }
-        .nav-bar { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); padding: 1rem; border-bottom: 1px solid #e5e7eb; text-align: center; position: sticky; top: 0; z-index: 100; }
-        .nav-bar a { font-weight: 600; color: var(--halloween-orange); text-decoration: none; margin: 0 1rem; font-size: 0.9rem; transition: color 0.2s; }
-        .nav-bar a:hover { color: var(--halloween-purple); }
+        
+        .nav-bar { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 100; }
+        .nav-content { max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .nav-logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+        .nav-logo img { width: 40px; height: 40px; }
+        .nav-logo span { font-weight: 700; color: var(--text-dark); display: none; }
+        @media (min-width: 640px) { .nav-logo span { display: inline; } }
+        .nav-links { display: flex; align-items: center; gap: 1rem; }
+        .nav-links a { font-weight: 600; text-decoration: none; transition: color 0.2s; font-size: 0.9rem; border-bottom: none; }
+        .nav-links a.blog-link { color: var(--halloween-orange); }
+        .nav-links a.blog-link:hover { color: var(--halloween-purple); background: none; }
+        .nav-links a.generator-link { background: var(--halloween-orange); color: white; padding: 0.5rem 1rem; border-radius: 50px; }
+        .nav-links a.generator-link:hover { background: var(--halloween-purple); }
+
         .hero { background: linear-gradient(135deg, var(--halloween-orange), var(--halloween-purple)); color: white; padding: 5rem 1.5rem 7rem; text-align: center; }
         .container { max-width: 800px; margin: -4rem auto 0; padding: 0 1rem; position: relative; z-index: 10; }
         article { background: white; padding: 3rem clamp(1.5rem, 5vw, 4rem); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
@@ -127,14 +138,25 @@
         .modal-body { padding: 2rem; }
         .modal-body h3 { margin-top: 0; }
         .close-button { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: white; font-size: 2rem; cursor: pointer; line-height: 1; }
+        .game-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; }
+        .game-card h3 { margin-top: 0; font-size: 1.3rem; }
+        .game-card ul { list-style-position: inside; padding-left: 0.5rem; margin-top: 0.5rem; }
     </style>
 </head>
 <body>
     <noscript><img height="1" width="1" style="display:none;" alt="" src="https://ct.pinterest.com/v3/?tid=2612962984250&noscript=1" /></noscript>
 
     <nav class="nav-bar">
-        <div><a href="/">SecretSantaMatch.com</a></div>
-        <div><a href="/blog.html">← Back to Blog</a></div>
+        <div class="nav-content">
+            <a href="/" class="nav-logo">
+                <img src="/logo_256.png" alt="Secret Santa Match Logo">
+                <span>SecretSantaMatch.com</span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="blog-link">Blog</a>
+                <a href="/generator.html" class="generator-link">Generator →</a>
+            </div>
+        </div>
     </nav>
 
     <div class="hero"></div>
@@ -147,7 +169,7 @@
             </header>
             
             <p>Planning a Halloween party for adults? Fantastic. You've got the spooky playlist, the pumpkin-themed snacks, and everyone's in costume. But what happens after the first 30 minutes of small talk? You need something to break the ice and get people laughing.</p>
-            <p>Forget bobbing for apples. We're talking about hilarious, interactive, and slightly competitive games that are perfect for adults. Here are 15 of our favorites.</p>
+            <p>Forget bobbing for apples. We're talking about hilarious, interactive, and slightly competitive games that are perfect for adults. Here are 15 of our favorites that require minimal prep but deliver maximum fun.</p>
 
             <div style="margin: 2.5rem 0; text-align: center;">
                 <a href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fsecretsantamatch.com%2Fhalloween-party-games.html&media=https%3A%2F%2Fsecretsantamatch.com%2Fposts%2FHalloween_Bingo_Image.webp&description=15%20Hilarious%20Halloween%20Party%20Games%20for%20Adults%20(2025%20Guide)" target="_blank" rel="noopener noreferrer" style="display: inline-block; position: relative; border: none; text-decoration: none;">
@@ -166,56 +188,93 @@
             </div>
 
             <h2>The Games List</h2>
-            <h3>1. Horror Movie Trivia</h3>
-            <p><strong>What you need:</strong> A list of trivia questions. <strong>How to play:</strong> Divide guests into teams. Ask questions ranging from easy ("What's the killer's name in 'Halloween'?") to hard ("In 'The Ring,' how long do you have to live after watching the tape?"). The team with the most points wins.</p>
+            <div class="game-card">
+                <h3>1. Horror Movie Trivia</h3>
+                <p><strong>Best for:</strong> Movie Buffs & Icebreakers. <strong>You'll Need:</strong> A list of trivia questions. <strong>How to Play:</strong> Divide guests into teams. Ask questions ranging from easy ("What's the killer's name in 'Halloween'?") to hard ("In 'The Ring,' how long do you have to live after watching the tape?"). The team with the most points wins. <strong>Pro Tip:</strong> Include a bonus round with audio clips of famous horror movie scores.</p>
+            </div>
             
-            <h3>2. Two Truths and a Lie (Spooky Edition)</h3>
-            <p><strong>What you need:</strong> Nothing. <strong>How to play:</strong> Each person tells three "spooky" stories about themselves—two true, one false. (e.g., "I've seen a ghost," "I once lived next to a cemetery," "I can recite 'The Raven' from memory."). The group has to guess which one is the lie.</p>
+            <div class="game-card">
+                <h3>2. Two Truths and a Lie (Spooky Edition)</h3>
+                <p><strong>Best for:</strong> Getting to Know You. <strong>You'll Need:</strong> Nothing. <strong>How to Play:</strong> Each person tells three "spooky" stories about themselves—two true, one false. (e.g., "I've seen a ghost," "I once lived next to a cemetery," "I can recite 'The Raven' from memory."). The group has to guess which one is the lie. <strong>Twist:</strong> The person who correctly guesses the lie gets to ask one follow-up question about one of the true stories.</p>
+            </div>
 
-            <h3>3. Wrap the Mummy</h3>
-            <p><strong>What you need:</strong> Toilet paper rolls. <strong>How to play:</strong> In teams of two or three, one person is the "mummy." The others have 60 seconds to wrap them in toilet paper from head to toe. Best-looking mummy wins.</p>
+            <div class="game-card">
+                <h3>3. Wrap the Mummy</h3>
+                <p><strong>Best for:</strong> High-Energy Fun. <strong>You'll Need:</strong> Toilet paper rolls. <strong>How to Play:</strong> In teams of two or three, one person is the "mummy." The others have 60 seconds to wrap them in toilet paper from head to toe. The judge (host) picks the best-looking mummy. <strong>Pro Tip:</strong> Give bonus points for creativity, like leaving one arm out to hold a drink.</p>
+            </div>
 
-            <h3>4. Guess the Guts</h3>
-            <p><strong>What you need:</strong> A box with a hole, and various cold, slimy foods. <strong>How to play:</strong> Fill bowls with things like cold spaghetti (guts), peeled grapes (eyeballs), and corn pudding (brains). Blindfold guests and have them stick their hand in the box to guess what "body part" they're touching.</p>
+            <div class="game-card">
+                <h3>4. Guess the Guts</h3>
+                <p><strong>Best for:</strong> Brave Guests. <strong>You'll Need:</strong> A box with a hole, blindfolds, and various cold, slimy foods. <strong>How to Play:</strong> Fill bowls with things like cold spaghetti (guts), peeled grapes (eyeballs), and corn pudding (brains). Blindfold guests and have them stick their hand in the box to guess what "body part" they're touching. <strong>Pro Tip:</strong> Use safe, non-allergenic foods. Other ideas: canned peaches (livers), oiled noodles (intestines), baby carrots (toes).</p>
+            </div>
 
-            <h3>5. Halloween Charades or Pictionary</h3>
-            <p><strong>What you need:</strong> A bowl with Halloween-themed prompts. <strong>How to play:</strong> Classic party games with a spooky twist. Prompts can be movie titles ("The Exorcist"), characters ("Dracula"), or actions ("carving a pumpkin").</p>
+            <div class="game-card">
+                <h3>5. Halloween Charades or Pictionary</h3>
+                <p><strong>Best for:</strong> Classic Party Fun. <strong>You'll Need:</strong> A bowl with Halloween-themed prompts. <strong>How to Play:</strong> Classic party games with a spooky twist. Prompts can be movie titles ("The Exorcist"), characters ("Dracula"), or actions ("carving a pumpkin"). <strong>Twist:</strong> Add a "Monsters Only" rule where players have to act out their prompt while impersonating a classic monster (e.g., Frankenstein's monster trying to act out "Ghostbusters").</p>
+            </div>
             
             <div class="ad-space">
                 <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3037944530219260" data-ad-slot="23456" data-ad-format="auto" data-full-width-responsive="true"></ins>
                 <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
             </div>
 
-            <h3>6. Costume Contest with a Twist</h3>
-            <p><strong>What you need:</strong> Small prizes. <strong>How to play:</strong> Instead of just "Best Costume," have categories like "Most Creative," "Funniest," "Best Pun," and "Most Effort." Let everyone vote.</p>
+            <div class="game-card">
+                <h3>6. Costume Contest with a Twist</h3>
+                <p><strong>Best for:</strong> Creative Crowds. <strong>You'll Need:</strong> Small prizes. <strong>How to Play:</strong> Instead of just "Best Costume," have creative categories like "Most Creative," "Funniest," "Best Pun," "Best Duo/Group," and "Most Effort." Let everyone vote via secret ballot. <strong>Pro Tip:</strong> Create a little "runway" area and have each contestant do a quick walk to show off their costume.</p>
+            </div>
             
-            <h3>7. Eyeball Pong</h3>
-            <p><strong>What you need:</strong> Ping pong balls with eyeballs drawn on them, cups, and your beverage of choice. <strong>How to play:</strong> It's beer pong, but with a Halloween theme. Simple, classic, effective.</p>
+            <div class="game-card">
+                <h3>7. Eyeball Pong</h3>
+                <p><strong>Best for:</strong> The 21+ Crowd. <strong>You'll Need:</strong> Ping pong balls with eyeballs drawn on them, cups, and your beverage of choice. <strong>How to Play:</strong> It's beer pong, but with a Halloween theme. Simple, classic, effective. <strong>Pro Tip:</strong> Use red-colored drinks to make it look spookier when a ball lands in a cup.</p>
+            </div>
 
-            <h3>8. Halloween "Who Am I?"</h3>
-            <p><strong>What you need:</strong> Sticky notes and a pen. <strong>How to play:</strong> Write the name of a famous monster or horror movie character on a sticky note and stick it to a guest's forehead without them seeing. They have to ask yes/no questions to the group to guess who they are.</p>
+            <div class="game-card">
+                <h3>8. Halloween "Who Am I?"</h3>
+                <p><strong>Best for:</strong> Low-Prep Icebreaker. <strong>You'll Need:</strong> Sticky notes and a pen. <strong>How to Play:</strong> Write the name of a famous monster or horror movie character on a sticky note and stick it to a guest's forehead without them seeing. They have to ask yes/no questions to the group to guess who they are. <strong>Twist:</strong> Instead of famous characters, use common Halloween objects (e.g., "Jack-o'-lantern," "Candy Corn," "Fog Machine").</p>
+            </div>
             
-            <h3>9. Murder Mystery Game</h3>
-            <p><strong>What you need:</strong> A pre-made murder mystery kit (you can find free ones online). <strong>How to play:</strong> Assign characters to your guests ahead of time. Throughout the night, they mingle and try to figure out who the "killer" is. It’s an immersive game that lasts all evening.</p>
+            <div class="game-card">
+                <h3>9. Murder Mystery Game</h3>
+                <p><strong>Best for:</strong> An Immersive Evening. <strong>You'll Need:</strong> A pre-made murder mystery kit (you can find free ones online). <strong>How to Play:</strong> Assign characters to your guests ahead of time. Throughout the night, they mingle, follow clues, and try to figure out who the "killer" is. <strong>Pro Tip:</strong> Search online for "free printable Halloween murder mystery kit." There are many simple, one-night versions that don't require extensive prep.</p>
+            </div>
 
-            <h3>10. Spooky Cocktail/Mocktail Contest</h3>
-            <p><strong>What you need:</strong> A variety of mixers, juices, and garnishes. <strong>How to play:</strong> Set up a drink station and let guests create their own spooky-themed concoction. Give it a creepy name. The host judges based on taste and creativity.</p>
+            <div class="game-card">
+                <h3>10. Spooky Cocktail/Mocktail Contest</h3>
+                <p><strong>Best for:</strong> Foodie Friends. <strong>You'll Need:</strong> A variety of mixers, juices, and spooky garnishes (like gummy worms or dry ice). <strong>How to Play:</strong> Set up a drink station and let guests create their own spooky-themed concoction. They must give it a creepy name. The host judges based on taste, presentation, and creativity. <strong>Pro Tip:</strong> Have a non-alcoholic section so everyone can participate.</p>
+            </div>
 
-            <h3>11. Halloween Movie Drinking Game</h3>
-            <p><strong>What you need:</strong> A classic horror movie and drinks. <strong>How to play:</strong> Pick a well-known horror movie (like 'Scream' or 'The Shining'). Create a simple set of rules. For example, drink every time someone screams, a character makes a dumb decision, or there's a jump scare. Please drink responsibly!</p>
+            <div class="game-card">
+                <h3>11. Halloween Movie Drinking Game</h3>
+                <p><strong>Best for:</strong> Casual Hangouts. <strong>You'll Need:</strong> A classic horror movie and drinks. <strong>How to Play:</strong> Pick a well-known horror movie (like 'Scream' or 'The Shining'). Create a simple set of rules. For example, drink every time someone screams, a character makes a dumb decision, or there's a jump scare. Please drink responsibly!</p>
+            </div>
             
-            <h3>12. Pumpkin Carving Contest</h3>
-            <p><strong>What you need:</strong> Small pumpkins and carving kits for each guest or team. <strong>How to play:</strong> A timeless classic. Set a timer and let everyone carve their masterpiece. Have categories for judging like "Spookiest," "Funniest," and "Most Creative."</p>
+            <div class="game-card">
+                <h3>12. Pumpkin Carving Contest</h3>
+                <p><strong>Best for:</strong> Hands-On Fun. <strong>You'll Need:</strong> Small pumpkins and carving kits for each guest or team. <strong>How to Play:</strong> A timeless classic. Set a timer and let everyone carve their masterpiece. Have categories for judging like "Spookiest," "Funniest," and "Most Creative." <strong>Twist:</strong> Try a "no-carve" version using paint, markers, and craft supplies for less mess.</p>
+            </div>
             
-            <h3>13. Mad Libs: Spooky Story Edition</h3>
-            <p><strong>What you need:</strong> Halloween-themed Mad Libs printouts (or create your own). <strong>How to play:</strong> A fantastic icebreaker. Guests provide nouns, verbs, and adjectives without knowing the story's context. Read the resulting hilarious and nonsensical spooky stories aloud.</p>
+            <div class="game-card">
+                <h3>13. Mad Libs: Spooky Story Edition</h3>
+                <p><strong>Best for:</strong> Quick Laughs. <strong>You'll Need:</strong> Halloween-themed Mad Libs printouts (or create your own). <strong>How to Play:</strong> A fantastic icebreaker. Guests provide nouns, verbs, and adjectives without knowing the story's context. Read the resulting hilarious and nonsensical spooky stories aloud.</p>
+            </div>
 
-            <h3>14. Halloween Scavenger Hunt</h3>
-            <p><strong>What you need:</strong> A list of clues and hidden spooky items. <strong>How to play:</strong> Hide items like plastic spiders, small skulls, or candy around the party area. Give guests a list of riddles or clues that lead them from one item to the next. The first person or team to complete the hunt wins.</p>
+            <div class="game-card">
+                <h3>14. Halloween Scavenger Hunt</h3>
+                <p><strong>Best for:</strong> Active Groups. <strong>You'll Need:</strong> A list of clues and hidden spooky items. <strong>How to Play:</strong> Hide items like plastic spiders, small skulls, or candy around the party area. Give guests a list of riddles or clues that lead them from one item to the next. The first person or team to complete the hunt wins.</p>
+            </div>
 
-            <h3>15. "Dead" Celebrity Heads</h3>
-            <p><strong>What you need:</strong> Pen and paper/sticky notes. <strong>How to play:</strong> A spooky version of the classic game "Celebrity Heads." Each person gets the name of a famous deceased person (real or fictional) stuck to their back or forehead. They must then ask yes/no questions to guess who they are.</p>
-            
+            <div class="game-card">
+                <h3>15. "Dead" Celebrity Heads</h3>
+                <p><strong>Best for:</strong> Pop Culture Fans. <strong>You'll Need:</strong> Pen and paper/sticky notes. <strong>How to Play:</strong> A spooky version of the classic game "Celebrity Heads." Each person gets the name of a famous deceased person (real or fictional) stuck to their back or forehead. They must then ask yes/no questions to guess who they are.</p>
+            </div>
+
+            <h2>Pro Tips for Hosting</h2>
+            <ul>
+                <li><strong>Don't Force It:</strong> Not everyone loves games. Announce the game, but make it clear that participation is optional.</li>
+                <li><strong>Have Small Prizes:</strong> A cheap trophy, a bag of candy, or a gag gift is all you need to make things feel competitive and fun.</li>
+                <li><strong>Keep Instructions Simple:</strong> Explain the rules clearly and quickly. No one wants to listen to a 10-minute lecture.</li>
+            </ul>
+
             <div class="callout-box">
                 <h3>Want Another Free Printable Game?</h3>
                 <p>Don't miss our <a href="/halloween-word-search-printables.html">Free Halloween Word Searches</a>! They're perfect as a low-key activity for guests as they arrive or for a bit of quiet fun during the party.</p>
@@ -229,8 +288,16 @@
             
             <div class="santa-box">
                 <h3>Already Planning for Christmas?</h3>
-                <p>Once the spooky season is over, the holidays are right around the corner. Organize your Secret Santa gift exchange in minutes with our <a href="https://secretsantamatch.com">free online generator</a>—no emails or sign-ups required!</p>
+                <p>Once the spooky season is over, the holidays are right around the corner. Organize your Secret Santa gift exchange in minutes with our <a href="/generator.html">free online generator</a>—no emails or sign-ups required!</p>
             </div>
+
+            <h2>Spooky Playlist Ideas</h2>
+            <p>Music sets the mood! Create a playlist with a mix of these categories:</p>
+            <ul>
+                <li><strong>The Classics:</strong> "Monster Mash," "Thriller," "Ghostbusters."</li>
+                <li><strong>Spooky Movie Scores:</strong> Themes from "Halloween," "The Exorcist," "Stranger Things."</li>
+                <li><strong>Modern Halloween Pop:</strong> "bad guy" by Billie Eilish, "Heads Will Roll" by Yeah Yeah Yeahs.</li>
+            </ul>
 
             <div class="share-section">
                 <h3>💌 Share These Spooky Ideas!</h3>
@@ -241,6 +308,16 @@
                     <button class="share-btn facebook" onclick="shareFacebook()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/></svg> Share</button>
                     <button class="share-btn copy" onclick="copyLink(this)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copy Link</button>
                 </div>
+            </div>
+
+            <h2>Frequently Asked Questions</h2>
+            <div class="game-card">
+              <h3>What are some good icebreaker games for an adult Halloween party?</h3>
+              <p>Two Truths and a Lie (Spooky Edition) and the Halloween "Who Am I?" game are excellent icebreakers because they require no materials and get guests talking and laughing immediately.</p>
+            </div>
+            <div class="game-card">
+              <h3>How can I make a costume contest more engaging?</h3>
+              <p>Instead of just one "Best Costume" winner, create multiple fun categories like "Best Pun," "Most Creative Use of Cardboard," or "Best Duo." This allows more people to win and encourages more creative costumes.</p>
             </div>
 
             <footer>
@@ -259,12 +336,20 @@
             <div class="modal-body">
                 <h3>Perfect for Parties!</h3>
                 <p style="text-align: center;">Click the button below to get 8 unique Halloween Bingo cards in a single, easy-to-print PDF. No signup required!</p>
-                <a href="/Secret_Santa_Bingo_Cards.pdf" class="cta-button download-button" download style="margin-top: 1.5rem;">Download Now</a>
+                <a href="/halloween_bingo_cards.pdf" class="cta-button download-button" download style="margin-top: 1.5rem;" onclick="trackDownload('halloween-bingo')">Download Now</a>
             </div>
         </div>
     </div>
 
     <script>
+        function trackDownload(fileName) {
+            if (typeof gtag === 'function') {
+                gtag('event', 'download', {
+                    'event_category': 'printable',
+                    'event_label': fileName
+                });
+            }
+        }
         function openModal() {
             document.getElementById('downloadModal').style.display = 'flex';
         }
