@@ -94,6 +94,15 @@ export interface Resource {
 }
 
 // Types for Minimum Payment Calculator
+export interface Debt {
+  id: number;
+  name: string;
+  balance: number;
+  apr: number;
+  minPaymentPercent: number;
+  minPaymentFlat: number;
+}
+
 export interface MoneySavingTip {
   label: string;
   amount: number;
