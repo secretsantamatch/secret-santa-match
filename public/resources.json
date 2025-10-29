@@ -20,6 +20,16 @@
   "keywords": ["how to", "guide", "instructions", "tutorial", "help", "organize", "generator", "rules"]
 },
  {
+  "id": "white-elephant-gifts-under-20",
+  "type": "Guide & Tips",
+  "title": "38 White Elephant Gifts Under $20 That'll Get Stolen (2025)",
+  "description": "The ultimate list of funny, weird, and actually useful White Elephant gifts under $20 that are guaranteed to be the life of the party.",
+  "thumbnailUrl": "/posts/white-elephant-gifts-under-20-thumb.webp",
+  "linkUrl": "/white-elephant-gifts-under-20.html",
+  "lastUpdated": "Oct 29, 2025",
+  "keywords": ["white elephant", "gift ideas", "under $20", "funny", "yankee swap", "dirty santa", "office party", "gifts"]
+},
+ {
     "id": "streaming-gifts-2025",
     "type": "Article",
     "title": "15 Last-Minute Gifts for Streaming Lovers in 2025",
@@ -141,6 +151,16 @@
   "lastUpdated": "September 2025",
   "keywords": ["organize", "guide", "rules", "how to", "plan", "setup", "instructions", "manager", "host", "organizer"]
 },
+{
+  "id": "white-elephant-rules",
+  "type": "Guide & Tips",
+  "title": "The Ultimate Guide to White Elephant Rules (Yankee Swap)",
+  "description": "The definitive guide to running a White Elephant gift exchange! Learn the official rules, popular variations, and find amazing gift ideas that are guaranteed to be stolen.",
+  "thumbnailUrl": "/posts/white-elephant-rules-thumb.webp",
+  "linkUrl": "/white-elephant-rules.html",
+  "lastUpdated": "October 2025",
+  "keywords": ["white elephant", "yankee swap", "dirty santa", "rules", "guide", "how to", "game", "party", "gift ideas", "christmas"]
+}, 
 {
   "id": "bingo-guide",
   "type": "Guide & Printable",
