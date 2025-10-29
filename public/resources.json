@@ -9,7 +9,16 @@
   "lastUpdated": "Oct 25, 2025",
   "keywords": ["nice list", "certificate", "free", "printable", "download", "kids", "santa", "christmas", "official", "template", "pdf"]
 },
- 
+ {
+  "id": "how-to-use-generator",
+  "type": "Guide & Tips",
+  "title": "How to Use Secret Santa Match: A 5-Step Guide",
+  "description": "Learn how to organize your gift exchange in 5 minutes. This step-by-step guide covers adding names, setting rules, styling cards, and sharing private links—no email required!",
+  "thumbnailUrl": "/posts/how-to-use-generator-thumb.webp",
+  "linkUrl": "/how-to-use-secret-santa-match.html",
+  "lastUpdated": "Oct 29, 2025",
+  "keywords": ["how to", "guide", "instructions", "tutorial", "help", "organize", "generator", "rules"]
+},
  {
     "id": "streaming-gifts-2025",
     "type": "Article",
