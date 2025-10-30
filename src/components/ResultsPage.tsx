@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import type { ExchangeData, Participant, Match, CardStyleData, Resource } from '../types';
 import { generateIndividualCardsPdf, generateMasterListPdf } from '../services/pdfService';
@@ -215,8 +216,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     if (isRevealTime) {
        return (
          <div className="bg-slate-50 min-h-screen">
+            <Header />
             <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-                <Header />
                 <main className="mt-8 md:mt-12">
                     <ResultsDisplay matches={matches} />
                 </main>
@@ -229,8 +230,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     return (
         <>
             <div className="bg-slate-50 min-h-screen">
+                <Header />
                 <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-                    <Header />
                     <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
                          <div className="p-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
                             <div className="mb-4">
@@ -378,8 +379,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   if (isRevealTime) {
       return (
          <div className="bg-slate-50 min-h-screen">
+            <Header />
             <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-                <Header />
                 <main className="mt-8 md:mt-12">
                     <ResultsDisplay matches={matches} />
                 </main>
@@ -392,9 +393,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   if (participant && match) {
       return (
         <div className="bg-slate-50 min-h-screen">
-            <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-                <Header />
-                 <main className="mt-8 md:mt-12 space-y-10">
+            <Header />
+                 <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl mt-8 md:mt-12 space-y-10">
                     <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200 text-center">
                         <p className="text-xl text-slate-600">Hello, <span className="font-bold text-slate-800">{participant.name}!</span></p>
                         
@@ -438,7 +438,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                     </div>
                  </main>
                  <Footer />
-            </div>
         </div>
       );
   }
