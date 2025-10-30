@@ -14,6 +14,9 @@ import BulkAddModal from './BulkAddModal';
 import { driver } from "driver.js";
 import { HelpCircle } from 'lucide-react';
 import FeaturedResources from './FeaturedResources';
+import SocialProof from './SocialProof';
+import WhyChooseUs from './WhyChooseUs';
+import VideoTutorial from './VideoTutorial';
 
 // Allow TypeScript to recognize the gtag function on the window object
 declare global {
@@ -210,19 +213,15 @@ const GeneratorPage: React.FC = () => {
 
     while (attempts < maxAttempts && !generatedMatches) {
       attempts++;
-      // FIX: Explicitly type the Map. This helps TypeScript correctly infer the types
-      // of 'giver' and 'receiver' later, preventing the 'property id does not exist on type unknown' error.
       const participantMap: Map<string, Participant> = new Map(validParticipants.map(p => [p.id, p]));
       const assignedMatches: Match[] = [];
       const assignedGiverIds = new Set<string>();
       const assignedReceiverIds = new Set<string>();
 
-      // FIX: Cast `assignments` to `Assignment[]` to prevent type inference issues.
       for(const assignment of (assignments as Assignment[])) {
           const giver = participantMap.get(assignment.giverId);
           const receiver = participantMap.get(assignment.receiverId);
           if (giver && receiver) {
-              // FIX: Ensure giver and receiver conform to Participant type for the Match
               assignedMatches.push({ giver: giver as Participant, receiver: receiver as Participant });
               assignedGiverIds.add(giver.id);
               assignedReceiverIds.add(receiver.id);
@@ -241,9 +240,7 @@ const GeneratorPage: React.FC = () => {
       const availableReceivers = new Set(remainingReceivers);
       let possible = true;
 
-      // FIX: Cast `remainingGivers` to `Participant[]` to ensure `giver` is correctly typed.
       for (const giver of (remainingGivers as Participant[])) {
-        // FIX: Cast Array.from result to Participant[] to fix type inference issues.
         const potentialReceivers = (Array.from(availableReceivers) as Participant[]).filter(receiver => {
           if (giver.id === receiver.id) return false;
           return !exclusions.some(ex => (ex.p1 === giver.id && ex.p2 === receiver.id) || (ex.p2 === giver.id && ex.p1 === receiver.id));
@@ -251,7 +248,6 @@ const GeneratorPage: React.FC = () => {
 
         if (potentialReceivers.length > 0) {
           const receiver = potentialReceivers[Math.floor(Math.random() * potentialReceivers.length)];
-          // FIX: Explicitly cast to ensure type correctness when pushing to `currentMatches`.
           currentMatches.push({ giver: giver as Participant, receiver: receiver as Participant });
           availableReceivers.delete(receiver);
         } else {
@@ -324,18 +320,14 @@ const GeneratorPage: React.FC = () => {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-       <div className="bg-gradient-to-r from-orange-500 to-red-600 p-3 text-white text-center shadow-md sticky top-0 z-50">
-        <div className="container mx-auto">
-          <a href="/" className="font-bold text-lg hover:underline">
-            &larr; Back to The Blog for Holiday Guides, Free Printables & More!
-          </a>
-        </div>
-      </div>
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
         <Header />
+        <SocialProof />
         <HowItWorks />
+        <WhyChooseUs />
+        <VideoTutorial />
         <FeaturedResources />
-        <AdUnit adSlot="GENERATOR_TOP_AD_SLOT" />
+        <AdUnit adSlot="12345678" />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
           <div id="step-1-participants" className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
@@ -420,7 +412,7 @@ const GeneratorPage: React.FC = () => {
         </main>
       </div>
       
-      <AdUnit adSlot="GENERATOR_BOTTOM_AD_SLOT" />
+      <AdUnit adSlot="987654321" />
 
       <FaqSection />
       <ResourcesSection />
