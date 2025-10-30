@@ -17,6 +17,7 @@ import FeaturedResources from './FeaturedResources';
 import SocialProof from './SocialProof';
 import WhyChooseUs from './WhyChooseUs';
 import VideoTutorial from './VideoTutorial';
+import ShareTool from './ShareTool'; // New import
 
 // Allow TypeScript to recognize the gtag function on the window object
 declare global {
@@ -113,6 +114,27 @@ const GeneratorPage: React.FC = () => {
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [showBulkAddModal, setShowBulkAddModal] = useState(false);
+
+  // PWA Install state
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then(() => {
+      setInstallPrompt(null);
+    });
+  };
+
   
   useEffect(() => { localStorage.setItem('ssm_participants', JSON.stringify(participants)); }, [participants]);
   useEffect(() => { localStorage.setItem('ssm_exclusions', JSON.stringify(exclusions)); }, [exclusions]);
@@ -320,8 +342,22 @@ const GeneratorPage: React.FC = () => {
 
   return (
     <div className="bg-slate-50 min-h-screen">
+      <Header />
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-        <Header />
+        <div className="text-center py-4">
+            <div className="inline-block mb-4">
+                <a href="/generator.html" aria-label="Go to generator homepage">
+                    <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-16 h-16" />
+                </a>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mt-2">The Easiest Way to Draw Names Online</h1>
+            <h2 className="text-2xl md:text-3xl font-bold text-orange-500 font-serif mt-2">Secret Santa Generator</h2>
+            <p className="text-base text-gray-600 mt-4 max-w-3xl mx-auto">
+                The best free Secret Santa generator for your gift exchange! Instantly draw names,
+                add exclusions, download printable cards, and share private links with each
+                participant—all with no sign-ups required. Perfect for office, family, and friends.
+            </p>
+        </div>
         <SocialProof />
         <HowItWorks />
         <WhyChooseUs />
@@ -413,11 +449,11 @@ const GeneratorPage: React.FC = () => {
       </div>
       
       <AdUnit adSlot="987654321" />
-
+      <ShareTool />
       <FaqSection />
       <ResourcesSection />
       
-      <Footer />
+      <Footer showInstallButton={!!installPrompt} onInstallClick={handleInstallClick} />
       
       {showBulkAddModal && <BulkAddModal onClose={() => setShowBulkAddModal(false)} onConfirm={handleBulkAdd} />}
 
