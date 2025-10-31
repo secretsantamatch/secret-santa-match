@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Participant, Exclusion, Match, BackgroundOption, Assignment, FontSizeSetting, OutlineSizeSetting, FontTheme, ExchangeData } from '../types';
 import Header from './Header';
@@ -11,8 +13,6 @@ import FaqSection from './FaqSection';
 import ResourcesSection from './ResourcesSection';
 import BackToTopButton from './BackToTopButton';
 import BulkAddModal from './BulkAddModal';
-import { driver } from "driver.js";
-import { HelpCircle } from 'lucide-react';
 import FeaturedResources from './FeaturedResources';
 import SocialProof from './SocialProof';
 import WhyChooseUs from './WhyChooseUs';
@@ -24,6 +24,7 @@ declare global {
   interface Window {
     gtag: (...args: any[]) => void;
     adsbygoogle: any[];
+    chrome: any;
   }
 }
 
@@ -119,6 +120,20 @@ const GeneratorPage: React.FC = () => {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
 
   useEffect(() => {
+    // Check for names from the Chrome Extension on page load.
+    if (window.chrome && window.chrome.storage) {
+        window.chrome.storage.local.get(['ssm_extension_names'], (result: { ssm_extension_names?: string }) => {
+            if (result.ssm_extension_names) {
+                const namesFromExtension = result.ssm_extension_names;
+                handleBulkAdd(namesFromExtension);
+                // Clear the storage so names aren't added again on refresh
+                window.chrome.storage.local.remove('ssm_extension_names');
+            }
+        });
+    }
+  }, []); // Run only once on component mount
+
+  useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
       setInstallPrompt(e);
@@ -177,35 +192,6 @@ const GeneratorPage: React.FC = () => {
         }
     }
   }, [background, backgroundOptions]);
-
-  // Onboarding Tour Logic
-  const startTour = () => {
-    const driverObj = driver({
-      showProgress: true,
-      steps: [
-        { element: '#step-1-participants', popover: { title: 'Step 1: Add Your Group', description: "Start by adding everyone's name. Click 'Details' for wishlists and budgets, or use 'Bulk Add' to paste a list!" } },
-        { element: '#step-2-rules', popover: { title: 'Step 2: Set the Rules', description: 'Add party details and set \'Exclusions\' to prevent people (like couples) from drawing each other. You can also force specific matches with \'Assignments\'.' } },
-        { element: '#step-3-styling', popover: { title: 'Step 3: Get Creative!', description: 'Style the printable cards! Choose a festive theme, upload your own background, and customize the text. See a live preview on the right.' } },
-        { element: '#generate-button', popover: { title: 'Step 4: Generate!', description: "When you're ready, click here to magically draw the names. Good luck!" } }
-      ],
-      onCloseClick: () => {
-        localStorage.setItem('ssm_hasSeenTour', 'true');
-        driverObj.destroy();
-      },
-    });
-    driverObj.drive();
-  }
-
-  useEffect(() => {
-    const hasSeenTour = localStorage.getItem('ssm_hasSeenTour');
-    if (!hasSeenTour) {
-        const tourTimeout = setTimeout(() => {
-            startTour();
-        }, 1500);
-        return () => clearTimeout(tourTimeout);
-    }
-  }, []);
-
 
   const handleGenerateMatches = () => {
     setError('');
@@ -370,9 +356,6 @@ const GeneratorPage: React.FC = () => {
             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
               <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
               Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
-              <button onClick={startTour} className="ml-3 text-slate-400 hover:text-slate-600 transition-colors" aria-label="Show help tour">
-                <HelpCircle size={20} />
-              </button>
             </h2>
             <p className="text-gray-600 mb-6 ml-11">Enter each person's name. Click 'Details' to add gift ideas and a spending budget.</p>
             <ParticipantManager 
