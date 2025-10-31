@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import type { Participant, Exclusion, Assignment, Match, ExchangeData, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import ParticipantManager from './ParticipantManager';
@@ -286,9 +285,12 @@ const GeneratorPage: React.FC = () => {
                         <h1 className="text-4xl md:text-5xl font-bold text-red-700 font-serif">Free Secret Santa Generator</h1>
                         <p className="text-lg text-slate-600 mt-4 max-w-3xl mx-auto">The easiest way to organize a gift exchange. No emails or sign-ups required. Instantly draw names online, set rules, and share private links!</p>
                     </section>
+                    
+                    <HowItWorks />
+                    <VideoTutorial />
 
                     {error && (
-                        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert">
+                        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-6 rounded-md" role="alert">
                             <p className="font-bold">Error</p>
                             <p>{error}</p>
                         </div>
@@ -378,14 +380,12 @@ const GeneratorPage: React.FC = () => {
                         </button>
                     </div>
 
+                    <WhyChooseUs />
+                    <SocialProof />
+                    <ShareTool />
+                    <FaqSection />
+                    <FeaturedResources />
                 </main>
-                <HowItWorks />
-                <VideoTutorial />
-                <WhyChooseUs />
-                <SocialProof />
-                <ShareTool />
-                <FaqSection />
-                <FeaturedResources />
                 <Footer />
                 <BackToTopButton />
             </div>
