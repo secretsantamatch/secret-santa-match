@@ -4,12 +4,32 @@
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
   <loc>https://secretsantamatch.com/</loc>
-  <lastmod>2025-10-25T00:00:00+00:00</lastmod>
+  <lastmod>2025-10-30T00:00:00+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
+  <loc>https://secretsantamatch.com/what-to-ask-for-in-secret-santa.html</loc>
+  <lastmod>2025-11-01T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
+</url>
+<url>
+  <loc>https://secretsantamatch.com/secret-santa-rules.html</loc>
+  <lastmod>2025-10-31T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
+</url>
+<url>
+  <loc>https://secretsantamatch.com/what-to-write-in-a-secret-santa-card.html</loc>
+  <lastmod>2025-10-31T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
+</url>
+<url>
+  <loc>https://secretsantamatch.com/how-to-do-secret-santa.html</loc>
+  <lastmod>2025-10-30T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
+</url>        
+<url>
   <loc>https://secretsantamatch.com/generator.html</loc>
-  <lastmod>2025-10-12T00:00:00+00:00</lastmod>
+  <lastmod>2025-10-30T00:00:00+00:00</lastmod>
   <priority>0.90</priority>
 </url>
 <url>
