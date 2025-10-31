@@ -6,168 +6,76 @@
     <title>Secret Santa Helper</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
-    <script src="ga.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            width: 380px;
-            background-color: #f8fafc;
-            color: #334155;
-        }
-        .container {
-            padding: 20px;
-        }
-        h1 {
-            font-family: 'Playfair Display', serif;
-            color: #c41e3a;
-            font-size: 24px;
-            text-align: center;
-            margin: 0 0 10px;
-        }
-        p.intro {
-            font-size: 14px;
-            text-align: center;
-            margin: 0 0 20px;
-            color: #475569;
-        }
-        .form-container {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-        .form-section h3, .list-section h3 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0 0 10px;
-        }
-        .form-section label {
-             display: block;
-             font-size: 12px;
-             font-weight: 600;
-             margin-bottom: 5px;
-             color: #475569;
-        }
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .input-group input {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 14px;
-            resize: vertical;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
-        #add-participant-btn {
-            width: 100%;
-            background-color: #0F7C3F;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        #add-participant-btn:hover {
-            background-color: #0b5f30;
-        }
-
-        #participant-list {
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        .participant-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px;
-            border-bottom: 1px solid #f1f5f9;
-        }
+        :root { --primary-red: #D42426; --primary-green: #0F7C3F; --light-bg: #f8fafc; --text-dark: #1e293b; --text-light: #475569; --border-color: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background-color: var(--light-bg); width: 380px; color: var(--text-dark); }
+        .container { padding: 20px; }
+        h1 { font-family: 'Playfair Display', serif; color: var(--primary-red); text-align: center; font-size: 24px; margin: 0 0 5px 0; }
+        .subtitle { text-align: center; color: var(--text-light); font-size: 14px; margin-bottom: 20px; }
+        .form-section { background: white; padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .form-group { margin-bottom: 12px; }
+        label { font-weight: 600; font-size: 13px; color: var(--text-dark); display: block; margin-bottom: 6px; }
+        input, textarea { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: 'Inter', sans-serif; font-size: 14px; }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary-green); box-shadow: 0 0 0 2px rgba(15, 124, 63, 0.2); }
+        textarea { resize: vertical; min-height: 40px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; transition: background-color 0.2s; }
+        .btn-add { background-color: var(--primary-green); color: white; }
+        .btn-add:hover { background-color: #0c6b36; }
+        .btn-generate { background-color: var(--primary-red); color: white; margin-top: 16px; }
+        .btn-generate:hover { background-color: #b02022; }
+        .btn-generate:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 5px; }
+        .list-header h2 { font-size: 14px; font-weight: 700; color: var(--text-dark); margin: 0; }
+        #clear-list-btn { background: none; border: none; color: var(--text-light); font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: underline; }
+        #clear-list-btn:hover { color: var(--primary-red); }
+        #participant-list { margin-top: 10px; max-height: 150px; overflow-y: auto; background: white; border-radius: 12px; border: 1px solid var(--border-color); }
+        .empty-state { padding: 20px; text-align: center; color: #94a3b8; font-size: 13px; font-style: italic; }
+        .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border-color); }
         .participant-item:last-child { border-bottom: none; }
-        .participant-item span {
-            flex-grow: 1;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .participant-item button {
-            background: none; border: none; cursor: pointer; color: #ef4444; padding: 5px;
-        }
-        #empty-state {
-            text-align: center; padding: 20px 10px; color: #64748b; font-style: italic; font-size: 13px;
-        }
-
-        #send-btn {
-            width: 100%;
-            background-color: #c41e3a;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        #send-btn:hover { background-color: #a01829; }
-        #send-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        
-        .footer { margin-top: 15px; text-align: center; font-size: 12px; }
-        .footer a { color: #475569; text-decoration: none; font-weight: 600; }
-        .footer-controls { display: flex; justify-content: flex-end; }
-        #clear-list-btn { background: none; border: none; color: #64748b; font-size: 12px; cursor: pointer; font-weight: 600; }
+        .participant-name { font-weight: 500; }
+        .remove-btn { background: none; border: none; cursor: pointer; color: #ef4444; font-weight: bold; font-size: 18px; line-height: 1; padding: 5px; }
+        .remove-btn:hover { color: #b91c1c; }
+        .footer-link { text-align: center; margin-top: 15px; }
+        .footer-link a { color: var(--text-light); font-size: 12px; text-decoration: none; }
+        .footer-link a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Quick Setup</h1>
-        <p class="intro">Build your list here, then send it to the generator to finish setup!</p>
-
-        <div class="form-container">
-            <h3>Enter Participant</h3>
-            <div class="input-group">
+        <p class="subtitle">Build your list here, then send it to the generator!</p>
+        
+        <div class="form-section">
+            <div class="form-group">
+                <label for="name-input">Enter Participant</label>
                 <input type="text" id="name-input" placeholder="e.g., Alice Smith">
-                <input type="number" id="budget-input" placeholder="Budget ($)" style="width: 100px;">
             </div>
-            <label for="notes">Likes/Dislikes (Optional)</label>
-            <textarea id="notes" placeholder="e.g., Loves coffee, size M shirt" rows="2"></textarea>
-            <button id="add-participant-btn">Add Participant</button>
-        </div>
-        
-        <button id="send-btn">Add to Generator</button>
-        
-        <div class="list-section" style="margin-top: 20px;">
-             <h3>Your List</h3>
-             <div id="participant-list" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-                <div id="empty-state">Your participants will appear here.</div>
+            <div class="form-group">
+                <label for="notes-input">Likes/Dislikes (Optional)</label>
+                <textarea id="notes-input" placeholder="e.g., Loves coffee, anything for the garden..." rows="2"></textarea>
             </div>
-            <div class="footer-controls" style="margin-top: 5px;">
-                <button id="clear-list-btn">Clear List</button>
+            <div class="form-group">
+                <label for="budget-input">Budget ($) (Optional)</label>
+                <input type="number" id="budget-input" placeholder="e.g., 25">
             </div>
+            <button id="add-participant-btn" class="btn btn-add">Add Participant</button>
         </div>
 
-        <div class="footer">
+        <div class="list-header">
+            <h2>Your List</h2>
+            <button id="clear-list-btn">Clear List</button>
+        </div>
+        <div id="participant-list">
+            <div class="empty-state">Your participants will appear here.</div>
+        </div>
+
+        <button id="add-to-generator-btn" class="btn btn-generate">Add to Generator</button>
+        <div class="footer-link">
             <a href="https://secretsantamatch.com" target="_blank">SecretSantaMatch.com</a>
         </div>
     </div>
+    <script src="ga.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>
