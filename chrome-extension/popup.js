@@ -1,136 +1,97 @@
 document.addEventListener('DOMContentLoaded', () => {
     const nameInput = document.getElementById('name-input');
+    const notesInput = document.getElementById('notes-input');
     const budgetInput = document.getElementById('budget-input');
-    const notesInput = document.getElementById('notes');
-    const addBtn = document.getElementById('add-participant-btn');
-    const participantList = document.getElementById('participant-list');
-    const emptyState = document.getElementById('empty-state');
-    const sendBtn = document.getElementById('send-btn');
-    const clearBtn = document.getElementById('clear-list-btn');
-
+    const addParticipantBtn = document.getElementById('add-participant-btn');
+    const participantListDiv = document.getElementById('participant-list');
+    const addToGeneratorBtn = document.getElementById('add-to-generator-btn');
+    const clearListBtn = document.getElementById('clear-list-btn');
+    
     let participants = [];
 
-    const gtag = (...args) => {
-        if (window.dataLayer) {
-            window.dataLayer.push(args);
-        }
-    };
-
-    chrome.storage.local.get(['participants'], (result) => {
-        if (result.participants) {
-            participants = result.participants;
+    // Load participants from storage on popup open
+    chrome.storage.local.get(['ssm_participants_temp'], (result) => {
+        if (result.ssm_participants_temp) {
+            participants = result.ssm_participants_temp;
             renderParticipants();
         }
     });
 
-    const saveParticipants = () => {
-        chrome.storage.local.set({ participants });
-    };
-
     const renderParticipants = () => {
-        participantList.innerHTML = '';
         if (participants.length === 0) {
-            participantList.appendChild(emptyState);
-            emptyState.style.display = 'block';
+            participantListDiv.innerHTML = '<div class="empty-state">Your participants will appear here.</div>';
+            addToGeneratorBtn.disabled = true;
         } else {
-            emptyState.style.display = 'none';
+            participantListDiv.innerHTML = '';
             participants.forEach((p, index) => {
                 const item = document.createElement('div');
                 item.className = 'participant-item';
-                item.innerHTML = `
-                    <span>${p.name} ${p.budget ? `($${p.budget})` : ''}</span>
-                    <button data-index="${index}" class="remove-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                `;
-                participantList.appendChild(item);
+                item.innerHTML = `<span class="participant-name">${p.name}</span><button class="remove-btn" data-index="${index}">&times;</button>`;
+                participantListDiv.appendChild(item);
             });
+            addToGeneratorBtn.disabled = false;
         }
     };
 
-    const handleAddParticipant = () => {
+    const saveParticipants = () => {
+        chrome.storage.local.set({ ssm_participants_temp: participants });
+    };
+
+    const addParticipant = () => {
         const name = nameInput.value.trim();
-        const budget = budgetInput.value.trim();
-        const notes = notesInput.value.trim();
         if (name) {
-            participants.push({ id: `ext-${Date.now()}`, name, notes, budget });
+            participants.push({
+                id: crypto.randomUUID(),
+                name,
+                notes: notesInput.value.trim(),
+                budget: budgetInput.value.trim()
+            });
             nameInput.value = '';
-            budgetInput.value = '';
             notesInput.value = '';
-            saveParticipants();
+            budgetInput.value = '';
             renderParticipants();
+            saveParticipants();
+            sendGAEvent('add_participant');
             nameInput.focus();
-            gtag('event', 'extension_add_participant', { has_notes: notes.length > 0, has_budget: budget.length > 0 });
         }
     };
 
-    addBtn.addEventListener('click', handleAddParticipant);
-
-    participantList.addEventListener('click', (e) => {
-        const target = e.target.closest('.remove-btn');
-        if (target) {
-            const index = parseInt(target.dataset.index, 10);
-            participants.splice(index, 1);
-            saveParticipants();
-            renderParticipants();
-        }
-    });
-
-    clearBtn.addEventListener('click', () => {
-        gtag('event', 'extension_clear_list', { participant_count: participants.length });
-        participants = [];
-        saveParticipants();
-        renderParticipants();
-    });
-
-    sendBtn.addEventListener('click', () => {
-        if (participants.length === 0) {
-            return;
-        }
-        
-        gtag('event', 'extension_send_to_generator', { participant_count: participants.length });
-
-        sendBtn.disabled = true;
-        sendBtn.textContent = 'Sending...';
-
-        chrome.storage.local.set({ ssm_participants: participants }, () => {
-            // Point to the live, production URL for the final version.
-            const generatorUrl = 'https://secretsantamatch.com/generator.html';
-            
-            chrome.tabs.create({ url: generatorUrl });
-            
-            // Clear list after sending
-            participants = [];
-            saveParticipants();
-            
-            setTimeout(() => window.close(), 500);
-        });
-    });
-
+    addParticipantBtn.addEventListener('click', addParticipant);
     nameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            e.preventDefault();
-            // If name is filled, add participant. If not, maybe focus next field.
-            if (nameInput.value.trim()) {
-                budgetInput.focus();
-            }
+            addParticipant();
         }
     });
 
-     budgetInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            notesInput.focus();
-        }
-    });
-    
-    notesInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { // Allow shift+enter for new lines
-            e.preventDefault();
-            addBtn.click();
+    participantListDiv.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-btn')) {
+            const index = e.target.getAttribute('data-index');
+            participants.splice(index, 1);
+            renderParticipants();
+            saveParticipants();
         }
     });
 
-    // Track when the popup is opened
-    gtag('event', 'extension_popup_opened');
+    clearListBtn.addEventListener('click', () => {
+        participants = [];
+        renderParticipants();
+        saveParticipants();
+        sendGAEvent('clear_list');
+    });
+
+    addToGeneratorBtn.addEventListener('click', () => {
+        if (participants.length > 0) {
+            chrome.storage.local.set({ ssm_participants: participants }, () => {
+                chrome.tabs.create({ url: 'https://secretsantamatch.com/generator.html' });
+                // Clear the temp list after sending
+                participants = [];
+                saveParticipants();
+                sendGAEvent('add_to_generator', { participant_count: participants.length });
+                window.close(); // Close the popup
+            });
+        }
+    });
+
+    // Initial render
+    renderParticipants();
 });
