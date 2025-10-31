@@ -1,15 +1,17 @@
-// This function will be injected into the generator page
-function receiveParticipants() {
-    chrome.storage.local.get(['ssm_participants'], (result) => {
-        if (result.ssm_participants && Array.isArray(result.ssm_participants) && result.ssm_participants.length > 0) {
+// This function will be injected into the generator page.
+// It cannot access variables from the popup.js scope.
+function injectParticipants() {
+    chrome.storage.local.get(['ssm_participants_to_inject'], (result) => {
+        if (result.ssm_participants_to_inject) {
             const event = new CustomEvent('ssm-participants-ready', { 
-                detail: result.ssm_participants 
+                detail: result.ssm_participants_to_inject
             });
             window.dispatchEvent(event);
-            chrome.storage.local.remove('ssm_participants');
+            chrome.storage.local.remove('ssm_participants_to_inject');
         }
     });
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const nameInput = document.getElementById('name-input');
@@ -72,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addParticipantBtn.addEventListener('click', addParticipant);
     nameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
+            e.preventDefault();
             addParticipant();
         }
     });
@@ -97,21 +100,21 @@ document.addEventListener('DOMContentLoaded', () => {
             addToGeneratorBtn.disabled = true;
             addToGeneratorBtn.textContent = 'Sending...';
 
-            // 1. Save the final list to be sent
-            chrome.storage.local.set({ ssm_participants: participants }, () => {
+            // 1. Save the final list to a temporary key to be injected
+            chrome.storage.local.set({ ssm_participants_to_inject: participants }, () => {
                 
                 // 2. Create the new tab
                 chrome.tabs.create({ url: 'https://secretsantamatch.com/generator.html' }, (tab) => {
                     
-                    // 3. Inject the script into the new tab once it's ready
+                    // 3. Inject the script into the new tab
                     chrome.scripting.executeScript({
                         target: { tabId: tab.id },
-                        function: receiveParticipants
+                        function: injectParticipants
                     });
 
-                    // 4. Clean up and close the popup
+                    // 4. Clean up local persistent storage and close the popup
                     participants = [];
-                    saveParticipants(); // Save the now-empty list
+                    saveParticipants();
                     sendGAEvent('add_to_generator', { participant_count: participants.length });
                     window.close();
                 });
