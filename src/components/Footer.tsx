@@ -59,9 +59,11 @@ const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) =>
                     <div className="order-2 sm:order-1 mt-4 sm:mt-0">
                         &copy; {currentYear} SecretSantaMatch.com
                     </div>
-                    <div className="order-1 sm:order-2 flex items-center gap-2">
+                    <div className="order-1 sm:order-2 flex items-center gap-1 flex-wrap justify-center">
                         {showInstallButton && <InstallPWAButton onClick={onInstallClick!} />}
                         <a href="/blog.html" className="font-semibold hover:text-slate-900 transition-colors px-3 py-2">Blog</a>
+                        <a href="/about-us.html" className="font-semibold hover:text-slate-900 transition-colors px-3 py-2">About Us</a>
+                        <a href="/advertise.html" className="font-semibold hover:text-slate-900 transition-colors px-3 py-2">Advertise</a>
                         <a href="/privacy-policy.html" className="font-semibold hover:text-slate-900 transition-colors px-3 py-2">Privacy Policy</a>
                     </div>
                 </div>
