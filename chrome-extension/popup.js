@@ -94,10 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
         sendBtn.textContent = 'Sending...';
 
         chrome.storage.local.set({ ssm_participants: participants }, () => {
-            // BUG FIX: Use local URL for testing. 
-            // Change this to the production URL before publishing the final version.
-            const generatorUrl = 'http://localhost:5173/generator.html'; 
-            // const generatorUrl = 'https://secretsantamatch.com/generator.html'; // Production URL
+            // Point to the live, production URL for the final version.
+            const generatorUrl = 'https://secretsantamatch.com/generator.html';
             
             chrome.tabs.create({ url: generatorUrl });
             
