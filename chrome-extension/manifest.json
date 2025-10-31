@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Secret Santa Helper",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Quickly add participants to your SecretSantaMatch.com gift exchange from anywhere on the web.",
   "permissions": [
     "storage"
@@ -16,6 +16,13 @@
     "48": "icon48.png",
     "128": "icon128.png"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://secretsantamatch.com/generator.html"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; script-src-elem 'self' https://www.googletagmanager.com https://*.google-analytics.com;"
   }
