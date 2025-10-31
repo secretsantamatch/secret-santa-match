@@ -4,7 +4,11 @@
   "version": "1.2",
   "description": "Quickly add participants to your SecretSantaMatch.com gift exchange from anywhere on the web.",
   "permissions": [
-    "storage"
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://secretsantamatch.com/generator.html"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -24,6 +28,6 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; script-src-elem 'self' https://www.googletagmanager.com https://*.google-analytics.com;"
+    "extension_pages": "script-src 'self' https://www.googletagmanager.com https://ssl.google-analytics.com; object-src 'self'"
   }
 }
