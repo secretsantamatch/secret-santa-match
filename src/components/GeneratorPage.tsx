@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Participant, Exclusion, Match, BackgroundOption, Assignment, FontSizeSetting, OutlineSizeSetting, FontTheme, ExchangeData } from '../types';
 import Header from './Header';
@@ -11,15 +13,18 @@ import FaqSection from './FaqSection';
 import ResourcesSection from './ResourcesSection';
 import BackToTopButton from './BackToTopButton';
 import BulkAddModal from './BulkAddModal';
-import { driver } from "driver.js";
-import { HelpCircle } from 'lucide-react';
 import FeaturedResources from './FeaturedResources';
+import SocialProof from './SocialProof';
+import WhyChooseUs from './WhyChooseUs';
+import VideoTutorial from './VideoTutorial';
+import ShareTool from './ShareTool'; // New import
 
 // Allow TypeScript to recognize the gtag function on the window object
 declare global {
   interface Window {
     gtag: (...args: any[]) => void;
     adsbygoogle: any[];
+    chrome: any;
   }
 }
 
@@ -110,6 +115,41 @@ const GeneratorPage: React.FC = () => {
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [showBulkAddModal, setShowBulkAddModal] = useState(false);
+
+  // PWA Install state
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    // Check for names from the Chrome Extension on page load.
+    if (window.chrome && window.chrome.storage) {
+        window.chrome.storage.local.get(['ssm_extension_names'], (result: { ssm_extension_names?: string }) => {
+            if (result.ssm_extension_names) {
+                const namesFromExtension = result.ssm_extension_names;
+                handleBulkAdd(namesFromExtension);
+                // Clear the storage so names aren't added again on refresh
+                window.chrome.storage.local.remove('ssm_extension_names');
+            }
+        });
+    }
+  }, []); // Run only once on component mount
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then(() => {
+      setInstallPrompt(null);
+    });
+  };
+
   
   useEffect(() => { localStorage.setItem('ssm_participants', JSON.stringify(participants)); }, [participants]);
   useEffect(() => { localStorage.setItem('ssm_exclusions', JSON.stringify(exclusions)); }, [exclusions]);
@@ -153,35 +193,6 @@ const GeneratorPage: React.FC = () => {
     }
   }, [background, backgroundOptions]);
 
-  // Onboarding Tour Logic
-  const startTour = () => {
-    const driverObj = driver({
-      showProgress: true,
-      steps: [
-        { element: '#step-1-participants', popover: { title: 'Step 1: Add Your Group', description: "Start by adding everyone's name. Click 'Details' for wishlists and budgets, or use 'Bulk Add' to paste a list!" } },
-        { element: '#step-2-rules', popover: { title: 'Step 2: Set the Rules', description: 'Add party details and set \'Exclusions\' to prevent people (like couples) from drawing each other. You can also force specific matches with \'Assignments\'.' } },
-        { element: '#step-3-styling', popover: { title: 'Step 3: Get Creative!', description: 'Style the printable cards! Choose a festive theme, upload your own background, and customize the text. See a live preview on the right.' } },
-        { element: '#generate-button', popover: { title: 'Step 4: Generate!', description: "When you're ready, click here to magically draw the names. Good luck!" } }
-      ],
-      onCloseClick: () => {
-        localStorage.setItem('ssm_hasSeenTour', 'true');
-        driverObj.destroy();
-      },
-    });
-    driverObj.drive();
-  }
-
-  useEffect(() => {
-    const hasSeenTour = localStorage.getItem('ssm_hasSeenTour');
-    if (!hasSeenTour) {
-        const tourTimeout = setTimeout(() => {
-            startTour();
-        }, 1500);
-        return () => clearTimeout(tourTimeout);
-    }
-  }, []);
-
-
   const handleGenerateMatches = () => {
     setError('');
     const validParticipants = participants.filter(p => p.name.trim() !== '');
@@ -210,19 +221,15 @@ const GeneratorPage: React.FC = () => {
 
     while (attempts < maxAttempts && !generatedMatches) {
       attempts++;
-      // FIX: Explicitly type the Map. This helps TypeScript correctly infer the types
-      // of 'giver' and 'receiver' later, preventing the 'property id does not exist on type unknown' error.
       const participantMap: Map<string, Participant> = new Map(validParticipants.map(p => [p.id, p]));
       const assignedMatches: Match[] = [];
       const assignedGiverIds = new Set<string>();
       const assignedReceiverIds = new Set<string>();
 
-      // FIX: Cast `assignments` to `Assignment[]` to prevent type inference issues.
       for(const assignment of (assignments as Assignment[])) {
           const giver = participantMap.get(assignment.giverId);
           const receiver = participantMap.get(assignment.receiverId);
           if (giver && receiver) {
-              // FIX: Ensure giver and receiver conform to Participant type for the Match
               assignedMatches.push({ giver: giver as Participant, receiver: receiver as Participant });
               assignedGiverIds.add(giver.id);
               assignedReceiverIds.add(receiver.id);
@@ -241,9 +248,7 @@ const GeneratorPage: React.FC = () => {
       const availableReceivers = new Set(remainingReceivers);
       let possible = true;
 
-      // FIX: Cast `remainingGivers` to `Participant[]` to ensure `giver` is correctly typed.
       for (const giver of (remainingGivers as Participant[])) {
-        // FIX: Cast Array.from result to Participant[] to fix type inference issues.
         const potentialReceivers = (Array.from(availableReceivers) as Participant[]).filter(receiver => {
           if (giver.id === receiver.id) return false;
           return !exclusions.some(ex => (ex.p1 === giver.id && ex.p2 === receiver.id) || (ex.p2 === giver.id && ex.p1 === receiver.id));
@@ -251,7 +256,6 @@ const GeneratorPage: React.FC = () => {
 
         if (potentialReceivers.length > 0) {
           const receiver = potentialReceivers[Math.floor(Math.random() * potentialReceivers.length)];
-          // FIX: Explicitly cast to ensure type correctness when pushing to `currentMatches`.
           currentMatches.push({ giver: giver as Participant, receiver: receiver as Participant });
           availableReceivers.delete(receiver);
         } else {
@@ -324,27 +328,34 @@ const GeneratorPage: React.FC = () => {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-       <div className="bg-gradient-to-r from-orange-500 to-red-600 p-3 text-white text-center shadow-md sticky top-0 z-50">
-        <div className="container mx-auto">
-          <a href="/" className="font-bold text-lg hover:underline">
-            &larr; Back to The Blog for Holiday Guides, Free Printables & More!
-          </a>
-        </div>
-      </div>
+      <Header />
       <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-        <Header />
+        <div className="text-center py-4">
+            <div className="inline-block mb-4">
+                <a href="/generator.html" aria-label="Go to generator homepage">
+                    <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-16 h-16" />
+                </a>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mt-2">The Easiest Way to Draw Names Online</h1>
+            <h2 className="text-2xl md:text-3xl font-bold text-orange-500 font-serif mt-2">Secret Santa Generator</h2>
+            <p className="text-base text-gray-600 mt-4 max-w-3xl mx-auto">
+                The best free Secret Santa generator for your gift exchange! Instantly draw names,
+                add exclusions, download printable cards, and share private links with each
+                participant—all with no sign-ups required. Perfect for office, family, and friends.
+            </p>
+        </div>
+        <SocialProof />
         <HowItWorks />
+        <WhyChooseUs />
+        <VideoTutorial />
         <FeaturedResources />
-        <AdUnit adSlot="GENERATOR_TOP_AD_SLOT" />
+        <AdUnit adSlot="12345678" />
         <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
           
           <div id="step-1-participants" className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center">
               <span className="bg-[var(--primary-color)] text-white rounded-full h-8 w-8 text-lg font-bold flex items-center justify-center mr-3">1</span>
               Add Participants <span className="text-[var(--primary-color)] ml-2">*</span>
-              <button onClick={startTour} className="ml-3 text-slate-400 hover:text-slate-600 transition-colors" aria-label="Show help tour">
-                <HelpCircle size={20} />
-              </button>
             </h2>
             <p className="text-gray-600 mb-6 ml-11">Enter each person's name. Click 'Details' to add gift ideas and a spending budget.</p>
             <ParticipantManager 
@@ -420,12 +431,12 @@ const GeneratorPage: React.FC = () => {
         </main>
       </div>
       
-      <AdUnit adSlot="GENERATOR_BOTTOM_AD_SLOT" />
-
+      <AdUnit adSlot="987654321" />
+      <ShareTool />
       <FaqSection />
       <ResourcesSection />
       
-      <Footer />
+      <Footer showInstallButton={!!installPrompt} onInstallClick={handleInstallClick} />
       
       {showBulkAddModal && <BulkAddModal onClose={() => setShowBulkAddModal(false)} onConfirm={handleBulkAdd} />}
 

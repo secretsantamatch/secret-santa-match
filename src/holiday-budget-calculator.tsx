@@ -613,8 +613,8 @@ const HolidayBudgetCalculator: React.FC = () => {
       
       <main className="max-w-4xl mx-auto p-4 md:p-8">
         <div className="no-print flex justify-between items-center mb-4 text-sm">
-            <a href="/" className="font-bold text-slate-700 hover:text-red-600 transition-colors">← SecretSantaMatch.com</a>
-            <a href="/blog.html" className="font-semibold text-slate-500 hover:text-red-600 transition-colors">Visit the Blog →</a>
+            <a href="/generator" className="font-bold text-slate-700 hover:text-red-600 transition-colors">← Generator</a>
+            <a href="/index.html" className="font-semibold text-slate-500 hover:text-red-600 transition-colors">Visit the Blog →</a>
         </div>
         <header className="no-print mb-6">
           <div className="p-6 bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">

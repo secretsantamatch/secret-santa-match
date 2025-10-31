@@ -1,18 +1,23 @@
 import React from 'react';
 import ShareButtons from './ShareButtons';
+import InstallPWAButton from './InstallPWAButton'; // New import
 
-const Footer: React.FC = () => {
+interface FooterProps {
+    showInstallButton?: boolean;
+    onInstallClick?: () => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) => {
     const currentYear = new Date().getFullYear();
 
     return (
         <footer className="text-center py-8 mt-8 border-t bg-white px-4">
             <div className="max-w-5xl mx-auto">
-                {/* Support and Share Section */}
                 <div className="p-6 md:p-8 bg-slate-50 rounded-2xl border mb-8">
                     <div className="grid md:grid-cols-2 gap-8 text-left items-center">
                         <div>
                             <h3 className="font-bold text-lg text-slate-800">Enjoying this Free Tool?</h3>
-                            <p className="text-slate-600 mt-1">Did this make your holiday planning easier? A small tip helps keep this tool free for everyone!</p>
+                            <p className="text-slate-600 mt-1">A small tip helps keep this tool 100% free and ad-light for everyone!</p>
                              <a href="https://buy.stripe.com/00w5kFgG62RF8CA3XBfw400" target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-200 font-semibold py-2 px-4 rounded-full text-sm transition-colors">
                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v1h-2V4H7v1H5V4zM5 7h10v9a2 2 0 01-2 2H7a2 2 0 01-2-2V7z" /></svg>
                                  Tip the Elves
@@ -54,8 +59,9 @@ const Footer: React.FC = () => {
                     <div className="order-2 sm:order-1 mt-4 sm:mt-0">
                         &copy; {currentYear} SecretSantaMatch.com
                     </div>
-                    <div className="order-1 sm:order-2">
-                        <a href="/" className="font-semibold hover:text-slate-900 transition-colors px-3 py-2">Blog</a>
+                    <div className="order-1 sm:order-2 flex items-center gap-2">
+                        {showInstallButton && <InstallPWAButton onClick={onInstallClick!} />}
+                        <a href="/blog.html" className="font-semibold hover:text-slate-900 transition-colors px-3 py-2">Blog</a>
                         <a href="/privacy-policy.html" className="font-semibold hover:text-slate-900 transition-colors px-3 py-2">Privacy Policy</a>
                     </div>
                 </div>
