@@ -66,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
             budgetInput.value = '';
             renderParticipants();
             saveParticipants();
-            sendGAEvent('add_participant');
             nameInput.focus();
         }
     };
@@ -92,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
         participants = [];
         renderParticipants();
         saveParticipants();
-        sendGAEvent('clear_list');
     });
 
     addToGeneratorBtn.addEventListener('click', () => {
@@ -115,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     // 4. Clean up local persistent storage and close the popup
                     participants = [];
                     saveParticipants();
-                    sendGAEvent('add_to_generator', { participant_count: participants.length });
                     window.close();
                 });
             });
