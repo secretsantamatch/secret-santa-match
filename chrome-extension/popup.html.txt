@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Secret Santa Helper</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      width: 300px;
+      padding: 20px;
+      background-color: #f8fafc;
+      color: #334155;
+      text-align: center;
+    }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: #c62828;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 0.9rem;
+      color: #475569;
+      margin: 0 0 15px 0;
+    }
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      height: 150px;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      resize: vertical;
+      margin-bottom: 15px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s, opacity 0.3s;
+    }
+    button:hover {
+      background-color: #266a2a;
+    }
+    button.success {
+      background-color: #16a34a;
+    }
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    footer {
+        margin-top: 15px;
+        font-size: 0.8rem;
+    }
+    footer a {
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    footer a:hover {
+        color: #c62828;
+    }
+  </style>
+</head>
+<body>
+  <h2>Add Participants</h2>
+  <p>Enter one name per line. We'll open the generator with your list ready to go!</p>
+  <textarea id="names" placeholder="Alice
+Bob
+Charlie
+Diana"></textarea>
+  <button id="add-button">Add to Generator</button>
+
+  <footer>
+    <a href="https://secretsantamatch.com/generator.html" target="_blank">SecretSantaMatch.com</a>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
