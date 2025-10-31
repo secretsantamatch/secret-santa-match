@@ -16,6 +16,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         generator: resolve(__dirname, 'generator.html'),
+        'about-us': resolve(__dirname, 'public/about-us.html'),
         'minimum-payment-calculator': resolve(__dirname, 'minimum-payment-calculator.html'),
         'holiday-budget-calculator': resolve(__dirname, 'holiday-budget-calculator.html')
       }
