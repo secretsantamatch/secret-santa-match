@@ -1,5 +1,4 @@
-{
-    "resources": [
+[
         {
             "id": "comparison-guide",
             "type": "Article",
@@ -7,7 +6,7 @@
             "description": "An honest, deep dive into every way to organize Secret Santa, from paper slips to free online tools. Find the best, most private, and easiest method for your group.",
             "thumbnailUrl": "/posts/comparison-thumb.webp",
             "linkUrl": "/complete-secret-santa-comparison.html",
-            "lastUpdated": "Nov 10, 2025",
+            "lastUpdated": "Nov 2, 2025",
             "keywords": ["secret santa", "comparison", "guide", "apps", "privacy"]
         },
         {
@@ -17,7 +16,7 @@
             "description": "Struggling with your Secret Santa wish list? Discover 100+ perfect gift ideas for every budget and setting (work, friends, teachers).",
             "thumbnailUrl": "/posts/what-to-ask-for-thumb.webp",
             "linkUrl": "/what-to-ask-for-in-secret-santa.html",
-            "lastUpdated": "Nov 8, 2025",
+            "lastUpdated": "Nov 2, 2025",
             "keywords": ["secret santa", "wish list", "ideas", "gifts", "guide"]
         },
         {
@@ -27,7 +26,7 @@
             "description": "The definitive guide to Secret Santa rules for any group (office, family, virtual). Learn how to play, handle odd numbers, and try 10 fun variations.",
             "thumbnailUrl": "/posts/secret-santa-rules-thumb.webp",
             "linkUrl": "/secret-santa-rules.html",
-            "lastUpdated": "Nov 5, 2025",
+            "lastUpdated": "Nov 2, 2025",
             "keywords": ["secret santa", "rules", "guide", "variations", "party"]
         },
         {
@@ -37,7 +36,7 @@
             "description": "Stuck on what to write in your Secret Santa card? Find 101+ message ideas from funny and anonymous to heartfelt and professional for any recipient.",
             "thumbnailUrl": "/posts/what-to-write-in-card-thumb.webp",
             "linkUrl": "/what-to-write-in-a-secret-santa-card.html",
-            "lastUpdated": "Nov 2, 2025",
+            "lastUpdated": "Nov 1, 2025",
             "keywords": ["secret santa", "card messages", "writing", "guide", "ideas"]
         },
         {
