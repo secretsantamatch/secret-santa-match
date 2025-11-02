@@ -1,22 +1,22 @@
 [
-        {
+     {
             "id": "comparison-guide",
             "type": "Article",
             "title": "The Complete 2025 Guide: Paper vs Apps for Secret Santa",
             "description": "An honest, deep dive into every way to organize Secret Santa, from paper slips to free online tools. Find the best, most private, and easiest method for your group.",
             "thumbnailUrl": "/posts/comparison-thumb.webp",
             "linkUrl": "/complete-secret-santa-comparison.html",
-            "lastUpdated": "Nov 2, 2025",
+            "lastUpdated": "Nov 10, 2025",
             "keywords": ["secret santa", "comparison", "guide", "apps", "privacy"]
-        },
-        {
+        },        
+     {
             "id": "what-to-ask-for",
             "type": "Guide & Tips",
             "title": "What to Ask For in Secret Santa: 100+ Gift Ideas",
             "description": "Struggling with your Secret Santa wish list? Discover 100+ perfect gift ideas for every budget and setting (work, friends, teachers).",
             "thumbnailUrl": "/posts/what-to-ask-for-thumb.webp",
             "linkUrl": "/what-to-ask-for-in-secret-santa.html",
-            "lastUpdated": "Nov 2, 2025",
+            "lastUpdated": "Nov 8, 2025",
             "keywords": ["secret santa", "wish list", "ideas", "gifts", "guide"]
         },
         {
@@ -26,7 +26,7 @@
             "description": "The definitive guide to Secret Santa rules for any group (office, family, virtual). Learn how to play, handle odd numbers, and try 10 fun variations.",
             "thumbnailUrl": "/posts/secret-santa-rules-thumb.webp",
             "linkUrl": "/secret-santa-rules.html",
-            "lastUpdated": "Nov 2, 2025",
+            "lastUpdated": "Nov 5, 2025",
             "keywords": ["secret santa", "rules", "guide", "variations", "party"]
         },
         {
@@ -36,158 +36,8 @@
             "description": "Stuck on what to write in your Secret Santa card? Find 101+ message ideas from funny and anonymous to heartfelt and professional for any recipient.",
             "thumbnailUrl": "/posts/what-to-write-in-card-thumb.webp",
             "linkUrl": "/what-to-write-in-a-secret-santa-card.html",
-            "lastUpdated": "Nov 1, 2025",
+            "lastUpdated": "Nov 2, 2025",
             "keywords": ["secret santa", "card messages", "writing", "guide", "ideas"]
-        },
-        {
-            "id": "gifts-when-broke",
-            "type": "Guide & Tips",
-            "title": "50+ Gift Ideas When You're Actually Broke",
-            "description": "Thoughtful, impressive, and genuinely great gift ideas for when your budget is tight. Perfect for Secret Santa, birthdays, or any occasion.",
-            "thumbnailUrl": "/posts/gifts-when-broke-thumb.webp",
-            "linkUrl": "/gift-ideas-when-broke.html",
-            "lastUpdated": "Nov 1, 2025",
-            "keywords": ["gifts", "budget", "guide", "ideas", "secret santa"]
-        },
-        {
-            "id": "how-to-do-secret-santa",
-            "type": "Guide & Tips",
-            "title": "How to Do Secret Santa: The Ultimate Guide (6 Easy Steps)",
-            "description": "Learn how to do Secret Santa with our step-by-step guide. Includes rules, name drawing tips, online options, and answers to 'can you do Secret Santa with odd numbers?'.",
-            "thumbnailUrl": "/posts/how-to-do-secret-santa-thumb.webp",
-            "linkUrl": "/how-to-do-secret-santa.html",
-            "lastUpdated": "Oct 30, 2025",
-            "keywords": ["how to", "secret santa", "guide", "rules", "party"]
-        },
-        {
-            "id": "white-elephant-rules",
-            "type": "Guide & Tips",
-            "title": "The Ultimate Guide to White Elephant Rules (Yankee Swap)",
-            "description": "The definitive guide to running a White Elephant gift exchange! Learn the official rules, popular variations, virtual rules, and find amazing gift ideas.",
-            "thumbnailUrl": "/posts/white-elephant-rules-thumb.webp",
-            "linkUrl": "/white-elephant-rules.html",
-            "lastUpdated": "Oct 30, 2025",
-            "keywords": ["white elephant", "rules", "guide", "party", "games"]
-        },
-        {
-            "id": "white-elephant-gifts",
-            "type": "Guide & Tips",
-            "title": "38 White Elephant Gifts Under $20 That'll Get Stolen",
-            "description": "Find the perfect funny, useful, or weird white elephant gift under $20! Our 2025 guide features 38 steal-worthy ideas that will make your party a riot.",
-            "thumbnailUrl": "/posts/white-elephant-gifts-under-20-thumb.webp",
-            "linkUrl": "/white-elephant-gifts-under-20.html",
-            "lastUpdated": "Oct 29, 2025",
-            "keywords": ["white elephant", "gifts", "ideas", "budget", "funny"]
-        },
-        {
-            "id": "how-to-use-generator",
-            "type": "Guide & Tips",
-            "title": "How to Use Secret Santa Match: A 5-Step Visual Guide",
-            "description": "Learn how to organize your gift exchange in 5 minutes with our free Secret Santa generator. This step-by-step guide covers everything—no email required!",
-            "thumbnailUrl": "/posts/how-to-use-generator-thumb.webp",
-            "linkUrl": "/how-to-use-secret-santa-match.html",
-            "lastUpdated": "Oct 29, 2025",
-            "keywords": ["how to", "guide", "secret santa", "generator", "tutorial"]
-        },
-        {
-            "id": "halloween-word-search",
-            "type": "Free Download",
-            "title": "Free Halloween Word Search Printables (13 Unique Cards!)",
-            "description": "Download 13 FREE unique Halloween word search puzzles with an answer key, perfect for kids, classrooms, and parties. No email required—just print and play!",
-            "thumbnailUrl": "/posts/halloween-games-thumb.webp",
-            "linkUrl": "/halloween-word-search-printables.html",
-            "lastUpdated": "Oct 29, 2025",
-            "keywords": ["halloween", "word search", "printable", "free download", "kids", "games"]
-        },
-        {
-            "id": "credit-karma-features",
-            "type": "Guide & Tips",
-            "title": "17 Hidden Credit Karma Features That Save You Money",
-            "description": "Stop just checking your score. Discover 17 hidden Credit Karma features—from free tax filing to rent reporting—that could save you thousands in 2025.",
-            "thumbnailUrl": "/posts/credit-karma-features-thumb.webp",
-            "linkUrl": "/credit-karma-features.html",
-            "lastUpdated": "Oct 29, 2025",
-            "keywords": ["credit karma", "finance", "credit score", "money saving", "free tools"]
-        },
-        {
-            "id": "bingo-guide",
-            "type": "Guide & Printable",
-            "title": "Make Your Secret Santa Party Fun with Bingo",
-            "description": "Transform boring parties with Secret Santa Bingo! This complete guide includes a free printable PDF guide and unique bingo cards to keep everyone engaged and laughing.",
-            "thumbnailUrl": "/posts/Free_Secret_Santa_Bingo_Card_Guide-thumb.webp",
-            "linkUrl": "/secret-santa-bingo-guide.html",
-            "lastUpdated": "Oct 28, 2025",
-            "keywords": ["secret santa", "bingo", "games", "party", "printable", "guide", "christmas"]
-        },
-        {
-            "id": "questionnaire",
-            "type": "Guide & Printable",
-            "title": "Free Printable Secret Santa Questionnaire",
-            "description": "The perfect tool to help your Secret Santa find you a great gift! Our free, printable questionnaire is beautifully designed and covers all the bases.",
-            "thumbnailUrl": "/posts/secret_santa_questionnaire-thumb.webp",
-            "linkUrl": "/secret-santa-questionnaire.html",
-            "lastUpdated": "Oct 28, 2025",
-            "keywords": ["secret santa", "questionnaire", "printable", "free download", "guide", "christmas"]
-        },
-        {
-            "id": "nice-list-certificates",
-            "type": "Free Download",
-            "title": "Free Printable Nice List Certificates (6 Designs)",
-            "description": "Download 6 FREE official Nice List certificates perfect for kids, families, and Santa lovers! Beautiful printable PDF designs ready for Christmas 2025.",
-            "thumbnailUrl": "/posts/nice-list-certificates-thumb.webp",
-            "linkUrl": "/free-nice-list-certificates.html",
-            "lastUpdated": "Oct 25, 2025",
-            "keywords": ["nice list", "certificate", "printable", "free download", "christmas", "kids"]
-        },
-        {
-            "id": "drawnames-alternative",
-            "type": "Article",
-            "title": "Top DrawNames Alternative? (No Emails Required)",
-            "description": "Looking for a DrawNames alternative that doesn't require emails? See why a no-signup generator is the easiest and most private way to draw names online.",
-            "thumbnailUrl": "/posts/drawnames-alternative-thumb.webp",
-            "linkUrl": "/drawnames-alternative.html",
-            "lastUpdated": "Oct 22, 2025",
-            "keywords": ["secret santa", "drawnames", "alternative", "privacy", "no email"]
-        },
-        {
-            "id": "elfster-alternative",
-            "type": "Article",
-            "title": "A Simpler Elfster Alternative (No Sign-Up Needed)",
-            "description": "Tired of forcing friends to create accounts? See why a free, no-email generator is the perfect Elfster alternative for a fast and private gift exchange.",
-            "thumbnailUrl": "/posts/elfster-alternative-thumb.webp",
-            "linkUrl": "/elfster-alternative.html",
-            "lastUpdated": "Oct 22, 2025",
-            "keywords": ["secret santa", "elfster", "alternative", "privacy", "no signup"]
-        },
-        {
-            "id": "how-to-organize",
-            "type": "Guide & Tips",
-            "title": "The Ultimate Guide to Organizing Secret Santa",
-            "description": "Learn how to organize a flawless Secret Santa gift exchange with our complete 5-step guide. Covers rules, gift ideas, international variations, and free tools.",
-            "thumbnailUrl": "/posts/how-to-organize-thumb.webp",
-            "linkUrl": "/how-to-organize-secret-santa.html",
-            "lastUpdated": "Oct 22, 2025",
-            "keywords": ["secret santa", "guide", "how to", "organize", "party", "planning", "christmas"]
-        },
-        {
-            "id": "halloween-games",
-            "type": "Guide & Printable",
-            "title": "15 Hilarious Halloween Party Games for Adults",
-            "description": "Planning a Halloween party? Ditch the bobbing for apples and try these 15 genuinely fun and hilarious party games for adults that will have everyone talking.",
-            "thumbnailUrl": "/posts/halloween-games-thumb.webp",
-            "linkUrl": "/halloween-party-games.html",
-            "lastUpdated": "Oct 21, 2025",
-            "keywords": ["halloween", "party", "games", "adults", "ideas", "printable"]
-        },
-        {
-            "id": "credit-vs-debit",
-            "type": "Guide & Tips",
-            "title": "Credit Card vs. Debit Card for Holiday Shopping: 2025 Guide",
-            "description": "Make smarter holiday shopping decisions with our comprehensive guide to credit cards vs debit cards, rewards, and buy-now-pay-later options.",
-            "thumbnailUrl": "/posts/credit-vs-debit-thumb.webp",
-            "linkUrl": "/credit-card-vs-debit-card.html",
-            "lastUpdated": "Oct 11, 2025",
-            "keywords": ["credit card", "debit card", "finance", "holiday", "shopping", "budget"]
         },
         {
             "id": "colorful-gift-tags",
@@ -249,25 +99,199 @@
             "lastUpdated": "Nov 12, 2025",
             "keywords": ["gift tags", "printable", "free download", "vintage", "christmas"]
         },
-        {
-            "id": "drug-store-gifts",
+
+        
+ {
+  "id": "nice-list-certificates",
+  "type": "Free Download",
+  "title": "Free Printable Nice List Certificates (6 Unique Designs!)",
+  "description": "Download 6 beautiful, official-looking Nice List certificates for free! Perfect for adding a touch of Christmas magic for kids, classrooms, and parties. No signup required.",
+  "thumbnailUrl": "/posts/nice-list-certificates-preview.webp",
+  "linkUrl": "/free-nice-list-certificates.html",
+  "lastUpdated": "Oct 25, 2025",
+  "keywords": ["nice list", "certificate", "free", "printable", "download", "kids", "santa", "christmas", "official", "template", "pdf"]
+},
+ {
+  "id": "how-to-use-generator",
+  "type": "Guide & Tips",
+  "title": "How to Use Secret Santa Match: A 5-Step Guide",
+  "description": "Learn how to organize your gift exchange in 5 minutes. This step-by-step guide covers adding names, setting rules, styling cards, and sharing private links—no email required!",
+  "thumbnailUrl": "/posts/how-to-use-generator-thumb.webp",
+  "linkUrl": "/how-to-use-secret-santa-match.html",
+  "lastUpdated": "Oct 29, 2025",
+  "keywords": ["how to", "guide", "instructions", "tutorial", "help", "organize", "generator", "rules"]
+},
+ {
+  "id": "white-elephant-gifts-under-20",
+  "type": "Guide & Tips",
+  "title": "38 White Elephant Gifts Under $20 That'll Get Stolen (2025)",
+  "description": "The ultimate list of funny, weird, and actually useful White Elephant gifts under $20 that are guaranteed to be the life of the party.",
+  "thumbnailUrl": "/posts/white-elephant-gifts-under-20-thumb.webp",
+  "linkUrl": "/white-elephant-gifts-under-20.html",
+  "lastUpdated": "Oct 29, 2025",
+  "keywords": ["white elephant", "gift ideas", "under $20", "funny", "yankee swap", "dirty santa", "office party", "gifts"]
+},
+ {
+    "id": "streaming-gifts-2025",
+    "type": "Article",
+    "title": "15 Last-Minute Gifts for Streaming Lovers in 2025",
+    "description": "🎁 15 amazing last-minute gifts streaming lovers actually want! From cozy hoodies to smart tech. Fast Amazon shipping + FREE Secret Santa tool included!",
+    "thumbnailUrl": "/posts/streaming-gifts-thumb.webp",
+    "linkUrl": "/streaming-gifts-2025.html",
+    "lastUpdated": "Oct 11, 2025",
+    "keywords": ["streaming", "movie", "movies", "tv", "netflix", "hulu", "binge", "show", "film", "disney", "series", "binge-watch", "couch potato", "home theater", "max", "hbo", "apple tv", "prime video", "cinema", "tech", "gadgets"]
+  },
+     {
+            "id": "credit-karma-features",
             "type": "Guide & Tips",
-            "title": "15 Great Last-Minute Gifts From The Drug Store",
-            "description": "Forgot a gift? Don't panic! Your local drug store is a treasure trove of thoughtful and surprising last-minute gifts. Discover our top picks for any occasion.",
-            "thumbnailUrl": "/posts/drug-store-gifts-thumb.webp",
-            "linkUrl": "/last-minute-drug-store-gifts.html",
-            "lastUpdated": "Nov 3, 2025",
-            "keywords": ["gifts", "last minute", "drug store", "budget", "secret santa"]
+            "title": "17 Hidden Credit Karma Features That Save You Money",
+            "description": "Stop just checking your score. Discover 17 hidden Credit Karma features—from free tax filing to rent reporting—that could save you thousands in 2025.",
+            "thumbnailUrl": "/posts/credit-karma-features-thumb.webp",
+            "linkUrl": "/credit-karma-features.html",
+            "lastUpdated": "Oct 29, 2025",
+            "keywords": ["credit karma", "finance", "credit score", "money saving", "free tools"]
         },
-        {
-            "id": "streaming-gifts",
-            "type": "Guide & Tips",
-            "title": "15 Last-Minute Gifts for Streaming Lovers",
-            "description": "Amazing last-minute gifts streaming lovers actually want! From cozy hoodies to smart tech, all with fast Amazon shipping. Includes a free Secret Santa tool!",
-            "thumbnailUrl": "/posts/streaming-gifts-thumb.webp",
-            "linkUrl": "/streaming-gifts-2025.html",
-            "lastUpdated": "Nov 2, 2025",
-            "keywords": ["gifts", "streaming", "movies", "tech", "last minute", "secret santa"]
-        }
-    ]
+        
+  {
+    "id": "halloween-word-search",
+    "type": "Free Download",
+    "title": "Free Halloween Word Search Printables (13 Unique Cards!)",
+    "description": "Download 13 FREE unique Halloween word search puzzles perfect for kids, classrooms, and parties. No email required—just print and play! Features 20 spooky words and fun designs.",
+    "thumbnailUrl": "/posts/halloween-games-thumb.webp",
+    "linkUrl": "/halloween-word-search-printables.html",
+    "lastUpdated": "Oct 15, 2025",
+    "keywords": ["halloween", "game", "printable", "free", "kids", "party", "activity", "word search", "puzzle", "classroom"]
+  }, 
+  {
+    "id": "holiday-budget-calculator",
+    "type": "Guide & Printable",
+    "title": "Free Holiday Budget Calculator (Credit Impact Tool)",
+    "description": "Calculate your exact holiday spending across all Secret Santa exchanges. See credit score impact, get personalized budget recommendations, and avoid holiday debt. Free tool, no signup required.",
+    "thumbnailUrl": "/posts/holiday-budget-calculator-thumb.webp",
+    "linkUrl": "/holiday-budget-calculator.html",
+    "lastUpdated": "Oct 12, 2025",
+    "keywords": ["budget", "calculator", "holiday", "christmas", "spending", "money", "finance", "debt", "credit", "save money"]
+  },  
+  {
+      "id": "credit-vs-debit-holiday",
+      "type": "Guide & Tips",
+      "title": "Credit Card vs. Debit Card for Holiday Shopping: 2025 Guide",
+      "description": "Make smarter holiday shopping decisions. Compare rewards, protection, and buy-now-pay-later options to avoid debt this festive season.",
+      "thumbnailUrl": "/posts/credit-vs-debit-thumb.webp",
+      "linkUrl": "/credit-card-vs-debit-card.html",
+      "lastUpdated": "October 11, 2025",
+      "keywords": ["credit card", "debit card", "holiday", "shopping", "money", "finance", "budget", "debt", "bnpl", "afterpay", "klarna"]
+    },
+  
+  {
+      "id": "minimum-payment-calculator",
+      "type": "Guide & Printable",
+      "title": "Minimum Payment Calculator: See Your Debt-Free Date",
+      "description": "Use this free calculator to see how long it will take to pay off credit card debt and find out how much you can save by paying more than the minimum.",
+      "thumbnailUrl": "/posts/debt-calculator-thumb.webp",
+      "linkUrl": "/minimum-payment-calculator.html",
+      "lastUpdated": "October 13, 2025",
+      "keywords": ["debt", "calculator", "credit card", "finance", "money", "interest", "payment", "payoff"]
+    },
+
+    {
+      "id": "complete-secret-santa-comparison",
+      "type": "Guide & Tips",
+      "title": "The Complete 2025 Guide: Paper vs Apps for Secret Santa",
+      "description": "An in-depth comparison of every way to organize Secret Santa, from traditional paper draws to the best free online tools. Find out which method saves you the most time and stress.",
+      "thumbnailUrl": "/posts/secret-santa-comparison-thumb.webp",
+      "linkUrl": "/complete-secret-santa-comparison.html",
+      "lastUpdated": "October 13, 2025",
+      "keywords": ["organize", "guide", "rules", "how to", "plan", "setup", "instructions", "manager", "host", "organizer", "comparison", "paper", "app"]
+    },   
+    {
+        "id": "last-minute-drug-store-gifts",
+        "type": "Guide & Tips",
+        "title": "15 Surprisingly Great Last-Minute Gifts From The Drug Store",
+        "description": "Forgot a gift? Don't panic! Your local drug store is a treasure trove of thoughtful and surprising last-minute gifts. Discover our top picks.",
+        "thumbnailUrl": "/posts/drug-store-gifts.png",
+        "linkUrl": "/last-minute-drug-store-gifts.html",
+        "lastUpdated": "October 12, 2025",
+        "keywords": ["last minute", "drug store", "quick", "easy", "simple", "convenience", "pharmacy", "walgreens", "cvs", "rite aid", "last-minute", "forgot", "emergency", "gifts"]
+    },
+  {
+  "id": "elfster-alternative",
+  "type": "Article",
+  "title": "Best Free Elfster Alternative (No Email Required)",
+  "description": "Looking for a free Elfster alternative that doesn't require email? Discover how to organize Secret Santa without collecting personal information.",
+  "thumbnailUrl": "/posts/elfster-alternative-thumb.webp",
+  "linkUrl": "/elfster-alternative.html",
+  "lastUpdated": "October 2025",
+  "keywords": ["alternative", "elfster", "drawnames", "private", "no email", "comparison", "vs", "no signup", "privacy", "competitor"]
+},
+{
+  "id": "drawnames-alternative",
+  "type": "Article",
+  "title": "DrawNames Alternative: A Simpler Secret Santa Organizer",
+  "description": "Tired of email verification? Discover why SecretSantaMatch is a faster, more private alternative to DrawNames for your gift exchange.",
+  "thumbnailUrl": "/posts/drawnames-alternative-thumb.webp",
+  "linkUrl": "/drawnames-alternative.html",
+  "lastUpdated": "October 2025",
+  "keywords": ["alternative", "elfster", "drawnames", "private", "no email", "comparison", "vs", "no signup", "privacy", "competitor"]
+},
+{
+  "id": "gift-ideas-broke",
+  "type": "Guide & Tips",
+  "title": "50+ Gift Ideas When You're Actually Broke",
+  "description": "From $5 finds to completely free options, discover how to give meaningful presents on any budget without feeling cheap.",
+  "thumbnailUrl": "/posts/gift-ideas-when-broke.png",
+  "linkUrl": "/gift-ideas-when-broke.html",
+  "lastUpdated": "October 2025",
+  "keywords": ["broke", "cheap", "budget", "save money", "low cost", "inexpensive", "free", "affordable", "thrifty", "diy", "homemade", "under $25", "under $20", "on a budget", "gift ideas"]
+},
+{
+  "id": "halloween-games",
+  "type": "Guide & Printable",
+  "title": "15 Free Halloween Party Games for Kids & Adults",
+  "description": "Get 15 no-prep games for your next party, plus free printable Halloween bingo cards to make your event a smash hit!",
+  "thumbnailUrl": "/posts/Halloween-Bingo-Image-thumb.webp",
+  "linkUrl": "/halloween-party-games.html",
+  "lastUpdated": "October 2025",
+  "keywords": ["halloween", "game", "printable", "free", "kids", "party", "activity", "bingo", "adults", "icebreaker"]
+},
+{
+  "id": "how-to-organize",
+  "type": "Guide & Tips",
+  "title": "How to Organize a Secret Santa: A Complete Guide",
+  "description": "Your stress-free roadmap to planning the perfect gift exchange. Learn the 6 simple steps, common mistakes to avoid, and how to use free tools to make it easy.",
+  "thumbnailUrl": "/posts/how-to-organize-thumb.webp",
+  "linkUrl": "/how-to-organize-secret-santa.html",
+  "lastUpdated": "September 2025",
+  "keywords": ["organize", "guide", "rules", "how to", "plan", "setup", "instructions", "manager", "host", "organizer"]
+},
+{
+  "id": "white-elephant-rules",
+  "type": "Guide & Tips",
+  "title": "The Ultimate Guide to White Elephant Rules (Yankee Swap)",
+  "description": "The definitive guide to running a White Elephant gift exchange! Learn the official rules, popular variations, and find amazing gift ideas that are guaranteed to be stolen.",
+  "thumbnailUrl": "/posts/white-elephant-rules-thumb.webp",
+  "linkUrl": "/white-elephant-rules.html",
+  "lastUpdated": "October 2025",
+  "keywords": ["white elephant", "yankee swap", "dirty santa", "rules", "guide", "how to", "game", "party", "gift ideas", "christmas"]
+}, 
+{
+  "id": "bingo-guide",
+  "type": "Guide & Printable",
+  "title": "How to Make Your Secret Santa Party Actually Fun",
+  "description": "Transform boring parties with Secret Santa Bingo! This guide includes free printable cards and game variations to keep everyone engaged and laughing.",
+  "thumbnailUrl": "/posts/Free_Secret_Santa_Bingo_Card_Guide-thumb.webp",
+  "linkUrl": "/secret-santa-bingo-guide.html",
+  "lastUpdated": "September 2025",
+  "keywords": ["game", "fun", "party", "icebreaker", "bingo", "activity", "games", "ice breaker", "entertainment", "secret santa"]
+},
+{
+  "id": "questionnaire",
+  "type": "Free Download",
+  "title": "Free Secret Santa Questionnaire",
+  "description": "The perfect companion for your gift exchange! This fun, printable questionnaire helps everyone get the perfect gift. Download, print, and share to make this year's gifting easy and thoughtful.",
+  "thumbnailUrl": "/posts/secret_santa_questionnaire-thumb.webp",
+  "linkUrl": "/secret-santa-questionnaire.html",
+  "lastUpdated": "September 2025",
+  "keywords": ["questionnaire", "ideas", "help", "guide", "gift ideas", "questions", "form", "survey", "profile", "hints", "clues", "wishlist", "printable"]
 }
+]
