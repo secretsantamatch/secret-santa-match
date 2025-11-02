@@ -93,45 +93,20 @@
       .step-card-critical h3 { font-size: 1.25rem; font-weight: 700; color: #c62828; margin: 0; }
       .step-card-critical p { color: #475569; margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.6; }
       .chevron-critical { display: none; }
+      
+      .faq-section-critical { margin-top: 2.5rem; }
+      .faq-section-critical h2 { text-align: center; font-family: 'Playfair Display', serif; font-size: 1.875rem; font-weight: 700; color: #1e293b; margin-bottom: 2rem; }
+      .faq-item-critical { background-color: #fff; border-radius: 1rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); border: 1px solid #e5e7eb; padding: 1rem 1.5rem; margin-bottom: 1rem; }
+      .faq-item-critical h3 { font-size: 1.125rem; font-weight: 600; color: #1e293b; }
+      .faq-item-critical p { color: #475569; margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.6; }
+
 
       @media (min-width: 768px) {
           .header-critical h1 { font-size: 3rem; }
           .header-critical h2 { font-size: 1.5rem; }
-          .how-it-works-critical { margin-top: 4rem; margin-bottom: 4rem; }
+          .how-it-works-critical, .faq-section-critical { margin-top: 4rem; margin-bottom: 4rem; }
           .steps-container-critical { flex-direction: row; gap: 1.5rem; }
           .chevron-critical { display: block; color: #cbd5e0; }
-      }
-      
-      /* Inlined src/index.css */
-      @tailwind base;
-      @tailwind components;
-      @tailwind utilities;
-
-      :root, :root[data-theme="default"], :root[data-theme="christmas"] {
-          --primary-color: #c62828; /* A nice Christmas red */
-          --primary-color-hover: #a52121;
-          --accent-color: #2e7d32; /* A festive green */
-          --accent-color-hover: #266a2a;
-      }
-      :root[data-theme="halloween"] {
-          --primary-color: #f97316; /* Orange */
-          --primary-color-hover: #ea580c;
-          --accent-color: #4f46e5; /* Indigo */
-          --accent-color-hover: #4338ca;
-      }
-      :root[data-theme="valentines"] {
-          --primary-color: #dc2626; /* Red */
-          --primary-color-hover: #b91c1c;
-          --accent-color: #ec4899; /* Pink */
-          --accent-color-hover: #db2777;
-      }
-
-      body {
-          font-family: 'Montserrat', sans-serif;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          background-color: #f8fafc; /* A light slate/gray color */
-          color: #334155;
       }
     </style>
 <script type="importmap">
@@ -162,12 +137,12 @@
         <div class="container-critical">
           <header class="header-critical">
             <img src="/logo_256.png" alt="Secret Santa Generator Logo" width="64" height="64" />
-            <h1>Secret Santa Generator</h1>
+            <h1>Free Secret Santa Generator (No Email or Sign-Up Required)</h1>
             <h2>The Easiest Way to Draw Names Online</h2>
             <p>
               The best free Secret Santa generator for your gift exchange! Instantly draw names,
               add exclusions, download printable cards, and share private links with each
-              participant—all with no sign-ups required. Perfect for office, family, and friends.
+              participant—all with no sign-ups or emails required. Perfect for office, family, and friends.
             </p>
           </header>
           <section class="how-it-works-critical">
@@ -194,6 +169,26 @@
                 <h3>3. Share Links &amp; Cards</h3>
                 <p>Instantly share private links so everyone can see their match online, or download the styled cards for your in-person party.</p>
               </div>
+            </div>
+          </section>
+          
+          <section class="faq-section-critical">
+            <h2>Your Questions, Answered</h2>
+             <div class="faq-item-critical">
+                <h3>Do I need to create an account or provide my email?</h3>
+                <p>Nope! SecretSantaMatch.com is completely free with zero sign-ups, no accounts, and no email required. Just come to the site, create your exchange, and you're done in minutes.</p>
+            </div>
+             <div class="faq-item-critical">
+                <h3>How do participants find out who they got?</h3>
+                <p>After you generate matches, you'll receive unique private reveal links for each participant. You share these links however you want—text message, WhatsApp, Messenger, Slack, etc. Each person clicks their link to see who they're buying for. It's that simple!</p>
+            </div>
+             <div class="faq-item-critical">
+                <h3>Is my information private and secure?</h3>
+                <p>Completely! We don't store ANY of your information on our servers. All match details are encoded in the private links themselves, which means your Secret Santa data stays between you and your participants—we never see or store it.</p>
+            </div>
+             <div class="faq-item-critical">
+                <h3>Can I prevent certain people from being matched together?</h3>
+                <p>Absolutely. In the "Add Details & Rules" section, you'll find an "Exclusions" feature. This allows you to create rules to prevent specific people (like couples or family members in the same household) from being matched together.</p>
             </div>
           </section>
         </div>
