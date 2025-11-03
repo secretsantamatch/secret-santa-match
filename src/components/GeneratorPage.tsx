@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Participant, Exclusion, Assignment, Match, ExchangeData, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import ParticipantManager from './ParticipantManager';
@@ -267,6 +268,14 @@ const GeneratorPage: React.FC = () => {
         }
     };
 
+    const handleNext = () => {
+        if (activeTab === 'participants') {
+            setActiveTab('rules');
+        } else if (activeTab === 'rules') {
+            setActiveTab('styles');
+        }
+    };
+
     const tabs = [
         { id: 'participants', label: '1. Add Participants', icon: '👥' },
         { id: 'rules', label: '2. Add Details & Rules', icon: '📜' },
@@ -371,13 +380,25 @@ const GeneratorPage: React.FC = () => {
                     </div>
                     
                      <div className="mt-10 text-center">
-                        <button 
-                            onClick={handleGenerateExchange}
-                            className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-5 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto"
-                        >
-                             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-1.707-1.707A1 1 0 00.879 11.293l3.5 3.5a1 1 0 001.414 0l3.5-3.5a1 1 0 00-1.414-1.414L7.95 9.879L6.243 11.586V8a4 4 0 118 0v3.586l-1.707-1.707A1 1 0 0011.121 11.293l3.5 3.5a1 1 0 001.414 0l3.5-3.5a1 1 0 00-1.414-1.414L16.243 11.586V8a6 6 0 00-6-6z" /></svg>
-                             Generate Matches
-                        </button>
+                        {activeTab === 'styles' ? (
+                            <button 
+                                onClick={handleGenerateExchange}
+                                className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-5 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-1.707-1.707A1 1 0 00.879 11.293l3.5 3.5a1 1 0 001.414 0l3.5-3.5a1 1 0 00-1.414-1.414L7.95 9.879L6.243 11.586V8a4 4 0 118 0v3.586l-1.707-1.707A1 1 0 0011.121 11.293l3.5 3.5a1 1 0 001.414 0l3.5-3.5a1 1 0 00-1.414-1.414L16.243 11.586V8a6 6 0 00-6-6z" /></svg>
+                                Generate Matches
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={handleNext}
+                                className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-5 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                            >
+                                Next Step
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </button>
+                        )}
                     </div>
 
                     <WhyChooseUs />
