@@ -16,6 +16,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         generator: resolve(__dirname, 'generator.html'),
+        contact: resolve(__dirname, 'contact.html'),
         'about-us': resolve(__dirname, 'public/about-us.html'),
         'advertise': resolve(__dirname, 'public/advertise.html'),
         'minimum-payment-calculator': resolve(__dirname, 'minimum-payment-calculator.html'),
