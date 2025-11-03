@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import ContactPage from './components/ContactPage';
+import './index.css'; // Import the main CSS file
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
