@@ -4,7 +4,7 @@
             "type": "Article",
             "title": "The Complete 2025 Guide: Paper vs Apps for Secret Santa",
             "description": "An honest, deep dive into every way to organize Secret Santa, from paper slips to free online tools. Find the best, most private, and easiest method for your group.",
-            "thumbnailUrl": "/posts/comparison-thumb.webp",
+            "thumbnailUrl": "https://assets.secretsantamatch.com/resources/comparison-thumb.webp",
             "linkUrl": "/complete-secret-santa-comparison.html",
             "lastUpdated": "Nov 10, 2025",
             "keywords": ["secret santa", "comparison", "guide", "apps", "privacy"]
@@ -24,7 +24,7 @@
             "type": "Guide & Tips",
             "title": "Secret Santa Rules: The Complete Guide + 10 Fun Variations",
             "description": "The definitive guide to Secret Santa rules for any group (office, family, virtual). Learn how to play, handle odd numbers, and try 10 fun variations.",
-            "thumbnailUrl": "/posts/secret-santa-rules-thumb.webp",
+            "thumbnailUrl": "https://assets.secretsantamatch.com/resources/secret-santa-rules-thumb.webp",
             "linkUrl": "/secret-santa-rules.html",
             "lastUpdated": "Nov 5, 2025",
             "keywords": ["secret santa", "rules", "guide", "variations", "party"]
@@ -145,8 +145,8 @@
             "id": "credit-karma-features",
             "type": "Guide & Tips",
             "title": "17 Hidden Credit Karma Features That Save You Money",
-            "description": "Stop just checking your score. Discover 17 hidden Credit Karma features—from free tax filing to rent reporting—that could save you thousands in 2025.",
-            "thumbnailUrl": "/posts/credit-karma-features-thumb.webp",
+            "description": "Stop just checking your score. Discover 17 hidden Credit Karma features—from free tax filing to rent reporting—that could save you thousands in 2026.",
+            "thumbnailUrl": "https://assets.secretsantamatch.com/resources/credit-karma-features-thumb.webp",
             "linkUrl": "/credit-karma-features.html",
             "lastUpdated": "Oct 29, 2025",
             "keywords": ["credit karma", "finance", "credit score", "money saving", "free tools"]
