@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { Participant } from '../types';
 
@@ -12,9 +13,21 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
     const handleParticipantChange = (id: string, field: keyof Omit<Participant, 'id'>, value: string) => {
-        setParticipants(
-            participants.map(p => (p.id === id ? { ...p, [field]: value } : p))
+        const participantIndex = participants.findIndex(p => p.id === id);
+        const isLastParticipant = participantIndex === participants.length - 1;
+        const isNameField = field === 'name';
+        const wasEmpty = participants[participantIndex]?.name.trim() === '';
+        const isNowNotEmpty = value.trim() !== '';
+
+        const updatedParticipants = participants.map(p => 
+            p.id === id ? { ...p, [field]: value } : p
         );
+
+        if (isLastParticipant && isNameField && wasEmpty && isNowNotEmpty) {
+            updatedParticipants.push({ id: crypto.randomUUID(), name: '', notes: '', budget: '' });
+        }
+        
+        setParticipants(updatedParticipants);
     };
     
     const addParticipant = () => {
