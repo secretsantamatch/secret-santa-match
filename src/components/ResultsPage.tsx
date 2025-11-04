@@ -1,8 +1,8 @@
-
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import type { ExchangeData, Participant, Match, CardStyleData, Resource } from '../types';
 import { generateIndividualCardsPdf, generateMasterListPdf } from '../services/pdfService';
+import { generateMatches } from '../services/matchService';
+import { encodeData } from '../services/urlService';
 import PrintableCard from './PrintableCard';
 import CountdownTimer from './CountdownTimer';
 import Header from './Header';
@@ -42,6 +42,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [showDownloadConfirmationModal, setShowDownloadConfirmationModal] = useState(false);
   const [allResources, setAllResources] = useState<Resource[]>([]);
+  const [shuffleError, setShuffleError] = useState<string | null>(null);
   
   const downloadModalRef = useRef<HTMLDivElement>(null);
   
@@ -49,6 +50,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     p: participants,
     matches: matchesById,
     eventDetails,
+    exclusions,
+    assignments,
     exchangeDate,
     exchangeTime,
     bgId,
@@ -110,10 +113,12 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         const giver = participants.find((p: Participant) => p.id === matchById.g);
         const receiver = participants.find((p: Participant) => p.id === matchById.r);
         if (!giver || !receiver) {
-            throw new Error(`Could not find participants for match: ${JSON.stringify(matchById)}`);
+            // This case should ideally not happen if data is valid
+            console.error(`Could not find participants for match: ${JSON.stringify(matchById)}`);
+            return null;
         }
         return { giver, receiver };
-    });
+    }).filter((m): m is Match => m !== null);
   }, [matchesById, participants]);
   
   const targetTime = useMemo(() => {
@@ -134,6 +139,24 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     } finally {
       if (loadingTimer) clearTimeout(loadingTimer);
       setIsPdfLoading(false);
+    }
+  };
+
+  const handleShuffleAgain = () => {
+    setShuffleError(null);
+    trackEvent('shuffle_again');
+    const result = generateMatches(participants, exclusions, assignments);
+    if (result.error) {
+        setShuffleError(result.error);
+        return;
+    }
+    if (result.matches) {
+        const newExchangeData: ExchangeData = {
+            ...data,
+            matches: result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
+        };
+        const encoded = encodeData(newExchangeData);
+        window.location.hash = encoded;
     }
   };
 
@@ -242,12 +265,19 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                             <h2 className="text-3xl md:text-4xl font-bold text-white font-serif">You're the Organizer!</h2>
                             <p className="text-purple-100 mt-2 mb-8 max-w-2xl mx-auto">Your matches are ready. Share the private links with each person so they can see who they're gifting to.</p>
                             
-                            <button 
-                              onClick={handleOpenShareModal} 
-                              className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out"
-                            >
-                                Share Private Links
-                            </button>
+                            <div className="flex flex-wrap gap-4 justify-center">
+                                <button 
+                                  onClick={handleOpenShareModal} 
+                                  className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out"
+                                >
+                                    Share Private Links
+                                </button>
+                                <button onClick={handleShuffleAgain} className="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5" /></svg>
+                                    Shuffle Again
+                                </button>
+                            </div>
+                            {shuffleError && <p className="mt-4 text-sm bg-red-800/50 p-2 rounded-md">{shuffleError}</p>}
                         </div>
                         
                         <div className="grid md:grid-cols-2 gap-8">
@@ -432,7 +462,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                         </div>
                     )}
                     <div className="text-center">
-                      <a href="/" className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out">
+                      <a href="/generator.html" className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out">
                           Create Your Own Secret Santa
                       </a>
                     </div>
