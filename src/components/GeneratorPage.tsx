@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import type { Participant, Exclusion, Assignment, Match, ExchangeData, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import ParticipantManager from './ParticipantManager';
@@ -10,6 +8,7 @@ import Footer from './Footer';
 import HowItWorks from './HowItWorks';
 import FaqSection from './FaqSection';
 import { encodeData } from '../services/urlService';
+import { generateMatches } from '../services/matchService';
 import BackgroundSelector from './BackgroundSelector';
 import WhyChooseUs from './WhyChooseUs';
 import SocialProof from './SocialProof';
@@ -154,94 +153,31 @@ const GeneratorPage: React.FC = () => {
         setAssignments([]);
     };
     
-    const generateMatches = (): Match[] | null => {
-        const validParticipants = participants.filter(p => p.name.trim() !== '');
-        if (validParticipants.length < 3) {
-            setError("You need at least 3 participants to start a gift exchange.");
-            return null;
-        }
-
-        let matches: Match[] = [];
-        const maxRetries = 100;
-
-        for (let i = 0; i < maxRetries; i++) {
-            let givers = [...validParticipants];
-            let receivers = [...validParticipants];
-            let tempMatches: Match[] = [];
-            let possible = true;
-
-            // Handle assignments first
-            const assignedGiverIds = new Set(assignments.map(a => a.giverId));
-            const assignedReceiverIds = new Set(assignments.map(a => a.receiverId));
-
-            for (const assignment of assignments) {
-                const giver = givers.find(p => p.id === assignment.giverId);
-                const receiver = receivers.find(p => p.id === assignment.receiverId);
-                if (giver && receiver) {
-                    tempMatches.push({ giver, receiver });
-                }
-            }
-
-            givers = givers.filter(p => !assignedGiverIds.has(p.id));
-            receivers = receivers.filter(p => !assignedReceiverIds.has(p.id));
-
-            // Shuffle remaining receivers
-            receivers.sort(() => Math.random() - 0.5);
-
-            for (const giver of givers) {
-                let foundMatch = false;
-                for (let j = 0; j < receivers.length; j++) {
-                    const receiver = receivers[j];
-                    const isSelf = giver.id === receiver.id;
-                    const isExcluded = exclusions.some(ex =>
-                        (ex.p1 === giver.id && ex.p2 === receiver.id) ||
-                        (ex.p1 === receiver.id && ex.p2 === giver.id)
-                    );
-                    
-                    if (!isSelf && !isExcluded) {
-                        tempMatches.push({ giver, receiver });
-                        receivers.splice(j, 1);
-                        foundMatch = true;
-                        break;
-                    }
-                }
-
-                if (!foundMatch) {
-                    possible = false;
-                    break;
-                }
-            }
-            
-            if (possible && tempMatches.length === validParticipants.length) {
-                matches = tempMatches;
-                break;
-            }
-        }
-
-        if (matches.length !== validParticipants.length) {
-            setError("Could not generate valid matches with the current rules. Try removing some exclusions or assignments.");
-            return null;
-        }
-
-        return matches;
-    };
-
     const handleGenerateExchange = () => {
         setError(null);
         trackEvent('click_generate_button');
         
-        const matches = generateMatches();
-        if (!matches) {
+        const validParticipants = participants.filter(p => p.name.trim() !== '');
+        const result = generateMatches(validParticipants, exclusions, assignments);
+        
+        if (result.error) {
+            setError(result.error);
             window.scrollTo(0, 0);
             return;
         }
-        
-        const validParticipants = participants.filter(p => p.name.trim() !== '');
+
+        if (!result.matches) {
+             setError("An unexpected error occurred during matching.");
+             window.scrollTo(0, 0);
+             return;
+        }
         
         const exchangeData: ExchangeData = {
-            matches: matches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
+            matches: result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
             p: validParticipants,
             eventDetails,
+            exclusions,
+            assignments,
             exchangeDate,
             exchangeTime,
             pageTheme,
