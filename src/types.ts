@@ -59,6 +59,8 @@ export interface ExchangeData {
     matches: { g: string; r: string; }[];
     p: Participant[]; // Renamed from participants
     eventDetails: string;
+    exclusions: Exclusion[];
+    assignments: Assignment[];
     bgId: string; // Renamed from backgroundId
     customBackground: string | null;
     textColor: string;
