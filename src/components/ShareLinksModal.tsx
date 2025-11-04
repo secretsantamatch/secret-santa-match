@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Participant } from '../types';
-import { Info } from 'lucide-react';
+import { Info, MessageSquare, Link2, Loader2 } from 'lucide-react';
 
 const CopyIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -42,15 +42,80 @@ interface ShareLinksModalProps {
 const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getParticipantLink, onClose }) => {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [modalAnimating, setModalAnimating] = useState(false);
+  const [useShortLinks, setUseShortLinks] = useState(false);
+  const [shortenedLinks, setShortenedLinks] = useState<Record<string, string>>({});
+  const [isLoadingShortLinks, setIsLoadingShortLinks] = useState(false);
+  const [shortenError, setShortenError] = useState<string | null>(null);
+
 
   React.useEffect(() => {
     const timer = setTimeout(() => setModalAnimating(true), 10);
     return () => clearTimeout(timer);
   }, []);
 
+  const getShortenedLink = async (longUrl: string): Promise<string> => {
+    try {
+      const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const shortUrl = await response.text();
+      // Basic validation to see if the response is a URL
+      if (shortUrl.startsWith('http')) {
+        return shortUrl;
+      }
+      throw new Error('Invalid response from shortening service');
+    } catch (error) {
+      console.error('TinyURL API failed:', error);
+      return longUrl; // Fallback to long URL
+    }
+  };
+
+  const handleToggleShortLinks = async () => {
+    const newState = !useShortLinks;
+    setUseShortLinks(newState);
+    if (newState && Object.keys(shortenedLinks).length < participants.length) {
+      setIsLoadingShortLinks(true);
+      setShortenError(null);
+      const promises = participants.map(p => {
+        if (shortenedLinks[p.id]) return Promise.resolve({ id: p.id, url: shortenedLinks[p.id] });
+        const longUrl = getParticipantLink(p.id);
+        return getShortenedLink(longUrl).then(url => ({ id: p.id, url }));
+      });
+      try {
+        const results = await Promise.all(promises);
+        const newShortenedLinks: Record<string, string> = {};
+        let hadError = false;
+        results.forEach(result => {
+          newShortenedLinks[result.id] = result.url;
+          if (result.url.startsWith('http')) {
+            // It's a valid URL
+          } else {
+            // It's a fallback long URL, so an error occurred
+            hadError = true;
+          }
+        });
+        setShortenedLinks(newShortenedLinks);
+        if (hadError) setShortenError("Could not shorten some links. Using original links instead.");
+      } catch {
+        setShortenError("Failed to shorten links. Please try again.");
+      } finally {
+        setIsLoadingShortLinks(false);
+      }
+    }
+  };
+
+
+  const getFinalLink = (participantId: string) => {
+    if (useShortLinks) {
+        // If still loading, show a placeholder. Otherwise use the short link or fallback to long.
+        if (isLoadingShortLinks) return "Loading...";
+        return shortenedLinks[participantId] || getParticipantLink(participantId);
+    }
+    return getParticipantLink(participantId);
+  };
 
   const copyLink = (participantId: string) => {
-    const urlToCopy = getParticipantLink(participantId);
+    const urlToCopy = getFinalLink(participantId);
+    if (urlToCopy === "Loading...") return;
     navigator.clipboard.writeText(urlToCopy).then(() => {
       setCopiedLink(participantId);
       setTimeout(() => setCopiedLink(null), 2000);
@@ -61,7 +126,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getPart
   };
 
   const handleCopyAllLinks = () => {
-    const allLinksText = participants.map(p => `${p.name}'s Link: ${getParticipantLink(p.id)}`).join('\n\n');
+    const allLinksText = participants.map(p => `${p.name}'s Link: ${getFinalLink(p.id)}`).join('\n\n');
     navigator.clipboard.writeText(`Here are the private Secret Santa links for everyone:\n\n${allLinksText}`).then(() => {
       setCopiedLink('all');
       setTimeout(() => setCopiedLink(null), 2000);
@@ -85,33 +150,55 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participants, getPart
           <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm text-left mb-6 flex items-start gap-3">
             <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-bold">Why are the links so long?</p>
-              <p className="mt-1">For your privacy! All your group's information is stored securely <em>inside</em> the link itself, not on our servers. This means we never see or save any of your private data.</p>
-              <p className="font-bold mt-3">Pro Tip: Sharing Your Links</p>
-              <ul className="list-disc list-inside mt-1 space-y-1">
-                <li>For a cleaner look, use a free URL shortener like <a href="https://tinyurl.com/" target="_blank" rel="noopener noreferrer" className="font-bold underline">TinyURL</a> before sending.</li>
-                <li>In an email, you can hyperlink text. Write "Click here to see your match," highlight it, and add the long link.</li>
-              </ul>
+              <p className="font-bold">Pro Tip: Sharing Your Links</p>
+              <p className="mt-1">For your privacy, all data is stored in these long links. For cleaner sharing, toggle on "Shorten Links" below!</p>
             </div>
           </div>
-          {participants.map(p => (
-            <div key={p.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-              <div className="flex items-center gap-3">
-                <UserIcon />
-                <span className="font-semibold text-slate-700">{p.name}</span>
-              </div>
-              <button 
-                onClick={() => copyLink(p.id)}
-                className={`font-semibold py-2 px-4 text-sm rounded-lg transition-all flex items-center justify-center w-32 focus:outline-none focus:ring-2 focus:ring-offset-2 ${copiedLink === p.id 
-                    ? 'bg-emerald-500 text-white ring-emerald-300' 
-                    : 'bg-slate-800 hover:bg-slate-700 text-white ring-slate-400'
-                }`}
-              >
-                {copiedLink === p.id ? <CheckIcon /> : <CopyIcon />}
-                <span className="ml-2">{copiedLink === p.id ? 'Copied!' : 'Copy Link'}</span>
-              </button>
+
+          <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-4">
+             <div className="flex items-center gap-3">
+                <Link2 className="w-5 h-5 text-indigo-500" />
+                <span className="font-semibold text-slate-700">Shorten Links</span>
             </div>
-          ))}
+            <button
+                type="button"
+                onClick={handleToggleShortLinks}
+                disabled={isLoadingShortLinks}
+                className={`${useShortLinks ? 'bg-indigo-600' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50`}
+            >
+                {isLoadingShortLinks && <Loader2 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-white"/>}
+                <span className={`${useShortLinks ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
+            </button>
+          </div>
+          {shortenError && <p className="text-sm text-red-600 text-center -mt-2 mb-4">{shortenError}</p>}
+
+          {participants.map(p => {
+            const finalLink = getFinalLink(p.id);
+            const smsBody = encodeURIComponent(`Hey ${p.name}, here is your private link for our Secret Santa exchange! 🎁 ${finalLink}`);
+            return(
+              <div key={p.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm gap-2">
+                <div className="flex items-center gap-3 flex-shrink min-w-0">
+                  <UserIcon />
+                  <span className="font-semibold text-slate-700 truncate">{p.name}</span>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <a href={`sms:?&body=${smsBody}`} className="font-semibold p-2.5 text-sm rounded-lg transition-all bg-slate-200 hover:bg-slate-300 text-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 ring-slate-400">
+                    <MessageSquare className="h-5 w-5"/>
+                  </a>
+                  <button 
+                    onClick={() => copyLink(p.id)}
+                    className={`font-semibold py-2 px-4 text-sm rounded-lg transition-all flex items-center justify-center w-32 focus:outline-none focus:ring-2 focus:ring-offset-2 ${copiedLink === p.id 
+                        ? 'bg-emerald-500 text-white ring-emerald-300' 
+                        : 'bg-slate-800 hover:bg-slate-700 text-white ring-slate-400'
+                    }`}
+                  >
+                    {copiedLink === p.id ? <CheckIcon /> : <CopyIcon />}
+                    <span className="ml-2">{copiedLink === p.id ? 'Copied!' : 'Copy'}</span>
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         <div className="p-6 sm:p-8 border-t border-slate-200 bg-slate-100 rounded-b-2xl space-y-4">
