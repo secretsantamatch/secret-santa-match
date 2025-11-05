@@ -3,7 +3,9 @@ import type React from 'react';
 export interface Participant {
   id: string;
   name: string;
-  notes: string;
+  interests: string; // New field for comma-separated keywords
+  likesDislikes: string; // New field for detailed notes
+  links: string; // New field for specific product URLs
   budget: string;
 }
 
