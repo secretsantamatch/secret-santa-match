@@ -11,6 +11,8 @@ import ShareButtons from './ShareButtons';
 import ResultsDisplay from './ResultsDisplay';
 import ShareLinksModal from './ShareLinksModal';
 import ResourceCard from './ResourceCard';
+import { Check, Copy, MessageSquare, Printer, Search, User, Link, Tag, FileText } from 'lucide-react';
+
 
 interface ResultsPageProps {
   data: ExchangeData;
@@ -44,6 +46,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   const [allResources, setAllResources] = useState<Resource[]>([]);
   const [shuffleError, setShuffleError] = useState<string | null>(null);
   
+  // New state for the Organizer Dashboard
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sentStatus, setSentStatus] = useState<Set<string>>(new Set());
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+
   const downloadModalRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -159,6 +166,16 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         window.location.hash = encoded;
     }
   };
+  
+  const handlePrintCards = async () => {
+      setShowDownloadOptionsModal(false);
+      trackEvent('download_pdf', { download_type: 'cards_shortcut' });
+      await performPdfGeneration(async () => {
+          await generateIndividualCardsPdf({ matches, eventDetails, ...cardStyle, backgroundOptions });
+      });
+      setShowDownloadConfirmationModal(true);
+  };
+
 
   const handleDownload = async (type: 'cards' | 'list' | 'both') => {
       setShowDownloadOptionsModal(false);
@@ -188,17 +205,47 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     });
     setShowShareModal(true);
   };
+  
+  const handleToggleSent = (participantId: string) => {
+    setSentStatus(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(participantId)) {
+            newSet.delete(participantId);
+        } else {
+            newSet.add(participantId);
+        }
+        return newSet;
+    });
+  };
+
+  const handleCopyLink = (participantId: string) => {
+    const urlToCopy = getParticipantLink(participantId);
+    navigator.clipboard.writeText(urlToCopy).then(() => {
+        setCopiedLink(participantId);
+        setTimeout(() => setCopiedLink(null), 2000);
+    }).catch(err => {
+        console.error('Failed to copy link: ', err);
+        alert('Failed to copy link.');
+    });
+  };
+
+  const filteredParticipants = useMemo(() => {
+    if (!searchTerm) return participants;
+    return participants.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [searchTerm, participants]);
+
 
   // Participant view variables
   const participant = currentParticipantId ? participants.find((p: Participant) => p.id === currentParticipantId) : null;
   const match = participant ? matches.find(m => m.giver.id === participant.id) : null;
+  const affiliateTag = 'secretsant09e-20'; // Your Amazon Associates Tag
 
   const suggestedPosts = useMemo((): Resource[] => {
     if (!isRevealed || !match || allResources.length === 0) {
         return [];
     }
 
-    const notes = match.receiver.notes.toLowerCase();
+    const interests = match.receiver.interests.toLowerCase();
     const budget = parseInt(match.receiver.budget) || 999;
     const suggestions: { resource: Resource; score: number }[] = [];
 
@@ -207,7 +254,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         const resourceKeywords = resource.keywords || [];
 
         resourceKeywords.forEach(keyword => {
-            if (notes.includes(keyword)) {
+            if (interests.includes(keyword)) {
                 score += 1;
             }
         });
@@ -280,21 +327,70 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                             {shuffleError && <p className="mt-4 text-sm bg-red-800/50 p-2 rounded-md">{shuffleError}</p>}
                         </div>
                         
+                        <div className="p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+                            <h2 className="text-3xl font-bold text-slate-800 font-serif mb-6 text-center">Organizer's Dashboard</h2>
+                            
+                            <div className="relative mb-6 max-w-md mx-auto">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <input
+                                    type="search"
+                                    placeholder="Search for a participant..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full p-3 pl-12 border border-slate-300 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                />
+                            </div>
+
+                            <div className="space-y-3">
+                                {filteredParticipants.map(p => {
+                                    const link = getParticipantLink(p.id);
+                                    const smsBody = encodeURIComponent(`Hey ${p.name}, here is your private link for our Secret Santa exchange! 🎁 ${link}`);
+                                    return (
+                                        <div key={p.id} className="grid grid-cols-[auto,1fr,auto] items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                            <div className="flex items-center">
+                                                <input
+                                                    id={`sent-${p.id}`}
+                                                    type="checkbox"
+                                                    checked={sentStatus.has(p.id)}
+                                                    onChange={() => handleToggleSent(p.id)}
+                                                    className="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
+                                                />
+                                                <label htmlFor={`sent-${p.id}`} className="sr-only">Mark {p.name} as sent</label>
+                                            </div>
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <User className="w-6 h-6 text-slate-400 flex-shrink-0" />
+                                                <span className={`font-semibold text-slate-700 truncate transition-colors ${sentStatus.has(p.id) ? 'line-through text-slate-400' : ''}`}>{p.name}</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <a href={`sms:?&body=${smsBody}`} className="p-2.5 rounded-lg transition-colors bg-slate-200 hover:bg-slate-300 text-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 ring-slate-400">
+                                                    <MessageSquare className="h-5 w-5" />
+                                                </a>
+                                                <button
+                                                    onClick={() => handleCopyLink(p.id)}
+                                                    className={`font-semibold py-2 px-3 text-sm rounded-lg transition-all flex items-center justify-center w-28 focus:outline-none focus:ring-2 focus:ring-offset-2 ${copiedLink === p.id ? 'bg-emerald-500 text-white ring-emerald-300' : 'bg-slate-800 hover:bg-slate-700 text-white ring-slate-400'}`}
+                                                >
+                                                    {copiedLink === p.id ? <Check size={18} /> : <Copy size={16} />}
+                                                    <span className="ml-2">{copiedLink === p.id ? 'Copied!' : 'Copy'}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+
                         <div className="grid md:grid-cols-2 gap-8">
                           <div className="p-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
                               <div className="mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
+                                <Printer className="h-16 w-16 opacity-80" />
                               </div>
-                              <h3 className="text-3xl font-bold font-serif mb-2">Printable Cards</h3>
+                              <h3 className="text-3xl font-bold font-serif mb-2">Printables</h3>
                               <p className="text-green-100 max-w-xs mb-6 text-lg">Download styled cards or a master list for offline sharing.</p>
-                              <button onClick={() => setShowDownloadOptionsModal(true)} className="bg-white text-green-700 font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 hover:shadow-xl hover:bg-gray-100 transition-all flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                                  Download Now
-                              </button>
+                              <div className="flex flex-wrap gap-3 justify-center">
+                                <button onClick={handlePrintCards} className="bg-white text-green-700 font-bold py-3 px-6 text-lg rounded-full shadow-md transform hover:scale-105 transition-all flex items-center gap-2">Print All Cards</button>
+                                <button onClick={() => setShowDownloadOptionsModal(true)} className="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 text-lg rounded-full shadow-md transform hover:scale-105 transition-all">More Options</button>
+                              </div>
                           </div>
                           <div className="p-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
                               <div className="mb-4">
@@ -440,10 +536,72 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                         </div>
                     </div>
 
+                    {isRevealed && match.receiver && (
+                        <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+                             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 font-serif mb-6 text-center">
+                                Gift Inspiration for <span className="text-red-600">{match.receiver.name}</span>
+                            </h2>
+                            <div className="space-y-6 max-w-2xl mx-auto">
+                                {match.receiver.budget && (
+                                    <div className="text-center">
+                                        <p className="text-lg text-slate-500">Suggested Budget: <span className="font-bold text-xl text-emerald-600">${match.receiver.budget}</span></p>
+                                    </div>
+                                )}
+                                {match.receiver.interests && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Tag className="w-5 h-5 text-indigo-500" /> Interests & Hobbies</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {match.receiver.interests.split(',').map(interest => interest.trim()).filter(Boolean).map(interest => (
+                                                <a
+                                                    key={interest}
+                                                    href={`https://www.amazon.com/s?k=${encodeURIComponent(interest + ' gifts')}&tag=${affiliateTag}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold px-4 py-2 rounded-full text-sm transition-colors"
+                                                >
+                                                    {interest}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {match.receiver.likesDislikes && (
+                                     <div>
+                                        <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2"><FileText className="w-5 h-5 text-emerald-500" /> Likes, Dislikes & Notes</h3>
+                                        <p className="text-slate-600 bg-slate-50 p-4 rounded-lg border">{match.receiver.likesDislikes}</p>
+                                    </div>
+                                )}
+                                {match.receiver.links && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2"><Link className="w-5 h-5 text-rose-500" /> Specific Links</h3>
+                                        <div className="space-y-2">
+                                            {match.receiver.links.split('\n').map(link => link.trim()).filter(Boolean).map((link, index) => (
+                                                 <a
+                                                    key={index}
+                                                    href={link.startsWith('http') ? link : `//${link}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="block bg-rose-50 hover:bg-rose-100 text-rose-800 font-medium p-3 rounded-lg border border-rose-200 truncate transition-colors"
+                                                >
+                                                    {link}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="text-center mt-6 pt-6 border-t border-slate-200">
+                                    <p className="text-xs text-slate-400 italic max-w-lg mx-auto">
+                                        As an Amazon Associate, we earn from qualifying purchases. When you click on an interest or product link, we may receive a small commission at no extra cost to you. This helps keep our tool 100% free. Thank you for your support!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {isRevealed && suggestedPosts.length > 0 && (
                       <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
                         <h2 className="text-2xl md:text-3xl font-bold text-slate-800 font-serif mb-2 text-center">
-                          Need Some Gift Ideas?
+                          Helpful Guides
                         </h2>
                         <p className="text-slate-600 mb-8 text-center max-w-xl mx-auto">
                           Based on <strong>{match.receiver.name}'s</strong> details, these guides might help you find the perfect gift!
