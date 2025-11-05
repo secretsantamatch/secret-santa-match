@@ -2,46 +2,57 @@ import React from 'react';
 import type { Match } from '../types';
 
 interface ResultsDisplayProps {
-  matches: Match[];
+    matches: Match[];
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ matches }) => {
-  return (
-    <div className="max-w-4xl mx-auto overflow-x-auto">
-      <div className="bg-slate-50 rounded-lg p-4 border">
-        <div className="grid grid-cols-3 gap-4 text-left font-semibold text-sm text-gray-600 uppercase tracking-wider px-4 pb-2 border-b">
-          <div className="col-span-1">Secret Santa (Giver)</div>
-          <div className="col-span-1">Is Giving To (Receiver)</div>
-          <div className="col-span-1">Receiver's Notes & Budget</div>
-        </div>
-        <div className="divide-y">
-          {matches.map((match, index) => (
-            <div 
-                key={match.giver.id} 
-                className="grid grid-cols-3 gap-4 items-center p-4 animate-fade-in-up"
-                style={{ animationDelay: `${index * 40}ms` }}
-            >
-              <div className="col-span-1 font-semibold text-slate-800">{match.giver.name}</div>
-              <div className="col-span-1">
-                <span className="font-semibold text-[var(--accent-dark-text)] bg-[var(--accent-lighter-bg)] py-1 px-3 rounded-full">{match.receiver.name}</span>
-              </div>
-              <div className="col-span-1 text-sm text-gray-500">
-                {match.receiver.notes || match.receiver.budget ? (
-                  <>
-                    {match.receiver.notes && <span>{match.receiver.notes}</span>}
-                    {match.receiver.notes && match.receiver.budget && <span className="mx-1">|</span>}
-                    {match.receiver.budget && <span>Budget: ${match.receiver.budget}</span>}
-                  </>
-                ) : (
-                  <span className="italic">No notes provided</span>
-                )}
-              </div>
+    return (
+        <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+            {/* Header Row */}
+            <div className="hidden md:grid grid-cols-3 gap-4 pb-4 border-b border-slate-200">
+                <h3 className="font-bold text-sm text-slate-500 uppercase tracking-wider">Secret Santa (Giver)</h3>
+                <h3 className="font-bold text-sm text-slate-500 uppercase tracking-wider">Is Giving To (Receiver)</h3>
+                <h3 className="font-bold text-sm text-slate-500 uppercase tracking-wider">Receiver's Details</h3>
             </div>
-          ))}
+            {/* Match Rows */}
+            <div className="divide-y divide-slate-200">
+                {matches.map(({ giver, receiver }) => {
+                    const hasDetails = receiver.interests || receiver.likesDislikes || receiver.links || receiver.budget;
+
+                    return (
+                        <div key={giver.id} className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2 py-4 items-start">
+                            {/* Giver */}
+                            <div className="font-semibold text-slate-800 text-lg pt-2">
+                                <span className="md:hidden font-bold text-xs text-slate-500 uppercase tracking-wider">Giver: </span>
+                                {giver.name}
+                            </div>
+                            {/* Receiver */}
+                            <div className="my-1 md:my-0 pt-2">
+                                <span className="md:hidden font-bold text-xs text-slate-500 uppercase tracking-wider mr-2">Receiver: </span>
+                                <span className="bg-slate-200 text-slate-800 font-semibold py-1 px-3 rounded-full text-base">
+                                    {receiver.name}
+                                </span>
+                            </div>
+                             {/* Details */}
+                            <div className="text-slate-600 text-sm space-y-2">
+                                <span className="md:hidden font-bold text-xs text-slate-500 uppercase tracking-wider">Details: </span>
+                                {hasDetails ? (
+                                    <>
+                                        {receiver.budget && <p><strong>Budget:</strong> ${receiver.budget}</p>}
+                                        {receiver.interests && <p><strong>Interests:</strong> {receiver.interests}</p>}
+                                        {receiver.likesDislikes && <p><strong>Notes:</strong> {receiver.likesDislikes}</p>}
+                                        {receiver.links && <p className="truncate"><strong>Links:</strong> {receiver.links.split('\n')[0]}</p>}
+                                    </>
+                                ) : (
+                                    <span className="text-slate-400 italic">No details provided</span>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default ResultsDisplay;
