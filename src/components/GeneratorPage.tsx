@@ -35,9 +35,9 @@ const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) =>
 const GeneratorPage: React.FC = () => {
     // State for participants and rules
     const [participants, setParticipants] = useState<Participant[]>([
-        { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
-        { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
-        { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
+        { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
+        { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
+        { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
     ]);
     const [exclusions, setExclusions] = useState<Exclusion[]>([]);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -76,7 +76,9 @@ const GeneratorPage: React.FC = () => {
                 const incomingParticipants: Participant[] = incomingData.map((p: any) => ({
                     id: p.id || crypto.randomUUID(),
                     name: p.name || '',
-                    notes: p.notes || '',
+                    interests: p.notes || '', // Map old notes to new interests field
+                    likesDislikes: '',
+                    links: '',
                     budget: p.budget || '',
                 }));
 
@@ -135,7 +137,9 @@ const GeneratorPage: React.FC = () => {
         const newParticipants: Participant[] = newNames.map(name => ({
             id: crypto.randomUUID(),
             name,
-            notes: '',
+            interests: '', 
+            likesDislikes: '', 
+            links: '',
             budget: ''
         }));
         setParticipants(prev => [...prev.filter(p => p.name.trim() !== ''), ...newParticipants]);
@@ -145,9 +149,9 @@ const GeneratorPage: React.FC = () => {
 
     const handleClearParticipants = () => {
         setParticipants([
-            { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
-            { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
-            { id: crypto.randomUUID(), name: '', notes: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
         ]);
         setExclusions([]);
         setAssignments([]);
