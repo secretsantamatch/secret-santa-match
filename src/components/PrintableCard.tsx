@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import type { Match, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 
 interface PrintableCardProps {
-  match: Match | { giver: { name: string }, receiver: { name: string, notes: string, budget: string } };
+  match: Match | { giver: { name: string }, receiver: { name: string, interests: string, likesDislikes: string, links: string, budget: string } };
   eventDetails: string;
   isNameRevealed: boolean;
   onReveal?: () => void;
@@ -63,6 +63,13 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   if (backgroundImageUrl && !backgroundImageUrl.startsWith('http') && !backgroundImageUrl.startsWith('data:') && !backgroundImageUrl.startsWith('/')) {
     backgroundImageUrl = `/${backgroundImageUrl}`;
   }
+
+  // Combine interests and likes/dislikes for the printable card view
+  const combinedNotes = [
+    match.receiver.interests ? `Interests: ${match.receiver.interests}` : '',
+    match.receiver.likesDislikes
+  ].filter(Boolean).join('\n');
+
 
   useEffect(() => {
     if (isNameRevealed || !onReveal) return;
@@ -195,13 +202,13 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                           {match.receiver.name}
                       </h2>
                       
-                      {(match.receiver.notes || match.receiver.budget) && (
+                      {(combinedNotes || match.receiver.budget) && (
                           <div className="mt-4 w-full text-center">
                               <h3 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)'}} className="font-bold tracking-widest uppercase opacity-70">
                                   {wish}
                               </h3>
-                              <div style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words px-4">
-                                  {match.receiver.notes && <p>{match.receiver.notes}</p>}
+                              <div style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words px-4 whitespace-pre-wrap">
+                                  {combinedNotes && <p>{combinedNotes}</p>}
                                   {match.receiver.budget && <p className="mt-1">{`Budget: $${match.receiver.budget}`}</p>}
                               </div>
                           </div>
