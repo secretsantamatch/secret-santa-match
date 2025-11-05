@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import type { Participant } from '../types';
 
@@ -24,14 +25,14 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
         );
 
         if (isLastParticipant && isNameField && wasEmpty && isNowNotEmpty) {
-            updatedParticipants.push({ id: crypto.randomUUID(), name: '', notes: '', budget: '' });
+            updatedParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' });
         }
         
         setParticipants(updatedParticipants);
     };
     
     const addParticipant = () => {
-        const newParticipant = { id: crypto.randomUUID(), name: '', notes: '', budget: '' };
+        const newParticipant = { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' };
         setParticipants([...participants, newParticipant]);
         // Expand details for new participant for better UX
         toggleDetails(newParticipant.id);
@@ -78,13 +79,34 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                         )}
                     </div>
                     {expanded.has(participant.id) && (
-                        <div className="mt-4 pl-9 space-y-3">
+                        <div className="mt-4 pl-9 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">Gift Ideas / Wishlist</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Interests & Hobbies</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., coffee, gardening, sci-fi books"
+                                    value={participant.interests}
+                                    onChange={(e) => handleParticipantChange(participant.id, 'interests', e.target.value)}
+                                    className="w-full p-2 border border-slate-300 rounded-md text-sm"
+                                />
+                                 <p className="text-xs text-slate-400 mt-1">Separate with commas for best results.</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Likes/Dislikes & Notes</label>
                                 <textarea
-                                    placeholder="e.g., Loves coffee, anything for the garden..."
-                                    value={participant.notes}
-                                    onChange={(e) => handleParticipantChange(participant.id, 'notes', e.target.value)}
+                                    placeholder="e.g., Loves dark roast coffee, dislikes horror movies..."
+                                    value={participant.likesDislikes}
+                                    onChange={(e) => handleParticipantChange(participant.id, 'likesDislikes', e.target.value)}
+                                    className="w-full p-2 border border-slate-300 rounded-md text-sm"
+                                    rows={2}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Specific Links (Optional)</label>
+                                <textarea
+                                    placeholder="Paste one link per line"
+                                    value={participant.links}
+                                    onChange={(e) => handleParticipantChange(participant.id, 'links', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
