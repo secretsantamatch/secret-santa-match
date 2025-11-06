@@ -5,51 +5,90 @@ interface ShareLinksModalProps {
   matches: Match[];
   onClose: () => void;
   baseUrl: string;
+  useShortUrls: boolean;
+  onShortenUrl: (longUrl: string) => Promise<string>;
 }
 
-const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, onClose, baseUrl }) => {
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, onClose, baseUrl, useShortUrls, onShortenUrl }) => {
+  const [copyAllStatus, setCopyAllStatus] = useState<'idle' | 'copying' | 'copied'>('idle');
+  const [csvStatus, setCsvStatus] = useState<'idle' | 'generating' | 'done'>('idle');
+  
+  const generateLinksText = async () => {
+    let text = 'Here are the private reveal links for our Secret Santa:\n\n';
+    for (const { giver } of matches) {
+      const longUrl = `${baseUrl}?id=${giver.id}`;
+      const urlToUse = useShortUrls ? await onShortenUrl(longUrl) : longUrl;
+      text += `${giver.name}: ${urlToUse}\n`;
+    }
+    return text;
+  };
 
-  const handleCopy = (giverId: string) => {
-    const link = `${baseUrl}?id=${giverId}`;
-    navigator.clipboard.writeText(link).then(() => {
-      setCopiedId(giverId);
-      setTimeout(() => setCopiedId(null), 2000);
+  const handleCopyAll = async () => {
+    setCopyAllStatus('copying');
+    const textToCopy = await generateLinksText();
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopyAllStatus('copied');
+      setTimeout(() => setCopyAllStatus('idle'), 2000);
     });
   };
 
+  const handleDownloadCsv = async () => {
+    setCsvStatus('generating');
+    let csvContent = "data:text/csv;charset=utf-8,Name,Link\n";
+    for (const { giver } of matches) {
+      const longUrl = `${baseUrl}?id=${giver.id}`;
+      const urlToUse = useShortUrls ? await onShortenUrl(longUrl) : longUrl;
+      csvContent += `${giver.name},${urlToUse}\n`;
+    }
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "secret_santa_links.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setCsvStatus('done');
+    setTimeout(() => setCsvStatus('idle'), 2000);
+  };
+
+
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 animate-fade-in-fast"
+      className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <div className="p-6 border-b">
-          <h2 className="text-2xl font-bold text-slate-800 font-serif">Share Private Reveal Links</h2>
-          <p className="text-slate-600 mt-2">Send each person their unique link. Only they will be able to see who they're buying a gift for.</p>
+          <h2 className="text-2xl font-bold text-slate-800 font-serif">Bulk Share Options</h2>
+          <p className="text-slate-600 mt-2">Use these power tools for sharing all links at once, perfect for emails or spreadsheets.</p>
         </div>
         
-        <div className="p-6 overflow-y-auto">
-          <ul className="space-y-3">
-            {matches.map(({ giver }) => (
-              <li key={giver.id} className="p-3 bg-slate-50 rounded-lg flex items-center justify-between gap-4">
-                <span className="font-semibold text-slate-700">{giver.name}</span>
-                <button 
-                  onClick={() => handleCopy(giver.id)}
-                  className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors w-28 text-center ${
-                    copiedId === giver.id 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
-                  }`}
-                >
-                  {copiedId === giver.id ? 'Copied!' : 'Copy Link'}
-                </button>
-              </li>
-            ))}
-          </ul>
+        <div className="p-6 space-y-4">
+           <button 
+              onClick={handleCopyAll}
+              disabled={copyAllStatus !== 'idle'}
+              className={`w-full px-4 py-3 text-base font-semibold rounded-lg transition-colors flex items-center justify-center ${
+                copyAllStatus === 'copied' 
+                  ? 'bg-emerald-600 text-white' 
+                  : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+              }`}
+            >
+              {copyAllStatus === 'copying' ? 'Preparing...' : copyAllStatus === 'copied' ? 'Copied to Clipboard!' : 'Copy All Links (for Email)'}
+            </button>
+            <button 
+              onClick={handleDownloadCsv}
+              disabled={csvStatus !== 'idle'}
+              className={`w-full px-4 py-3 text-base font-semibold rounded-lg transition-colors flex items-center justify-center ${
+                csvStatus === 'done' 
+                  ? 'bg-emerald-600 text-white' 
+                  : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+              }`}
+            >
+              {csvStatus === 'generating' ? 'Generating...' : csvStatus === 'done' ? 'Downloaded!' : 'Download as CSV (for Spreadsheets)'}
+            </button>
         </div>
 
         <div className="p-6 border-t text-center">
@@ -61,15 +100,6 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, onClose, bas
           </button>
         </div>
       </div>
-      <style>{`
-        @keyframes fade-in-fast {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .animate-fade-in-fast {
-            animation: fade-in-fast 0.3s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 };
