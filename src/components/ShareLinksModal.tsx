@@ -99,19 +99,19 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participantLinks, onC
                 </div>
 
                 <div className="mb-6 p-4 bg-slate-50 rounded-xl border">
-                    <h3 className="font-bold text-slate-600 text-sm uppercase tracking-wider mb-3 flex items-center gap-2"><List size={16}/>Bulk Actions</h3>
+                    <h3 className="font-bold text-slate-600 text-sm uppercase tracking-wider mb-3 flex items-center gap-2"><List size={16}/>Group Actions & Downloads</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                         <button onClick={handleCopyAll} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
+                         <button onClick={handleCopyAll} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-indigo-100 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
                             {copiedStates['all-links'] ? <Check size={16} className="text-green-600"/> : <Clipboard size={16}/>}
                             {copiedStates['all-links'] ? 'Copied!' : 'Copy All'}
                          </button>
-                         <button onClick={handleDownloadCsv} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
+                         <button onClick={handleDownloadCsv} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-indigo-100 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
                             <FileText size={16}/> Download as CSV
                          </button>
-                         <button onClick={onDownloadMasterList} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
+                         <button onClick={onDownloadMasterList} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-indigo-100 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
                              <Download size={16}/> Master List (PDF)
                          </button>
-                         <button onClick={onDownloadAllCards} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
+                         <button onClick={onDownloadAllCards} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-indigo-100 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
                              <Download size={16}/> All Cards (PDF)
                          </button>
                     </div>
