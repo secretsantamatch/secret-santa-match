@@ -7,9 +7,14 @@ interface ShareLinksModalProps {
   baseUrl: string;
   useShortUrls: boolean;
   onShortenUrl: (longUrl: string) => Promise<string>;
+  onDownloadMasterList: () => void;
+  onDownloadAllCards: () => void;
 }
 
-const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, onClose, baseUrl, useShortUrls, onShortenUrl }) => {
+const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ 
+  matches, onClose, baseUrl, useShortUrls, onShortenUrl,
+  onDownloadMasterList, onDownloadAllCards 
+}) => {
   const [copyAllStatus, setCopyAllStatus] = useState<'idle' | 'copying' | 'copied'>('idle');
   const [csvStatus, setCsvStatus] = useState<'idle' | 'generating' | 'done'>('idle');
   
@@ -62,11 +67,11 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, onClose, bas
         onClick={e => e.stopPropagation()}
       >
         <div className="p-6 border-b">
-          <h2 className="text-2xl font-bold text-slate-800 font-serif">Bulk Share Options</h2>
-          <p className="text-slate-600 mt-2">Use these power tools for sharing all links at once, perfect for emails or spreadsheets.</p>
+          <h2 className="text-2xl font-bold text-slate-800 font-serif">Bulk Share & Download</h2>
+          <p className="text-slate-600 mt-2">Use these power tools for sharing all links at once or downloading printable assets for your party.</p>
         </div>
         
-        <div className="p-6 space-y-4">
+        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
            <button 
               onClick={handleCopyAll}
               disabled={copyAllStatus !== 'idle'}
@@ -76,7 +81,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, onClose, bas
                   : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
               }`}
             >
-              {copyAllStatus === 'copying' ? 'Preparing...' : copyAllStatus === 'copied' ? 'Copied to Clipboard!' : 'Copy All Links (for Email)'}
+              {copyAllStatus === 'copying' ? 'Preparing...' : copyAllStatus === 'copied' ? 'Copied!' : 'Copy All Links'}
             </button>
             <button 
               onClick={handleDownloadCsv}
@@ -87,7 +92,19 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, onClose, bas
                   : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
               }`}
             >
-              {csvStatus === 'generating' ? 'Generating...' : csvStatus === 'done' ? 'Downloaded!' : 'Download as CSV (for Spreadsheets)'}
+              {csvStatus === 'generating' ? 'Generating...' : csvStatus === 'done' ? 'Downloaded!' : 'Download as CSV'}
+            </button>
+            <button 
+              onClick={onDownloadMasterList}
+              className="w-full px-4 py-3 text-base font-semibold rounded-lg transition-colors bg-slate-200 hover:bg-slate-300 text-slate-800 flex items-center justify-center"
+            >
+              Download Master List (PDF)
+            </button>
+            <button 
+              onClick={onDownloadAllCards}
+              className="w-full px-4 py-3 text-base font-semibold rounded-lg transition-colors bg-slate-200 hover:bg-slate-300 text-slate-800 flex items-center justify-center"
+            >
+              Download All Cards (PDF)
             </button>
         </div>
 
