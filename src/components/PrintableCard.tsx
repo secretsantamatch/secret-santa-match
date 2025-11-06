@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import type { Match, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 
 interface PrintableCardProps {
-  match: Match | { giver: { name: string }, receiver: { name: string, interests: string, likesDislikes: string, links: string, budget: string } };
+  match: Match | { giver: { name: string }, receiver: { name: string, interests: string, likes: string, dislikes: string, links: string, budget: string } };
   eventDetails: string;
   isNameRevealed: boolean;
   onReveal?: () => void;
@@ -64,10 +64,11 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
     backgroundImageUrl = `/${backgroundImageUrl}`;
   }
 
-  // Combine interests and likes/dislikes for the printable card view
+  // Combine interests, likes and dislikes for the printable card view
   const combinedNotes = [
     match.receiver.interests ? `Interests: ${match.receiver.interests}` : '',
-    match.receiver.likesDislikes
+    match.receiver.likes ? `Likes: ${match.receiver.likes}` : '',
+    match.receiver.dislikes ? `Dislikes: ${match.receiver.dislikes}` : ''
   ].filter(Boolean).join('\n');
 
 
