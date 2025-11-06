@@ -5,7 +5,8 @@ import Footer from './Footer';
 import PrintableCard from './PrintableCard';
 import ShareLinksModal from './ShareLinksModal';
 import { generateMatches } from '../services/matchService';
-import { Shuffle, ExternalLink, MessageCircle, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { generateMasterListPdf, generateIndividualCardsPdf } from '../services/pdfService';
+import { Shuffle, ExternalLink, MessageCircle, Copy, Check } from 'lucide-react';
 
 // Analytics helper
 declare global {
@@ -58,10 +59,7 @@ const ResultsPage: React.FC<{ data: ExchangeData; currentParticipantId: string |
     if (result.matches) {
       const newMatchesData = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
       const updatedData = { ...exchangeData, matches: newMatchesData };
-      // This part is tricky without a full routing solution. We'll update state and let parent handle hash.
-      // For now, we update local state. A better solution would involve a state management library or context.
       setExchangeData(updatedData);
-      // Ideally, we'd also update the URL hash here if we had a function passed down from App.tsx
     } else {
       alert(result.error || "Failed to shuffle matches.");
     }
@@ -123,6 +121,37 @@ const ResultsPage: React.FC<{ data: ExchangeData; currentParticipantId: string |
     navigator.clipboard.writeText(urlToCopy).then(() => {
       setCopiedId(giverId);
       setTimeout(() => setCopiedId(null), 2000);
+    });
+  };
+
+  const handleDownloadMasterList = () => {
+    trackEvent('download_master_list');
+    generateMasterListPdf({
+      matches,
+      eventDetails: exchangeData.eventDetails,
+      exchangeDate: exchangeData.exchangeDate,
+      exchangeTime: exchangeData.exchangeTime,
+    });
+  };
+
+  const handleDownloadAllCards = () => {
+    trackEvent('download_all_cards');
+    generateIndividualCardsPdf({
+        matches,
+        eventDetails: exchangeData.eventDetails,
+        backgroundOptions: exchangeData.backgroundOptions,
+        bgId: exchangeData.bgId,
+        bgImg: exchangeData.customBackground,
+        txtColor: exchangeData.textColor,
+        outline: exchangeData.useTextOutline,
+        outColor: exchangeData.outlineColor,
+        outSize: exchangeData.outlineSize,
+        fontSize: exchangeData.fontSizeSetting,
+        font: exchangeData.fontTheme,
+        line: exchangeData.lineSpacing,
+        greet: exchangeData.greetingText,
+        intro: exchangeData.introText,
+        wish: exchangeData.wishlistLabelText,
     });
   };
   
@@ -206,9 +235,9 @@ const ResultsPage: React.FC<{ data: ExchangeData; currentParticipantId: string |
   );
   
   const ParticipantView: React.FC = () => {
-    if (!currentMatch) { /* ... error handling ... */ }
+    if (!currentMatch) { /* ... error handling ... */ return null; }
     
-    const { giver, receiver } = currentMatch!;
+    const { receiver } = currentMatch!;
     const amazonSearchUrl = (query: string) => `https://www.amazon.com/s?k=${encodeURIComponent(query + ' gifts')}&tag=${affiliateTag}`;
     
     const renderKeywords = (keywords: string, title: string) => {
@@ -306,6 +335,8 @@ const ResultsPage: React.FC<{ data: ExchangeData; currentParticipantId: string |
           baseUrl={getBaseUrl()}
           useShortUrls={useShortUrls}
           onShortenUrl={getShortUrl}
+          onDownloadMasterList={handleDownloadMasterList}
+          onDownloadAllCards={handleDownloadAllCards}
         />
       )}
       <style>{`
