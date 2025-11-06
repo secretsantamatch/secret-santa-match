@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import type { Participant } from '../types';
 
@@ -25,14 +23,14 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
         );
 
         if (isLastParticipant && isNameField && wasEmpty && isNowNotEmpty) {
-            updatedParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' });
+            updatedParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' });
         }
         
         setParticipants(updatedParticipants);
     };
     
     const addParticipant = () => {
-        const newParticipant = { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' };
+        const newParticipant = { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' };
         setParticipants([...participants, newParticipant]);
         // Expand details for new participant for better UX
         toggleDetails(newParticipant.id);
@@ -70,7 +68,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                             className="flex-1 min-w-[120px] p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                         />
                         <button onClick={() => toggleDetails(participant.id)} className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold p-2 whitespace-nowrap ml-auto">
-                            {expanded.has(participant.id) ? 'Hide Details' : 'Details'}
+                            {expanded.has(participant.id) ? 'Hide Details' : 'Add Details'}
                         </button>
                         {participants.length > 1 && (
                              <button onClick={() => removeParticipant(participant.id)} className="text-red-500 hover:text-red-700 p-2" aria-label={`Remove ${participant.name || `participant ${index + 1}`}`}>
@@ -89,14 +87,25 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     onChange={(e) => handleParticipantChange(participant.id, 'interests', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                 />
-                                 <p className="text-xs text-slate-400 mt-1">Separate with commas for best results.</p>
+                                 <p className="text-xs text-slate-400 mt-1">Separate with commas for clickable gift ideas.</p>
+                            </div>
+                             <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Likes</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., dark roast coffee, fuzzy socks"
+                                    value={participant.likes}
+                                    onChange={(e) => handleParticipantChange(participant.id, 'likes', e.target.value)}
+                                    className="w-full p-2 border border-slate-300 rounded-md text-sm"
+                                />
+                                <p className="text-xs text-slate-400 mt-1">Separate with commas for more gift ideas.</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">Likes/Dislikes & Notes</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Dislikes & No-Go's</label>
                                 <textarea
-                                    placeholder="e.g., Loves dark roast coffee, dislikes horror movies..."
-                                    value={participant.likesDislikes}
-                                    onChange={(e) => handleParticipantChange(participant.id, 'likesDislikes', e.target.value)}
+                                    placeholder="e.g., dislikes horror movies, allergic to wool..."
+                                    value={participant.dislikes}
+                                    onChange={(e) => handleParticipantChange(participant.id, 'dislikes', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
@@ -110,6 +119,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
+                                <p className="text-xs text-slate-400 mt-1">Got a specific item in mind? Paste the full link here. Add one link per line.</p>
                             </div>
                              <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget ($)</label>
