@@ -91,16 +91,33 @@ export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate, exc
         doc.text(dateInfo, 14, 42);
     }
     
+    const tableBody = matches.map(match => {
+        const details = [];
+        if (match.receiver.budget) details.push(`Budget: $${match.receiver.budget}`);
+        if (match.receiver.interests) details.push(`Interests: ${match.receiver.interests}`);
+        if (match.receiver.likes) details.push(`Likes: ${match.receiver.likes}`);
+        if (match.receiver.dislikes) details.push(`Dislikes: ${match.receiver.dislikes}`);
+        if (match.receiver.links) details.push(`Links: ${match.receiver.links}`);
+        
+        return [match.giver.name, match.receiver.name, details.join('\n')];
+    });
+
     autoTable(doc, {
         startY: 50,
-        head: [['Giver', 'Is the Secret Santa for', 'Receiver']],
-        body: matches.map(match => [match.giver.name, '', match.receiver.name]),
+        head: [['Giver', 'Receiver', "Receiver's Wishlist & Details"]],
+        body: tableBody,
         theme: 'striped',
         headStyles: { fillColor: [22, 160, 133] }, // Teal color for header
-        styles: { halign: 'center' },
         columnStyles: {
-            0: { halign: 'center' },
-            2: { halign: 'center' }
+            0: { cellWidth: 40, halign: 'center' },
+            1: { cellWidth: 40, halign: 'center' },
+            2: { halign: 'left', cellWidth: 'auto' }
+        },
+        didParseCell: function (data) {
+            if (data.column.index === 2) {
+                data.cell.styles.fontStyle = 'normal';
+                data.cell.styles.fontSize = 8;
+            }
         }
     });
 
