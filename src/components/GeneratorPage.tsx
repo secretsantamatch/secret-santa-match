@@ -35,9 +35,9 @@ const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) =>
 const GeneratorPage: React.FC = () => {
     // State for participants and rules
     const [participants, setParticipants] = useState<Participant[]>([
-        { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
-        { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
-        { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
+        { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+        { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+        { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
     ]);
     const [exclusions, setExclusions] = useState<Exclusion[]>([]);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -77,7 +77,8 @@ const GeneratorPage: React.FC = () => {
                     id: p.id || crypto.randomUUID(),
                     name: p.name || '',
                     interests: p.notes || '', // Map old notes to new interests field
-                    likesDislikes: '',
+                    likes: '',
+                    dislikes: '',
                     links: '',
                     budget: p.budget || '',
                 }));
@@ -138,7 +139,8 @@ const GeneratorPage: React.FC = () => {
             id: crypto.randomUUID(),
             name,
             interests: '', 
-            likesDislikes: '', 
+            likes: '', 
+            dislikes: '',
             links: '',
             budget: ''
         }));
@@ -149,9 +151,9 @@ const GeneratorPage: React.FC = () => {
 
     const handleClearParticipants = () => {
         setParticipants([
-            { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
-            { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
-            { id: crypto.randomUUID(), name: '', interests: '', likesDislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
         ]);
         setExclusions([]);
         setAssignments([]);
@@ -161,6 +163,20 @@ const GeneratorPage: React.FC = () => {
         setError(null);
         trackEvent('click_generate_button');
         
+        // Track popular interests anonymously before generating
+        const validParticipantsForTracking = participants.filter(p => p.name.trim() !== '');
+        validParticipantsForTracking.forEach(participant => {
+            const interests = (participant.interests || '').split(',');
+            const likes = (participant.likes || '').split(',');
+
+            [...interests, ...likes].forEach(keyword => {
+                const trimmedKeyword = keyword.trim().toLowerCase();
+                if (trimmedKeyword) {
+                    trackEvent('interest_added', { interest_name: trimmedKeyword });
+                }
+            });
+        });
+
         const validParticipants = participants.filter(p => p.name.trim() !== '');
         const result = generateMatches(validParticipants, exclusions, assignments);
         
