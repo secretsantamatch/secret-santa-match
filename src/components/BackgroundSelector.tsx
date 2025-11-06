@@ -66,11 +66,10 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     
     const receiverParticipant = previewParticipants.length > 1 ? previewParticipants[1] : null;
 
-    // FIX: Property 'notes' does not exist on type 'Participant'. Replaced with the correct properties: 'interests', 'likesDislikes', and 'links'.
-    // This also fixes the assignment error for the 'previewMatch' object passed to the PrintableCard component.
     const receiverName = receiverParticipant ? receiverParticipant.name : 'Alexa';
     const receiverInterests = receiverParticipant?.interests || '';
-    const receiverLikesDislikes = receiverParticipant?.likesDislikes || '';
+    const receiverLikes = receiverParticipant?.likes || 'Loves dark roast coffee';
+    const receiverDislikes = receiverParticipant?.dislikes || 'Dislikes horror movies';
     const receiverLinks = receiverParticipant?.links || '';
     const receiverBudget = receiverParticipant?.budget || '';
 
@@ -79,7 +78,8 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
         receiver: { 
             name: receiverName, 
             interests: receiverInterests,
-            likesDislikes: receiverLikesDislikes,
+            likes: receiverLikes,
+            dislikes: receiverDislikes,
             links: receiverLinks,
             budget: receiverBudget 
         }
