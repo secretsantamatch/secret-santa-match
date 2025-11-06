@@ -1,352 +1,330 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
-import Header from './Header';
-import Footer from './Footer';
 import PrintableCard from './PrintableCard';
 import ShareLinksModal from './ShareLinksModal';
-import { generateMatches } from '../services/matchService';
+import Header from './Header';
+import Footer from './Footer';
+import BackToTopButton from './BackToTopButton';
 import { generateMasterListPdf, generateIndividualCardsPdf } from '../services/pdfService';
-import { Shuffle, ExternalLink, MessageCircle, Copy, Check } from 'lucide-react';
-
-// Analytics helper
-declare global {
-  interface Window {
-    gtag: (...args: any[]) => void;
-  }
-}
-const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) => {
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', eventName, eventParams);
-  } else {
-    console.log(`Analytics Event (gtag not found): ${eventName}`, eventParams);
-  }
-};
+import { Check, Copy, MessageSquare, Shuffle, SlidersHorizontal, Download } from 'lucide-react';
+import { trackEvent } from '../services/analyticsService';
 
 // TODO: Replace this placeholder with your actual Amazon Associates Tracking ID.
 const affiliateTag = 'secretsant09e-20';
 
-const ResultsPage: React.FC<{ data: ExchangeData; currentParticipantId: string | null; }> = ({ data, currentParticipantId }) => {
-  const [exchangeData, setExchangeData] = useState(data);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [isNameRevealed, setIsNameRevealed] = useState(false);
-  const [isShuffling, setIsShuffling] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sentStatus, setSentStatus] = useState<Set<string>>(new Set());
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [useShortUrls, setUseShortUrls] = useState(false);
-  const [shortUrlCache, setShortUrlCache] = useState<Record<string, string>>({});
-  const [isShortening, setIsShortening] = useState(false);
+const ResultsPage: React.FC<{ data: ExchangeData; currentParticipantId: string | null }> = ({ data, currentParticipantId }) => {
+    const [isNameRevealed, setIsNameRevealed] = useState(!currentParticipantId);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [filteredParticipants, setFilteredParticipants] = useState<Participant[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sentStatus, setSentStatus] = useState<Set<string>>(new Set());
+    const [useShortLinks, setUseShortLinks] = useState(false);
+    const [shortLinks, setShortLinks] = useState<Record<string, string>>({});
+    const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const matches: Match[] = useMemo(() => {
-    const participantMap = new Map<string, Participant>(exchangeData.p.map(p => [p.id, p]));
-    return exchangeData.matches
-      .map(m => ({
-        giver: participantMap.get(m.g),
-        receiver: participantMap.get(m.r),
-      }))
-      .filter(m => m.giver && m.receiver) as Match[];
-  }, [exchangeData]);
+    const allMatches = useMemo((): Match[] => {
+        const participantMap = new Map<string, Participant>(data.p.map(p => [p.id, p]));
+        return data.matches
+            .map(m => {
+                const giver = participantMap.get(m.g);
+                const receiver = participantMap.get(m.r);
+                if (giver && receiver) {
+                    return { giver, receiver };
+                }
+                return null;
+            })
+            .filter((m): m is Match => m !== null);
+    }, [data.matches, data.p]);
 
-  const currentMatch = useMemo(() => {
-    if (!currentParticipantId) return null;
-    return matches.find(m => m.giver.id === currentParticipantId) || null;
-  }, [matches, currentParticipantId]);
+    const participantGivers = useMemo(() => allMatches.map(m => m.giver), [allMatches]);
 
-  const handleShuffle = () => {
-    setIsShuffling(true);
-    trackEvent('shuffle_again');
-    const result = generateMatches(exchangeData.p, exchangeData.exclusions, exchangeData.assignments);
-    if (result.matches) {
-      const newMatchesData = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
-      const updatedData = { ...exchangeData, matches: newMatchesData };
-      setExchangeData(updatedData);
-    } else {
-      alert(result.error || "Failed to shuffle matches.");
-    }
-    setTimeout(() => setIsShuffling(false), 500);
-  };
-  
-  const handleReveal = () => {
-    setIsNameRevealed(true);
-    trackEvent('reveal_match');
-  }
+    useEffect(() => {
+        setFilteredParticipants(
+            participantGivers.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+    }, [searchTerm, participantGivers]);
 
-  const toggleSentStatus = (participantId: string) => {
-    setSentStatus(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(participantId)) {
-        newSet.delete(participantId);
-      } else {
-        newSet.add(participantId);
-      }
-      return newSet;
-    });
-  };
+    const currentMatch = useMemo(() => {
+        if (!currentParticipantId) return null;
+        return allMatches.find(m => m.giver.id === currentParticipantId);
+    }, [allMatches, currentParticipantId]);
 
-  const filteredParticipants = useMemo(() =>
-    exchangeData.p.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())),
-    [exchangeData.p, searchTerm]
-  );
-  
-  const getBaseUrl = () => {
-    const hash = window.location.hash.slice(1).split('?')[0];
-    return `${window.location.origin}${window.location.pathname}#${hash}`;
-  };
+    const handleReveal = () => {
+        setIsNameRevealed(true);
+        trackEvent('reveal_match');
+    };
 
-  const getShortUrl = async (longUrl: string): Promise<string> => {
-    if (shortUrlCache[longUrl]) {
-      return shortUrlCache[longUrl];
-    }
-    try {
-      const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
-      if (!response.ok) throw new Error('Network response was not ok');
-      const shortUrl = await response.text();
-      setShortUrlCache(prev => ({ ...prev, [longUrl]: shortUrl }));
-      return shortUrl;
-    } catch (error) {
-      console.error('Failed to shorten URL:', error);
-      return longUrl; // Fallback to long URL
-    }
-  };
+    const handleShuffle = () => {
+        // This is a placeholder for a more complex shuffle implementation
+        // For now, it reloads the generator page to start over
+        window.location.href = window.location.pathname;
+    };
 
-  const handleCopy = async (giverId: string) => {
-    const baseUrl = getBaseUrl();
-    const longUrl = `${baseUrl}?id=${giverId}`;
-    let urlToCopy = longUrl;
-    if (useShortUrls) {
-      setIsShortening(true);
-      urlToCopy = await getShortUrl(longUrl);
-      setIsShortening(false);
-    }
-    navigator.clipboard.writeText(urlToCopy).then(() => {
-      setCopiedId(giverId);
-      setTimeout(() => setCopiedId(null), 2000);
-    });
-  };
-
-  const handleDownloadMasterList = () => {
-    trackEvent('download_master_list');
-    generateMasterListPdf({
-      matches,
-      eventDetails: exchangeData.eventDetails,
-      exchangeDate: exchangeData.exchangeDate,
-      exchangeTime: exchangeData.exchangeTime,
-    });
-  };
-
-  const handleDownloadAllCards = () => {
-    trackEvent('download_all_cards');
-    generateIndividualCardsPdf({
-        matches,
-        eventDetails: exchangeData.eventDetails,
-        backgroundOptions: exchangeData.backgroundOptions,
-        bgId: exchangeData.bgId,
-        bgImg: exchangeData.customBackground,
-        txtColor: exchangeData.textColor,
-        outline: exchangeData.useTextOutline,
-        outColor: exchangeData.outlineColor,
-        outSize: exchangeData.outlineSize,
-        fontSize: exchangeData.fontSizeSetting,
-        font: exchangeData.fontTheme,
-        line: exchangeData.lineSpacing,
-        greet: exchangeData.greetingText,
-        intro: exchangeData.introText,
-        wish: exchangeData.wishlistLabelText,
-    });
-  };
-  
-  const OrganizerView: React.FC = () => (
-    <div className="space-y-8">
-      <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-8 rounded-2xl shadow-xl text-center">
-         <div className="w-16 h-16 mx-auto bg-white/20 rounded-full flex items-center justify-center border-2 border-white/30">
-            <Check className="w-8 h-8"/>
-        </div>
-        <h1 className="text-4xl md:text-5xl font-bold font-serif mt-4">You're the Organizer!</h1>
-        <p className="text-lg text-indigo-200 mt-2 max-w-2xl mx-auto">
-          Your matches are ready. Share the private links with each person so they can see who they're gifting to.
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <button onClick={() => setShowShareModal(true)} className="bg-white/90 hover:bg-white text-indigo-700 font-bold py-3 px-6 rounded-full transition-colors shadow-md transform hover:scale-105">
-            Bulk Share Options
-          </button>
-          <button onClick={handleShuffle} disabled={isShuffling} className="bg-white/20 hover:bg-white/30 border border-white/30 text-white font-bold py-3 px-6 rounded-full transition-colors backdrop-blur-sm transform hover:scale-105 disabled:opacity-50">
-            <div className="flex items-center gap-2">
-              <Shuffle size={20} className={isShuffling ? 'animate-spin' : ''} />
-              {isShuffling ? 'Shuffling...' : 'Shuffle Again'}
-            </div>
-          </button>
-        </div>
-      </div>
-
-      <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-3xl font-bold text-slate-800 font-serif">Organizer's Dashboard</h2>
-            <div className="flex items-center gap-2">
-                <label htmlFor="shorten-toggle" className="text-sm font-semibold text-slate-600">Shorten Links</label>
-                <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                    <input type="checkbox" id="shorten-toggle" checked={useShortUrls} onChange={() => setUseShortUrls(!useShortUrls)} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                    <label htmlFor="shorten-toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer"></label>
-                </div>
-            </div>
-        </div>
-        
-         <div className="relative mb-4">
-            <input 
-                type="search"
-                placeholder="Search for a participant..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-            />
-            <svg className="h-5 w-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-        </div>
-        
-         <p className="text-sm text-slate-500 mb-4 font-semibold">Managing links for {filteredParticipants.length} participant{filteredParticipants.length !== 1 && 's'}</p>
-
-        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-          {filteredParticipants.map(({ id, name }) => (
-            <div key={id} className="p-3 bg-slate-50 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <input type="checkbox" checked={sentStatus.has(id)} onChange={() => toggleSentStatus(id)} className="h-5 w-5 rounded border-slate-400 text-indigo-600 focus:ring-indigo-500 cursor-pointer"/>
-                <span className={`font-semibold text-slate-700 ${sentStatus.has(id) ? 'line-through text-slate-400' : ''}`}>{name}</span>
-              </div>
-              <div className="flex items-center gap-2 self-end sm:self-center">
-                <a href={`sms:?&body=Hey ${name}, here's your private Secret Santa link! ${encodeURIComponent(useShortUrls && shortUrlCache[`${getBaseUrl()}?id=${id}`] ? shortUrlCache[`${getBaseUrl()}?id=${id}`] : `${getBaseUrl()}?id=${id}`)}`} className="px-3 py-2 text-sm font-semibold rounded-md bg-slate-200 hover:bg-slate-300 text-slate-800 transition-colors flex items-center gap-2">
-                  <MessageCircle size={16} /> <span className="hidden sm:inline">SMS</span>
-                </a>
-                <button 
-                  onClick={() => handleCopy(id)}
-                  disabled={isShortening}
-                  className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors w-28 text-center flex items-center justify-center ${
-                    copiedId === id 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
-                  }`}
-                >
-                  {copiedId === id ? <Check size={16}/> : <Copy size={16} />}
-                  <span className="ml-2">{copiedId === id ? 'Copied!' : 'Copy'}</span>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-  
-  const ParticipantView: React.FC = () => {
-    if (!currentMatch) { /* ... error handling ... */ return null; }
+    const toggleSentStatus = (id: string) => {
+        setSentStatus(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
+    };
     
-    const { receiver } = currentMatch!;
-    const amazonSearchUrl = (query: string) => `https://www.amazon.com/s?k=${encodeURIComponent(query + ' gifts')}&tag=${affiliateTag}`;
+    const getShareableLink = (participantId: string): string => {
+        const baseUrl = window.location.href.split('#')[0];
+        const hash = window.location.hash;
+        return `${baseUrl}${hash}?id=${participantId}`;
+    };
+
+    const handleCopy = async (participantId: string) => {
+        let linkToCopy = getShareableLink(participantId);
+        if (useShortLinks) {
+            if (shortLinks[participantId]) {
+                linkToCopy = shortLinks[participantId];
+            } else {
+                // This part is simplified; a real implementation would show a loading state
+                try {
+                    const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(linkToCopy)}`);
+                    const shortUrl = await response.text();
+                    if (response.ok) {
+                        setShortLinks(prev => ({...prev, [participantId]: shortUrl}));
+                        linkToCopy = shortUrl;
+                    }
+                } catch (e) {
+                    console.error("Failed to shorten URL", e);
+                }
+            }
+        }
+        
+        navigator.clipboard.writeText(linkToCopy).then(() => {
+            setCopiedId(participantId);
+            setTimeout(() => setCopiedId(null), 2000);
+        });
+    };
     
-    const renderKeywords = (keywords: string, title: string) => {
-        const keywordList = keywords.split(',').map(k => k.trim()).filter(Boolean);
-        if (keywordList.length === 0) return null;
+    const handleDownloadMasterList = () => {
+        trackEvent('download_master_list');
+        generateMasterListPdf({ matches: allMatches, eventDetails: data.eventDetails, exchangeDate: data.exchangeDate, exchangeTime: data.exchangeTime });
+    };
+
+    const handleDownloadAllCards = () => {
+        trackEvent('download_all_cards');
+        generateIndividualCardsPdf({ matches: allMatches, ...cardProps });
+    };
+
+
+    const cardProps = {
+        eventDetails: data.eventDetails,
+        backgroundOptions: data.backgroundOptions,
+        bgId: data.bgId,
+        bgImg: data.customBackground,
+        txtColor: data.textColor,
+        outline: data.useTextOutline,
+        outColor: data.outlineColor,
+        outSize: data.outlineSize,
+        fontSize: data.fontSizeSetting,
+        font: data.fontTheme,
+        line: data.lineSpacing,
+        greet: data.greetingText,
+        intro: data.introText,
+        wish: data.wishlistLabelText,
+    };
+    
+    const handleStartNew = (e: React.MouseEvent) => {
+        e.preventDefault();
+        window.location.href = window.location.pathname;
+    };
+
+    if (currentParticipantId && !currentMatch) {
         return (
-            <div>
-                <h4 className="font-bold text-slate-500 text-sm uppercase tracking-wider">{title}</h4>
-                <div className="flex flex-wrap gap-2 mt-2">
-                    {keywordList.map((keyword, i) => (
-                        <a href={amazonSearchUrl(keyword)} key={i} target="_blank" rel="noopener noreferrer" className="bg-indigo-100 text-indigo-800 text-sm font-semibold px-3 py-1 rounded-full hover:bg-indigo-200 hover:text-indigo-900 transition-colors flex items-center gap-1">
-                            {keyword} <ExternalLink size={12}/>
-                        </a>
-                    ))}
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
+                    <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Oops!</h1>
+                    <p className="text-slate-700 text-lg">We couldn't find your match. This link might be incorrect or the game may have been updated.</p>
+                    <a href="/" onClick={handleStartNew} className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
+                        Start a New Game
+                    </a>
                 </div>
             </div>
         );
-    };
+    }
+    
+    const splitAndFilter = (text: string) => text.split(',').map(s => s.trim()).filter(Boolean);
+
 
     return (
-      <div className="space-y-8">
-        <div className="text-center">
-            <PrintableCard
-                match={currentMatch!}
-                eventDetails={exchangeData.eventDetails}
-                isNameRevealed={isNameRevealed}
-                onReveal={handleReveal}
-                backgroundOptions={exchangeData.backgroundOptions}
-                bgId={exchangeData.bgId}
-                bgImg={exchangeData.customBackground}
-                txtColor={exchangeData.textColor}
-                outline={exchangeData.useTextOutline}
-                outColor={exchangeData.outlineColor}
-                outSize={exchangeData.outlineSize}
-                fontSize={exchangeData.fontSizeSetting}
-                font={exchangeData.fontTheme}
-                line={exchangeData.lineSpacing}
-                greet={exchangeData.greetingText}
-                intro={exchangeData.introText}
-                wish={exchangeData.wishlistLabelText}
-            />
-        </div>
-        
-        {isNameRevealed && (
-            <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200 animate-fade-in">
-                 <h2 className="text-3xl font-bold text-slate-800 font-serif mb-6 text-center">
-                    Gift Inspiration for <span className="text-red-600">{receiver.name}</span>
-                </h2>
-                <div className="space-y-6">
-                    {renderKeywords(receiver.interests, "Interests & Hobbies")}
-                    {renderKeywords(receiver.likes, "Likes")}
-
-                    {receiver.dislikes && (
-                        <div>
-                            <h4 className="font-bold text-slate-500 text-sm uppercase tracking-wider">Dislikes & No-Go's</h4>
-                            <p className="text-slate-700 mt-2 p-3 bg-slate-50 rounded-md border text-sm">{receiver.dislikes}</p>
+        <div className="bg-slate-50 min-h-screen">
+            <Header />
+            <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+                {currentMatch ? (
+                    // PARTICIPANT VIEW
+                    <div className="space-y-12">
+                         <div className="text-center">
+                            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Your Secret Santa Match!</h1>
+                             <p className="text-lg text-slate-600 mt-2 max-w-2xl mx-auto">
+                                {isNameRevealed ? "Here's who you're getting a gift for. Shhh, it's a secret!" : "Scratch the card below to reveal your person!"}
+                            </p>
                         </div>
-                    )}
-                    
-                    {receiver.links && (
-                        <div>
-                            <h4 className="font-bold text-slate-500 text-sm uppercase tracking-wider">Specific Links</h4>
-                            <div className="mt-2 space-y-2 text-sm">
-                                {receiver.links.split('\n').map((link, i) => link.trim() && (
-                                    <a href={link.trim()} key={i} target="_blank" rel="noopener noreferrer" className="block p-3 bg-slate-50 rounded-md border hover:bg-slate-100 truncate text-indigo-600 font-semibold">
-                                        {link.trim()}
-                                    </a>
+
+                        <div className="max-w-sm mx-auto">
+                           <PrintableCard
+                                match={currentMatch}
+                                isNameRevealed={isNameRevealed}
+                                onReveal={handleReveal}
+                                {...cardProps}
+                            />
+                        </div>
+                        
+                        {isNameRevealed && (
+                             <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+                                <h2 className="text-3xl font-bold text-slate-800 font-serif text-center mb-8">
+                                    Gift Inspiration for <span className="text-red-600">{currentMatch.receiver.name}</span>
+                                </h2>
+                                <div className="space-y-6">
+                                    {currentMatch.receiver.interests && (
+                                        <div>
+                                            <h3 className="font-bold text-slate-600 mb-2">Interests & Hobbies</h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                {splitAndFilter(currentMatch.receiver.interests).map((interest, i) => (
+                                                    <a key={i} href={`https://www.amazon.com/s?k=${encodeURIComponent(interest + ' gifts')}&tag=${affiliateTag}`} target="_blank" rel="noopener noreferrer" className="bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full hover:bg-blue-200 transition-colors">
+                                                        {interest}
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {currentMatch.receiver.likes && (
+                                         <div>
+                                            <h3 className="font-bold text-slate-600 mb-2">Likes</h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                {splitAndFilter(currentMatch.receiver.likes).map((like, i) => (
+                                                     <a key={i} href={`https://www.amazon.com/s?k=${encodeURIComponent(like)}&tag=${affiliateTag}`} target="_blank" rel="noopener noreferrer" className="bg-emerald-100 text-emerald-800 text-sm font-semibold px-3 py-1 rounded-full hover:bg-emerald-200 transition-colors">
+                                                        {like}
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                     {currentMatch.receiver.dislikes && (
+                                        <div>
+                                            <h3 className="font-bold text-slate-600 mb-2">Dislikes & No-Go's</h3>
+                                            <p className="text-slate-700 bg-slate-50 p-3 rounded-md border text-sm">{currentMatch.receiver.dislikes}</p>
+                                        </div>
+                                    )}
+                                    {currentMatch.receiver.links && (
+                                        <div>
+                                            <h3 className="font-bold text-slate-600 mb-2">Specific Links</h3>
+                                            <div className="space-y-2 text-sm">
+                                                {currentMatch.receiver.links.split('\n').map((link, i) => (
+                                                    link.trim() && <a key={i} href={link} target="_blank" rel="noopener noreferrer" className="block text-indigo-600 hover:underline truncate">{link}</a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                 <p className="text-center text-xs text-slate-400 mt-8">
+                                    As an Amazon Associate, we earn from qualifying purchases. When you click on an interest or product link, we may receive a small commission at no extra cost to you. This helps keep our tool 100% free. Thank you for your support!
+                                </p>
+                            </div>
+                        )}
+                        
+                        <div className="text-center">
+                            <a href="/" onClick={handleStartNew} className="text-indigo-600 hover:text-indigo-800 font-semibold">
+                                Want to start your own game? Click here!
+                            </a>
+                        </div>
+
+                    </div>
+                ) : (
+                    // ORGANIZER VIEW
+                    <div className="space-y-8">
+                        <div className="p-8 bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-2xl shadow-xl text-center">
+                            <div className="w-16 h-16 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
+                               <Check size={40} />
+                            </div>
+                            <h1 className="text-4xl font-bold font-serif">You're the Organizer!</h1>
+                            <p className="mt-2 max-w-2xl mx-auto opacity-90">Your matches are ready. You can now share private links with each person, or download/print the cards for your party.</p>
+                            <div className="mt-8 flex justify-center gap-4">
+                                <button onClick={() => setShowShareModal(true)} className="bg-white text-indigo-700 font-bold py-3 px-6 rounded-full shadow-md transform hover:scale-105 transition-all">
+                                    Sharing & Downloads
+                                </button>
+                                <button onClick={handleShuffle} className="bg-white/20 hover:bg-white/30 font-bold py-3 px-6 rounded-full transition-all flex items-center gap-2">
+                                    <Shuffle size={18} /> Shuffle Again
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+                             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                                <h2 className="text-2xl font-bold text-slate-800 font-serif">Organizer's Dashboard</h2>
+                                <div className="flex items-center gap-3">
+                                    <label htmlFor="shorten-toggle" className="text-sm font-semibold text-slate-600">Shorten Links</label>
+                                    <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                        <input type="checkbox" id="shorten-toggle" checked={useShortLinks} onChange={() => setUseShortLinks(!useShortLinks)} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                        <label htmlFor="shorten-toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="relative mb-4">
+                                <input
+                                    type="search"
+                                    placeholder="Search for a participant..."
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    className="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <svg className="h-5 w-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </div>
+
+                            <p className="text-sm text-slate-500 mb-4">Managing links for {participantGivers.length} participants</p>
+
+                            <div className="space-y-3">
+                                {filteredParticipants.map(participant => (
+                                    <div key={participant.id} className="flex flex-wrap items-center gap-3 bg-slate-50 p-3 rounded-lg border">
+                                        <input type="checkbox" checked={sentStatus.has(participant.id)} onChange={() => toggleSentStatus(participant.id)} className="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"/>
+                                        <span className={`font-semibold flex-grow ${sentStatus.has(participant.id) ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{participant.name}</span>
+                                        <div className="flex gap-2 ml-auto">
+                                            <a href={`sms:?&body=Hey ${participant.name}, here is your private Secret Santa link! ${encodeURIComponent(getShareableLink(participant.id))}`} className="flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold py-2 px-3 rounded-md transition-colors">
+                                                <MessageSquare size={14} /> SMS
+                                            </a>
+                                            <button onClick={() => handleCopy(participant.id)} className={`flex items-center gap-1.5 w-28 justify-center text-sm font-semibold py-2 px-3 rounded-md transition-colors ${copiedId === participant.id ? 'bg-emerald-500 text-white' : 'bg-slate-700 hover:bg-slate-800 text-white'}`}>
+                                                {copiedId === participant.id ? <Check size={16}/> : <Copy size={14}/>}
+                                                {copiedId === participant.id ? 'Copied!' : 'Copy'}
+                                            </button>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
-                    )}
-                </div>
-                 <p className="text-xs text-slate-400 mt-6 text-center italic">
-                    As an Amazon Associate, we earn from qualifying purchases. When you click on an interest or product link, we may receive a small commission at no extra cost to you. This helps keep our tool 100% free. Thank you for your support!
-                </p>
-            </div>
-        )}
-      </div>
-    );
-  };
 
-  return (
-    <>
-      <Header />
-      <main className="bg-slate-50 py-12 min-h-screen">
-        <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-          {currentParticipantId ? <ParticipantView /> : <OrganizerView />}
+                        <div className="text-center">
+                            <a href="/" onClick={handleStartNew} className="text-indigo-600 hover:text-indigo-800 font-semibold">
+                                Start a New Game
+                            </a>
+                        </div>
+                    </div>
+                )}
+            </main>
+            <Footer />
+            <BackToTopButton />
+
+            {showShareModal && (
+                <ShareLinksModal
+                    matches={allMatches}
+                    onClose={() => setShowShareModal(false)}
+                    onDownloadMasterList={handleDownloadMasterList}
+                    onDownloadAllCards={handleDownloadAllCards}
+                />
+            )}
+            <style>{`
+                .toggle-checkbox:checked { right: 0; border-color: #4f46e5; }
+                .toggle-checkbox:checked + .toggle-label { background-color: #4f46e5; }
+            `}</style>
         </div>
-      </main>
-      <Footer />
-      {showShareModal && (
-        <ShareLinksModal
-          matches={matches}
-          onClose={() => setShowShareModal(false)}
-          baseUrl={getBaseUrl()}
-          useShortUrls={useShortUrls}
-          onShortenUrl={getShortUrl}
-          onDownloadMasterList={handleDownloadMasterList}
-          onDownloadAllCards={handleDownloadAllCards}
-        />
-      )}
-      <style>{`
-          .toggle-checkbox:checked { right: 0; border-color: #4f46e5; }
-          .toggle-checkbox:checked + .toggle-label { background-color: #4f46e5; }
-          @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-          .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
-      `}</style>
-    </>
-  );
+    );
 };
 
 export default ResultsPage;
