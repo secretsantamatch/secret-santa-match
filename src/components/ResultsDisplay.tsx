@@ -17,7 +17,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ matches }) => {
             {/* Match Rows */}
             <div className="divide-y divide-slate-200">
                 {matches.map(({ giver, receiver }) => {
-                    const hasDetails = receiver.interests || receiver.likesDislikes || receiver.links || receiver.budget;
+                    const hasDetails = receiver.interests || receiver.likes || receiver.dislikes || receiver.links || receiver.budget;
 
                     return (
                         <div key={giver.id} className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2 py-4 items-start">
@@ -40,7 +40,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ matches }) => {
                                     <>
                                         {receiver.budget && <p><strong>Budget:</strong> ${receiver.budget}</p>}
                                         {receiver.interests && <p><strong>Interests:</strong> {receiver.interests}</p>}
-                                        {receiver.likesDislikes && <p><strong>Notes:</strong> {receiver.likesDislikes}</p>}
+                                        {receiver.likes && <p><strong>Likes:</strong> {receiver.likes}</p>}
+                                        {receiver.dislikes && <p><strong>Dislikes:</strong> {receiver.dislikes}</p>}
                                         {receiver.links && <p className="truncate"><strong>Links:</strong> {receiver.links.split('\n')[0]}</p>}
                                     </>
                                 ) : (
