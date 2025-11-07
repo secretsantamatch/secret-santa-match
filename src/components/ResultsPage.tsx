@@ -1,14 +1,18 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
 import ShareLinksModal from './ShareLinksModal';
-import { generateMasterListPdf, generatePartyPackPdf } from '../services/pdfService';
+import { generateMatches } from '../services/matchService';
 import { trackEvent } from '../services/analyticsService';
-import { getGiftPersona, GiftPersona } from '../services/personaService';
-import { Gift, Link as LinkIcon, PartyPopper, Shuffle, ShoppingCart, Ban, DollarSign, Heart } from 'lucide-react';
-import Footer from './Footer';
+import { getGiftPersona } from '../services/personaService';
+import type { GiftPersona } from '../services/personaService';
+// FIX: Import missing PDF generation functions.
+import { generateMasterListPdf, generateAllCardsPdf, generatePartyPackPdf } from '../services/pdfService';
+// FIX: Import missing icons and components.
+import { Heart, ShoppingCart, ThumbsDown, Link as LinkIcon, Wallet, Gift, Users, Check } from 'lucide-react';
+import ResultsDisplay from './ResultsDisplay';
 
-// TODO: Replace this placeholder with your actual Amazon Associates Tracking ID.
+// THIS IS YOUR AMAZON ASSOCIATES ID. IT WILL NOT BE REMOVED AGAIN.
 const affiliateTag = 'secretsant09e-20';
 
 interface ResultsPageProps {
@@ -17,140 +21,84 @@ interface ResultsPageProps {
 }
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
-    const [matches, setMatches] = useState<Match[]>([]);
-    const [confirmed, setConfirmed] = useState<boolean>(false);
-    const [showShareModal, setShowShareModal] = useState(false);
-    // FIX: Add state to track if the participant's match has been revealed.
     const [isNameRevealed, setIsNameRevealed] = useState(false);
-    
-    // This function will be memoized to prevent re-renders of child components
-    const handleShuffle = useCallback(() => {
-        // We will need to implement the match generation logic here again or import it
-        // For now, let's assume `generateMatches` is available.
-        // This is a placeholder for the actual re-matching logic from `matchService`
-        // In a real implementation, you'd call the service and update state.
-        alert("Matches have been shuffled! (This is a placeholder - full logic to be implemented)");
-        // To properly do this, we'd need access to the original participants, exclusions, etc.
-        // which are all in the `data` prop.
-        trackEvent('shuffle_again');
-    }, [data]);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [confirmedParticipant, setConfirmedParticipant] = useState(false);
 
-    useEffect(() => {
-        const participantMap = new Map<string, Participant>(data.p.map(p => [p.id, p]));
-        const resolvedMatches = data.matches.map(m => ({
+    const { matches, currentMatch } = useMemo(() => {
+        const participantMap = new Map(data.p.map(p => [p.id, p]));
+        const reconstructedMatches: Match[] = data.matches.map(m => ({
             giver: participantMap.get(m.g)!,
-            receiver: participantMap.get(m.r)!
+            receiver: participantMap.get(m.r)!,
         })).filter(m => m.giver && m.receiver);
-        setMatches(resolvedMatches);
-    }, [data]);
 
-    const currentMatch = useMemo(() => {
-        if (!currentParticipantId) return null;
-        return matches.find(m => m.giver.id === currentParticipantId);
-    }, [matches, currentParticipantId]);
+        const current = currentParticipantId
+            ? reconstructedMatches.find(m => m.giver.id === currentParticipantId) || null
+            : null;
+
+        return { matches: reconstructedMatches, currentMatch: current };
+    }, [data, currentParticipantId]);
     
-    const baseShareUrl = `${window.location.origin}${window.location.pathname}#${window.location.hash.split('?')[0].split('?')[0]}`;
-    
-    const handleDownloadMasterList = () => {
-        trackEvent('download_master_list');
-        generateMasterListPdf(matches, data.eventDetails);
-    };
+    const giftPersona = useMemo(() => {
+        if (currentMatch?.receiver) {
+            return getGiftPersona(currentMatch.receiver);
+        }
+        return null;
+    }, [currentMatch]);
 
-    const handleDownloadAllCards = () => {
-        trackEvent('download_all_cards');
-        // This would require a more complex PDF generation logic to render all cards
-        alert("This feature is being refined. For now, please print cards individually if needed.");
-    };
-
-    const handleDownloadPartyPack = () => {
-        trackEvent('download_party_pack');
-        if(matches.length > 0) {
-            generatePartyPackPdf(matches);
+    const handleShuffle = () => {
+        trackEvent('shuffle_again');
+        const result = generateMatches(data.p, data.exclusions, data.assignments);
+        if (result.matches) {
+            const newExchangeData = { ...data, matches: result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })) };
+            
+            // This is a simplified re-encoding. A full implementation would use the urlService.
+            const pako = (window as any).pako;
+            const encoded = btoa(String.fromCharCode.apply(null, new Uint8Array(pako.deflate(JSON.stringify(newExchangeData)))));
+            window.location.hash = encoded;
+        } else {
+            alert(`Shuffle failed: ${result.error}`);
         }
     };
     
-    const receiverPersona = currentMatch ? getGiftPersona(currentMatch.receiver) : null;
-
-    if (matches.length === 0) {
-        return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><p>Loading matches...</p></div>;
-    }
-
-    // Organizer View
-    if (!currentParticipantId) {
-        return (
-            <div className="bg-slate-50 min-h-screen">
-                <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-2xl">
-                    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-2xl shadow-2xl p-8 md:p-12 text-center">
-                        <div className="w-20 h-20 bg-white/20 rounded-full mx-auto flex items-center justify-center ring-4 ring-white/30">
-                           <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <h1 className="text-4xl md:text-5xl font-bold font-serif mt-6">You're the Organizer!</h1>
-                        <p className="mt-4 text-indigo-100 max-w-xl mx-auto">Your matches are ready. You can now share private links with each person, or download/print the cards for your party.</p>
-                        <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
-                            <button onClick={() => setShowShareModal(true)} className="w-full sm:w-auto bg-white hover:bg-indigo-100 text-indigo-700 font-bold text-lg px-8 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 justify-center">
-                                <LinkIcon size={24} /> Sharing &amp; Downloads
-                            </button>
-                             <button onClick={handleShuffle} className="w-full sm:w-auto bg-white/20 hover:bg-white/30 text-white font-bold text-lg px-8 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 justify-center">
-                                <Shuffle size={24} /> Shuffle Again
-                            </button>
-                        </div>
+    if (currentParticipantId) {
+        if (!currentMatch) {
+            return <div className="text-center p-8">Error: Could not find your match. Please check the link.</div>;
+        }
+        
+        if (!confirmedParticipant) {
+             return (
+                <div className="min-h-screen bg-slate-100 flex items-center justify-center py-12 px-4">
+                    <div className="max-w-md w-full text-center p-8 bg-white rounded-2xl shadow-lg border">
+                        <Heart className="mx-auto h-16 w-16 text-red-500 mb-4" />
+                        <h1 className="text-3xl font-bold font-serif text-slate-800">Hello there!</h1>
+                        <p className="text-lg text-slate-600 mt-4">Are you <span className="font-bold text-red-600">{currentMatch.giver.name}</span>?</p>
+                        <button 
+                            onClick={() => setConfirmedParticipant(true)}
+                            className="mt-8 w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xl py-4 rounded-full shadow-lg transform hover:scale-105 transition-all"
+                        >
+                            Yes, See My Match!
+                        </button>
+                         <p className="text-xs text-slate-400 mt-4">Not you? Please contact your event organizer.</p>
                     </div>
-                </main>
-                {showShareModal && (
-                    <ShareLinksModal
-                        matches={matches}
-                        onClose={() => setShowShareModal(false)}
-                        baseShareUrl={baseShareUrl}
-                        onDownloadMasterList={handleDownloadMasterList}
-                        onDownloadAllCards={handleDownloadAllCards}
-                        onDownloadPartyPack={handleDownloadPartyPack}
-                        // FIX: Pass missing eventDetails and backgroundOptions props.
-                        eventDetails={data.eventDetails}
-                        backgroundOptions={data.backgroundOptions}
-                    />
-                )}
-                <Footer />
-            </div>
-        );
-    }
-    
-    // Participant View
-    if (!currentMatch) {
-        return <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 text-center">
-            <h1 className="text-2xl font-bold text-red-600">Link Error</h1>
-            <p className="text-slate-600 mt-2">Could not find your specific match. This link might be incorrect or outdated. Please contact your event organizer.</p>
-        </div>
-    }
-    
-    if (!confirmed) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-                 <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-lg border border-slate-200">
-                    <div className="w-16 h-16 bg-slate-100 rounded-full mx-auto flex items-center justify-center ring-4 ring-slate-200 mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-9 w-9 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    </div>
-                    <h1 className="text-3xl font-bold text-slate-800 font-serif">Hello, are you <span className="text-red-600">{currentMatch.giver.name}</span>?</h1>
-                    <p className="text-slate-600 mt-3">For privacy, please confirm your name before we reveal your Secret Santa match.</p>
-                    <button onClick={() => setConfirmed(true)} className="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all">
-                        Yes, See My Match!
-                    </button>
-                    <p className="text-xs text-slate-400 mt-6">Not you? Please contact your event organizer to get the correct link.</p>
                 </div>
-            </div>
-        )
-    }
+            );
+        }
 
-    return (
-        <div className="bg-slate-50 min-h-screen py-8 md:py-12">
-            <main className="container mx-auto p-4 max-w-xl">
-                 {/* FIX: Update onClick to set isNameRevealed state. */}
-                 <div className="relative" onClick={() => { if (!isNameRevealed) { setIsNameRevealed(true); trackEvent('reveal_match'); } }}>
-                    {/* FIX: Pass props explicitly instead of spreading `...data`. Removed invalid `onReveal` prop. */}
+        return (
+            <div className="min-h-screen bg-slate-100 py-12 px-4">
+                <div className="max-w-md mx-auto space-y-8">
                     <PrintableCard
                         match={currentMatch}
-                        eventDetails={data.eventDetails}
                         isNameRevealed={isNameRevealed}
-                        backgroundOptions={data.backgroundOptions}
+                        // FIX: Add onReveal prop to handle click-to-reveal functionality.
+                        onReveal={() => {
+                          if (!isNameRevealed) {
+                            setIsNameRevealed(true);
+                            trackEvent('reveal_match');
+                          }
+                        }}
+                        {...data}
                         bgId={data.bgId}
                         bgImg={data.customBackground}
                         txtColor={data.textColor}
@@ -164,88 +112,138 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                         intro={data.introText}
                         wish={data.wishlistLabelText}
                     />
-                </div>
-                
-                {/* FIX: Use `isNameRevealed` state to conditionally render content. */}
-                {isNameRevealed && (
-                    <div className="mt-8 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200 animate-fade-in">
-                        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 font-serif mb-6 text-center">
-                            {currentMatch.giver.name}'s Gift Inspiration for <span className="text-red-600">{currentMatch.receiver.name}</span>
-                        </h2>
 
-                        {receiverPersona && (
-                            <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200 mb-6">
-                                <h3 className="font-bold text-indigo-800 flex items-center gap-2"><Gift size={20} /> Gifter's Profile: {receiverPersona.name}</h3>
-                                <p className="text-sm text-indigo-700 mt-1">{receiverPersona.description}</p>
-                            </div>
-                        )}
-                        
-                        <div className="space-y-6">
-                            {/* Interests, Hobbies & Likes */}
-                            <div>
-                                <h3 className="font-semibold text-slate-700 flex items-center gap-2"><Heart size={18} className="text-rose-500" />Interests, Hobbies &amp; Likes</h3>
-                                <p className="text-sm text-slate-500 mb-3">Click a tag for instant gift ideas on Amazon!</p>
-                                <div className="flex flex-wrap gap-3">
-                                    {[...(currentMatch.receiver.interests || '').split(','), ...(currentMatch.receiver.likes || '').split(',')].map(item => item.trim()).filter(Boolean).map((idea, index) => (
-                                         <a key={index} href={`https://www.amazon.com/s?k=${encodeURIComponent(idea + ' gifts')}&tag=${affiliateTag}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-5 rounded-lg transition-colors text-base shadow-sm border border-slate-200 transform hover:scale-105">
-                                            <ShoppingCart size={16} /> {idea}
-                                         </a>
+                    {isNameRevealed && (
+                        <div className="space-y-8">
+                            {giftPersona && (
+                                <div className="p-6 bg-white rounded-2xl shadow-lg border">
+                                    <h2 className="text-2xl font-bold text-center text-slate-800 font-serif mb-4">
+                                        {currentMatch.giver.name}'s Gift Inspiration for <span className="text-red-600">{currentMatch.receiver.name}</span>
+                                    </h2>
+                                    
+                                    <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-center">
+                                        <h3 className="font-semibold text-indigo-800">Your Target's Persona:</h3>
+                                        <p className="text-2xl font-bold text-indigo-600 font-serif my-1">{giftPersona.name}</p>
+                                        <p className="text-sm text-indigo-700">{giftPersona.description}</p>
+                                    </div>
+
+                                    {Object.entries(giftPersona.categories).map(([category, keywords]) => (
+                                        <div key={category} className="mt-4">
+                                            <h4 className="font-bold text-slate-600">{category}:</h4>
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {keywords.map(keyword => (
+                                                    <a
+                                                        key={keyword}
+                                                        href={`https://www.amazon.com/s?k=${encodeURIComponent(keyword)}&tag=${affiliateTag}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 px-4 rounded-full text-sm transition-colors"
+                                                    >
+                                                        <ShoppingCart size={14} /> {keyword}
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
                                     ))}
-                                </div>
-                            </div>
-
-                            {/* Dislikes */}
-                            {currentMatch.receiver.dislikes && (
-                                <div>
-                                    <h3 className="font-semibold text-slate-700 flex items-center gap-2"><Ban size={18} className="text-red-500" />Dislikes &amp; No-Go's</h3>
-                                    <div className="p-4 bg-slate-50 rounded-lg text-slate-600 text-base">{currentMatch.receiver.dislikes}</div>
                                 </div>
                             )}
 
-                             {/* Specific Links */}
-                            {currentMatch.receiver.links && (
-                                <div>
-                                    <h3 className="font-semibold text-slate-700 flex items-center gap-2"><LinkIcon size={18} className="text-blue-500" />Specific Links</h3>
-                                     <div className="space-y-2">
-                                        {currentMatch.receiver.links.split('\n').filter(link => link.trim() !== '').map((link, index) => (
-                                            <a href={link} key={index} target="_blank" rel="noopener noreferrer" className="block p-3 bg-slate-50 hover:bg-slate-100 rounded-lg text-blue-600 font-semibold truncate transition-colors text-base">
-                                                {link}
-                                            </a>
-                                        ))}
+                             <div className="p-6 bg-white rounded-2xl shadow-lg border">
+                                <h3 className="text-xl font-bold text-center text-slate-800 font-serif mb-4">Detailed Wishlist</h3>
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-slate-50 rounded-xl border">
+                                        <h4 className="font-semibold text-slate-700 flex items-center gap-2"><Gift size={18} className="text-green-600" /> Interests, Hobbies & Likes</h4>
+                                        <p className="text-sm text-slate-500 mb-2">Click a tag for instant gift ideas on Amazon!</p>
+                                        <div className="flex flex-wrap gap-3">
+                                            {[...(currentMatch.receiver.interests || '').split(','), ...(currentMatch.receiver.likes || '').split(',')].map(tag => tag.trim()).filter(Boolean).map(tag => (
+                                                 <a
+                                                    key={tag}
+                                                    href={`https://www.amazon.com/s?k=${encodeURIComponent(tag + ' gifts')}&tag=${affiliateTag}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex-grow flex items-center justify-center gap-2 bg-white hover:bg-slate-100 border-2 border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-lg text-base transition-colors shadow-sm"
+                                                >
+                                                    <ShoppingCart size={16} /> {tag}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                     {currentMatch.receiver.dislikes && (
+                                        <div className="p-4 bg-slate-50 rounded-xl border">
+                                            <h4 className="font-semibold text-slate-700 flex items-center gap-2"><ThumbsDown size={18} className="text-red-600" /> Dislikes & No-Go's</h4>
+                                            <p className="text-slate-600 mt-1">{currentMatch.receiver.dislikes}</p>
+                                        </div>
+                                    )}
+
+                                    {currentMatch.receiver.links && (
+                                        <div className="p-4 bg-slate-50 rounded-xl border">
+                                            <h4 className="font-semibold text-slate-700 flex items-center gap-2"><LinkIcon size={18} className="text-blue-600" /> Specific Links</h4>
+                                            <div className="text-blue-600 hover:text-blue-800 underline mt-1 break-words">
+                                                {currentMatch.receiver.links.split('\n').map((link, i) => <a key={i} href={link} target="_blank" rel="noopener noreferrer" className="block">{link}</a>)}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-xs text-slate-400 text-center mt-4">As an Amazon Associate, we earn from qualifying purchases. When you click on an interest or product link, we may receive a small commission at no extra cost to you. This helps keep our tool 100% free. Thank you for your support!</p>
+                             </div>
+
+                            {currentMatch.receiver.budget && (
+                                <div className="p-6 bg-white rounded-2xl shadow-lg border">
+                                    <h3 className="text-xl font-bold text-center text-slate-800 font-serif mb-4 flex items-center justify-center gap-2"><Wallet size={20} /> Interactive Budget Assistant</h3>
+                                    <div className="flex flex-wrap gap-3 justify-center">
+                                        <a href={`https://www.amazon.com/s?k=gifts&rh=p_36%3A-2500&tag=${affiliateTag}`} target="_blank" rel="noopener noreferrer" className="flex-grow flex items-center justify-center gap-2 bg-white hover:bg-slate-100 border-2 border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-lg text-base transition-colors shadow-sm">Find Gifts Under ${currentMatch.receiver.budget}</a>
+                                        <a href={`https://www.amazon.com/s?k=funny+gifts&rh=p_36%3A-2000&tag=${affiliateTag}`} target="_blank" rel="noopener noreferrer" className="flex-grow flex items-center justify-center gap-2 bg-white hover:bg-slate-100 border-2 border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-lg text-base transition-colors shadow-sm">Find *Funny* Gifts Under $20</a>
                                     </div>
                                 </div>
                             )}
 
-                             {/* Budget */}
-                            <div className="pt-6 border-t">
-                                <h3 className="font-semibold text-slate-700 flex items-center gap-2"><DollarSign size={18} className="text-green-500" />Budget Assistant</h3>
-                                 <p className="text-sm text-slate-500 mb-3">Find a great gift within your budget.</p>
-                                <div className="flex flex-wrap gap-3">
-                                     <a href={`https://www.amazon.com/s?k=${encodeURIComponent('unique gifts')}&tag=${affiliateTag}&bbn=7141123011&rh=p_36%3A-2500`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-5 rounded-lg transition-colors text-base shadow-sm border border-slate-200 transform hover:scale-105">
-                                        Find Gifts Under $25
-                                     </a>
-                                     <a href={`https://www.amazon.com/s?k=${encodeURIComponent('funny gifts')}&tag=${affiliateTag}&bbn=7141123011&rh=p_36%3A-2000`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-5 rounded-lg transition-colors text-base shadow-sm border border-slate-200 transform hover:scale-105">
-                                        Find Funny Gifts Under $20
-                                     </a>
-                                </div>
-                            </div>
                         </div>
-                        <p className="text-xs text-slate-400 text-center mt-8">
-                            As an Amazon Associate, we earn from qualifying purchases. When you click on an interest or product link, we may receive a small commission at no extra cost to you. This helps keep our tool 100% free. Thank you for your support!
-                        </p>
+                    )}
+                    
+                    <div className="text-center mt-12">
+                        <a href="/generator.html" className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors">Organize your own Secret Santa →</a>
                     </div>
-                )}
-                 <div className="text-center mt-12">
-                    <a href="/generator.html" className="font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
-                        Organize your own Secret Santa →
-                    </a>
+                </div>
+            </div>
+        );
+    }
+    
+     // Organizer View
+    return (
+        <div className="min-h-screen bg-slate-50 flex flex-col">
+            <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+                 <div className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white p-8 rounded-2xl shadow-xl text-center">
+                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                       <Check size={32} />
+                    </div>
+                    <h1 className="text-4xl font-bold font-serif">You're the Organizer!</h1>
+                    <p className="mt-2 text-indigo-200 max-w-2xl mx-auto">Your matches are ready. You can now share private links with each person, or download/print the cards for your party.</p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-4">
+                        <button onClick={() => setShowShareModal(true)} className="bg-white hover:bg-slate-100 text-indigo-700 font-bold py-3 px-6 rounded-full shadow-md transition-transform transform hover:scale-105">
+                           Sharing & Downloads
+                        </button>
+                        <button onClick={handleShuffle} className="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-6 rounded-full transition-transform transform hover:scale-105 flex items-center gap-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm12 14a1 1 0 01-1 1v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 01-1 1z" clipRule="evenodd" /></svg>
+                            Shuffle Again
+                        </button>
+                    </div>
+                </div>
+
+                <div className="mt-8">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3"><Users size={24}/> Master List</h2>
+                    <ResultsDisplay matches={matches} />
                 </div>
             </main>
-            <Footer />
-            <style>{`
-                @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-                .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
-            `}</style>
+             {showShareModal && (
+                <ShareLinksModal
+                    matches={matches}
+                    onClose={() => setShowShareModal(false)}
+                    onDownloadMasterList={() => generateMasterListPdf(matches, data)}
+                    onDownloadAllCards={() => generateAllCardsPdf(matches, data)}
+                    onDownloadPartyPack={() => generatePartyPackPdf(matches.map(m => m.giver.interests || m.giver.likes || ''))}
+                />
+            )}
         </div>
     );
 };
