@@ -241,7 +241,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                     onClose={() => setShowShareModal(false)}
                     onDownloadMasterList={() => generateMasterListPdf(matches, data)}
                     onDownloadAllCards={() => generateAllCardsPdf(matches, data)}
-                    onDownloadPartyPack={() => generatePartyPackPdf(matches.map(m => m.giver.interests || m.giver.likes || ''))}
+                    // FIX: The generatePartyPackPdf function expects the full ExchangeData object, not an array of strings.
+                    // Pass the complete 'data' object to ensure the function receives all necessary information.
+                    onDownloadPartyPack={() => generatePartyPackPdf(data)}
                 />
             )}
         </div>
