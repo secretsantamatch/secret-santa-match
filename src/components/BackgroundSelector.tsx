@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import type { Participant, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme, Match } from '../types';
+import type { Participant, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import PrintableCard from './PrintableCard';
 import Tooltip from './Tooltip';
 
@@ -73,19 +73,9 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     const receiverLinks = receiverParticipant?.links || '';
     const receiverBudget = receiverParticipant?.budget || '';
 
-    // FIX: The previewMatch object must conform to the Match type, which means both giver and receiver must be complete Participant objects.
-    const previewMatch: Match = {
-        giver: { 
-            id: 'preview-giver',
-            name: giverName,
-            interests: '',
-            likes: '',
-            dislikes: '',
-            links: '',
-            budget: ''
-        },
+    const previewMatch = {
+        giver: { name: giverName },
         receiver: { 
-            id: 'preview-receiver',
             name: receiverName, 
             interests: receiverInterests,
             likes: receiverLikes,
