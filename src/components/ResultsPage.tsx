@@ -6,11 +6,10 @@ import { generateMatches } from '../services/matchService';
 import { trackEvent } from '../services/analyticsService';
 import { getGiftPersona } from '../services/personaService';
 import type { GiftPersona } from '../services/personaService';
-// FIX: Import missing PDF generation functions.
 import { generateMasterListPdf, generateAllCardsPdf, generatePartyPackPdf } from '../services/pdfService';
-// FIX: Import missing icons and components.
 import { Heart, ShoppingCart, ThumbsDown, Link as LinkIcon, Wallet, Gift, Users, Check } from 'lucide-react';
 import ResultsDisplay from './ResultsDisplay';
+import { encodeData } from '../services/urlService'; // Import the correct service
 
 // THIS IS YOUR AMAZON ASSOCIATES ID. IT WILL NOT BE REMOVED AGAIN.
 const affiliateTag = 'secretsant09e-20';
@@ -52,10 +51,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         if (result.matches) {
             const newExchangeData = { ...data, matches: result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })) };
             
-            // This is a simplified re-encoding. A full implementation would use the urlService.
-            const pako = (window as any).pako;
-            const encoded = btoa(String.fromCharCode.apply(null, new Uint8Array(pako.deflate(JSON.stringify(newExchangeData)))));
+            // CRITICAL FIX: Use the existing, robust encodeData service instead of a buggy implementation.
+            const encoded = encodeData(newExchangeData);
             window.location.hash = encoded;
+
         } else {
             alert(`Shuffle failed: ${result.error}`);
         }
@@ -91,14 +90,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                     <PrintableCard
                         match={currentMatch}
                         isNameRevealed={isNameRevealed}
-                        // FIX: Add onReveal prop to handle click-to-reveal functionality.
                         onReveal={() => {
                           if (!isNameRevealed) {
                             setIsNameRevealed(true);
                             trackEvent('reveal_match');
                           }
                         }}
-                        {...data}
+                        eventDetails={data.eventDetails}
+                        backgroundOptions={data.backgroundOptions}
                         bgId={data.bgId}
                         bgImg={data.customBackground}
                         txtColor={data.textColor}
@@ -192,7 +191,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                                 <div className="p-6 bg-white rounded-2xl shadow-lg border">
                                     <h3 className="text-xl font-bold text-center text-slate-800 font-serif mb-4 flex items-center justify-center gap-2"><Wallet size={20} /> Interactive Budget Assistant</h3>
                                     <div className="flex flex-wrap gap-3 justify-center">
-                                        <a href={`https://www.amazon.com/s?k=gifts&rh=p_36%3A-2500&tag=${affiliateTag}`} target="_blank" rel="noopener noreferrer" className="flex-grow flex items-center justify-center gap-2 bg-white hover:bg-slate-100 border-2 border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-lg text-base transition-colors shadow-sm">Find Gifts Under ${currentMatch.receiver.budget}</a>
+                                        <a href={`https://www.amazon.com/s?k=gifts&rh=p_36%3A-${parseInt(currentMatch.receiver.budget) * 100}&tag=${affiliateTag}`} target="_blank" rel="noopener noreferrer" className="flex-grow flex items-center justify-center gap-2 bg-white hover:bg-slate-100 border-2 border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-lg text-base transition-colors shadow-sm">Find Gifts Under ${currentMatch.receiver.budget}</a>
                                         <a href={`https://www.amazon.com/s?k=funny+gifts&rh=p_36%3A-2000&tag=${affiliateTag}`} target="_blank" rel="noopener noreferrer" className="flex-grow flex items-center justify-center gap-2 bg-white hover:bg-slate-100 border-2 border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-lg text-base transition-colors shadow-sm">Find *Funny* Gifts Under $20</a>
                                     </div>
                                 </div>
@@ -241,8 +240,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                     onClose={() => setShowShareModal(false)}
                     onDownloadMasterList={() => generateMasterListPdf(matches, data)}
                     onDownloadAllCards={() => generateAllCardsPdf(matches, data)}
-                    // FIX: The generatePartyPackPdf function expects the full ExchangeData object, not an array of strings.
-                    // Pass the complete 'data' object to ensure the function receives all necessary information.
                     onDownloadPartyPack={() => generatePartyPackPdf(data)}
                 />
             )}
