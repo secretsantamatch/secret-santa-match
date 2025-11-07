@@ -3,7 +3,10 @@ import type React from 'react';
 export interface Participant {
   id: string;
   name: string;
-  notes: string;
+  interests: string; // Comma-separated keywords for hobbies
+  likes: string; // Comma-separated keywords for things they like
+  dislikes: string; // Text for things they dislike or are allergic to
+  links: string; // New field for specific product URLs
   budget: string;
 }
 
@@ -59,6 +62,8 @@ export interface ExchangeData {
     matches: { g: string; r: string; }[];
     p: Participant[]; // Renamed from participants
     eventDetails: string;
+    exclusions: Exclusion[];
+    assignments: Assignment[];
     bgId: string; // Renamed from backgroundId
     customBackground: string | null;
     textColor: string;

@@ -12,13 +12,25 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
     const handleParticipantChange = (id: string, field: keyof Omit<Participant, 'id'>, value: string) => {
-        setParticipants(
-            participants.map(p => (p.id === id ? { ...p, [field]: value } : p))
+        const participantIndex = participants.findIndex(p => p.id === id);
+        const isLastParticipant = participantIndex === participants.length - 1;
+        const isNameField = field === 'name';
+        const wasEmpty = participants[participantIndex]?.name.trim() === '';
+        const isNowNotEmpty = value.trim() !== '';
+
+        const updatedParticipants = participants.map(p => 
+            p.id === id ? { ...p, [field]: value } : p
         );
+
+        if (isLastParticipant && isNameField && wasEmpty && isNowNotEmpty) {
+            updatedParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' });
+        }
+        
+        setParticipants(updatedParticipants);
     };
     
     const addParticipant = () => {
-        const newParticipant = { id: crypto.randomUUID(), name: '', notes: '', budget: '' };
+        const newParticipant = { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' };
         setParticipants([...participants, newParticipant]);
         // Expand details for new participant for better UX
         toggleDetails(newParticipant.id);
@@ -56,7 +68,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                             className="flex-1 min-w-[120px] p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                         />
                         <button onClick={() => toggleDetails(participant.id)} className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold p-2 whitespace-nowrap ml-auto">
-                            {expanded.has(participant.id) ? 'Hide Details' : 'Details'}
+                            {expanded.has(participant.id) ? 'Hide Details' : 'Add Details'}
                         </button>
                         {participants.length > 1 && (
                              <button onClick={() => removeParticipant(participant.id)} className="text-red-500 hover:text-red-700 p-2" aria-label={`Remove ${participant.name || `participant ${index + 1}`}`}>
@@ -65,16 +77,49 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                         )}
                     </div>
                     {expanded.has(participant.id) && (
-                        <div className="mt-4 pl-9 space-y-3">
+                        <div className="mt-4 pl-9 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">Gift Ideas / Wishlist</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Interests & Hobbies</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., coffee, gardening, sci-fi books"
+                                    value={participant.interests}
+                                    onChange={(e) => handleParticipantChange(participant.id, 'interests', e.target.value)}
+                                    className="w-full p-2 border border-slate-300 rounded-md text-sm"
+                                />
+                                 <p className="text-xs text-slate-400 mt-1">Separate with commas for clickable gift ideas.</p>
+                            </div>
+                             <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Likes</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., dark roast coffee, fuzzy socks"
+                                    value={participant.likes}
+                                    onChange={(e) => handleParticipantChange(participant.id, 'likes', e.target.value)}
+                                    className="w-full p-2 border border-slate-300 rounded-md text-sm"
+                                />
+                                <p className="text-xs text-slate-400 mt-1">Separate with commas for more gift ideas.</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Dislikes & No-Go's</label>
                                 <textarea
-                                    placeholder="e.g., Loves coffee, anything for the garden..."
-                                    value={participant.notes}
-                                    onChange={(e) => handleParticipantChange(participant.id, 'notes', e.target.value)}
+                                    placeholder="e.g., dislikes horror movies, allergic to wool..."
+                                    value={participant.dislikes}
+                                    onChange={(e) => handleParticipantChange(participant.id, 'dislikes', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Specific Links (Optional)</label>
+                                <textarea
+                                    placeholder="Paste one link per line"
+                                    value={participant.links}
+                                    onChange={(e) => handleParticipantChange(participant.id, 'links', e.target.value)}
+                                    className="w-full p-2 border border-slate-300 rounded-md text-sm"
+                                    rows={2}
+                                />
+                                <p className="text-xs text-slate-400 mt-1">Got a specific item in mind? Paste the full link here. Add one link per line.</p>
                             </div>
                              <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget ($)</label>

@@ -1,4 +1,106 @@
 [
+     {
+            "id": "comparison-guide",
+            "type": "Article",
+            "title": "The Complete 2025 Guide: Paper vs Apps for Secret Santa",
+            "description": "An honest, deep dive into every way to organize Secret Santa, from paper slips to free online tools. Find the best, most private, and easiest method for your group.",
+            "thumbnailUrl": "https://assets.secretsantamatch.com/resources/comparison-thumb.webp",
+            "linkUrl": "/complete-secret-santa-comparison.html",
+            "lastUpdated": "Nov 10, 2025",
+            "keywords": ["secret santa", "comparison", "guide", "apps", "privacy"]
+        },        
+     {
+            "id": "what-to-ask-for",
+            "type": "Guide & Tips",
+            "title": "What to Ask For in Secret Santa: 100+ Gift Ideas",
+            "description": "Struggling with your Secret Santa wish list? Discover 100+ perfect gift ideas for every budget and setting (work, friends, teachers).",
+            "thumbnailUrl": "https://assets.secretsantamatch.com/resources/what-to-ask-for-thumb.webp",
+            "linkUrl": "/what-to-ask-for-in-secret-santa.html",
+            "lastUpdated": "Nov 8, 2025",
+            "keywords": ["secret santa", "wish list", "ideas", "gifts", "guide"]
+        },
+        {
+            "id": "secret-santa-rules",
+            "type": "Guide & Tips",
+            "title": "Secret Santa Rules: The Complete Guide + 10 Fun Variations",
+            "description": "The definitive guide to Secret Santa rules for any group (office, family, virtual). Learn how to play, handle odd numbers, and try 10 fun variations.",
+            "thumbnailUrl": "https://assets.secretsantamatch.com/resources/secret-santa-rules-thumb.webp",
+            "linkUrl": "/secret-santa-rules.html",
+            "lastUpdated": "Nov 5, 2025",
+            "keywords": ["secret santa", "rules", "guide", "variations", "party"]
+        },
+        {
+            "id": "what-to-write-in-card",
+            "type": "Guide & Tips",
+            "title": "What to Write in a Secret Santa Card: 101+ Ideas",
+            "description": "Stuck on what to write in your Secret Santa card? Find 101+ message ideas from funny and anonymous to heartfelt and professional for any recipient.",
+            "thumbnailUrl": "https://assets.secretsantamatch.com/resources/what-to-write-in-card-thumb.webp",
+            "linkUrl": "/what-to-write-in-a-secret-santa-card.html",
+            "lastUpdated": "Nov 2, 2025",
+            "keywords": ["secret santa", "card messages", "writing", "guide", "ideas"]
+        },
+        {
+            "id": "colorful-gift-tags",
+            "type": "Free Download",
+            "title": "Free Printable Colorful Christmas Gift Tags",
+            "description": "Add a vibrant pop of color to your gifts with these fun and modern printable Christmas tags. Instant PDF download, no signup needed.",
+            "thumbnailUrl": "/posts/colorful-gift-tags-thumb.webp",
+            "linkUrl": "/colorful-christmas-gift-tags.html",
+            "lastUpdated": "Nov 17, 2025",
+            "keywords": ["gift tags", "printable", "free download", "colorful", "modern", "christmas"]
+        },
+        {
+            "id": "minimalist-gift-tags",
+            "type": "Free Download",
+            "title": "Free Printable Minimalist Christmas Gift Tags",
+            "description": "Elevate your gift wrapping with our free printable minimalist Christmas gift tags. Featuring clean lines and modern typography for a chic holiday look.",
+            "thumbnailUrl": "/posts/minimalist-gift-tags-thumb.webp",
+            "linkUrl": "/minimalist-christmas-gift-tags.html",
+            "lastUpdated": "Nov 16, 2025",
+            "keywords": ["gift tags", "printable", "free download", "minimalist", "modern", "christmas"]
+        },
+        {
+            "id": "funny-gift-tags",
+            "type": "Free Download",
+            "title": "Free Printable Funny Christmas Gift Tags",
+            "description": "Bring some honest humor to your holiday with tags featuring confessions from Santa, a naughty cat, and a snowman who couldn't resist the carrot.",
+            "thumbnailUrl": "/posts/funny-gift-tags-thumb.webp",
+            "linkUrl": "/funny-christmas-gift-tags.html",
+            "lastUpdated": "Nov 15, 2025",
+            "keywords": ["gift tags", "printable", "free download", "funny", "humor", "christmas"]
+        },
+        {
+            "id": "snarky-gift-tags",
+            "type": "Free Download",
+            "title": "Funny & Snarky Christmas Gift Tags",
+            "description": "For friends and family who appreciate a good laugh (and a little bit of sass) with their gifts. Hilarious, sarcastic, and free to download.",
+            "thumbnailUrl": "/posts/snarky-gift-tags-thumb.webp",
+            "linkUrl": "/snarky-christmas-gift-tags.html",
+            "lastUpdated": "Nov 14, 2025",
+            "keywords": ["gift tags", "printable", "free download", "funny", "snarky", "christmas"]
+        },
+        {
+            "id": "art-deco-gift-tags",
+            "type": "Free Download",
+            "title": "Free Printable Art Deco Christmas Gift Tags",
+            "description": "Add a touch of Roaring Twenties glamour to your gifts with these beautiful, free printable Art Deco Christmas tags. Instant PDF download, no signup needed.",
+            "thumbnailUrl": "/posts/art-deco-gift-tags-thumb.webp",
+            "linkUrl": "/vintage-christmas-gift-tags-1920s.html",
+            "lastUpdated": "Nov 13, 2025",
+            "keywords": ["gift tags", "printable", "free download", "art deco", "1920s", "christmas"]
+        },
+        {
+            "id": "vintage-gift-tags",
+            "type": "Free Download",
+            "title": "Free Printable Vintage Christmas Gift Tags",
+            "description": "Add a touch of nostalgia to your gifts with these beautiful, free printable vintage Christmas tags inspired by the 1940s. Instant PDF download, no signup needed.",
+            "thumbnailUrl": "/posts/vintage-gift-tags-thumb.webp",
+            "linkUrl": "/vintage-christmas-gift-tags.html",
+            "lastUpdated": "Nov 12, 2025",
+            "keywords": ["gift tags", "printable", "free download", "vintage", "christmas"]
+        },
+
+        
  {
   "id": "nice-list-certificates",
   "type": "Free Download",
@@ -39,6 +141,17 @@
     "lastUpdated": "Oct 11, 2025",
     "keywords": ["streaming", "movie", "movies", "tv", "netflix", "hulu", "binge", "show", "film", "disney", "series", "binge-watch", "couch potato", "home theater", "max", "hbo", "apple tv", "prime video", "cinema", "tech", "gadgets"]
   },
+     {
+            "id": "credit-karma-features",
+            "type": "Guide & Tips",
+            "title": "17 Hidden Credit Karma Features That Save You Money",
+            "description": "Stop just checking your score. Discover 17 hidden Credit Karma features—from free tax filing to rent reporting—that could save you thousands in 2026.",
+            "thumbnailUrl": "https://assets.secretsantamatch.com/resources/credit-karma-features-thumb.webp",
+            "linkUrl": "/credit-karma-features.html",
+            "lastUpdated": "Oct 29, 2025",
+            "keywords": ["credit karma", "finance", "credit score", "money saving", "free tools"]
+        },
+        
   {
     "id": "halloween-word-search",
     "type": "Free Download",

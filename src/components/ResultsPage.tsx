@@ -1,458 +1,287 @@
-
-
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import type { ExchangeData, Participant, Match, CardStyleData, Resource } from '../types';
-import { generateIndividualCardsPdf, generateMasterListPdf } from '../services/pdfService';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import type { ExchangeData, Match } from '../types';
 import PrintableCard from './PrintableCard';
-import CountdownTimer from './CountdownTimer';
-import Header from './Header';
-import Footer from './Footer';
-import ShareButtons from './ShareButtons';
-import ResultsDisplay from './ResultsDisplay';
 import ShareLinksModal from './ShareLinksModal';
-import ResourceCard from './ResourceCard';
+import Footer from './Footer';
+import { trackEvent } from '../services/analyticsService';
+import { ShoppingCart } from 'lucide-react';
+import BackToTopButton from './BackToTopButton';
+import { generateMatches } from '../services/matchService';
+import { generateIndividualCardsPdf, generateMasterListPdf } from '../services/pdfService';
 
 interface ResultsPageProps {
-  data: ExchangeData;
-  currentParticipantId: string | null;
+    data: ExchangeData;
+    currentParticipantId: string | null;
 }
 
-// Allow TypeScript to recognize the gtag function on the window object
-declare global {
-  interface Window {
-    gtag: (...args: any[]) => void;
-  }
-}
+// Your Amazon Associates Tracking ID is now correctly set.
+const affiliateTag = 'secretsant09e-20';
 
-// Helper function to send events to Google Analytics
-const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) => {
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', eventName, eventParams);
-  } else {
-    console.log(`Analytics Event (gtag not found): ${eventName}`, eventParams);
-  }
+// Helper to create clickable links from text
+const linkify = (text: string) => {
+    if (!text) return null;
+    const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    return text.split('\n').map((line, i) => (
+        <React.Fragment key={i}>
+            {line.split(urlRegex).map((part, j) => 
+                urlRegex.test(part) ? <a href={part} key={j} target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline">{part}</a> : part
+            )}
+            {i < text.split('\n').length - 1 && <br />}
+        </React.Fragment>
+    ));
 };
 
-
-const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
-  const [isRevealed, setIsRevealed] = useState(false);
-  const [showDownloadOptionsModal, setShowDownloadOptionsModal] = useState(false);
-  const [modalAnimating, setModalAnimating] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [isPdfLoading, setIsPdfLoading] = useState(false);
-  const [showDownloadConfirmationModal, setShowDownloadConfirmationModal] = useState(false);
-  const [allResources, setAllResources] = useState<Resource[]>([]);
-  
-  const downloadModalRef = useRef<HTMLDivElement>(null);
-  
-  const {
-    p: participants,
-    matches: matchesById,
-    eventDetails,
-    exchangeDate,
-    exchangeTime,
-    bgId,
-    customBackground,
-    textColor,
-    useTextOutline,
-    outlineColor,
-    outlineSize,
-    fontSizeSetting,
-    fontTheme,
-    lineSpacing,
-    greetingText,
-    introText,
-    wishlistLabelText,
-    backgroundOptions,
-  } = data;
-
-  const cardStyle: CardStyleData = useMemo(() => ({
-    bgId: bgId,
-    bgImg: customBackground,
-    txtColor: textColor,
-    outline: useTextOutline,
-    outColor: outlineColor,
-    outSize: outlineSize,
-    fontSize: fontSizeSetting,
-    font: fontTheme,
-    line: lineSpacing,
-    greet: greetingText,
-    intro: introText,
-    wish: wishlistLabelText,
-  }), [
-    bgId, customBackground, textColor, useTextOutline, outlineColor,
-    outlineSize, fontSizeSetting, fontTheme, lineSpacing, greetingText,
-    introText, wishlistLabelText
-  ]);
-  
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    // Fetch resources for gift suggestions on participant view
-    if (currentParticipantId) {
-        fetch('/resources.json')
-            .then(res => res.json())
-            .then(data => setAllResources(data))
-            .catch(err => console.error("Failed to load resources for suggestions:", err));
-    }
-  }, [currentParticipantId]);
-  
-  useEffect(() => {
-    if (showDownloadOptionsModal) {
-      const timer = setTimeout(() => setModalAnimating(true), 10);
-      return () => clearTimeout(timer);
-    } else {
-      setModalAnimating(false);
-    }
-  }, [showDownloadOptionsModal]);
-
-  const matches: Match[] = useMemo(() => {
-    return matchesById.map((matchById: { g: string; r: string; }) => {
-        const giver = participants.find((p: Participant) => p.id === matchById.g);
-        const receiver = participants.find((p: Participant) => p.id === matchById.r);
-        if (!giver || !receiver) {
-            throw new Error(`Could not find participants for match: ${JSON.stringify(matchById)}`);
-        }
-        return { giver, receiver };
-    });
-  }, [matchesById, participants]);
-  
-  const targetTime = useMemo(() => {
-    if (!exchangeDate) return 0;
-    const dateStr = exchangeTime ? `${exchangeDate}T${exchangeTime}` : `${exchangeDate}T00:00:00`;
-    return new Date(dateStr).getTime();
-  }, [exchangeDate, exchangeTime]);
-  
-  const isRevealTime = targetTime > 0 && new Date().getTime() >= targetTime;
-
-  const performPdfGeneration = async (generationFn: () => Promise<void>) => {
-    let loadingTimer: number | null = null;
-    try {
-      loadingTimer = window.setTimeout(() => setIsPdfLoading(true), 300);
-      await generationFn();
-    } catch (err) {
-      console.error("PDF Generation failed:", err);
-    } finally {
-      if (loadingTimer) clearTimeout(loadingTimer);
-      setIsPdfLoading(false);
-    }
-  };
-
-  const handleDownload = async (type: 'cards' | 'list' | 'both') => {
-      setShowDownloadOptionsModal(false);
-      trackEvent('download_pdf', { download_type: type });
-      
-      await performPdfGeneration(async () => {
-        if (type === 'cards' || type === 'both') {
-            await generateIndividualCardsPdf({ matches, eventDetails, ...cardStyle, backgroundOptions });
-        }
-        if (type === 'list' || type === 'both') {
-            generateMasterListPdf({ matches, eventDetails, exchangeDate, exchangeTime });
-        }
-      });
-      
-      setShowDownloadConfirmationModal(true);
-  };
-  
-  const getParticipantLink = (participantId: string) => {
-    const baseUrl = window.location.href.split('#')[0];
-    const hash = window.location.hash.split('?')[0];
-    return `${baseUrl}${hash}?id=${participantId}`;
-  };
-
-  const handleOpenShareModal = () => {
-    trackEvent('open_share_modal', {
-        participant_count: participants.length
-    });
-    setShowShareModal(true);
-  };
-
-  // Participant view variables
-  const participant = currentParticipantId ? participants.find((p: Participant) => p.id === currentParticipantId) : null;
-  const match = participant ? matches.find(m => m.giver.id === participant.id) : null;
-
-  const suggestedPosts = useMemo((): Resource[] => {
-    if (!isRevealed || !match || allResources.length === 0) {
-        return [];
-    }
-
-    const notes = match.receiver.notes.toLowerCase();
-    const budget = parseInt(match.receiver.budget) || 999;
-    const suggestions: { resource: Resource; score: number }[] = [];
-
-    allResources.forEach(resource => {
-        let score = 0;
-        const resourceKeywords = resource.keywords || [];
-
-        resourceKeywords.forEach(keyword => {
-            if (notes.includes(keyword)) {
-                score += 1;
-            }
-        });
-
-        if (resource.id === 'gifts-when-broke' && budget <= 25) {
-            score += 5; // High priority boost for low budget
-        }
-
-        if (score > 0) {
-            suggestions.push({ resource, score });
-        }
-    });
-
-    suggestions.sort((a, b) => b.score - a.score);
-    const topSuggestions = suggestions.slice(0, 2).map(s => s.resource);
-
-    if (topSuggestions.length === 0) {
-        const defaultSuggestion = allResources.find(r => r.id === 'questionnaire');
-        if (defaultSuggestion) {
-            return [defaultSuggestion];
-        }
-    }
-
-    return topSuggestions;
-  }, [isRevealed, match, allResources]);
-
-
-  if (!currentParticipantId) { // Organizer View
-    if (isRevealTime) {
-       return (
-         <div className="bg-slate-50 min-h-screen">
-            <Header />
-            <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-                <main className="mt-8 md:mt-12">
-                    <ResultsDisplay matches={matches} />
-                </main>
-                <Footer />
-            </div>
-         </div>
-      );
-    }
+const ResultsPage: React.FC<ResultsPageProps> = ({ data: initialData, currentParticipantId }) => {
+    const [data, setData] = useState<ExchangeData>(initialData);
+    const [isNameRevealed, setIsNameRevealed] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     
-    return (
-        <>
-            <div className="bg-slate-50 min-h-screen">
-                <Header />
-                <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-                    <main className="mt-8 md:mt-12 space-y-10 md:space-y-12">
-                         <div className="p-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
-                            <div className="mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+    const reconstructedMatches: Match[] = useMemo(() => {
+        try {
+            return data.matches.map(match => {
+                const giver = data.p.find(p => p.id === match.g);
+                const receiver = data.p.find(p => p.id === match.r);
+                if (!giver || !receiver) throw new Error("Participant not found for a match.");
+                return { giver, receiver };
+            }).filter(Boolean) as Match[];
+        } catch (e) {
+            console.error(e);
+            return [];
+        }
+    }, [data.matches, data.p]);
+
+    const handleShuffleAgain = () => {
+        trackEvent('shuffle_again');
+        const result = generateMatches(data.p, data.exclusions, data.assignments);
+        if (result.matches) {
+            const newMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
+            setData(prevData => ({ ...prevData, matches: newMatches }));
+        } else {
+            // Handle error case if needed, e.g., show a notification
+            console.error("Failed to shuffle again:", result.error);
+            alert(`Could not generate new matches. ${result.error}`);
+        }
+    };
+    
+    const currentMatch = useMemo(() => {
+        if (!currentParticipantId) return null;
+        return reconstructedMatches.find(m => m.giver.id === currentParticipantId);
+    }, [reconstructedMatches, currentParticipantId]);
+    
+    const handleReveal = () => {
+        setIsNameRevealed(true);
+        trackEvent('reveal_match');
+    };
+
+    // Organizer's View
+    if (!currentParticipantId) {
+        // FIX: Generate participant links and download handlers for the ShareLinksModal
+        const participantLinks = useMemo(() => {
+            const { origin, pathname, search, hash } = window.location;
+            return reconstructedMatches.map(({ giver }) => {
+                const params = new URLSearchParams(search);
+                params.set('id', giver.id);
+                const link = `${origin}${pathname}?${params.toString()}${hash}`;
+                return {
+                    id: giver.id,
+                    name: giver.name,
+                    link: link,
+                };
+            });
+        }, [reconstructedMatches]);
+
+        const handleDownloadAllCards = () => {
+            trackEvent('download_all_cards_pdf');
+            generateIndividualCardsPdf({
+                matches: reconstructedMatches,
+                eventDetails: data.eventDetails,
+                backgroundOptions: data.backgroundOptions,
+                bgId: data.bgId,
+                bgImg: data.customBackground,
+                txtColor: data.textColor,
+                outline: data.useTextOutline,
+                outColor: data.outlineColor,
+                outSize: data.outlineSize,
+                fontSize: data.fontSizeSetting,
+                font: data.fontTheme,
+                line: data.lineSpacing,
+                greet: data.greetingText,
+                intro: data.introText,
+                wish: data.wishlistLabelText,
+            });
+        };
+
+        const handleDownloadMasterList = () => {
+            trackEvent('download_master_list_pdf');
+            generateMasterListPdf({
+                matches: reconstructedMatches,
+                eventDetails: data.eventDetails,
+                exchangeDate: data.exchangeDate,
+                exchangeTime: data.exchangeTime,
+            });
+        };
+
+        return (
+            <>
+                <div className="bg-slate-50 min-h-screen">
+                    <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-8 rounded-2xl shadow-xl text-center mb-8">
+                             <div className="w-16 h-16 bg-white/20 rounded-full mx-auto flex items-center justify-center mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-white font-serif">You're the Organizer!</h2>
-                            <p className="text-purple-100 mt-2 mb-8 max-w-2xl mx-auto">Your matches are ready. Share the private links with each person so they can see who they're gifting to.</p>
-                            
-                            <button 
-                              onClick={handleOpenShareModal} 
-                              className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out"
-                            >
-                                Share Private Links
-                            </button>
-                        </div>
-                        
-                        <div className="grid md:grid-cols-2 gap-8">
-                          <div className="p-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
-                              <div className="mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                              </div>
-                              <h3 className="text-3xl font-bold font-serif mb-2">Printable Cards</h3>
-                              <p className="text-green-100 max-w-xs mb-6 text-lg">Download styled cards or a master list for offline sharing.</p>
-                              <button onClick={() => setShowDownloadOptionsModal(true)} className="bg-white text-green-700 font-bold py-3 px-8 text-lg rounded-full shadow-md transform hover:scale-105 hover:shadow-xl hover:bg-gray-100 transition-all flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                                  Download Now
-                              </button>
-                          </div>
-                          <div className="p-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-xl text-white text-center flex flex-col items-center justify-center">
-                              <div className="mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                                </svg>
-                              </div>
-                              <h3 className="text-3xl font-bold font-serif mb-2">Share the Fun!</h3>
-                              <p className="text-orange-100 max-w-xs mb-6 text-lg">Enjoying this free tool? Help spread the holiday cheer!</p>
-                              <ShareButtons />
-                          </div>
-                        </div>
-                         <div className="text-center">
-                            <a href="/" onClick={(e) => { e.preventDefault(); window.location.href = window.location.pathname; }} className="inline-block bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-8 rounded-full text-lg transition-colors">
-                                Make Changes or Start a New Game
-                            </a>
+                            <h1 className="text-4xl md:text-5xl font-bold font-serif">You're the Organizer!</h1>
+                            <p className="text-lg text-purple-200 mt-4 max-w-3xl mx-auto">
+                                Your matches are ready. You can now share private links with each person, or download/print the cards for your party.
+                            </p>
+                            <div className="mt-8 flex justify-center gap-4">
+                                <button onClick={() => setShowShareModal(true)} className="bg-white hover:bg-slate-100 text-indigo-700 font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                                    Sharing & Downloads
+                                </button>
+                                <button onClick={handleShuffleAgain} className="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-full transition-colors border-2 border-white/50">
+                                    Shuffle Again
+                                </button>
+                            </div>
                         </div>
                     </main>
                     <Footer />
+                    <BackToTopButton />
+                </div>
+                {showShareModal && (
+                    <ShareLinksModal
+                        participantLinks={participantLinks}
+                        onClose={() => setShowShareModal(false)}
+                        onDownloadAllCards={handleDownloadAllCards}
+                        onDownloadMasterList={handleDownloadMasterList}
+                    />
+                )}
+            </>
+        );
+    }
+
+    // Participant's View
+    if (!currentMatch) {
+         return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
+                    <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Oops!</h1>
+                    <p className="text-slate-700 text-lg">We couldn't find your match. The participant ID in your link seems to be invalid. Please check the link or ask your organizer to resend it.</p>
+                     <a href="/generator.html" className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
+                        Start a New Game
+                    </a>
                 </div>
             </div>
-            
-            {/* Modals */}
-            {showShareModal && <ShareLinksModal participants={participants} getParticipantLink={getParticipantLink} onClose={() => setShowShareModal(false)} />}
-            
-            {isPdfLoading && (
-                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60]">
-                  <div className="text-white text-center">
-                    <svg className="animate-spin h-12 w-12 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p className="text-xl font-semibold mt-4">Generating your PDF...</p>
-                    <p className="text-sm opacity-80">This may take a moment.</p>
-                  </div>
-                </div>
-            )}
-            
-            {showDownloadOptionsModal && (
-                <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${modalAnimating ? 'opacity-100' : 'opacity-0'}`} onClick={() => setShowDownloadOptionsModal(false)}>
-                  <div ref={downloadModalRef} onClick={e => e.stopPropagation()} tabIndex={-1} className={`bg-white rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] p-6 sm:p-8 max-w-xl w-full outline-none transition-all duration-300 ${modalAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                      <div className="text-center">
-                          <h2 className="text-3xl font-bold text-slate-800 font-serif mb-2">Choose Your Download</h2>
-                          <p className="text-gray-600 mb-8">Select which documents you'd like to generate.</p>
-                      </div>
-                      <div className="space-y-4">
-                          <button onClick={() => handleDownload('both')} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold p-4 rounded-xl shadow-lg transform hover:scale-[1.03] transition-all text-left flex items-center gap-5">
-                              <div className="p-2 bg-white/20 rounded-lg">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                              </div>
-                              <div className="flex-grow">
-                                  <span className="text-xl">Download Both</span>
-                                  <span className="font-normal text-sm block opacity-90">(Cards & Master List)</span>
-                              </div>
-                          </button>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button onClick={() => handleDownload('cards')} className="w-full bg-slate-700 hover:bg-slate-800 text-white p-6 rounded-xl shadow-md transition-colors text-left flex flex-col justify-between items-start min-h-[10rem]">
-                                <div>
-                                    <div className="p-2 bg-white/20 rounded-lg mb-3 inline-block">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2H5a2 2 0 00-2 2v2m14 0h0z" />
-                                        </svg>
-                                    </div>
-                                    <p className="text-lg font-bold">Individual Cards Only</p>
-                                </div>
-                                <p className="text-sm text-slate-300 font-normal">Styled cards for each person.</p>
-                            </button>
-                            
-                            <button onClick={() => handleDownload('list')} className="w-full bg-slate-700 hover:bg-slate-800 text-white p-6 rounded-xl shadow-md transition-colors text-left flex flex-col justify-between items-start min-h-[10rem]">
-                               <div>
-                                  <div className="p-2 bg-white/20 rounded-lg mb-3 inline-block">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                      </svg>
-                                  </div>
-                                  <p className="text-lg font-bold">Master List Only</p>
-                               </div>
-                               <p className="text-sm text-slate-300 font-normal">A single page showing all matches.</p>
-                            </button>
-                          </div>
-                      </div>
-                      <div className="text-center">
-                          <button onClick={() => setShowDownloadOptionsModal(false)} className="mt-8 text-gray-500 hover:text-gray-700 font-semibold text-sm transition-colors">
-                              Cancel
-                          </button>
-                      </div>
-                  </div>
-                </div>
-            )}
-            
-            {showDownloadConfirmationModal && (
-                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-                    <div className="mx-auto bg-green-100 rounded-full h-16 w-16 flex items-center justify-center">
-                        <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                    <h2 className="text-3xl font-bold text-slate-800 font-serif mt-5 mb-2">Success!</h2>
-                    <p className="text-gray-600 mb-6">Your download will begin momentarily. Happy gifting!</p>
-                     <button onClick={() => setShowDownloadConfirmationModal(false)} className="mt-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">
-                        Close
-                    </button>
-                  </div>
-                </div>
-            )}
-        </>
-    );
-  }
+        );
+    }
+    
+    const { giver, receiver } = currentMatch;
+    const interestsAndLikes = [...(receiver.interests || '').split(','), ...(receiver.likes || '').split(',')].map(s => s.trim()).filter(Boolean);
 
-  // Participant View
-  if (isRevealTime) {
-      return (
-         <div className="bg-slate-50 min-h-screen">
-            <Header />
-            <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-                <main className="mt-8 md:mt-12">
-                    <ResultsDisplay matches={matches} />
+    return (
+        <>
+            <div className="bg-slate-50 min-h-screen">
+                <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+                    <div className="text-center mb-8">
+                        {!isNameRevealed && <p className="text-slate-600 text-lg">Hello, {giver.name}! Scratch the card to reveal your match!</p>}
+                    </div>
+
+                    <PrintableCard
+                        match={currentMatch}
+                        eventDetails={data.eventDetails}
+                        isNameRevealed={isNameRevealed}
+                        onReveal={handleReveal}
+                        backgroundOptions={data.backgroundOptions}
+                        bgId={data.bgId}
+                        bgImg={data.customBackground}
+                        txtColor={data.textColor}
+                        outline={data.useTextOutline}
+                        outColor={data.outlineColor}
+                        outSize={data.outlineSize}
+                        fontSize={data.fontSizeSetting}
+                        font={data.fontTheme}
+                        line={data.lineSpacing}
+                        greet={data.greetingText}
+                        intro={data.introText}
+                        wish={data.wishlistLabelText}
+                    />
+
+                    {isNameRevealed && (
+                        <div className="mt-8 p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200 animate-fade-in max-w-3xl mx-auto">
+                            <h2 className="text-3xl font-bold text-slate-800 font-serif mb-6 text-center">
+                                {giver.name}'s Gift Inspiration for <span className="text-red-600">{receiver.name}</span>
+                            </h2>
+                            
+                            <div className="space-y-6">
+                                {(interestsAndLikes.length > 0) && (
+                                    <div className="bg-slate-50 p-6 rounded-xl border">
+                                        <h3 className="font-bold text-slate-700 text-lg mb-1 flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v1h-2V4H7v1H5V4zM5 7h10v9a2 2 0 01-2 2H7a2 2 0 01-2-2V7z" /></svg>
+                                            Interests, Hobbies & Likes
+                                        </h3>
+                                        <p className="text-sm text-slate-500 mb-4">Click a tag for instant gift ideas on Amazon!</p>
+                                        <div className="flex flex-wrap gap-3">
+                                            {interestsAndLikes.map((item, index) => (
+                                                <a 
+                                                    key={index}
+                                                    href={`https://www.amazon.com/s?k=${encodeURIComponent(item + ' gifts')}&tag=${affiliateTag}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold py-3 px-5 rounded-lg transition-transform transform hover:scale-105"
+                                                >
+                                                    <ShoppingCart size={16} />
+                                                    {item}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {receiver.dislikes && (
+                                    <div className="bg-red-50 p-6 rounded-xl border">
+                                         <h3 className="font-bold text-slate-700 text-lg mb-2 flex items-center gap-2">
+                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                                             Dislikes & No-Go's
+                                        </h3>
+                                        <p className="text-slate-600">{receiver.dislikes}</p>
+                                    </div>
+                                )}
+
+                                {receiver.links && (
+                                     <div className="bg-emerald-50 p-6 rounded-xl border">
+                                        <h3 className="font-bold text-slate-700 text-lg mb-2 flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" /></svg>
+                                            Specific Links
+                                        </h3>
+                                        <div className="text-slate-600 break-words space-y-2">{linkify(receiver.links)}</div>
+                                    </div>
+                                )}
+                            </div>
+                            <p className="text-xs text-slate-400 mt-6 text-center italic">
+                                As an Amazon Associate, we earn from qualifying purchases. When you click on an interest or product link, we may receive a small commission at no extra cost to you. This helps keep our tool 100% free. Thank you for your support!
+                            </p>
+                        </div>
+                    )}
+                     <div className="mt-12 text-center">
+                        <a href="/generator.html" className="text-indigo-600 hover:text-indigo-800 font-semibold text-lg transition-colors">
+                            Organize your own Secret Santa &rarr;
+                        </a>
+                    </div>
                 </main>
                 <Footer />
+                <BackToTopButton />
             </div>
-         </div>
-      )
-  }
-  
-  if (participant && match) {
-      return (
-        <div className="bg-slate-50 min-h-screen">
-            <Header />
-                 <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl mt-8 md:mt-12 space-y-10">
-                    <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200 text-center">
-                        <p className="text-xl text-slate-600">Hello, <span className="font-bold text-slate-800">{participant.name}!</span></p>
-                        
-                        <div className="my-6 max-w-sm mx-auto">
-                           <PrintableCard 
-                              match={match} 
-                              eventDetails={eventDetails} 
-                              isNameRevealed={isRevealed} 
-                              onReveal={() => setIsRevealed(true)} 
-                              backgroundOptions={backgroundOptions} 
-                              {...cardStyle}
-                           />
-                        </div>
-                    </div>
-
-                    {isRevealed && suggestedPosts.length > 0 && (
-                      <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-                        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 font-serif mb-2 text-center">
-                          Need Some Gift Ideas?
-                        </h2>
-                        <p className="text-slate-600 mb-8 text-center max-w-xl mx-auto">
-                          Based on <strong>{match.receiver.name}'s</strong> details, these guides might help you find the perfect gift!
-                        </p>
-                        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                          {suggestedPosts.map(post => (
-                            <ResourceCard key={post.id} resource={post} />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                     {targetTime > 0 && (
-                        <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200 text-center">
-                           <CountdownTimer targetTime={targetTime} onComplete={() => window.location.reload()} />
-                        </div>
-                    )}
-                    <div className="text-center">
-                      <a href="/" className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 text-xl rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 ease-in-out">
-                          Create Your Own Secret Santa
-                      </a>
-                    </div>
-                 </main>
-                 <Footer />
-        </div>
-      );
-  }
-
-  return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
-        <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Link Error</h1>
-        <p className="text-slate-700 text-lg">Invalid participant ID. This link may be corrupted or incorrect.</p>
-        <a href="/" onClick={(e) => { e.preventDefault(); window.location.href = window.location.pathname; }} className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
-          Start a New Game
-        </a>
-      </div>
-    </div>
-  );
+             <style>{`
+                @keyframes fade-in {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in {
+                    animation: fade-in 0.5s ease-out forwards;
+                }
+             `}</style>
+        </>
+    );
 };
 
 export default ResultsPage;
