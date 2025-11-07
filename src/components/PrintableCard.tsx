@@ -18,6 +18,7 @@ interface PrintableCardProps {
     greet: string;
     intro: string;
     wish: string;
+    onReveal?: () => void;
 }
 
 const fontClassMap: Record<FontTheme, string> = {
@@ -40,7 +41,7 @@ const outlineSizeMap: Record<OutlineSizeSetting, string> = {
 };
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
-    match, eventDetails, isNameRevealed, backgroundOptions, bgId, bgImg, txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish
+    match, eventDetails, isNameRevealed, backgroundOptions, bgId, bgImg, txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish, onReveal
 }) => {
 
     const selectedBg = backgroundOptions.find(opt => opt.id === bgId);
@@ -92,7 +93,12 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     </header>
                     
                     {/* Receiver Name */}
-                    <div className="my-auto">
+                    {/* FIX: Add onClick handler and conditional cursor style to allow revealing the name. */}
+                    <div
+                        className="my-auto"
+                        onClick={onReveal}
+                        style={{ cursor: onReveal && !isNameRevealed ? 'pointer' : 'default' }}
+                    >
                         <div className={`font-bold text-4xl md:text-5xl transition-all duration-500 ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
                             {match.receiver.name}
                         </div>
