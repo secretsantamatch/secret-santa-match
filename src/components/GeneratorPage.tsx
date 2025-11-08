@@ -16,20 +16,7 @@ import VideoTutorial from './VideoTutorial';
 import FeaturedResources from './FeaturedResources';
 import ShareTool from './ShareTool';
 import BackToTopButton from './BackToTopButton';
-
-// Analytics helper
-declare global {
-  interface Window {
-    gtag: (...args: any[]) => void;
-  }
-}
-const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) => {
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', eventName, eventParams);
-  } else {
-    console.log(`Analytics Event (gtag not found): ${eventName}`, eventParams);
-  }
-};
+import { trackEvent } from '../services/analyticsService';
 
 
 const GeneratorPage: React.FC = () => {
@@ -182,12 +169,14 @@ const GeneratorPage: React.FC = () => {
         
         if (result.error) {
             setError(result.error);
+            trackEvent('generation_error', { error_message: result.error });
             window.scrollTo(0, 0);
             return;
         }
 
         if (!result.matches) {
              setError("An unexpected error occurred during matching.");
+             trackEvent('generation_error', { error_message: 'Unexpected null matches' });
              window.scrollTo(0, 0);
              return;
         }
@@ -218,17 +207,24 @@ const GeneratorPage: React.FC = () => {
 
         const encoded = encodeData(exchangeData);
         if (encoded) {
-            window.location.hash = encoded;
+            // Navigate to the success page instead of directly to results
+            const baseUrl = window.location.href.split('#')[0];
+            window.location.href = `${baseUrl}?page=success#${encoded}`;
         } else {
             setError("There was an error creating your shareable link.");
         }
     };
+    
+    const handleTabChange = (tabId: string) => {
+        setActiveTab(tabId);
+        trackEvent('view_tab', { tab_name: tabId });
+    };
 
     const handleNext = () => {
         if (activeTab === 'participants') {
-            setActiveTab('rules');
+            handleTabChange('rules');
         } else if (activeTab === 'rules') {
-            setActiveTab('styles');
+            handleTabChange('styles');
         }
     };
 
@@ -267,7 +263,7 @@ const GeneratorPage: React.FC = () => {
                                 {tabs.map(tab => (
                                     <button
                                         key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
+                                        onClick={() => handleTabChange(tab.id)}
                                         className={`shrink-0 border-b-4 font-semibold p-4 transition-colors text-sm sm:text-base ${
                                             activeTab === tab.id
                                                 ? 'border-red-600 text-red-600'
@@ -298,6 +294,7 @@ const GeneratorPage: React.FC = () => {
                                 setAssignments={setAssignments}
                                 eventDetails={eventDetails}
                                 setEventDetails={setEventDetails}
+                                trackEvent={trackEvent}
                             />
                         </div>
                         

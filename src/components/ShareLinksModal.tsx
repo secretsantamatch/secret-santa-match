@@ -1,192 +1,159 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { trackEvent } from '../services/analyticsService';
-import { Clipboard, Check, Download, FileText, List, Link, MessageSquare, Search } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import type { Match } from '../types';
+import QRCode from 'react-qr-code';
+import { Download, Link as LinkIcon, Gift } from 'lucide-react';
 
 interface ShareLinksModalProps {
-    participantLinks: { id: string, name: string; link: string }[];
+    matches: Match[];
     onClose: () => void;
-    onDownloadAllCards: () => void;
     onDownloadMasterList: () => void;
+    onDownloadAllCards: () => void;
+    onDownloadPartyPack: () => void;
+    trackEvent: (eventName: string, eventParams?: Record<string, any>) => void;
 }
 
-const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ participantLinks, onClose, onDownloadAllCards, onDownloadMasterList }) => {
+const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, onClose, onDownloadMasterList, onDownloadAllCards, onDownloadPartyPack, trackEvent }) => {
     const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
-    const [searchTerm, setSearchTerm] = useState('');
-    const [useShortenedUrls, setUseShortenedUrls] = useState(false);
-    const [shortenedUrlCache, setShortenedUrlCache] = useState<Record<string, string>>({});
-    const [isShortening, setIsShortening] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
     
-    const handleCopy = (id: string, textToCopy: string) => {
-        navigator.clipboard.writeText(textToCopy).then(() => {
+    useEffect(() => {
+        const timer = setTimeout(() => setIsAnimating(true), 10);
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') onClose();
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
+
+    const links = useMemo(() => {
+        const baseUrl = window.location.href.split('#')[0].split('?')[0];
+        const hash = window.location.hash;
+
+        return matches.map(match => {
+            const revealUrl = `${baseUrl}?id=${match.giver.id}${hash}`;
+            const giftIdeasUrl = `${baseUrl}?page=gift_ideas&id=${match.giver.id}${hash}`;
+            
+            return {
+                id: match.giver.id,
+                name: match.giver.name,
+                revealUrl,
+                giftIdeasUrl,
+            };
+        });
+    }, [matches]);
+
+    const handleCopy = (id: string, url: string) => {
+        navigator.clipboard.writeText(url).then(() => {
             setCopiedStates(prev => ({ ...prev, [id]: true }));
-            trackEvent('copy_link', { type: 'individual' });
-            setTimeout(() => setCopiedStates(prev => ({ ...prev, [id]: false })), 2000);
+            trackEvent('share_results', { share_type: 'copy_single' });
+            setTimeout(() => {
+                setCopiedStates(prev => ({ ...prev, [id]: false }));
+            }, 2000);
         });
     };
     
     const handleCopyAll = () => {
-        const textToCopy = participantLinks.map(({ name, link }) => `${name}: ${useShortenedUrls ? (shortenedUrlCache[link] || link) : link}`).join('\n');
-        handleCopy('all-links', textToCopy);
-        trackEvent('copy_all_links');
-    };
+        const allLinksText = links.map(link => {
+            return `${link.name}'s Reveal Link: ${link.revealUrl}`;
+        }).join('\n');
 
-    const handleDownloadCsv = () => {
-        trackEvent('download_csv');
-        let csvContent = "data:text/csv;charset=utf-8,Name,Link\n";
-        participantLinks.forEach(({ name, link }) => {
-            const finalLink = useShortenedUrls ? (shortenedUrlCache[link] || link) : link;
-            csvContent += `${name.replace(/,/g, '')},${finalLink}\n`;
+        navigator.clipboard.writeText(allLinksText).then(() => {
+            setCopiedStates({ all: true });
+            trackEvent('share_results', { share_type: 'copy_all' });
+             setTimeout(() => {
+                setCopiedStates(prev => ({ ...prev, all: false }));
+            }, 2000);
         });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "secret_santa_links.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
     };
-
-    const shortenUrl = useCallback(async (longUrl: string) => {
-        if (shortenedUrlCache[longUrl]) {
-            return shortenedUrlCache[longUrl];
+    
+    const handleDownload = (type: 'all_cards' | 'master_list' | 'party_pack') => {
+        trackEvent('download_results', { download_type: type });
+        switch (type) {
+            case 'all_cards':
+                onDownloadAllCards();
+                break;
+            case 'master_list':
+                onDownloadMasterList();
+                break;
+            case 'party_pack':
+                onDownloadPartyPack();
+                break;
         }
-        try {
-            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
-            if (response.ok) {
-                const shortUrl = await response.text();
-                setShortenedUrlCache(prev => ({ ...prev, [longUrl]: shortUrl }));
-                return shortUrl;
-            }
-        } catch (error) {
-            console.error('TinyURL API error:', error);
-        }
-        return longUrl; // Fallback to long URL on error
-    }, [shortenedUrlCache]);
-
-    useEffect(() => {
-        if (useShortenedUrls) {
-            setIsShortening(true);
-            const shortenAll = async () => {
-                const promises = participantLinks.map(p => shortenUrl(p.link));
-                await Promise.all(promises);
-                setIsShortening(false);
-            };
-            shortenAll();
-        }
-    }, [useShortenedUrls, participantLinks, shortenUrl]);
-
-    const filteredLinks = participantLinks.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const getLink = (link: string) => useShortenedUrls ? (shortenedUrlCache[link] || link) : link;
+    };
 
     return (
         <div 
-            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 animate-fade-in-fast"
+            className={`fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
             onClick={onClose}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="share-links-title"
         >
             <div 
-                className="bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col"
-                onClick={e => e.stopPropagation()}
+                onClick={e => e.stopPropagation()} 
+                className={`bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-2xl w-full transition-all duration-300 transform ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
             >
-                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 -m-8 mb-6 p-8 rounded-t-2xl text-white">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-3xl font-bold font-serif">Sharing & Download Options</h2>
-                         <button onClick={onClose} className="text-purple-200 hover:text-white font-bold text-3xl">&times;</button>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h2 id="share-links-title" className="text-2xl font-bold text-slate-800 font-serif mb-2">Share & Download</h2>
+                        <p className="text-gray-600 mb-4">Send each person their unique reveal link. They'll find a link to gift ideas after they reveal their match.</p>
                     </div>
-                    <p className="opacity-90 mt-2">
-                        Use these options to share links one-by-one, or perform bulk actions for your whole group.
-                    </p>
+                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl font-bold" aria-label="Close modal">&times;</button>
                 </div>
 
-                <div className="mb-6 p-4 bg-slate-50 rounded-xl border">
-                    <h3 className="font-bold text-slate-600 text-sm uppercase tracking-wider mb-3 flex items-center gap-2"><List size={16}/>Group Actions & Downloads</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                         <button onClick={handleCopyAll} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-indigo-100 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
-                            {copiedStates['all-links'] ? <Check size={16} className="text-green-600"/> : <Clipboard size={16}/>}
-                            {copiedStates['all-links'] ? 'Copied!' : 'Copy All'}
-                         </button>
-                         <button onClick={handleDownloadCsv} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-indigo-100 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
-                            <FileText size={16}/> Download as CSV
-                         </button>
-                         <button onClick={onDownloadMasterList} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-indigo-100 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
-                             <Download size={16}/> Master List (PDF)
-                         </button>
-                         <button onClick={onDownloadAllCards} className="flex items-center justify-center gap-2 bg-slate-200 hover:bg-indigo-100 text-slate-800 font-semibold p-3 rounded-lg text-sm transition-colors">
-                             <Download size={16}/> All Cards (PDF)
-                         </button>
-                    </div>
-                </div>
-
-                <div className="flex-grow flex flex-col min-h-0">
-                    <h3 className="font-bold text-slate-600 text-sm uppercase tracking-wider mb-3 flex items-center gap-2"><Link size={16}/>Share Private Reveal Links</h3>
-                    <div className="flex flex-col md:flex-row gap-4 mb-4">
-                        <div className="relative flex-grow">
-                             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
-                             <input 
-                                type="search"
-                                placeholder="Search for a participant..."
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full p-2 pl-10 border border-slate-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="flex items-center justify-center gap-3 bg-slate-100 p-2 rounded-lg">
-                            <label htmlFor="shorten-toggle" className="text-sm font-semibold text-slate-700">Shorten Links</label>
-                            <div className="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" name="toggle" id="shorten-toggle" checked={useShortenedUrls} onChange={() => setUseShortenedUrls(!useShortenedUrls)} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                                <label htmlFor="shorten-toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                    {links.map(({ id, name, revealUrl }) => (
+                        <div key={id} className="p-3 bg-slate-50 rounded-lg flex flex-col sm:flex-row items-center gap-4 border">
+                            <div className="bg-white p-1 rounded-md hidden sm:block">
+                                <QRCode value={revealUrl} size={48} />
                             </div>
+                            <div className="flex-grow text-center sm:text-left">
+                                <p className="font-semibold text-slate-800">{name}</p>
+                                <p className="text-xs text-slate-500 truncate">{revealUrl}</p>
+                            </div>
+                            <button 
+                                onClick={() => handleCopy(id, revealUrl)}
+                                className={`flex-shrink-0 w-full sm:w-auto px-4 py-2 text-sm font-semibold rounded-md transition-colors ${copiedStates[id] ? 'bg-emerald-500 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'}`}
+                            >
+                                {copiedStates[id] ? 'Copied!' : 'Copy Link'}
+                            </button>
                         </div>
-                    </div>
-
-                    <div className="overflow-y-auto pr-2 flex-grow">
-                        <div className="space-y-3">
-                            {filteredLinks.map(({ id, name, link }) => (
-                                <div key={id} className="p-3 bg-slate-50 rounded-lg grid grid-cols-1 sm:grid-cols-3 items-center gap-3">
-                                    <span className="font-semibold text-slate-800 truncate">{name}</span>
-                                    <div className="col-span-2 flex items-center gap-2">
-                                        <input 
-                                            type="text" 
-                                            readOnly 
-                                            value={getLink(link)} 
-                                            className={`flex-grow p-2 border border-slate-300 rounded-md text-sm bg-white text-slate-500 transition-opacity ${isShortening ? 'opacity-50' : 'opacity-100'}`}
-                                            onFocus={(e) => e.target.select()}
-                                        />
-                                        <a href={`sms:?&body=Hey ${name}, here's your Secret Santa link! ${getLink(link)}`} className="p-2 bg-slate-200 hover:bg-slate-300 rounded-md text-slate-600 transition-colors">
-                                            <MessageSquare size={20}/>
-                                        </a>
-                                        <button 
-                                            onClick={() => handleCopy(id, getLink(link))}
-                                            className={`py-2 px-3 rounded-md font-semibold text-sm transition-colors w-24 text-center ${
-                                                copiedStates[id] 
-                                                ? 'bg-green-600 text-white' 
-                                                : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                                            }`}
-                                        >
-                                            {copiedStates[id] ? <Check size={20} className="mx-auto"/> : 'Copy'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
-                <div className="mt-6 text-center">
-                    <button 
-                        onClick={onClose} 
-                        className="py-2 px-6 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg transition-colors"
-                    >
-                        Close
-                    </button>
+                <div className="mt-6 pt-6 border-t space-y-4">
+                     <div>
+                        <h3 className="text-lg font-bold text-slate-700 text-center mb-3">Downloads & Sharing</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button onClick={() => handleDownload('all_cards')} className="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors"><Download size={16} /> Download All Cards</button>
+                            <button onClick={() => handleDownload('master_list')} className="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors"><Download size={16} /> Download Master List</button>
+                            <button 
+                                onClick={() => handleDownload('party_pack')}
+                                className="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
+                                <Download size={16} /> 
+                                Download Party Pack
+                            </button>
+                            <button 
+                                onClick={handleCopyAll}
+                                className={`w-full font-semibold py-3 px-4 rounded-lg transition-colors ${copiedStates.all ? 'bg-emerald-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'}`}
+                            >
+                                {copiedStates.all ? 'All Links Copied!' : 'Copy All Links'}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <button 
+                            onClick={onClose} 
+                            className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-lg transition-colors"
+                        >
+                            Done
+                        </button>
+                    </div>
                 </div>
             </div>
-             <style>{`
-                .toggle-checkbox:checked { right: 0; border-color: #4f46e5; }
-                .toggle-checkbox:checked + .toggle-label { background-color: #4f46e5; }
-                @keyframes fade-in-fast { from { opacity: 0; } to { opacity: 1; } }
-                .animate-fade-in-fast { animation: fade-in-fast 0.2s ease-out forwards; }
-             `}</style>
         </div>
     );
 };

@@ -4,8 +4,10 @@ import CookieConsentBanner from './components/CookieConsentBanner';
 import { decodeData } from './services/urlService';
 import type { ExchangeData } from './types';
 
-// Lazy load the ResultsPage component
+// Lazy load page components for better performance
 const ResultsPage = lazy(() => import('./components/ResultsPage'));
+const SuccessPage = lazy(() => import('./components/SuccessPage'));
+const GiftIdeasPage = lazy(() => import('./components/GiftIdeasPage'));
 
 const loadTrackingScripts = () => {
   if ((window as any).trackingScriptsLoaded) {
@@ -77,6 +79,7 @@ const LoadingFallback = () => (
 const App: React.FC = () => {
   const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
   const [participantId, setParticipantId] = useState<string | null>(null);
+  const [view, setView] = useState<'generator' | 'results' | 'success' | 'gift_ideas'>('generator');
   const [error, setError] = useState<string | null>(null);
   const [showCookieBanner, setShowCookieBanner] = useState(false);
 
@@ -98,23 +101,25 @@ const App: React.FC = () => {
           const mainHash = hash.split('?')[0];
           const decoded = decodeData(mainHash);
           setExchangeData(decoded);
-          
-          // Set theme based on data from URL
-          if (decoded.pageTheme) {
-            document.documentElement.dataset.theme = decoded.pageTheme;
-          } else {
-            document.documentElement.dataset.theme = 'default';
-          }
 
-          // Check for participant ID in either hash or query string
           const hashParams = new URLSearchParams(hash.split('?')[1] || '');
           const id = searchParams.get('id') || hashParams.get('id');
-          setParticipantId(id);
+          const page = searchParams.get('page') || hashParams.get('page');
+
+          if (page === 'success') {
+            setView('success');
+          } else if (page === 'gift_ideas' && id) {
+            setParticipantId(id);
+            setView('gift_ideas');
+          } else {
+            setParticipantId(id);
+            setView('results');
+          }
           
         } else {
           setExchangeData(null);
           setParticipantId(null);
-          document.documentElement.dataset.theme = 'default'; // Reset to default theme
+          setView('generator');
         }
       } catch (e) {
         console.error(e);
@@ -142,28 +147,38 @@ const App: React.FC = () => {
     setShowCookieBanner(false);
   };
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
-          <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Link Error</h1>
-          <p className="text-slate-700 text-lg">{error}</p>
-          <a href="/" onClick={(e) => { e.preventDefault(); window.location.href = window.location.pathname; }} className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
-            Start a New Game
-          </a>
+  const renderView = () => {
+    if (error) {
+      return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
+            <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Link Error</h1>
+            <p className="text-slate-700 text-lg">{error}</p>
+            <a href="/" onClick={(e) => { e.preventDefault(); window.location.href = window.location.pathname; }} className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
+              Start a New Game
+            </a>
+          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
+
+    switch (view) {
+      case 'success':
+        return exchangeData ? <SuccessPage data={exchangeData} /> : <GeneratorPage />;
+      case 'results':
+        return exchangeData ? <ResultsPage data={exchangeData} currentParticipantId={participantId} /> : <GeneratorPage />;
+      case 'gift_ideas':
+        return exchangeData && participantId ? <GiftIdeasPage data={exchangeData} currentParticipantId={participantId} /> : <GeneratorPage />;
+      case 'generator':
+      default:
+        return <GeneratorPage />;
+    }
+  };
 
   return (
     <>
       <Suspense fallback={<LoadingFallback />}>
-        {exchangeData ? (
-          <ResultsPage data={exchangeData} currentParticipantId={participantId} />
-        ) : (
-          <GeneratorPage />
-        )}
+        {renderView()}
       </Suspense>
       {showCookieBanner && (
         <CookieConsentBanner
