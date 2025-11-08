@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { Match, ExchangeData } from '../types';
-import { Copy, Check, Link, MessageCircle, FileText, Download, Users, Gift, QrCode } from 'lucide-react';
+import { Copy, Check, Link as LinkIcon, MessageCircle, FileText, Download, Users, Gift, QrCode } from 'lucide-react';
 import { generateAllCardsPdf, generateMasterListPdf, generatePartyPackPdf } from '../services/pdfService';
 import QRCode from "react-qr-code";
+import { trackEvent } from '../services/analyticsService';
 
 interface ShareLinksModalProps {
   matches: Match[];
@@ -28,6 +29,11 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, exchangeData
     // Ensure the ID is a query param for participant links
     return `${baseUrl}?id=${participantId}${hash}`;
   }, []);
+
+  const handleToggleShortLinks = (shouldUseShort: boolean) => {
+    setUseShortLinks(shouldUseShort);
+    trackEvent('toggle_short_links', { enabled: shouldUseShort });
+  };
 
   useEffect(() => {
     const shortenAllLinks = async () => {
@@ -60,26 +66,29 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, exchangeData
     navigator.clipboard.writeText(text).then(() => {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
+      trackEvent('copy_link', { link_id: id });
     });
   };
   
   const handleCopyAll = () => {
     const allLinksText = matches.map(m => `${m.giver.name}: ${getLink(m.giver.id)}`).join('\n');
     handleCopy(allLinksText, 'copy-all-links');
+    trackEvent('copy_all_links');
   };
 
-  const getLink = (id: string) => (useShortLinks ? (shortLinks[id] || 'Generating...') : generateLongLink(id));
+  const getLink = (id: string) => (useShortLinks ? (shortLinks[id] || (isShortening ? 'Shortening...' : 'Failed')) : generateLongLink(id));
   
   const handleDownload = async (type: 'cards' | 'masterlist' | 'partypack') => {
+    trackEvent('download_results', { download_type: type });
     switch (type) {
       case 'cards':
         await generateAllCardsPdf(exchangeData);
         break;
       case 'masterlist':
-        await generateMasterListPdf(exchangeData);
+        generateMasterListPdf(exchangeData);
         break;
       case 'partypack':
-         await generatePartyPackPdf(exchangeData);
+         generatePartyPackPdf(exchangeData);
          break;
     }
   };
@@ -115,7 +124,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, exchangeData
                <h3 className="font-bold text-lg text-slate-700">Participant Reveal Links</h3>
                <div className="flex items-center gap-2">
                   <label htmlFor="shorten-toggle" className="text-sm font-semibold text-slate-600">Use Short Links</label>
-                  <button role="switch" aria-checked={useShortLinks} onClick={() => setUseShortLinks(!useShortLinks)} id="shorten-toggle" className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${useShortLinks ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+                  <button role="switch" aria-checked={useShortLinks} onClick={() => handleToggleShortLinks(!useShortLinks)} id="shorten-toggle" className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${useShortLinks ? 'bg-indigo-600' : 'bg-gray-300'}`}>
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useShortLinks ? 'translate-x-6' : 'translate-x-1'}`}/>
                   </button>
                </div>
@@ -134,8 +143,8 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ matches, exchangeData
                                     <button onClick={() => handleCopy(link, giver.id)} className={`px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-colors ${isCopied ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'}`}>
                                       {isCopied ? <Check size={14} /> : <Copy size={14} />} {isCopied ? 'Copied!' : 'Copy'}
                                     </button>
-                                     <a href={`sms:?&body=Your Secret Santa link is ready! 🎁 ${encodeURIComponent(link)}`} className="px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800"><Link size={14} /> Text</a>
-                                     <a href={`https://api.whatsapp.com/send?text=Your Secret Santa link is ready! 🎁 ${encodeURIComponent(link)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800"><MessageCircle size={14} /> WhatsApp</a>
+                                     <a href={`sms:?&body=Your Secret Santa link is ready! 🎁 ${encodeURIComponent(link)}`} onClick={() => trackEvent('share_link', { method: 'sms' })} className="px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800"><LinkIcon size={14} /> Text</a>
+                                     <a href={`https://api.whatsapp.com/send?text=Your Secret Santa link is ready! 🎁 ${encodeURIComponent(link)}`} onClick={() => trackEvent('share_link', { method: 'whatsapp' })} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800"><MessageCircle size={14} /> WhatsApp</a>
                                 </div>
                             </div>
                             <div className="hidden md:flex justify-center items-center bg-white p-1 border rounded-md">
