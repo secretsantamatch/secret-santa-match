@@ -4,8 +4,8 @@ import Header from './Header';
 import Footer from './Footer';
 import ResultsDisplay from './ResultsDisplay';
 import ShareLinksModal from './ShareLinksModal';
-import { generateMasterListPdf, generatePartyPackPdf } from '../services/pdfService';
 import { trackEvent } from '../services/analyticsService';
+import { Check, Copy } from 'lucide-react';
 
 interface SuccessPageProps {
   data: ExchangeData;
@@ -13,6 +13,7 @@ interface SuccessPageProps {
 
 const SuccessPage: React.FC<SuccessPageProps> = ({ data }) => {
   const [showShareModal, setShowShareModal] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   
   const { p: participants, matches: matchIds } = data;
 
@@ -24,15 +25,14 @@ const SuccessPage: React.FC<SuccessPageProps> = ({ data }) => {
   const organizerUrl = new URL(window.location.href);
   organizerUrl.searchParams.set('page', 'results');
   organizerUrl.searchParams.delete('id');
-  
-  const handleDownloadMasterList = () => {
-      trackEvent('download_results', { type: 'master_list' });
-      generateMasterListPdf(data);
-  };
-  
-  const handleDownloadPartyPack = () => {
-      trackEvent('download_results', { type: 'party_pack' });
-      generatePartyPackPdf(data);
+  const organizerUrlString = organizerUrl.toString();
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(organizerUrlString).then(() => {
+      setIsCopied(true);
+      trackEvent('copy_link', { type: 'organizer_master_link_success_page' });
+      setTimeout(() => setIsCopied(false), 2000);
+    });
   };
 
   return (
@@ -48,8 +48,18 @@ const SuccessPage: React.FC<SuccessPageProps> = ({ data }) => {
             <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">
               Your Secret Santa exchange is ready! Below is the master list for you, the organizer.
             </p>
-            <div className="mt-6 text-sm bg-yellow-50 border border-yellow-200 p-3 rounded-lg max-w-2xl mx-auto">
-                <p><strong className="text-yellow-800">Important:</strong> Save your unique organizer link below to access this page again. We don't save your data!</p>
+            
+            {/* FIX: Redesigned "Important" link section to be more prominent and actionable */}
+            <div className="mt-8 bg-yellow-100 border-2 border-dashed border-yellow-300 p-6 rounded-2xl max-w-3xl mx-auto text-left">
+                <h2 className="text-xl font-bold text-yellow-900">Important: Save Your Organizer Link!</h2>
+                <p className="text-sm text-yellow-800 mt-1 mb-3">This is your unique link to get back to the results page. We don't save your data for privacy, so if you lose this link, you'll have to start over.</p>
+                <div className="flex items-center gap-2">
+                    <input type="text" readOnly value={organizerUrlString} className="w-full p-3 border border-yellow-400 rounded-lg bg-white text-sm truncate"/>
+                    <button onClick={handleCopyLink} className={`py-3 px-4 rounded-lg font-semibold text-sm transition-colors flex-shrink-0 flex items-center gap-2 ${isCopied ? 'bg-green-600 text-white' : 'bg-yellow-800 hover:bg-yellow-900 text-white'}`}>
+                        {isCopied ? <Check size={16}/> : <Copy size={16}/>}
+                        {isCopied ? 'Copied!' : 'Copy'}
+                    </button>
+                </div>
             </div>
           </section>
 
@@ -67,7 +77,8 @@ const SuccessPage: React.FC<SuccessPageProps> = ({ data }) => {
                     <div className="text-center bg-slate-50 p-6 rounded-xl border">
                         <h3 className="text-xl font-bold text-slate-700">Go Physical</h3>
                         <p className="text-slate-500 mt-2 text-sm">Download and print beautifully styled cards to hand out in person. Great for parties!</p>
-                        <a href={`${organizerUrl.toString()}&view=cards`} className="mt-4 inline-block bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-full transition-colors transform hover:scale-105">
+                        {/* FIX: Corrected link to navigate to the results page without the broken parameter */}
+                        <a href={organizerUrlString} className="mt-4 inline-block bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-full transition-colors transform hover:scale-105">
                             View & Print Cards
                         </a>
                     </div>
