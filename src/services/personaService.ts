@@ -1,239 +1,101 @@
-// src/services/personaService.ts
 import type { Participant, GiftPersona } from '../types';
 
-const personas: Record<string, GiftPersona> = {
-    'cozy-connoisseur': {
-        name: 'The Cozy Connoisseur',
-        description: "This person loves quiet, comfortable moments. Think rainy days, a great book, a warm drink, and a pet on their lap. The perfect gift enhances this cozy and thoughtful lifestyle.",
-        categories: {
-            "For Their Reading Nook": ["book lover gifts", "cozy blankets", "reading lights"],
-            "For a Warm Drink Ritual": ["artisanal coffee beans", "gourmet tea sampler", "electric mug warmer"],
-            "For Ultimate Relaxation": ["scented candles", "bath bombs set", "plush slippers"],
-        }
-    },
-    'adventurous-explorer': {
-        name: 'The Adventurous Explorer',
-        description: "This person thrives on new experiences and the great outdoors. They're always planning their next trip, hike, or adventure. The best gifts are practical, durable, and fuel their passion for exploration.",
-        categories: {
-            "For Their Next Hike": ["hiking daypack", "wool hiking socks", "water purification bottle"],
-            "For the Campsite": ["camping hammock", "portable lantern", "compact cooking set"],
-            "For Travel Planning": ["scratch off world map", "travel journal", "portable power bank"],
-        }
-    },
-    'creative-artisan': {
-        name: 'The Creative Artisan',
-        description: "This person has a passion for making things. Whether it's painting, crafting, writing, or music, they love the creative process. The ideal gift provides them with new tools or inspiration for their craft.",
-        categories: {
-            "For the Artist": ["watercolor paint set", "sketchbook and pencils", "calligraphy pen set"],
-            "For the Crafter": ["DIY candle making kit", "embroidery starter kit", "polymer clay set"],
-            "For Creative Inspiration": ["books on creativity", "a Skillshare membership", "a museum pass"],
-        }
-    },
-    'tech-enthusiast': {
-        name: 'The Tech Enthusiast',
-        description: "Gadgets, gaming, and the latest tech trends are what excite this person. They appreciate smart design and clever functionality. A great gift is something that's both fun and on the cutting edge.",
-        categories: {
-            "For Their Desk Setup": ["RGB mousepad", "headphone stand with USB", "smart desk lamp"],
-            "For Smart Home Fun": ["smart plugs", "LED light strips", "a mini smart speaker"],
-            "For On-the-Go Tech": ["portable bluetooth speaker", "phone grip and stand", "cable organizer case"],
-        }
-    },
-    'home-chef': {
-        name: 'The Home Chef & Host',
-        description: "This person finds joy in the kitchen and loves entertaining. They're always trying new recipes and appreciate high-quality tools that make cooking and hosting more enjoyable.",
-        categories: {
-            "For the Kitchen": ["high-quality olive oil", "spice grinder set", "pasta maker"],
-            "For Hosting Guests": ["charcuterie board set", "cocktail shaker kit", "unique coasters"],
-            "For a Foodie's Bookshelf": ["a popular cookbook", "a food science book", "a food magazine subscription"],
-        }
-    },
-    'wellness-advocate': {
-        name: 'The Wellness Advocate',
-        description: "Mindfulness, fitness, and self-care are central to this person's life. They value health and balance. The perfect gift supports their physical and mental well-being.",
-        categories: {
-            "For Fitness": ["yoga mat", "resistance bands set", "foam roller"],
-            "For Mindfulness": ["meditation cushion", "aromatherapy diffuser", "a guided journal"],
-            "For Healthy Living": ["smart water bottle", "a healthy cookbook", "a wellness app subscription"],
-        }
-    },
-    'sports-fanatic': {
-        name: 'The Sports Fanatic',
-        description: "Game day is the best day of the week for this person. They are deeply passionate about their favorite teams and players. A great gift helps them show off their team pride or enjoy the game more.",
-        categories: {
-            "For Game Day at Home": ["team logo blanket", "set of pint glasses", "a book about their team's history"],
-            "For Showing Team Pride": ["official team hat", "a vintage-style team t-shirt", "team car decal"],
-            "For the Active Fan": ["a basketball or football", "a gift card to a sporting goods store", "tickets to a local game"],
-        }
-    },
-     'fashion-forward': {
-        name: 'The Fashion-Forward Trendsetter',
-        description: "This person has a keen eye for style and loves expressing themselves through their wardrobe. They appreciate quality, unique accessories, and staying on top of trends.",
-        categories: {
-            "For Their Wardrobe": ["a silk scarf", "a stylish belt", "a pair of statement socks"],
-            "For Accessorizing": ["a minimalist necklace", "a set of unique enamel pins", "a quality beanie"],
-            "For Style Inspiration": ["a fashion history book", "a style magazine subscription", "a gift card to their favorite store"],
-        }
-    },
-    'music-lover': {
-        name: 'The Music Lover',
-        description: "Life has a soundtrack for this person. They love discovering new artists, going to concerts, or just enjoying their favorite tunes. A great gift enhances their listening experience or celebrates their passion.",
-        categories: {
-            "For Listening": ["high-quality bluetooth speaker", "a vinyl record of a favorite album", "noise-cancelling earbuds"],
-            "For the Fan": ["a band t-shirt", "a biography of a musician", "a poster of a favorite artist"],
-            "For Making Music": ["a ukulele starter kit", "a harmonica", "a gift card for a local music shop"],
-        }
-    },
-    'pop-culture-aficionado': {
-        name: 'The Pop Culture Aficionado',
-        description: "This person is fluent in memes and movie quotes. They live and breathe the worlds of their favorite shows, games, and artists. The perfect gift celebrates their fandom and shows you've been paying attention.",
-        categories: {
-            "For Their Watchlist": ["a streaming service gift card", "a projector for movie nights", "themed snack box"],
-            "For Their Game Setup": ["a mechanical keyboard", "a high-quality gaming mouse", "discord nitro subscription"],
-            "To Show Off Their Fandom": ["a funko pop figure", "an art book from their favorite series", "a subtle enamel pin"],
-        }
-    },
-    'zen-master': {
-        name: 'The Zen Master / Homebody',
-        description: "This person's home is their sanctuary. They value peace, mindfulness, and creating a calm, beautiful environment. The best gifts for them are things that promote relaxation, organization, and a sense of well-being.",
-        categories: {
-            "For Their Zen Space": ["an aromatherapy diffuser", "a bonsai tree kit", "a weighted blanket"],
-            "For Their Self-Care Routine": ["a skincare gift set", "a plush bathrobe", "a subscription to a meditation app"],
-            "For a Tidy Home & Mind": ["a label maker", "a book on minimalism", "aesthetic storage containers"],
-        }
-    },
-    'classic-hobbyist': {
-        name: 'The Classic Hobbyist',
-        description: "This person loves hands-on, timeless hobbies. They appreciate quality craftsmanship, the satisfaction of a project well done, and activities that connect them to the world in a tangible way.",
-        categories: {
-            "For the Garden & Outdoors": ["a high-quality gardening tool set", "a bird feeder and seed", "a book on local plants"],
-            "For Their Workshop or Study": ["a leather-bound journal", "a quality fountain pen", "a model building kit"],
-            "For a Relaxing Afternoon": ["a complex jigsaw puzzle", "a book of crossword puzzles", "a history biography"],
-        }
-    },
-    'default': {
-        name: "The Thoughtful Giver's Choice",
-        description: "While they kept their interests a secret, a thoughtful gift is always a winner. Think about shared experiences, inside jokes, or something universally loved that can make their day a little brighter.",
-        categories: {
-            "Universally Loved Gifts": ["gourmet chocolate box", "a high-quality candle", "a fun party game"],
-            "Cozy Comforts": ["a soft throw blanket", "a unique coffee mug", "a pair of fuzzy socks"],
-            "The Gift of Choice": ["a gift card to a local coffee shop", "an Amazon gift card", "a movie theater gift card"],
-        }
-    }
+const personaKeywordMap: Record<string, string> = {
+    // Tech & Gadgets
+    'tech': 'The Techie', 'gadgets': 'The Techie', 'apple': 'The Techie', 'android': 'The Techie', 'coding': 'The Techie', 'computers': 'The Techie', 'gaming': 'The Gamer', 'video games': 'The Gamer', 'nintendo': 'The Gamer', 'playstation': 'The Gamer', 'xbox': 'The Gamer', 'pc gaming': 'The Gamer',
+    // Food & Drink
+    'foodie': 'The Gourmet', 'cooking': 'The Gourmet', 'baking': 'The Gourmet', 'restaurants': 'The Gourmet', 'wine': 'The Connoisseur', 'beer': 'The Connoisseur', 'cocktails': 'The Connoisseur', 'coffee': 'The Coffee Aficionado', 'tea': 'The Tea Lover',
+    // Home & Lifestyle
+    'homebody': 'The Cozy Connoisseur', 'cozy': 'The Cozy Connoisseur', 'hygge': 'The Cozy Connoisseur', 'candles': 'The Cozy Connoisseur', 'blankets': 'The Cozy Connoisseur', 'gardening': 'The Green Thumb', 'plants': 'The Green Thumb', 'outdoors': 'The Adventurer', 'hiking': 'The Adventurer', 'camping': 'The Adventurer', 'travel': 'The Globetrotter', 'decor': 'The Interior Decorator', 'home decor': 'The Interior Decorator',
+    // Arts & Crafts
+    'art': 'The Artist', 'crafts': 'The Crafter', 'diy': 'The Crafter', 'knitting': 'The Crafter', 'sewing': 'The Crafter', 'painting': 'The Artist', 'drawing': 'The Artist', 'photography': 'The Artist',
+    // Reading & Writing
+    'reading': 'The Bookworm', 'books': 'The Bookworm', 'writer': 'The Bookworm', 'writing': 'The Bookworm', 'journaling': 'The Bookworm',
+    // Music & Movies
+    'music': 'The Audiophile', 'concerts': 'The Audiophile', 'vinyl': 'The Audiophile', 'movies': 'The Cinephile', 'film': 'The Cinephile', 'tv shows': 'The Binge-Watcher', 'netflix': 'The Binge-Watcher',
+    // Sports & Fitness
+    'fitness': 'The Fitness Buff', 'gym': 'The Fitness Buff', 'running': 'The Fitness Buff', 'yoga': 'The Zen Master', 'sports': 'The Sports Fan', 'football': 'The Sports Fan', 'basketball': 'The Sports Fan',
+    // Fashion & Beauty
+    'fashion': 'The Trendsetter', 'style': 'The Trendsetter', 'makeup': 'The Beauty Guru', 'skincare': 'The Beauty Guru',
+    // Other
+    'animals': 'The Animal Lover', 'pets': 'The Animal Lover', 'dogs': 'The Animal Lover', 'cats': 'The Animal Lover', 'spiritual': 'The Zen Master', 'wellness': 'The Zen Master', 'board games': 'The Gamer',
 };
 
-// A massively expanded, organized map of keywords to personas.
-const keywordMap: Record<string, keyof typeof personas> = {
-    // Adventurous Explorer
-    'adventure': 'adventurous-explorer', 'biking': 'adventurous-explorer', 'camping': 'adventurous-explorer',
-    'climbing': 'adventurous-explorer', 'geocaching': 'adventurous-explorer', 'hiking': 'adventurous-explorer',
-    'kayaking': 'adventurous-explorer', 'national parks': 'adventurous-explorer', 'outdoors': 'adventurous-explorer',
-    'road trips': 'adventurous-explorer', 'skiing': 'adventurous-explorer',
-    'travel': 'adventurous-explorer',
-
-    // Classic Hobbyist
-    'bird watching': 'classic-hobbyist', 'biographies': 'classic-hobbyist', 'bridge': 'classic-hobbyist',
-    'crossword puzzles': 'classic-hobbyist', 'fishing': 'classic-hobbyist', 'gardening': 'classic-hobbyist',
-    'history': 'classic-hobbyist', 'puzzles': 'classic-hobbyist', 'woodworking': 'classic-hobbyist',
-
-    // Cozy Connoisseur
-    'audiobooks': 'cozy-connoisseur', 'binge watching': 'cozy-connoisseur', 'books': 'cozy-connoisseur',
-    'cats': 'cozy-connoisseur', 'coffee': 'cozy-connoisseur', 'cozy': 'cozy-connoisseur',
-    'disney+': 'cozy-connoisseur', 'hulu': 'cozy-connoisseur', 'knitting': 'cozy-connoisseur',
-    'movies': 'cozy-connoisseur', 'podcasts': 'cozy-connoisseur', 'reading': 'cozy-connoisseur',
-    'streaming': 'cozy-connoisseur', 'tea': 'cozy-connoisseur', 'true crime': 'cozy-connoisseur',
-
-    // Creative Artisan
-    'art': 'creative-artisan', 'crafts': 'creative-artisan', 'diy': 'creative-artisan', 'drawing': 'creative-artisan',
-    'graphic design': 'creative-artisan', 'painting': 'creative-artisan',
-    'photography': 'creative-artisan', 'pottery': 'creative-artisan', 'upcycling': 'creative-artisan',
-    'writing': 'creative-artisan',
-
-    // Fashion-Forward Trendsetter
-    'accessories': 'fashion-forward', 'clothes': 'fashion-forward', 'fashion': 'fashion-forward',
-    'shopping': 'fashion-forward', 'skincare': 'fashion-forward', 'style': 'fashion-forward', 'thrifting': 'fashion-forward',
-
-    // Home Chef & Host
-    'air fryer': 'home-chef', 'baking': 'home-chef', 'cocktails': 'home-chef', 'cooking': 'home-chef',
-    'craft beer': 'home-chef', 'foodie': 'home-chef', 'hosting': 'home-chef', 'meal prep': 'home-chef',
-    'sourdough': 'home-chef', 'whiskey': 'home-chef', 'wine': 'home-chef',
-
-    // Music Lover
-    'concerts': 'music-lover', 'guitar': 'music-lover', 'music': 'music-lover', 'singing': 'music-lover',
-    'taylor swift': 'music-lover', 'vinyl': 'music-lover',
-
-    // Pop Culture Aficionado
-    'anime': 'pop-culture-aficionado', 'd&d': 'pop-culture-aficionado', 'discord': 'pop-culture-aficionado',
-    'esports': 'pop-culture-aficionado', 'funko pop': 'pop-culture-aficionado', 'k-pop': 'pop-culture-aficionado',
-    'manga': 'pop-culture-aficionado', 'marvel': 'pop-culture-aficionado', 'memes': 'pop-culture-aficionado',
-    'netflix': 'pop-culture-aficionado', 'nintendo switch': 'pop-culture-aficionado', 'pc gaming': 'pop-culture-aficionado',
-    'star wars': 'pop-culture-aficionado', 'twitch': 'pop-culture-aficionado', 'youtube': 'pop-culture-aficionado',
-
-    // Sports Fanatic
-    'baseball': 'sports-fanatic', 'basketball': 'sports-fanatic', 'football': 'sports-fanatic',
-    'hockey': 'sports-fanatic', 'soccer': 'sports-fanatic', 'sports': 'sports-fanatic',
-
-    // Tech Enthusiast
-    'computers': 'tech-enthusiast', 'gadgets': 'tech-enthusiast', 'gaming': 'tech-enthusiast',
-    'smart home': 'tech-enthusiast', 'tech': 'tech-enthusiast', 'video games': 'tech-enthusiast',
-
-    // Zen Master / Homebody
-    'astrology': 'zen-master', 'boba tea': 'zen-master', 'journaling': 'zen-master', 'meditation': 'zen-master',
-    'minimalism': 'zen-master', 'organization': 'zen-master', 'plants': 'zen-master', 'self-care': 'zen-master',
-    'yoga': 'zen-master',
-
-    // Wellness Advocate (overlaps with Zen Master, but more fitness-focused)
-    'fitness': 'wellness-advocate', 'gym': 'wellness-advocate', 'health': 'wellness-advocate',
-    'running': 'wellness-advocate', 'wellness': 'wellness-advocate',
+const personas: Record<string, Omit<GiftPersona, 'categories'>> = {
+    'The Techie': { name: 'The Techie', description: 'Loves the latest gadgets, sleek designs, and anything that makes life more efficient. They appreciate quality and innovation.' },
+    'The Gamer': { name: 'The Gamer', description: 'Passionate about virtual worlds, whether on console, PC, or tabletop. They enjoy immersive experiences and collectibles related to their favorite games.' },
+    'The Gourmet': { name: 'The Gourmet', description: 'A true food lover who enjoys cooking, trying new restaurants, and experimenting with flavors. Quality ingredients and unique kitchen tools are always a win.' },
+    'The Connoisseur': { name: 'The Connoisseur', description: 'Appreciates the finer things, whether it’s a craft beer, a fine wine, or a perfectly mixed cocktail. They have a refined palate and enjoy the experience of tasting.' },
+    'The Coffee Aficionado': { name: 'The Coffee Aficionado', description: 'For them, coffee is a ritual. They love exploring different beans, brewing methods, and accessories that elevate their daily cup.' },
+    'The Tea Lover': { name: 'The Tea Lover', description: 'Finds comfort and joy in a perfect cup of tea. They appreciate exotic blends, beautiful teaware, and moments of calm.' },
+    'The Cozy Connoisseur': { name: 'The Cozy Connoisseur', description: 'This person loves quiet, comfortable moments. Think rainy days, a great book, a warm drink, and a pet on their lap. The perfect gift enhances this cozy and thoughtful lifestyle.' },
+    'The Green Thumb': { name: 'The Green Thumb', description: 'Has a passion for plants and gardening. They love nurturing their green friends and appreciate beautiful pots, useful tools, or unique new plants.' },
+    'The Adventurer': { name: 'The Adventurer', description: 'Loves the great outdoors. Hiking, camping, and exploring new places are their passions. Practical, durable gear is always a welcome gift.' },
+    'The Globetrotter': { name: 'The Globetrotter', description: 'Always planning their next trip. They value experiences over things and appreciate gifts that make travel easier, more comfortable, or more memorable.' },
+    'The Interior Decorator': { name: 'The Interior Decorator', description: 'Has a great eye for style and loves making their space beautiful and unique. Think art prints, stylish home accents, and unique decor pieces.' },
+    'The Artist': { name: 'The Artist', description: 'A creative soul who loves to express themselves through visual arts. High-quality supplies, inspirational books, or workshops are perfect for them.' },
+    'The Crafter': { name: 'The Crafter', description: 'Loves making things by hand. Whether it’s knitting, sewing, or DIY projects, they appreciate tools and materials that fuel their creativity.' },
+    'The Bookworm': { name: 'The Bookworm', description: 'Finds joy in getting lost in a good story. Best-sellers, indie gems, or cozy reading accessories are always a great choice.' },
+    'The Audiophile': { name: 'The Audiophile', description: 'Music is their passion. They appreciate high-fidelity sound, discovering new artists, and collecting music in all its forms.' },
+    'The Cinephile': { name: 'The Cinephile', description: 'A true film buff who loves everything from classic cinema to modern blockbusters. Movie memorabilia, art books, or a streaming service subscription would be perfect.' },
+    'The Binge-Watcher': { name: 'The Binge-Watcher', description: 'Loves getting hooked on a new TV series. Cozy essentials for a marathon viewing session or merchandise from their favorite show are great ideas.' },
+    'The Fitness Buff': { name: 'The Fitness Buff', description: 'Dedicated to their health and wellness. They appreciate high-quality workout gear, tech that tracks their progress, and healthy lifestyle products.' },
+    'The Zen Master': { name: 'The Zen Master', description: 'Values mindfulness, wellness, and inner peace. Gifts that promote relaxation, meditation, or self-care are ideal for them.' },
+    'The Sports Fan': { name: 'The Sports Fan', description: 'Lives and breathes for their favorite team. Team merchandise, memorabilia, or tickets to a game are sure-fire hits.' },
+    'The Trendsetter': { name: 'The Trendsetter', description: 'Has a keen sense of style and loves to stay ahead of the latest fashion trends. Unique accessories, clothing from cool brands, or a style magazine subscription would be great.' },
+    'The Beauty Guru': { name: 'The Beauty Guru', description: 'Loves all things skincare and makeup. High-quality products, new tools, or a gift set from a popular brand would be a dream come true.' },
+    'The Animal Lover': { name: 'The Animal Lover', description: 'Adores their furry (or scaly) friends. A fun gift for their pet, a donation to an animal charity in their name, or cute animal-themed items would make them smile.' },
 };
 
-
-/**
- * Gets the most relevant Gift Persona for a participant based on their interests and likes.
- * This is a client-side, non-AI implementation.
- * @param participant The participant for whom to find a persona.
- * @returns A GiftPersona object.
- */
-export const getGiftPersona = (participant: Participant): GiftPersona => {
+export const getGiftPersona = (receiver: Participant): GiftPersona | null => {
     const keywords = [
-        ...(participant.interests?.split(',') || []),
-        ...(participant.likes?.split(',') || [])
-    ].map(k => k.trim().toLowerCase()).filter(Boolean);
+        ...(receiver.interests || '').toLowerCase().split(','),
+        ...(receiver.likes || '').toLowerCase().split(',')
+    ].map(k => k.trim()).filter(Boolean);
 
     if (keywords.length === 0) {
-        return personas.default;
-    }
-
-    const personaScores: Record<string, number> = {};
-
-    for (const keyword of keywords) {
-        // Handle multi-word keywords by checking if they are contained in the map
-        let foundMatch = false;
-        for (const mapKey in keywordMap) {
-            if (keyword.includes(mapKey)) {
-                const personaKey = keywordMap[mapKey];
-                personaScores[personaKey] = (personaScores[personaKey] || 0) + 1;
-                foundMatch = true;
-                break; // Stop after first match to avoid over-counting
-            }
-        }
-        if (foundMatch) continue;
-
-        // Fallback for single keywords
-        const personaKey = keywordMap[keyword];
-        if (personaKey) {
-            personaScores[personaKey] = (personaScores[personaKey] || 0) + 1;
-        }
-    }
-
-    let bestMatch: keyof typeof personas = 'default';
-    let maxScore = 0;
-
-    for (const personaKey in personaScores) {
-        if (personaScores[personaKey] > maxScore) {
-            maxScore = personaScores[personaKey];
-            bestMatch = personaKey as keyof typeof personas;
-        }
+        return {
+            ...personas['The Cozy Connoisseur'],
+            categories: {}
+        };
     }
     
-    return personas[bestMatch] || personas.default;
+    const personaCounts: Record<string, number> = {};
+    keywords.forEach(keyword => {
+        for (const mapKey in personaKeywordMap) {
+            if (keyword.includes(mapKey)) {
+                const personaName = personaKeywordMap[mapKey];
+                personaCounts[personaName] = (personaCounts[personaName] || 0) + 1;
+                break; 
+            }
+        }
+    });
+
+    let bestPersonaName = 'The Cozy Connoisseur'; // A nice default
+    let maxCount = 0;
+    for (const personaName in personaCounts) {
+        if (personaCounts[personaName] > maxCount) {
+            maxCount = personaCounts[personaName];
+            bestPersonaName = personaName;
+        }
+    }
+
+    const persona = personas[bestPersonaName];
+    if (!persona) return null;
+
+    // Build categories based on all keywords, not just the ones that determined the persona
+    const categories: Record<string, string[]> = {};
+    const addedKeywords = new Set<string>();
+
+    keywords.forEach(kw => {
+        if (addedKeywords.has(kw)) return;
+        const categoryName = `For Their Love of ${kw.charAt(0).toUpperCase() + kw.slice(1)}`;
+        if (!categories[categoryName]) {
+            categories[categoryName] = [];
+        }
+        categories[categoryName].push(kw);
+        addedKeywords.add(kw);
+    });
+
+    return { ...persona, categories };
 };

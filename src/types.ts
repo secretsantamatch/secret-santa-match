@@ -3,10 +3,10 @@ import type React from 'react';
 export interface Participant {
   id: string;
   name: string;
-  interests: string; // Comma-separated keywords for hobbies
-  likes: string; // Comma-separated keywords for things they like
-  dislikes: string; // Text for things they dislike or are allergic to
-  links: string; // New field for specific product URLs
+  interests: string;
+  likes: string;
+  dislikes: string;
+  links: string;
   budget: string;
 }
 
@@ -66,11 +66,11 @@ export interface BackgroundOption {
 
 export interface ExchangeData {
     matches: { g: string; r: string; }[];
-    p: Participant[]; // Renamed from participants
+    p: Participant[];
     eventDetails: string;
     exclusions: Exclusion[];
     assignments: Assignment[];
-    bgId: string; // Renamed from backgroundId
+    bgId: string;
     customBackground: string | null;
     textColor: string;
     useTextOutline: boolean;
@@ -88,11 +88,6 @@ export interface ExchangeData {
     pageTheme?: string;
 }
 
-export interface PdfCardOptions extends CardStyleData {
-  eventDetails: string;
-  backgroundOptions: BackgroundOption[];
-}
-
 export interface Resource {
   id: string;
   type: 'Free Download' | 'Guide & Tips' | 'Article' | 'Guide & Printable';
@@ -104,7 +99,7 @@ export interface Resource {
   keywords?: string[];
 }
 
-// Types for Minimum Payment Calculator
+// Types for Calculators
 export interface Debt {
   id: number;
   name: string;
@@ -114,31 +109,27 @@ export interface Debt {
   minPaymentFlat: number;
 }
 
-export interface MoneySavingTip {
-  label: string;
-  amount: number;
-  description: string;
-  icon: React.ElementType;
-}
-
 export interface PayoffResult {
   months: number;
   totalInterest: number;
   totalPaid: number;
 }
 
-export interface ScenarioResult extends PayoffResult {
-  debtFreeYear: number | string;
+export interface MoneySavingTip {
+  label: string;
+  amount: number;
+  description: string;
+  icon: React.ElementType; // Lucide icon component
 }
 
 export interface CalculatorResult {
   totalMinPayment: number;
-  scenarios: ScenarioResult[];
+  scenarios: (PayoffResult & { debtFreeYear: number | string })[];
   customPaymentTotal: number;
   customResults: PayoffResult;
   customYear: number | string;
   customInterestSaved: number;
   weightedAPR: number;
-  interestVsPrincipal: { name: string; value: number; fill: string; }[];
+  interestVsPrincipal: { name: string; value: number; fill: string }[];
   moneySavingTips: MoneySavingTip[];
 }

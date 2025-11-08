@@ -1,58 +1,92 @@
-import React from 'react';
-import type { ExchangeData } from '../types';
-import { PartyPopper, Users, FileDown } from 'lucide-react';
+import React, { useState } from 'react';
+import type { ExchangeData, Match } from '../types';
+import Header from './Header';
+import Footer from './Footer';
+import ResultsDisplay from './ResultsDisplay';
+import ShareLinksModal from './ShareLinksModal';
+import { generateMasterListPdf, generatePartyPackPdf } from '../services/pdfService';
+import { trackEvent } from '../services/analyticsService';
 
 interface SuccessPageProps {
   data: ExchangeData;
 }
 
 const SuccessPage: React.FC<SuccessPageProps> = ({ data }) => {
-    
-    const handleViewResults = () => {
-        // Navigate to the organizer's results page
-        const baseUrl = window.location.href.split('#')[0].split('?')[0];
-        window.location.href = `${baseUrl}${window.location.hash}`;
-    };
+  const [showShareModal, setShowShareModal] = useState(false);
+  
+  const { p: participants, matches: matchIds } = data;
 
-    return (
-        <div className="min-h-screen bg-slate-100 flex items-center justify-center py-12 px-4">
-            <div className="max-w-xl w-full text-center p-8 bg-white rounded-2xl shadow-lg border">
-                <PartyPopper className="mx-auto h-16 w-16 text-green-500 mb-4" />
-                <h1 className="text-4xl font-bold font-serif text-slate-800">Success!</h1>
-                <p className="text-lg text-slate-600 mt-4">
-                    We've successfully generated matches for your <strong>{data.p.length} participants</strong>.
-                </p>
+  const matches: Match[] = matchIds.map(m => ({
+      giver: participants.find(p => p.id === m.g)!,
+      receiver: participants.find(p => p.id === m.r)!,
+  })).filter(m => m.giver && m.receiver);
 
-                <div className="mt-8 bg-slate-50 p-6 rounded-xl border space-y-4 text-left">
-                     <div className="flex items-center gap-4">
-                        <div className="bg-blue-100 text-blue-600 p-3 rounded-full">
-                            <Users size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-slate-800">View Master List & Get Links</h3>
-                            <p className="text-slate-600 text-sm">See all the matches and get unique, private links to share with each person.</p>
-                        </div>
+  const organizerUrl = new URL(window.location.href);
+  organizerUrl.searchParams.set('page', 'results');
+  organizerUrl.searchParams.delete('id');
+  
+  const handleDownloadMasterList = () => {
+      trackEvent('download_results', { type: 'master_list' });
+      generateMasterListPdf(data);
+  };
+  
+  const handleDownloadPartyPack = () => {
+      trackEvent('download_results', { type: 'party_pack' });
+      generatePartyPackPdf(data);
+  };
+
+  return (
+    <>
+      <Header />
+      <main className="bg-slate-50">
+        <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+          <section className="text-center py-10">
+            <div className="inline-block bg-green-100 text-green-700 p-4 rounded-full mb-4 animate-fade-in">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">Success! Matches Generated.</h1>
+            <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">
+              Your Secret Santa exchange is ready! Below is the master list for you, the organizer.
+            </p>
+            <div className="mt-6 text-sm bg-yellow-50 border border-yellow-200 p-3 rounded-lg max-w-2xl mx-auto">
+                <p><strong className="text-yellow-800">Important:</strong> Save your unique organizer link below to access this page again. We don't save your data!</p>
+            </div>
+          </section>
+
+          <section className="my-8">
+             <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+                <h2 className="text-2xl font-bold text-slate-800 font-serif mb-6 text-center">Distribute Your Matches</h2>
+                <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                    <div className="text-center bg-slate-50 p-6 rounded-xl border">
+                        <h3 className="text-xl font-bold text-slate-700">Go Digital</h3>
+                        <p className="text-slate-500 mt-2 text-sm">Share private reveal links via text, email, or your favorite chat app. Perfect for remote groups!</p>
+                        <button onClick={() => setShowShareModal(true)} className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full transition-colors transform hover:scale-105">
+                            Share Links Online
+                        </button>
                     </div>
-                     <div className="flex items-center gap-4">
-                        <div className="bg-emerald-100 text-emerald-600 p-3 rounded-full">
-                            <FileDown size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-slate-800">Download Printable Cards</h3>
-                            <p className="text-slate-600 text-sm">Download beautifully styled cards for your in-person party.</p>
-                        </div>
+                    <div className="text-center bg-slate-50 p-6 rounded-xl border">
+                        <h3 className="text-xl font-bold text-slate-700">Go Physical</h3>
+                        <p className="text-slate-500 mt-2 text-sm">Download and print beautifully styled cards to hand out in person. Great for parties!</p>
+                        <a href={`${organizerUrl.toString()}&view=cards`} className="mt-4 inline-block bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-full transition-colors transform hover:scale-105">
+                            View & Print Cards
+                        </a>
                     </div>
                 </div>
-
-                <button 
-                    onClick={handleViewResults}
-                    className="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-4 rounded-full shadow-lg transform hover:scale-105 transition-all"
-                >
-                    Continue to Results &rarr;
-                </button>
             </div>
+          </section>
+
+          <section className="my-8">
+            <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+                <h2 className="text-2xl font-bold text-slate-800 font-serif mb-6 text-center">Organizer's Master List</h2>
+                <ResultsDisplay matches={matches} />
+            </div>
+          </section>
         </div>
-    );
+      </main>
+      <Footer />
+      {showShareModal && <ShareLinksModal exchangeData={data} onClose={() => setShowShareModal(false)} />}
+    </>
+  );
 };
 
 export default SuccessPage;
