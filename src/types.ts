@@ -10,6 +10,12 @@ export interface Participant {
   budget: string;
 }
 
+export interface GiftPersona {
+    name: string;
+    description: string;
+    categories: Record<string, string[]>;
+}
+
 export interface Match {
   giver: Participant;
   receiver: Participant;

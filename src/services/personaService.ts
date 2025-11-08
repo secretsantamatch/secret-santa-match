@@ -1,11 +1,5 @@
 // src/services/personaService.ts
-import type { Participant } from '../types';
-
-export interface GiftPersona {
-    name: string;
-    description: string;
-    categories: Record<string, string[]>; // e.g., { "For their Coffee Ritual": ["pour over coffee maker", "artisanal coffee beans"] }
-}
+import type { Participant, GiftPersona } from '../types';
 
 const personas: Record<string, GiftPersona> = {
     'cozy-connoisseur': {
