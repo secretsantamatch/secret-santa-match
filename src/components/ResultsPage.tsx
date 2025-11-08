@@ -1,156 +1,99 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import type { ExchangeData, Match, Participant, GiftPersona } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import type { ExchangeData, Match, Participant } from '../types';
+import { generatePdf } from '../services/pdfService';
+import { getGiftPersona } from '../services/personaService';
 import Header from './Header';
 import Footer from './Footer';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
 import ShareLinksModal from './ShareLinksModal';
-import { getGiftPersona } from '../services/personaService';
 import { trackEvent } from '../services/analyticsService';
-import { Share2, Shuffle, Gift, Lightbulb, Heart, ShoppingCart, ThumbsDown, Link as LinkIcon, Wallet } from 'lucide-react';
-import QRCode from "react-qr-code";
+import { ArrowLeft, Gift, Share2, Download, Search, Sparkles } from 'lucide-react';
+import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 
 
 interface ResultsPageProps {
-  data: ExchangeData;
-  currentParticipantId: string | null;
+    data: ExchangeData;
+    currentParticipantId: string | null;
 }
 
-const findMatchForGiver = (data: ExchangeData, giverId: string): Match | null => {
-    const matchData = data.matches.find(m => m.g === giverId);
-    if (!matchData) return null;
+const GiftIdeas: React.FC<{ participant: Participant, budget: string }> = ({ participant, budget }) => {
+    const [giftIdeas, setGiftIdeas] = useState<string[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const giver = data.p.find(p => p.id === matchData.g);
-    const receiver = data.p.find(p => p.id === matchData.r);
+    const persona = useMemo(() => getGiftPersona(participant), [participant]);
 
-    if (!giver || !receiver) return null;
-    return { giver, receiver };
-};
+    const generateGiftIdeas = async () => {
+        setIsLoading(true);
+        setError(null);
+        trackEvent('generate_gift_ideas', { persona: persona.name });
+        try {
+            // FIX: Initialize GoogleGenAI with API key from environment variables.
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+            const prompt = `
+                Generate 5 creative and thoughtful gift ideas for a Secret Santa exchange.
+                The recipient is described as: "${persona.name} - ${persona.description}".
+                Their specific interests are: ${participant.interests || 'none specified'}.
+                They like: ${participant.likes || 'none specified'}.
+                They dislike: ${participant.dislikes || 'none specified'}.
+                The suggested budget is around $${budget || '25'}.
 
-const reconstructAllMatches = (data: ExchangeData): Match[] => {
-    return data.matches.map(m => {
-        const giver = data.p.find(p => p.id === m.g) as Participant;
-        const receiver = data.p.find(p => p.id === m.r) as Participant;
-        return { giver, receiver };
-    }).filter(m => m.giver && m.receiver);
-};
-
-// The new, combined Gift Inspiration section
-// FIX: Added `name` to the props to be passed down from the parent component.
-const GiftInspirationSection: React.FC<{ receiver: Participant; name: string; }> = ({ receiver, name }) => {
-    // FIX: Corrected a typo from `of =>` to `() =>` to properly define the memoized function.
-    // This resolves the type of `persona` to `GiftPersona`, fixing subsequent property access errors.
-    const persona = useMemo(() => getGiftPersona(receiver), [receiver]);
-    const interests = useMemo(() => [...(receiver.interests?.split(',') || []), ...(receiver.likes?.split(',') || [])].map(i => i.trim()).filter(Boolean), [receiver]);
-    const dislikes = useMemo(() => (receiver.dislikes?.split(',') || []).map(i => i.trim()).filter(Boolean), [receiver]);
-    const links = useMemo(() => (receiver.links?.split('\n') || []).map(l => l.trim()).filter(Boolean), [receiver]);
+                List only the gift ideas, one per line, without any extra formatting or numbering. Be specific.
+                For example:
+                A gourmet coffee tasting set from a local roaster
+                A subscription to a popular book club box
+                A high-quality, plush throw blanket
+            `;
+            // FIX: Use ai.models.generateContent to generate content from the model.
+            const response: GenerateContentResponse = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+            });
+            // FIX: Extract text directly from the response object.
+            const ideas = response.text.trim().split('\n').filter(idea => idea.trim() !== '');
+            setGiftIdeas(ideas);
+        } catch (e) {
+            console.error("Error generating gift ideas:", e);
+            setError("Could not generate AI gift ideas. Please try again later.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
-        <div className="mt-12 animate-fade-in" id="gift-inspiration">
-             <div className="text-center mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif flex items-center justify-center gap-3">
-                    <Heart className="text-red-500" size={32} />
-                    Gift Inspiration for <span className="text-red-600">{receiver.name}</span>
-                </h2>
-                {/* FIX: The `name` variable was not defined in this component's scope. It is now passed in as a prop. */}
-                <p className="text-slate-600 mt-2">Hey {name}, here are some ideas to help you find the perfect gift!</p>
-            </div>
+        <div className="mt-8 bg-slate-50 p-6 rounded-2xl border">
+            <h3 className="text-xl font-bold text-slate-700 text-center mb-2">Need Gift Inspiration?</h3>
+            <p className="text-center text-slate-500 mb-4 text-sm">Based on their interests, they seem to be a <strong>{persona.name}</strong>. Here are some AI-powered ideas to get you started!</p>
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content */}
-                <div className="lg:col-span-2 space-y-6">
+            {giftIdeas.length > 0 && (
+                 <ul className="space-y-3 list-disc list-inside text-slate-700 bg-white p-4 rounded-lg border">
+                    {giftIdeas.map((idea, index) => (
+                        <li key={index}>{idea}</li>
+                    ))}
+                </ul>
+            )}
 
-                    {/* Interests */}
-                    {interests.length > 0 && (
-                        <div className="bg-white p-6 rounded-2xl shadow-lg border">
-                            <h3 className="font-bold text-xl text-slate-700 mb-4 flex items-center gap-3"><ShoppingCart className="text-blue-500" />Interests, Hobbies & Likes</h3>
-                            <p className="text-sm text-slate-500 mb-4">Click a tag for instant gift ideas!</p>
-                            <div className="flex flex-wrap gap-3">
-                                {interests.map(interest => (
-                                    <a
-                                        key={interest}
-                                        href={`https://www.amazon.com/s?k=${encodeURIComponent(interest)}&tag=secretsantama-20`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={() => trackEvent('click_gift_idea', { keyword: interest, persona: persona.name })}
-                                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-5 rounded-full text-base transition-transform transform hover:scale-105 shadow-md flex items-center gap-2"
-                                    >
-                                        <Gift size={16} /> {interest}
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
+            {error && <p className="text-center text-red-600 mt-4">{error}</p>}
+            
+            <div className="text-center mt-6">
+                <button
+                    onClick={generateGiftIdeas}
+                    disabled={isLoading}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full transition-all flex items-center gap-2 mx-auto disabled:opacity-50"
+                >
+                    {isLoading ? (
+                        <>
+                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Generating...
+                        </>
+                    ) : (
+                       <> <Sparkles size={20} /> Generate AI Gift Ideas</>
                     )}
-
-                    {/* Budget */}
-                    {receiver.budget && (
-                         <div className="bg-white p-6 rounded-2xl shadow-lg border">
-                            <h3 className="font-bold text-xl text-slate-700 mb-4 flex items-center gap-3"><Wallet className="text-green-500" />Interactive Budget Assistant</h3>
-                             <div className="flex flex-wrap gap-3">
-                                <a href={`https://www.amazon.com/s?k=gifts&rh=p_36%3A-${parseInt(receiver.budget) * 100}&tag=secretsantama-20`} target="_blank" rel="noopener noreferrer" className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-5 rounded-full text-base transition-transform transform hover:scale-105 shadow-md">
-                                    Find Gifts Under ${receiver.budget}
-                                </a>
-                                 <a href={`https://www.amazon.com/s?k=funny+gifts&rh=p_36%3A-2000&tag=secretsantama-20`} target="_blank" rel="noopener noreferrer" className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-5 rounded-full text-base transition-transform transform hover:scale-105 shadow-sm">
-                                    Find *Funny* Gifts Under $20
-                                </a>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* Dislikes */}
-                    {dislikes.length > 0 && (
-                         <div className="bg-red-50 p-6 rounded-2xl border border-red-200">
-                            <h3 className="font-bold text-xl text-red-700 mb-4 flex items-center gap-3"><ThumbsDown className="text-red-500" />Dislikes & No-Go's</h3>
-                             <div className="flex flex-wrap gap-3">
-                                {dislikes.map((dislike, i) => <span key={i} className="bg-red-100 text-red-800 text-sm font-semibold px-3 py-1 rounded-full">{dislike}</span>)}
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* Links */}
-                    {links.length > 0 && (
-                        <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-200">
-                            <h3 className="font-bold text-xl text-emerald-700 mb-4 flex items-center gap-3"><LinkIcon className="text-emerald-500" />Specific Links</h3>
-                            <div className="space-y-2">
-                                {links.map((link, i) => <a key={i} href={link} target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:underline truncate">{link}</a>)}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Persona Sidebar */}
-                <div className="lg:sticky lg:top-8">
-                     <div className="bg-indigo-50 p-6 rounded-2xl border-2 border-dashed border-indigo-200">
-                        <h3 className="font-bold text-xl text-indigo-700 mb-4 flex items-center gap-3">
-                            <Lightbulb className="text-indigo-500" />Gifter's Persona:
-                        </h3>
-                         <div className="text-center">
-                            <h4 className="font-bold text-2xl text-indigo-800 font-serif">{persona.name}</h4>
-                            <p className="text-indigo-900/80 text-sm mt-2">{persona.description}</p>
-                        </div>
-                         <div className="mt-6 space-y-4">
-                            {Object.entries(persona.categories).map(([category, ideas]) => (
-                                <div key={category}>
-                                    <h5 className="font-semibold text-slate-800 mb-2">{category}</h5>
-                                    <div className="flex flex-wrap gap-2">
-                                        {ideas.map(idea => (
-                                            <a
-                                                key={idea}
-                                                href={`https://www.amazon.com/s?k=${encodeURIComponent(idea)}&tag=secretsantama-20`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                onClick={() => trackEvent('click_gift_idea', { keyword: idea, persona: persona.name })}
-                                                className="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold px-3 py-1 rounded-full transition-colors"
-                                            >
-                                                {idea}
-                                            </a>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                </button>
             </div>
         </div>
     );
@@ -158,147 +101,175 @@ const GiftInspirationSection: React.FC<{ receiver: Participant; name: string; }>
 
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
-    const [isNameRevealed, setIsNameRevealed] = useState(false);
+    const { matches: matchIds, p: participants } = data;
     const [showShareModal, setShowShareModal] = useState(false);
-    const [showPreReveal, setShowPreReveal] = useState(true);
+    const [pdfProgress, setPdfProgress] = useState<number | null>(null);
 
-    const allMatches = useMemo(() => reconstructAllMatches(data), [data]);
-    const currentMatch = useMemo(() => currentParticipantId ? findMatchForGiver(data, currentParticipantId) : null, [data, currentParticipantId]);
+    // Reconstruct full match objects from IDs
+    const matches: Match[] = useMemo(() => {
+        return matchIds.map(m => ({
+            giver: participants.find(p => p.id === m.g)!,
+            receiver: participants.find(p => p.id === m.r)!,
+        })).filter(m => m.giver && m.receiver);
+    }, [matchIds, participants]);
+
+    const currentMatch = useMemo(() => {
+        if (!currentParticipantId) return null;
+        return matches.find(m => m.giver.id === currentParticipantId) || null;
+    }, [matches, currentParticipantId]);
+
+    const [isNameRevealed, setIsNameRevealed] = useState(!currentMatch); // Revealed for organizer, not for participant initially
+
+    useEffect(() => {
+        if (currentMatch) {
+            trackEvent('view_participant_card');
+        } else {
+            trackEvent('view_organizer_results');
+        }
+    }, [currentMatch]);
 
     const handleReveal = () => {
         if (!isNameRevealed) {
             setIsNameRevealed(true);
             trackEvent('reveal_name');
-            // Scroll to the gift ideas section for a smooth transition
-            setTimeout(() => {
-                document.getElementById('gift-inspiration')?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
         }
     };
     
-    const handleConfirmIdentity = () => {
-        setShowPreReveal(false);
-        trackEvent('confirm_identity');
+    const handleGeneratePdf = async () => {
+        setPdfProgress(0);
+        trackEvent('click_download_pdf');
+        await generatePdf(matches, setPdfProgress);
+        setTimeout(() => setPdfProgress(null), 2000); // Hide progress bar after a delay
     };
 
-    const handleShuffle = () => {
-        // Simple way to reshuffle is to navigate back to the generator
-        // A more advanced way could re-run the logic, but this is safest.
-        window.location.href = '/generator.html';
-    };
+    const isOrganizer = !currentParticipantId;
 
-
-    const OrganizerView = () => (
-        <div className="space-y-8">
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white p-8 rounded-3xl shadow-2xl text-center">
-                <div className="inline-block bg-white/20 p-3 rounded-full mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" /></svg>
-                </div>
-                <h1 className="text-4xl md:text-5xl font-bold font-serif">You're the Organizer!</h1>
-                <p className="text-lg text-indigo-200 mt-4 max-w-2xl mx-auto">Your matches are ready. You can now share private links with each person, or download/print the cards for your party.</p>
-                 <div className="flex flex-wrap justify-center gap-4 mt-8">
-                    <button onClick={() => setShowShareModal(true)} className="bg-white hover:bg-slate-100 text-indigo-600 font-bold text-xl px-10 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3">
-                        <Share2 size={24} /> Sharing & Downloads
-                    </button>
-                    <button onClick={handleShuffle} className="bg-white/20 hover:bg-white/30 text-white font-semibold text-lg px-8 py-4 rounded-full shadow-md transform hover:scale-105 transition-all flex items-center gap-2">
-                        <Shuffle size={20} /> Shuffle Again
-                    </button>
-                </div>
-            </div>
-            
-            <h2 className="text-3xl font-bold text-slate-800 font-serif flex items-center gap-3 pt-4"><svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>Master List</h2>
-            <ResultsDisplay matches={allMatches} />
-
-        </div>
-    );
-
-    const ParticipantView = () => {
-        if (!currentMatch) {
-            return (
-                <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
-                    <h1 className="text-3xl font-bold text-red-600">Oops!</h1>
-                    <p className="text-slate-700 mt-2">We couldn't find your match. Please check the link or contact your event organizer.</p>
-                </div>
-            );
-        }
-
-        if (showPreReveal) {
-             return (
-                <div className="min-h-[60vh] flex items-center justify-center">
-                    <div className="text-center p-8 bg-white rounded-2xl shadow-lg max-w-lg mx-auto animate-fade-in">
-                        <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Are you <span className="text-red-600">{currentMatch.giver.name}</span>?</h1>
-                        <p className="text-lg text-slate-600 mt-4">Your secret match is waiting for you. Ready to see who you're getting a gift for?</p>
-                        <button 
-                            onClick={handleConfirmIdentity}
-                            className="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all"
-                        >
-                            Reveal My Match!
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
+    if (!isOrganizer && !currentMatch) {
         return (
-            <div className="animate-fade-in">
-                <div className="max-w-md mx-auto">
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">You're a Secret Santa!</h1>
-                        <p className="text-lg text-slate-600 mt-2">
-                            {isNameRevealed ? "Here's some inspiration to help you find the perfect gift." : "Click the card below to reveal who you're getting a gift for."}
-                        </p>
-                    </div>
-
-                    <PrintableCard
-                        match={currentMatch}
-                        eventDetails={data.eventDetails}
-                        isNameRevealed={isNameRevealed}
-                        onReveal={handleReveal}
-                        backgroundOptions={data.backgroundOptions}
-                        bgId={data.bgId}
-                        bgImg={data.customBackground}
-                        txtColor={data.textColor}
-                        outline={data.useTextOutline}
-                        outColor={data.outlineColor}
-                        outSize={data.outlineSize}
-                        fontSize={data.fontSizeSetting}
-                        font={data.fontTheme}
-                        line={data.lineSpacing}
-                        greet={data.greetingText}
-                        intro={data.introText}
-                        wish={data.wishlistLabelText}
-                    />
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
+                    <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Error</h1>
+                    <p className="text-slate-700 text-lg">We couldn't find your match. Please check the link or contact the organizer.</p>
+                    <a href="/generator.html" className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
+                        Start a New Game
+                    </a>
                 </div>
-                
-                {isNameRevealed && <GiftInspirationSection receiver={currentMatch.receiver} name={currentMatch.giver.name} />}
             </div>
         );
-    };
+    }
 
     return (
-        <div className="bg-slate-50 min-h-screen">
+        <>
             <Header />
-            <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-                {currentParticipantId ? <ParticipantView /> : <OrganizerView />}
+            <main className="bg-slate-50 min-h-screen py-12 px-4">
+                <div className="container mx-auto max-w-5xl">
+                    {isOrganizer ? (
+                        // Organizer View
+                        <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+                            <a href="/generator.html" className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-semibold mb-6">
+                                <ArrowLeft size={16} /> Back to Generator
+                            </a>
+                            <div className="text-center mb-8">
+                                <Gift className="h-16 w-16 text-red-600 mx-auto mb-4" />
+                                <h1 className="text-4xl font-bold font-serif text-slate-800">Your Exchange is Ready!</h1>
+                                <p className="text-lg text-slate-600 mt-2">Here is the master list of all matches. Share the private links with each person.</p>
+                            </div>
+                            
+                            <div className="flex flex-wrap justify-center gap-4 mb-10">
+                                <button onClick={() => setShowShareModal(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors">
+                                    <Share2 size={20} /> Share Links
+                                </button>
+                                <button onClick={handleGeneratePdf} disabled={pdfProgress !== null} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-full transition-colors disabled:opacity-50">
+                                    <Download size={20} /> Download Cards
+                                </button>
+                            </div>
+
+                            {pdfProgress !== null && (
+                                <div className="mb-8">
+                                    <p className="text-center font-semibold text-emerald-700 mb-2">Generating PDF...</p>
+                                    <div className="w-full bg-slate-200 rounded-full h-2.5">
+                                        <div className="bg-emerald-500 h-2.5 rounded-full" style={{ width: `${pdfProgress * 100}%`, transition: 'width 0.3s ease' }}></div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <ResultsDisplay matches={matches} />
+                            
+                            {/* Hidden cards for PDF generation */}
+                            <div className="absolute -left-[9999px] top-0">
+                                {matches.map(match => (
+                                    <div key={match.giver.id} style={{ width: '400px' }}>
+                                         <PrintableCard
+                                            match={match}
+                                            eventDetails={data.eventDetails}
+                                            isNameRevealed={true}
+                                            backgroundOptions={data.backgroundOptions}
+                                            bgId={data.bgId}
+                                            bgImg={data.customBackground}
+                                            txtColor={data.textColor}
+                                            outline={data.useTextOutline}
+                                            outColor={data.outlineColor}
+                                            outSize={data.outlineSize}
+                                            fontSize={data.fontSizeSetting}
+                                            font={data.fontTheme}
+                                            line={data.lineSpacing}
+                                            greet={data.greetingText}
+                                            intro={data.introText}
+                                            wish={data.wishlistLabelText}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        // Participant View
+                        <div>
+                            <div className="text-center mb-8">
+                                <h1 className="text-4xl font-bold font-serif text-slate-800">Your Secret Santa Match!</h1>
+                                {!isNameRevealed && <p className="text-lg text-slate-600 mt-2">Click on the card below to reveal who you're buying for.</p>}
+                            </div>
+                            <PrintableCard
+                                match={currentMatch!}
+                                eventDetails={data.eventDetails}
+                                isNameRevealed={isNameRevealed}
+                                backgroundOptions={data.backgroundOptions}
+                                bgId={data.bgId}
+                                bgImg={data.customBackground}
+                                txtColor={data.textColor}
+                                outline={data.useTextOutline}
+                                outColor={data.outlineColor}
+                                outSize={data.outlineSize}
+                                fontSize={data.fontSizeSetting}
+                                font={data.fontTheme}
+                                line={data.lineSpacing}
+                                greet={data.greetingText}
+                                intro={data.introText}
+                                wish={data.wishlistLabelText}
+                                onReveal={handleReveal}
+                            />
+                            {isNameRevealed && (
+                                <>
+                                    <GiftIdeas participant={currentMatch!.receiver} budget={currentMatch!.receiver.budget || data.eventDetails.match(/\$?(\d+)/)?.[1] || '25'} />
+                                    <div className="mt-8 text-center">
+                                        <a href={`https://www.amazon.com/s?k=${encodeURIComponent('gifts for ' + currentMatch!.receiver.interests.split(',')[0])}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-6 rounded-full transition-colors">
+                                            <Search size={20} /> Search for Gifts on Amazon
+                                        </a>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
             </main>
             <Footer />
-            {showShareModal && (
+            {showShareModal && isOrganizer && (
                 <ShareLinksModal
-                    matches={allMatches}
+                    matches={matches}
                     exchangeData={data}
                     onClose={() => setShowShareModal(false)}
                 />
             )}
-             <style>{`
-                @keyframes fade-in {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animate-fade-in {
-                    animation: fade-in 0.5s ease-out forwards;
-                }
-            `}</style>
-        </div>
+        </>
     );
 };
 
