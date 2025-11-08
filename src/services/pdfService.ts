@@ -6,12 +6,6 @@ import React from 'react';
 import PrintableCard from '../components/PrintableCard';
 import type { Match, ExchangeData } from '../types';
 
-
-// FIX: Removed the manual module augmentation for 'jspdf' as it was causing a
-// module resolution error. The 'jspdf-autotable' import should handle this
-// automatically. Calls to 'autoTable' are now cast to 'any' to ensure
-// compilation even if type definitions are not picked up correctly.
-
 export const generateAllCardsPdf = async (matches: Match[], options: ExchangeData): Promise<void> => {
     if (matches.length === 0) {
         alert("No valid matches to generate cards for.");
@@ -30,50 +24,44 @@ export const generateAllCardsPdf = async (matches: Match[], options: ExchangeDat
     tempContainer.style.position = 'fixed';
     tempContainer.style.left = '-9999px';
     tempContainer.style.top = '0';
+    // Set a fixed size for the container to ensure aspect ratio is correct for html2canvas
+    tempContainer.style.width = '600px'; 
+    tempContainer.style.height = '800px';
     document.body.appendChild(tempContainer);
     
     const tempRoot = ReactDOM.createRoot(tempContainer);
 
     for (let i = 0; i < matches.length; i++) {
         const match = matches[i];
-
-        // FIX: Replaced JSX with React.createElement to support rendering within a .ts file
-        // which may not have JSX processing enabled. This resolves parsing errors.
-        const cardElement = React.createElement(
-            'div',
-            { style: { width: '600px' } }, // Render at a fixed high-res width
-            React.createElement(PrintableCard, {
-                match: match,
-                isNameRevealed: true,
-                eventDetails: options.eventDetails,
-                backgroundOptions: options.backgroundOptions,
-                bgId: options.bgId,
-                bgImg: options.customBackground,
-                txtColor: options.textColor,
-                outline: options.useTextOutline,
-                outColor: options.outlineColor,
-                outSize: options.outlineSize,
-                fontSize: options.fontSizeSetting,
-                font: options.fontTheme,
-                line: options.lineSpacing,
-                greet: options.greetingText,
-                intro: options.introText,
-                wish: options.wishlistLabelText,
-            })
-        );
+        
+        const cardElement = React.createElement(PrintableCard, {
+            match: match,
+            isNameRevealed: true,
+            eventDetails: options.eventDetails,
+            backgroundOptions: options.backgroundOptions,
+            bgId: options.bgId,
+            bgImg: options.customBackground,
+            txtColor: options.textColor,
+            outline: options.useTextOutline,
+            outColor: options.outlineColor,
+            outSize: options.outlineSize,
+            fontSize: options.fontSizeSetting,
+            font: options.fontTheme,
+            line: options.lineSpacing,
+            greet: options.greetingText,
+            intro: options.introText,
+            wish: options.wishlistLabelText,
+        });
         
         await new Promise<void>(resolve => {
             tempRoot.render(cardElement);
-            // Give it a moment to render images, especially from external sources
-            setTimeout(resolve, 200); 
+            // Allow time for images and fonts to render
+            setTimeout(resolve, 300); 
         });
         
-        const cardNode = tempContainer.children[0] as HTMLElement;
-        if (!cardNode) continue;
-        
         try {
-            const canvas = await html2canvas(cardNode, {
-                scale: 2,
+            const canvas = await html2canvas(tempContainer, {
+                scale: 2, // Higher scale for better quality
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: null,
@@ -127,12 +115,12 @@ export const generateMasterListPdf = async (matches: Match[], options: ExchangeD
             valign: 'middle'
         },
         headStyles: {
-            fillColor: '#2d3748', // slate-800
+            fillColor: '#2d3748',
             textColor: 255,
             fontStyle: 'bold',
         },
         alternateRowStyles: {
-            fillColor: [241, 245, 249] // slate-100
+            fillColor: [241, 245, 249]
         },
         columnStyles: {
             2: { cellWidth: 70 }
@@ -145,7 +133,7 @@ export const generateMasterListPdf = async (matches: Match[], options: ExchangeD
 const drawPageBorder = (pdf: jsPDF) => {
     const width = pdf.internal.pageSize.getWidth();
     const height = pdf.internal.pageSize.getHeight();
-    pdf.setDrawColor('#e2e8f0'); // slate-200
+    pdf.setDrawColor('#e2e8f0');
     pdf.setLineWidth(1);
     pdf.rect(5, 5, width - 10, height - 10);
 };
@@ -155,7 +143,7 @@ const drawFooter = (pdf: jsPDF) => {
     for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
         pdf.setFontSize(8);
-        pdf.setTextColor('#94a3b8'); // slate-400
+        pdf.setTextColor('#94a3b8');
         pdf.text(
             'Generated by SecretSantaMatch.com | The Easiest Free Secret Santa Generator',
             pdf.internal.pageSize.getWidth() / 2,
@@ -172,10 +160,10 @@ export const generatePartyPackPdf = (data: ExchangeData): void => {
     drawPageBorder(pdf);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(26);
-    pdf.setTextColor('#c62828'); // Red
+    pdf.setTextColor('#c62828');
     pdf.text('Secret Santa Party Pack', pdf.internal.pageSize.getWidth() / 2, 80, { align: 'center' });
     pdf.setFontSize(14);
-    pdf.setTextColor('#334155'); // slate-700
+    pdf.setTextColor('#334155');
     pdf.text('Fun Games for Your Gift Exchange!', pdf.internal.pageSize.getWidth() / 2, 95, { align: 'center' });
 
     // --- Page 2: Anonymous Hints Game ---
@@ -227,7 +215,7 @@ export const generatePartyPackPdf = (data: ExchangeData): void => {
     pdf.text("Instructions: Cross off a square as you see it happen during the gift exchange. First one to get five in a row wins!", 14, 35);
 
     const bingoSquares = [
-        "Someone gets socks", "A gift is food-related", "Someone has to guess their Santa", "A gift makes everyone laugh", "Someone steals a gift",
+        "Someone gets socks", "A gift is food-related", "Someone has to guess their Santa", "A gift makes everyone laugh", "A gift is stolen (if playing White Elephant rules)",
         "A gift is re-gifted", "Someone gets a mug", "The wrapping is amazing", "A gift has batteries", "FREE SPACE",
         "Someone gets a candle", "A gift is handmade", "Someone is surprised", "A gift is a gadget", "Someone gets a book",
         "A gift is red or green", "Someone takes a photo", "A gift card is given", "Someone says 'Aww!'", "A pet-related gift",

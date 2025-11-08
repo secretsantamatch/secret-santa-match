@@ -7,7 +7,6 @@ import type { ExchangeData } from './types';
 // Lazy load page components for better performance
 const ResultsPage = lazy(() => import('./components/ResultsPage'));
 const SuccessPage = lazy(() => import('./components/SuccessPage'));
-const GiftIdeasPage = lazy(() => import('./components/GiftIdeasPage'));
 
 const loadTrackingScripts = () => {
   if ((window as any).trackingScriptsLoaded) {
@@ -79,7 +78,7 @@ const LoadingFallback = () => (
 const App: React.FC = () => {
   const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
   const [participantId, setParticipantId] = useState<string | null>(null);
-  const [view, setView] = useState<'generator' | 'results' | 'success' | 'gift_ideas'>('generator');
+  const [view, setView] = useState<'generator' | 'results' | 'success'>('generator');
   const [error, setError] = useState<string | null>(null);
   const [showCookieBanner, setShowCookieBanner] = useState(false);
 
@@ -91,27 +90,23 @@ const App: React.FC = () => {
       setShowCookieBanner(true);
     }
 
-    const handleHashChange = () => {
+    const handleRouteChange = () => {
       try {
         setError(null);
         const hash = window.location.hash.slice(1);
         const searchParams = new URLSearchParams(window.location.search);
         
         if (hash) {
-          const mainHash = hash.split('?')[0];
-          const decoded = decodeData(mainHash);
+          const decoded = decodeData(hash);
           setExchangeData(decoded);
 
-          const hashParams = new URLSearchParams(hash.split('?')[1] || '');
-          const id = searchParams.get('id') || hashParams.get('id');
-          const page = searchParams.get('page') || hashParams.get('page');
+          const id = searchParams.get('id');
+          const page = searchParams.get('page');
 
           if (page === 'success') {
             setView('success');
-          } else if (page === 'gift_ideas' && id) {
-            setParticipantId(id);
-            setView('gift_ideas');
           } else {
+            // The unified ResultsPage now handles both organizer and participant views.
             setParticipantId(id);
             setView('results');
           }
@@ -128,11 +123,13 @@ const App: React.FC = () => {
       }
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // Initial load
+    window.addEventListener('hashchange', handleRouteChange);
+    window.addEventListener('popstate', handleRouteChange);
+    handleRouteChange(); // Initial load
 
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('hashchange', handleRouteChange);
+      window.removeEventListener('popstate', handleRouteChange);
     };
   }, []);
 
@@ -154,7 +151,7 @@ const App: React.FC = () => {
           <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
             <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Link Error</h1>
             <p className="text-slate-700 text-lg">{error}</p>
-            <a href="/" onClick={(e) => { e.preventDefault(); window.location.href = window.location.pathname; }} className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
+            <a href="/generator.html" className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
               Start a New Game
             </a>
           </div>
@@ -167,8 +164,6 @@ const App: React.FC = () => {
         return exchangeData ? <SuccessPage data={exchangeData} /> : <GeneratorPage />;
       case 'results':
         return exchangeData ? <ResultsPage data={exchangeData} currentParticipantId={participantId} /> : <GeneratorPage />;
-      case 'gift_ideas':
-        return exchangeData && participantId ? <GiftIdeasPage data={exchangeData} currentParticipantId={participantId} /> : <GeneratorPage />;
       case 'generator':
       default:
         return <GeneratorPage />;
