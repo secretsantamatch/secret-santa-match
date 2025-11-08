@@ -1,197 +1,176 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import type { Match, ExchangeData } from '../types';
+import type { ExchangeData, Match } from '../types';
 
-// Extend jsPDF with autotable
-interface jsPDFWithAutoTable extends jsPDF {
-    autoTable: (options: any) => jsPDF;
-}
-
-// FIX: Refactored this function to only handle adding a card to the current page.
-// The page management logic, which was causing errors, has been moved to the caller.
-// This also resolves the TypeScript error `Property 'y' does not exist on type 'jsPDF'`.
-const addCardToPdf = async (pdf: jsPDF, cardElement: HTMLElement) => {
-    try {
-        const canvas = await html2canvas(cardElement, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: null,
-            width: 600, // Force width
-            height: 800, // Force height to maintain 3:4 aspect ratio
-        });
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        const y = (pageHeight - pdfHeight) / 2;
-        pdf.addImage(imgData, 'PNG', 10, y > 10 ? y : 10, pdfWidth, pdfHeight);
-
-    } catch (error) {
-        console.error("Error capturing card element:", error);
-    }
-};
-
-export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<void> => {
-    // FIX: Add a small delay to ensure React has rendered the hidden cards to the DOM.
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    const { p: participants, matches: matchIds } = exchangeData;
-
-    const matches: Match[] = matchIds.map(m => ({
-        giver: participants.find(p => p.id === m.g)!,
-        receiver: participants.find(p => p.id === m.r)!,
-    })).filter(m => m.giver && m.receiver);
-    
-    const cardElements = matches.map(match => document.getElementById(`card-${match.giver.id}`));
-    
-    if (cardElements.some(el => !el)) {
-        console.error("Some card elements could not be found. Ensure they are rendered before generating the PDF.");
-        throw new Error("Error: Could not find the card elements to generate the PDF. This may be a bug.");
-    }
-    
+export const generateAllCardsPdf = async (exchangeData: ExchangeData) => {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    
-    // FIX: Corrected the page generation logic. The previous implementation was adding content
-    // and then deleting the page, resulting in a broken PDF. This loop now correctly
-    // adds one card per page.
-    for (let i = 0; i < cardElements.length; i++) {
-        const cardElement = cardElements[i];
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+    const matches: Match[] = exchangeData.matches.map(m => ({
+        giver: exchangeData.p.find(p => p.id === m.g)!,
+        receiver: exchangeData.p.find(p => p.id === m.r)!,
+    })).filter(m => m.giver && m.receiver);
+
+    for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        const cardElement = document.getElementById(`card-${match.giver.id}`);
+        
         if (cardElement) {
-            // Add a new page for each card after the first one.
-            if (i > 0) {
-                 pdf.addPage();
+            try {
+                const canvas = await html2canvas(cardElement, { scale: 2, useCORS: true });
+                const imgData = canvas.toDataURL('image/png');
+                
+                const imgWidth = pdfWidth - 20; // with some margin
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                if (i > 0) {
+                    pdf.addPage();
+                }
+
+                const x = (pdfWidth - imgWidth) / 2;
+                let y = (pdfHeight - imgHeight) / 2;
+                if (y < 10) y = 10; // Ensure some top margin
+
+                pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+
+            } catch (error) {
+                console.error(`Error generating canvas for ${match.giver.name}'s card:`, error);
+                throw new Error("Could not generate PDF. One of the cards failed to render.");
             }
-            await addCardToPdf(pdf, cardElement);
         }
     }
-    
-    pdf.save('Secret-Santa-All-Cards.pdf');
+
+    pdf.save('Secret_Santa_Cards.pdf');
 };
 
-/**
- * Generates a detailed PDF of the master match list using jspdf-autotable.
- * FIX: Restores detailed columns for budget, interests, likes, dislikes, and links.
- * @param exchangeData The complete data for the exchange.
- */
-export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
-    const { p: participants, matches: matchIds, eventDetails } = exchangeData;
-
-    const matches: Match[] = matchIds.map(m => ({
-        giver: participants.find(p => p.id === m.g)!,
-        receiver: participants.find(p => p.id === m.r)!,
-    })).filter(m => m.giver && m.receiver);
-
-    const doc = new jsPDF() as jsPDFWithAutoTable;
+export const generateMasterListPdf = (exchangeData: ExchangeData) => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    pdf.setFontSize(18);
+    pdf.text("Secret Santa - Master List", 105, 20, { align: 'center' });
     
-    doc.setFontSize(22);
-    doc.text("Secret Santa Master List", doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-    if (eventDetails) {
-        doc.setFontSize(12);
-        const splitDetails = doc.splitTextToSize(eventDetails, 180);
-        doc.text(splitDetails, doc.internal.pageSize.getWidth() / 2, 30, { align: 'center' });
-    }
-    
-    const head = [['Giver', 'Receiver', "Receiver's Details"]];
-    const body = matches.map(match => {
-        const details = [
-            match.receiver.budget ? `Budget: $${match.receiver.budget}` : '',
-            match.receiver.interests ? `Interests: ${match.receiver.interests}` : '',
-            match.receiver.likes ? `Likes: ${match.receiver.likes}` : '',
-            match.receiver.dislikes ? `Dislikes: ${match.receiver.dislikes}` : '',
-            match.receiver.links ? `Links: ${match.receiver.links.split('\n')[0]}`: ''
-        ].filter(Boolean).join('\n');
-        
-        return [match.giver.name, match.receiver.name, details];
-    });
-
-    doc.autoTable({
-        head: head,
-        body: body,
-        startY: eventDetails ? 45 : 40,
-        headStyles: { fillColor: [200, 38, 38] }, // Christmas Red
-        styles: { cellPadding: 3, fontSize: 10, valign: 'middle' },
-        columnStyles: {
-            0: { cellWidth: 40 },
-            1: { cellWidth: 40 },
-            2: { cellWidth: 'auto' },
-        },
-    });
-
-    doc.save('Secret-Santa-Master-List.pdf');
-};
-
-export const generatePartyPackPdf = (exchangeData: ExchangeData): void => {
-    const pdf = new jsPDF();
-
-    // Page 1: Title
-    pdf.setFontSize(26);
-    pdf.text("Secret Santa Party Pack!", 105, 20, { align: 'center' });
-    pdf.setFontSize(16);
-    pdf.text("Fun extras for your gift exchange", 105, 30, { align: 'center' });
     if (exchangeData.eventDetails) {
         pdf.setFontSize(12);
-        const splitDetails = pdf.splitTextToSize(exchangeData.eventDetails, 180);
-        pdf.text(splitDetails, 105, 40, { align: 'center' });
+        pdf.text("Event Details:", 14, 35);
+        pdf.setFontSize(10);
+        pdf.text(exchangeData.eventDetails, 14, 42, { maxWidth: 180 });
     }
-    pdf.setFontSize(10);
-    pdf.text("from SecretSantaMatch.com", 105, 280, { align: 'center' });
 
-    // Page 2: Bingo
-    pdf.addPage();
-    pdf.setFontSize(22);
-    pdf.text("Secret Santa Bingo", 105, 20, { align: 'center' });
-    pdf.setFontSize(10);
-    pdf.text("Mark off a square when you see these things happen during the gift exchange!", 105, 28, { align: 'center' });
+    pdf.setFontSize(12);
+    pdf.text("Matches:", 14, 60);
 
-    const bingoItems = [
-        "Someone gets socks", "A gift is re-gifted", "Someone guesses their santa",
-        "A gift makes someone laugh", "Someone needs help opening a gift", "A gift is homemade",
-        "Someone says 'I love it!'", "A pet is interested in a gift", "FREE SPACE",
-        "Someone gets a mug", "A gift is edible", "A gift has a gift receipt",
-        "Someone is wearing a santa hat", "A gift is for the whole group", "Someone's gift is for their hobby",
-        "A gift is obviously a book", "Someone gets chocolate", "Gift uses recycled wrapping",
-        "Someone gets a candle", "Someone gets a gift card", "Gift related to a TV show",
-        "A gift is smaller than a fist", "Someone says 'You shouldn't have!'", "A gift requires batteries",
-        "Someone needs to borrow scissors"
-    ];
-    const shuffledItems = [...bingoItems].sort(() => 0.5 - Math.random());
-    const finalItems = shuffledItems.slice(0, 25);
-    finalItems[12] = "FREE SPACE"; // Center square
+    const matches: Match[] = exchangeData.matches.map(m => ({
+        giver: exchangeData.p.find(p => p.id === m.g)!,
+        receiver: exchangeData.p.find(p => p.id === m.r)!,
+    })).filter(m => m.giver && m.receiver);
 
-    const boxSize = 35;
-    const startX = 17.5;
-    const startY = 40;
-    let itemIndex = 0;
-    pdf.setFontSize(9);
-    for (let row = 0; row < 5; row++) {
-        for (let col = 0; col < 5; col++) {
-            const x = startX + col * boxSize;
-            const y = startY + row * boxSize;
-            pdf.rect(x, y, boxSize, boxSize);
-            const text = finalItems[itemIndex++];
-            const lines = pdf.splitTextToSize(text, boxSize - 4);
-            pdf.text(lines, x + boxSize/2, y + boxSize/2, { align: 'center', baseline: 'middle' });
+    let yPosition = 70;
+    matches.forEach((match, index) => {
+        if (yPosition > 270) {
+            pdf.addPage();
+            yPosition = 20;
         }
-    }
-
-    // Page 3: Awards
-    pdf.addPage();
-    pdf.setFontSize(22);
-    pdf.text("Holiday Party Awards", 105, 20, { align: 'center' });
-    const awards = [
-        "Most Creative Gift", "Funniest Gift", "Most Thoughtful Gift",
-        "Best Wrapped Gift", "The 'I Would Steal That' Award", "Most Unexpected Gift"
-    ];
-    let awardY = 40;
-    awards.forEach(award => {
-        pdf.setFontSize(14);
-        pdf.text(`${award}:`, 20, awardY);
-        pdf.line(20, awardY + 2, 190, awardY + 2);
-        awardY += 25;
+        pdf.setFontSize(10);
+        pdf.text(`${index + 1}. ${match.giver.name} -> ${match.receiver.name}`, 14, yPosition);
+        yPosition += 7;
     });
 
-    pdf.save('Secret-Santa-Party-Pack.pdf');
+    pdf.save('Secret_Santa_Master_List.pdf');
+};
+
+// Helper for Party Pack
+const addPageHeader = (pdf: jsPDF, title: string) => {
+    pdf.setFontSize(22);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(title, 105, 20, { align: 'center' });
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('From your friends at SecretSantaMatch.com', 105, 27, { align: 'center' });
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(20, 32, 190, 32);
+};
+
+// Secret Santa Bingo
+const generateBingoPage = (pdf: jsPDF) => {
+    pdf.addPage();
+    addPageHeader(pdf, 'Secret Santa Bingo');
+
+    pdf.setFontSize(10);
+    pdf.text("How to Play: During the gift exchange, cross off a square when you see it happen. First to get five in a row wins!", 20, 45, { maxWidth: 170 });
+
+    const squares = [
+        "Someone says 'I love it!'", "Gift is a coffee mug", "Someone is wearing a Santa hat", "Gift is a pair of socks",
+        "Someone asks 'Who had me?'", "Gift is a candle", "Someone mentions the budget", "Someone takes a photo",
+        "Someone forgets who they had", "Gift is alcohol", "Someone says 'You shouldn't have!'", "Someone tears the wrapping paper slowly",
+        "FREE SPACE",
+        "Someone needs help opening their gift", "Gift is a gift card", "Someone says 'It's perfect!'", "Someone guesses who their Santa is",
+        "Gift is a board game", "Someone's gift makes everyone laugh", "Gift is homemade", "Someone's pet gets involved",
+        "Gift is food/candy", "Someone drops their gift", "Gift is re-gifted (jokingly or not)", "Someone says 'I almost got you that!'"
+    ];
+    
+    const tableTop = 60;
+    const tableLeft = 25;
+    const cellSize = 32;
+    pdf.setLineWidth(0.5);
+    pdf.setDrawColor(0);
+
+    for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+            const x = tableLeft + col * cellSize;
+            const y = tableTop + row * cellSize;
+            const index = row * 5 + col;
+            pdf.rect(x, y, cellSize, cellSize);
+            pdf.setFontSize(8);
+            pdf.text(squares[index], x + cellSize / 2, y + cellSize / 2, { align: 'center', maxWidth: cellSize - 4, baseline: 'middle' });
+        }
+    }
+};
+
+// Party Awards
+const generateAwardsPage = (pdf: jsPDF) => {
+    pdf.addPage();
+    addPageHeader(pdf, 'Secret Santa Party Awards');
+    pdf.setFontSize(10);
+    pdf.text("Vote for your favorites after all the gifts are opened!", 20, 45, { maxWidth: 170 });
+    
+    const awards = [
+        "Most Thoughtful Gift",
+        "Funniest Gift",
+        "Most Creative Gift",
+        "Best Gift Wrapping",
+        "The 'I Would Have Stolen That' Award",
+        "The 'Best Reaction' Award"
+    ];
+
+    let y = 65;
+    pdf.setLineWidth(0.2);
+    pdf.setDrawColor(150);
+    
+    awards.forEach(award => {
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(award, 20, y);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text("Winner:", 20, y + 10);
+        pdf.line(38, y + 10, 190, y + 10);
+        y += 25;
+    });
+};
+
+
+export const generatePartyPackPdf = (exchangeData: ExchangeData) => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    // Title Page
+    pdf.setFontSize(36);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Secret Santa Party Pack', 105, 140, { align: 'center' });
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Have a wonderful gift exchange!', 105, 155, { align: 'center' });
+
+    generateBingoPage(pdf);
+    generateAwardsPage(pdf);
+
+    pdf.save('Secret_Santa_Party_Pack.pdf');
 };
