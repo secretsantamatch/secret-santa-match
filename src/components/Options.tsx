@@ -9,6 +9,7 @@ interface OptionsProps {
     setAssignments: (assignments: Assignment[]) => void;
     eventDetails: string;
     setEventDetails: (details: string) => void;
+    trackEvent: (eventName: string, eventParams?: Record<string, any>) => void;
 }
 
 const Options: React.FC<OptionsProps> = ({
@@ -19,6 +20,7 @@ const Options: React.FC<OptionsProps> = ({
     setAssignments,
     eventDetails,
     setEventDetails,
+    trackEvent,
 }) => {
     const [exclusionP1, setExclusionP1] = useState<string>('');
     const [exclusionP2, setExclusionP2] = useState<string>('');
@@ -44,6 +46,7 @@ const Options: React.FC<OptionsProps> = ({
         );
         if (!exists) {
             setExclusions([...exclusions, { p1: exclusionP1, p2: exclusionP2 }]);
+            trackEvent('add_exclusion');
         }
         setExclusionP1('');
         setExclusionP2('');
@@ -78,6 +81,7 @@ const Options: React.FC<OptionsProps> = ({
         }
         
         setAssignments([...assignments, { giverId: assignmentGiver, receiverId: assignmentReceiver }]);
+        trackEvent('add_assignment');
         setAssignmentGiver('');
         setAssignmentReceiver('');
     };
