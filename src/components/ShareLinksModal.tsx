@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match } from '../types';
 import { generateAllCardsPdf, generateMasterListPdf, generatePartyPackPdf } from '../services/pdfService';
 import { trackEvent } from '../services/analyticsService';
-import { X, Copy, Check, Link as LinkIcon, MessageSquare, Download, QrCode, Users, Star, FileText, CheckCircle } from 'lucide-react';
+import { X, Copy, Check, MessageSquare, Download, QrCode, Users, Star, FileText, CheckCircle } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import PrintableCard from './PrintableCard';
 
@@ -147,30 +147,30 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
   const renderDownloads = () => (
     <div className="space-y-4">
-        <h3 className="font-bold text-lg text-slate-100">Downloads & Bulk Actions</h3>
+        <h3 className="font-bold text-lg text-slate-800">Downloads & Bulk Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button onClick={() => handlePdfDownload('cards')} className="bg-slate-700/70 hover:bg-slate-600/70 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
-                <Download className="w-6 h-6 text-slate-300 mt-1 flex-shrink-0"/>
+            <button onClick={() => handlePdfDownload('cards')} className="bg-slate-100 hover:bg-slate-200 p-4 rounded-xl text-left transition-colors flex items-start gap-4 border border-slate-200">
+                <Download className="w-6 h-6 text-slate-500 mt-1 flex-shrink-0"/>
                 <div>
-                    <p className="font-bold text-white">Download All Cards</p>
-                    <p className="text-sm text-slate-300">A PDF with one styled, printable card for each person.</p>
+                    <p className="font-bold text-slate-800">Download All Cards</p>
+                    <p className="text-sm text-slate-500">A PDF with one styled, printable card for each person.</p>
                 </div>
             </button>
-            <button onClick={() => handlePdfDownload('masterlist')} className="bg-slate-700/70 hover:bg-slate-600/70 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
-                <FileText className="w-6 h-6 text-slate-300 mt-1 flex-shrink-0"/>
+            <button onClick={() => handlePdfDownload('masterlist')} className="bg-slate-100 hover:bg-slate-200 p-4 rounded-xl text-left transition-colors flex items-start gap-4 border border-slate-200">
+                <FileText className="w-6 h-6 text-slate-500 mt-1 flex-shrink-0"/>
                 <div>
-                    <p className="font-bold text-white">Download Master List</p>
-                    <p className="text-sm text-slate-300">A detailed PDF of all matches for your records.</p>
+                    <p className="font-bold text-slate-800">Download Master List</p>
+                    <p className="text-sm text-slate-500">A detailed PDF of all matches for your records.</p>
                 </div>
             </button>
-             <button onClick={handleCopyAll} className="bg-slate-700/70 hover:bg-slate-600/70 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2">
-                <Copy className="w-6 h-6 text-slate-300 mt-1 flex-shrink-0"/>
+             <button onClick={handleCopyAll} className="bg-slate-100 hover:bg-slate-200 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2 border border-slate-200">
+                <Copy className="w-6 h-6 text-slate-500 mt-1 flex-shrink-0"/>
                 <div>
-                    <p className="font-bold text-white">Copy All Links</p>
-                    <p className="text-sm text-slate-300">Copy a plain text list of all names and links to your clipboard.</p>
+                    <p className="font-bold text-slate-800">Copy All Links</p>
+                    <p className="text-sm text-slate-500">Copy a plain text list of all names and links to your clipboard.</p>
                 </div>
             </button>
-            <button onClick={() => handlePdfDownload('partypack')} className="bg-purple-600 hover:bg-purple-500 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2">
+            <button onClick={() => handlePdfDownload('partypack')} className="bg-purple-600 hover:bg-purple-700 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2">
                 <Star className="w-6 h-6 text-purple-200 mt-1 flex-shrink-0"/>
                 <div>
                     <p className="font-bold text-white">Download Party Pack</p>
@@ -183,12 +183,12 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
   const renderLinksSection = () => (
       <div className="space-y-4">
-          <div className="bg-blue-900/30 border border-blue-800 p-4 rounded-xl">
-            <h3 className="font-bold text-lg text-white mb-2">Your Organizer Master Link</h3>
-            <p className="text-sm text-slate-300 mb-3">Save this link to get back to your results page anytime. Don't lose it!</p>
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
+            <h3 className="font-bold text-lg text-red-800 mb-2">Your Organizer Master Link</h3>
+            <p className="text-sm text-red-700 mb-3">Save this link to get back to your results page anytime. Don't lose it!</p>
             <div className="flex flex-col sm:flex-row gap-2">
-                <input type="text" readOnly value={getDisplayedUrl(organizerLink)} className="w-full p-2 border border-slate-500 bg-slate-800 text-slate-200 rounded-md text-sm truncate"/>
-                <button onClick={() => handleCopy('organizer', getDisplayedUrl(organizerLink))} className={`w-full sm:w-auto px-4 py-2 text-sm font-semibold rounded-md flex items-center justify-center gap-2 ${copiedStates['organizer'] ? 'bg-green-600' : 'bg-indigo-600 hover:bg-indigo-500'}`}>
+                <input type="text" readOnly value={getDisplayedUrl(organizerLink)} className="w-full p-2 border border-red-300 bg-white text-slate-700 rounded-md text-sm truncate"/>
+                <button onClick={() => handleCopy('organizer', getDisplayedUrl(organizerLink))} className={`w-full sm:w-auto px-4 py-2 text-sm font-semibold rounded-md flex items-center justify-center gap-2 ${copiedStates['organizer'] ? 'bg-green-600 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}>
                     {copiedStates['organizer'] ? <Check size={16}/> : <Copy size={16}/>}
                     {copiedStates['organizer'] ? 'Copied!' : 'Copy'}
                 </button>
@@ -197,9 +197,9 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
         <div>
             <div className="flex flex-wrap justify-between items-center gap-4 mb-3">
-                <h3 className="font-bold text-lg text-slate-100">Participant Reveal Links</h3>
+                <h3 className="font-bold text-lg text-slate-800">Participant Reveal Links</h3>
                 <div className="flex items-center">
-                    <label htmlFor="short-link-toggle" className="mr-2 block text-sm font-medium text-slate-300">Show Full Links</label>
+                    <label htmlFor="short-link-toggle" className="mr-2 block text-sm font-medium text-slate-600">Show Full Links</label>
                     <input
                         type="checkbox"
                         id="short-link-toggle"
@@ -209,28 +209,28 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                     />
                 </div>
             </div>
-            <p className="text-sm text-slate-300 mb-4">Copy and share each link via Email/Text/WhatsApp or your favorite app.</p>
+            <p className="text-sm text-slate-600 mb-4">Copy and share each link via Email/Text/WhatsApp or your favorite app.</p>
             <div className="space-y-3">
                 {matches.map(({ giver }) => {
                     const isSent = sentLinks.has(giver.id);
                     return (
-                        <div key={giver.id} className={`bg-slate-700/50 p-3 rounded-lg transition-opacity ${isSent ? 'opacity-50' : 'opacity-100'}`}>
+                        <div key={giver.id} className={`bg-slate-50 p-3 rounded-lg transition-opacity border border-slate-200 ${isSent ? 'opacity-50' : 'opacity-100'}`}>
                             <div className="flex flex-wrap items-center gap-2">
-                                <div className="w-10 h-10 bg-slate-700 rounded-md flex items-center justify-center flex-shrink-0">
-                                    {isSent ? <CheckCircle className="w-6 h-6 text-green-400"/> : <Users className="w-5 h-5 text-slate-300"/>}
+                                <div className="w-10 h-10 bg-slate-200 rounded-md flex items-center justify-center flex-shrink-0">
+                                    {isSent ? <CheckCircle className="w-6 h-6 text-green-600"/> : <Users className="w-5 h-5 text-slate-500"/>}
                                 </div>
                                 <div className="flex-grow min-w-0">
-                                    <p className="font-semibold text-white">{giver.name}'s Link</p>
-                                    <p className="text-xs text-slate-300 truncate">{getDisplayedUrl(participantLinks[giver.id])}</p>
+                                    <p className="font-semibold text-slate-800">{giver.name}'s Link</p>
+                                    <p className="text-xs text-slate-500 truncate">{getDisplayedUrl(participantLinks[giver.id])}</p>
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
-                                    <button onClick={() => handleCopy(giver.id, getDisplayedUrl(participantLinks[giver.id]))} className={`p-2 rounded-md transition-colors ${copiedStates[giver.id] ? 'bg-green-600' : 'bg-slate-600 hover:bg-slate-500'}`}><span className="sr-only">Copy</span>{copiedStates[giver.id] ? <Check size={16} className="text-white"/> : <Copy size={16} className="text-slate-200"/>}</button>
-                                    <a href={`sms:?&body=Your Secret Santa link is: ${encodeURIComponent(getDisplayedUrl(participantLinks[giver.id]))}`} onClick={() => handleShareAction(giver.id)} className="p-2 rounded-md bg-slate-600 hover:bg-slate-500"><span className="sr-only">Text</span><MessageSquare size={16} className="text-slate-200"/></a>
-                                    <button onClick={() => { handleShareAction(giver.id); setActiveQr(activeQr === giver.id ? null : giver.id); }} className={`p-2 rounded-md transition-colors ${activeQr === giver.id ? 'bg-indigo-600' : 'bg-slate-600 hover:bg-slate-500'}`}><span className="sr-only">QR Code</span><QrCode size={16} className="text-slate-200"/></button>
+                                    <button onClick={() => handleCopy(giver.id, getDisplayedUrl(participantLinks[giver.id]))} className={`p-2 rounded-md transition-colors ${copiedStates[giver.id] ? 'bg-green-600' : 'bg-slate-200 hover:bg-slate-300'}`}><span className="sr-only">Copy</span>{copiedStates[giver.id] ? <Check size={16} className="text-white"/> : <Copy size={16} className="text-slate-600"/>}</button>
+                                    <a href={`sms:?&body=Your Secret Santa link is: ${encodeURIComponent(getDisplayedUrl(participantLinks[giver.id]))}`} onClick={() => handleShareAction(giver.id)} className="p-2 rounded-md bg-slate-200 hover:bg-slate-300"><span className="sr-only">Text</span><MessageSquare size={16} className="text-slate-600"/></a>
+                                    <button onClick={() => { handleShareAction(giver.id); setActiveQr(activeQr === giver.id ? null : giver.id); }} className={`p-2 rounded-md transition-colors ${activeQr === giver.id ? 'bg-indigo-600' : 'bg-slate-200 hover:bg-slate-300'}`}><span className="sr-only">QR Code</span><QrCode size={16} className={activeQr === giver.id ? 'text-white' : 'text-slate-600'}/></button>
                                 </div>
                             </div>
                             {activeQr === giver.id && (
-                                <div className="mt-4 p-4 bg-white rounded-lg text-center animate-fade-in-fast">
+                                <div className="mt-4 p-4 bg-white rounded-lg text-center animate-fade-in-fast border border-slate-200">
                                      <h4 className="font-bold text-slate-800">Scan QR code for {giver.name}'s link</h4>
                                      <div className="my-4 max-w-[150px] mx-auto"><QRCode id={`qr-${giver.id}`} value={getDisplayedUrl(participantLinks[giver.id])} size={256} style={{ height: "auto", maxWidth: "100%", width: "100%" }} /></div>
                                      <button onClick={() => downloadQrCode(giver.id)} className="text-sm text-indigo-600 hover:underline font-semibold">Download QR Code</button>
@@ -245,32 +245,32 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 animate-fade-in-fast backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-slate-800 text-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-slate-700" onClick={e => e.stopPropagation()}>
-        <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in-fast backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white text-slate-800 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-slate-200" onClick={e => e.stopPropagation()}>
+        <div className="p-6 border-b border-slate-200 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold font-serif">Share & Download</h2>
-            <p className="text-slate-300 text-sm mt-1">Send each person their unique reveal link.</p>
+            <p className="text-slate-600 text-sm mt-1">Send each person their unique reveal link.</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-700"><X size={20}/></button>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 text-slate-500"><X size={20}/></button>
         </div>
         
-        <div className="p-6 overflow-y-auto space-y-8">
+        <div className="p-6 overflow-y-auto space-y-8 bg-slate-50/50">
             {initialView === 'print' ? (
                 <>
                     {renderDownloads()}
-                    <div className="border-t border-slate-700 pt-8 mt-8">{renderLinksSection()}</div>
+                    <div className="border-t border-slate-200 pt-8 mt-8">{renderLinksSection()}</div>
                 </>
             ) : (
                 <>
                     {renderLinksSection()}
-                    <div className="border-t border-slate-700 pt-8 mt-8">{renderDownloads()}</div>
+                    <div className="border-t border-slate-200 pt-8 mt-8">{renderDownloads()}</div>
                 </>
             )}
         </div>
 
-        <div className="p-4 bg-slate-900/50 border-t border-slate-700 text-right">
-          <button onClick={onClose} className="px-5 py-2 rounded-md bg-slate-700 hover:bg-slate-600 text-sm font-semibold transition-colors">
+        <div className="p-4 bg-slate-100 border-t border-slate-200 text-right">
+          <button onClick={onClose} className="px-5 py-2 rounded-md bg-slate-200 hover:bg-slate-300 text-sm font-semibold transition-colors text-slate-700">
             Done
           </button>
         </div>
