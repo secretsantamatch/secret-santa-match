@@ -292,7 +292,8 @@ export const generatePartyPackPdf = (): void => {
     ];
 
     awards.forEach(award => {
-        doc.addPage(null, 'l'); // Add a new landscape page
+        // FIX: The `addPage` method does not accept `null`. Use `undefined` for the default format.
+        doc.addPage(undefined, 'l'); // Add a new landscape page
         const landscapeWidth = doc.internal.pageSize.getWidth();
         const landscapeHeight = doc.internal.pageSize.getHeight();
         
