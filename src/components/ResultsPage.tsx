@@ -1,305 +1,358 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import type { ExchangeData, Match } from '../types';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import type { ExchangeData, Match, Participant, GiftPersona } from '../types';
 import Header from './Header';
 import Footer from './Footer';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
 import ShareLinksModal from './ShareLinksModal';
 import { getGiftPersona } from '../services/personaService';
-import type { GiftPersona } from '../types';
 import { trackEvent } from '../services/analyticsService';
-import { Gift, Heart, ShoppingCart, ThumbsDown, Link as LinkIcon, Wallet, RefreshCw, Home, CheckCircle } from 'lucide-react';
-import { generateMatches } from '../services/matchService';
-import { encodeData } from '../services/urlService';
+import { Gift, Sparkles, UserCheck, HelpCircle } from 'lucide-react';
+
+const ScratchToReveal: React.FC<{ onReveal: () => void, isRevealed: boolean }> = ({ onReveal, isRevealed }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [isScratching, setIsScratching] = useState(false);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Draw the scratch-off layer
+        ctx.fillStyle = '#d1d5db'; // A nice gray color
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = 40;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+    }, []);
+
+    const getScratchPercentage = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return 0;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return 0;
+
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let transparentPixels = 0;
+        for (let i = 3; i < pixels.data.length; i += 4) {
+            if (pixels.data[i] === 0) {
+                transparentPixels++;
+            }
+        }
+        return (transparentPixels / (canvas.width * canvas.height)) * 100;
+    };
+    
+    const handleScratch = (e: React.MouseEvent | React.TouchEvent) => {
+        if (!isScratching || isRevealed) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = 'touches' in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+        const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+        
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    };
+
+    const startScratching = (e: React.MouseEvent | React.TouchEvent) => {
+        if (isRevealed) return;
+        setIsScratching(true);
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.beginPath();
+    };
+
+    const stopScratching = () => {
+        if (isRevealed) return;
+        setIsScratching(false);
+        if (getScratchPercentage() > 50) {
+            onReveal();
+        }
+    };
+
+    if (isRevealed) {
+        return null; // Don't show the canvas if already revealed
+    }
+
+    return (
+        <div className="absolute inset-0 flex items-center justify-center">
+             <div className="text-center text-white font-bold text-2xl z-0 select-none">
+                Scratch to Reveal!
+             </div>
+             <canvas
+                ref={canvasRef}
+                width={280}
+                height={80}
+                className="absolute rounded-lg cursor-pointer z-10"
+                onMouseDown={startScratching}
+                onMouseUp={stopScratching}
+                onMouseMove={handleScratch}
+                onTouchStart={startScratching}
+                onTouchEnd={stopScratching}
+                onTouchMove={handleScratch}
+            />
+        </div>
+    );
+};
+
+
+const GiftInspirationSection: React.FC<{ receiver: Participant, persona: GiftPersona | null, giverName: string }> = ({ receiver, persona, giverName }) => {
+    return (
+      <div className="mt-12 animate-fade-in">
+        <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-slate-800 font-serif">Gift Inspiration for <span className="text-red-600">{receiver.name}</span></h2>
+            <p className="text-slate-600 mt-2">Hey {giverName}, here are some ideas to help you find the perfect gift!</p>
+        </div>
+  
+        <div className="grid lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Interests */}
+            {(receiver.interests || receiver.likes) && (
+                <div className="bg-white p-6 rounded-2xl shadow-lg border">
+                    <h3 className="font-bold text-lg text-slate-700 flex items-center gap-2 mb-3">
+                        <Sparkles size={20} className="text-amber-500" />
+                        Interests, Hobbies & Likes
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-4">Click a tag for instant gift ideas on Amazon!</p>
+                    <div className="flex flex-wrap gap-3">
+                        {[...(receiver.interests || '').split(','), ...(receiver.likes || '').split(',')].map((interest, i) => {
+                            const trimmed = interest.trim();
+                            if (!trimmed) return null;
+                            const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(trimmed)}&tag=secretsan-20`;
+                            return (
+                                <a key={i} href={amazonUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent('click_gift_idea', { keyword: trimmed, persona: persona?.name })} className="bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold px-4 py-2 rounded-full text-sm transition-colors">
+                                    {trimmed}
+                                </a>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+  
+            {/* Other Details */}
+            <div className="bg-white p-6 rounded-2xl shadow-lg border">
+              <h3 className="font-bold text-lg text-slate-700 mb-4">Wishlist & Details</h3>
+              <div className="space-y-3 text-sm text-slate-600">
+                {receiver.budget && <p><strong>Suggested Budget:</strong> ${receiver.budget}</p>}
+                {receiver.dislikes && <p><strong>Dislikes & No-Go's:</strong> {receiver.dislikes}</p>}
+                {receiver.links && (
+                  <div>
+                    <strong>Specific Links:</strong>
+                    {receiver.links.split('\n').map((link, i) => {
+                        const trimmed = link.trim();
+                        if (!trimmed) return null;
+                        return <a key={i} href={trimmed} target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:underline truncate">{trimmed}</a>
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-center text-slate-400 px-4">
+                As an Amazon Associate, we earn from qualifying purchases. When you click on an interest or product link, we may receive a small commission at no extra cost to you. This helps keep our tool 100% free. Thank you for your support!
+            </p>
+          </div>
+  
+          {/* Persona */}
+          {persona && (
+            <div className="sticky top-8 bg-indigo-50 p-6 rounded-2xl border-2 border-dashed border-indigo-200">
+              <h3 className="font-bold text-lg text-indigo-800 text-center">{receiver.name}'s Gift Persona</h3>
+              <p className="text-2xl font-bold font-serif text-indigo-600 text-center mt-2">{persona.name}</p>
+              <p className="text-sm text-indigo-700 mt-2 text-center">{persona.description}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+};
+  
 
 interface ResultsPageProps {
-  data: ExchangeData;
-  currentParticipantId: string | null;
+    data: ExchangeData;
+    currentParticipantId: string | null;
 }
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
-  const [isRevealed, setIsRevealed] = useState(false);
-  const [preRevealConfirmed, setPreRevealConfirmed] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [persona, setPersona] = useState<GiftPersona | null>(null);
-  const [error, setError] = useState<string | null>(null);
+    const [view, setView] = useState<'pre-reveal' | 'reveal' | 'organizer'>('organizer');
+    const [isNameRevealed, setIsNameRevealed] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [shareModalInitialView, setShareModalInitialView] = useState<string | null>(null);
 
+    const { p: participants, matches: matchIds, ...styleData } = data;
 
-  const { p: participants, matches: matchIds, ...styleData } = data;
-
-  const matches: Match[] = useMemo(() => matchIds.map(m => ({
-    giver: participants.find(p => p.id === m.g)!,
-    receiver: participants.find(p => p.id === m.r)!,
-  })).filter(m => m.giver && m.receiver), [matchIds, participants]);
-
-  const currentMatch = useMemo(() => {
-    if (!currentParticipantId) return null;
-    return matches.find(m => m.giver.id === currentParticipantId);
-  }, [matches, currentParticipantId]);
-  
-  useEffect(() => {
-    if (currentMatch?.receiver) {
-        setPersona(getGiftPersona(currentMatch.receiver));
-    }
-  }, [currentMatch]);
-
-  useEffect(() => {
-    if (currentParticipantId) {
-        trackEvent('view_pre_reveal_page');
-    }
-  }, [currentParticipantId]);
-
-  const handleReveal = () => {
-    if (!isRevealed) {
-      setIsRevealed(true);
-      trackEvent('reveal_match');
-    }
-  };
-
-  const handleConfirmPreReveal = () => {
-    setPreRevealConfirmed(true);
-    trackEvent('confirm_pre_reveal');
-  };
-  
-  const createAmazonLink = (keyword: string) => {
-    const affiliateTag = 'secretsantamat-20';
-    return `https://www.amazon.com/s?k=${encodeURIComponent(keyword)}&tag=${affiliateTag}`;
-  };
-
-  const handleShuffle = () => {
-    setError(null);
-    trackEvent('click_shuffle_again', { from: 'results_page' });
-    const result = generateMatches(data.p, data.exclusions, data.assignments);
+    const matches: Match[] = useMemo(() => matchIds.map(m => ({
+        giver: participants.find(p => p.id === m.g)!,
+        receiver: participants.find(p => p.id === m.r)!,
+    })).filter(m => m.giver && m.receiver), [matchIds, participants]);
     
-    if (result.error) {
-      setError(result.error);
-      trackEvent('generation_error', { error_message: result.error, from: 'shuffle' });
-      return;
-    }
+    const currentMatch = useMemo(() => {
+        if (!currentParticipantId) return null;
+        return matches.find(m => m.giver.id === currentParticipantId) || null;
+    }, [currentParticipantId, matches]);
 
-    if (!result.matches) {
-        setError("An unexpected error occurred during shuffling.");
-        trackEvent('generation_error', { error_message: 'Unexpected null matches on shuffle', from: 'shuffle' });
-        return;
-    }
+    const persona = useMemo(() => {
+        if (!currentMatch?.receiver) return null;
+        return getGiftPersona(currentMatch.receiver);
+    }, [currentMatch]);
+    
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const action = params.get('action');
 
-    const newExchangeData: ExchangeData = {
-        ...data,
-        matches: result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
+        if (currentMatch) {
+            setView('pre-reveal');
+            trackEvent('view_pre_reveal_page', { giver: currentMatch.giver.name });
+        } else {
+            setView('organizer');
+            if (action === 'share' || action === 'print') {
+                setShowShareModal(true);
+                setShareModalInitialView(action);
+            }
+        }
+    }, [currentMatch]);
+
+    const handleConfirmAndReveal = () => {
+        setView('reveal');
+        trackEvent('confirm_pre_reveal', { giver: currentMatch?.giver.name });
     };
 
-    const encoded = encodeData(newExchangeData);
-    if (encoded) {
-        // Just update the hash. The App component's listener will handle the refresh.
-        window.location.hash = encoded;
-        window.location.reload(); // Force reload to ensure all components get new data.
-    } else {
-        setError("There was an error creating your new shareable link.");
-    }
-  };
-
-  const handleStartOver = () => {
-    trackEvent('click_start_over', { from: 'results_page' });
-    window.location.href = '/generator.html';
-  };
-
-  const renderParticipantView = () => {
-    if (!currentMatch) {
-      return (
-        <div className="text-center p-8 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-red-600">Participant Not Found</h2>
-          <p className="text-slate-600 mt-2">The link you used might be incorrect. Please check the link or contact the organizer.</p>
-        </div>
-      );
+    const handleScratchReveal = () => {
+        if (!isNameRevealed) {
+            setIsNameRevealed(true);
+            trackEvent('reveal_name_scratch', { giver: currentMatch?.giver.name });
+        }
+    };
+    
+    const handleOpenShareModal = (initialView?: string) => {
+      setShowShareModal(true);
+      setShareModalInitialView(initialView || null);
+      trackEvent('open_share_modal', { initial_view: initialView || 'default' });
     }
 
-    if (!preRevealConfirmed) {
+    // Organizer View
+    if (view === 'organizer') {
         return (
-            <div className="text-center bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-gray-200">
-                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6"/>
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {currentMatch.giver.name}!</h1>
-                <p className="text-lg text-slate-600 mt-4">Are you ready to find out who you're getting a gift for?</p>
-                <button 
-                    onClick={handleConfirmPreReveal}
-                    className="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all"
-                >
-                    Yes, Reveal My Match!
-                </button>
-                <p className="text-sm text-slate-400 mt-6">
-                    Not {currentMatch.giver.name}? This link is not for you. Please contact your event organizer.
-                </p>
-            </div>
+            <>
+                <Header />
+                <main className="bg-slate-50">
+                    <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl py-12">
+                        <div className="text-center mb-8">
+                            <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">You're the Organizer!</h1>
+                            <p className="text-lg text-slate-600 mt-4">Your matches are ready. You can now share private links with each person, or download/print the cards for your party.</p>
+                        </div>
+                        
+                        <div className="flex flex-wrap justify-center gap-4 mb-8">
+                            <button onClick={() => handleOpenShareModal('share')} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 flex items-center gap-2 text-lg">
+                                Sharing & Downloads
+                            </button>
+                             <button onClick={() => { window.location.href = '/generator.html'; }} className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-4 px-8 rounded-full transition-all">
+                                Start Over
+                            </button>
+                        </div>
+
+                        <h2 className="text-2xl font-bold text-slate-700 font-serif mb-4 text-center">Organizer's Master List</h2>
+                        <ResultsDisplay matches={matches} />
+                    </div>
+                </main>
+                <Footer />
+                {showShareModal && (
+                    <ShareLinksModal exchangeData={data} onClose={() => setShowShareModal(false)} initialView={shareModalInitialView} />
+                )}
+            </>
         );
     }
     
-    const { receiver } = currentMatch;
-    const interests = (receiver.interests || '').split(',').map(s => s.trim()).filter(Boolean);
-    const likes = (receiver.likes || '').split(',').map(s => s.trim()).filter(Boolean);
-    
+    // Participant Pre-Reveal View
+    if (view === 'pre-reveal') {
+        return (
+            <>
+                <Header />
+                <main className="bg-slate-50">
+                    <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-xl py-12 flex items-center justify-center min-h-[60vh]">
+                        <div className="bg-white p-8 rounded-2xl shadow-lg text-center border w-full">
+                            <UserCheck size={48} className="mx-auto text-green-500 mb-4" />
+                            <h1 className="text-3xl font-bold text-slate-800 font-serif">Hi, {currentMatch?.giver.name}!</h1>
+                            <p className="text-lg text-slate-600 mt-2">Ready to find out who you're getting a gift for?</p>
+                            <button onClick={handleConfirmAndReveal} className="mt-6 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">
+                                Yes, Reveal My Match!
+                            </button>
+                            <p className="text-xs text-slate-400 mt-4">
+                                Not {currentMatch?.giver.name}?{' '}
+                                <a href="#" onClick={(e) => { e.preventDefault(); trackEvent('deny_pre_reveal'); alert('Please contact your event organizer to get your correct link.'); }} className="underline hover:text-red-600">
+                                    Click here.
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </>
+        );
+    }
+
+    // Participant Reveal View
     return (
-      <>
-        <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">You are a Secret Santa!</h1>
-            <p className="text-lg text-slate-600 mt-2">Scratch the card below to reveal who you're getting a gift for.</p>
-        </div>
-        
-        <div className="relative max-w-md mx-auto">
-            <PrintableCard
-              match={currentMatch}
-              eventDetails={styleData.eventDetails}
-              isNameRevealed={isRevealed}
-              backgroundOptions={styleData.backgroundOptions}
-              bgId={styleData.bgId}
-              bgImg={styleData.customBackground}
-              txtColor={styleData.textColor}
-              outline={styleData.useTextOutline}
-              outColor={styleData.outlineColor}
-              outSize={styleData.outlineSize}
-              fontSize={styleData.fontSizeSetting}
-              font={styleData.fontTheme}
-              line={styleData.lineSpacing}
-              greet={styleData.greetingText}
-              intro={styleData.introText}
-              wish={styleData.wishlistLabelText}
-            />
-            {!isRevealed && (
-                <div 
-                    className="absolute inset-0 flex items-center justify-center cursor-pointer group"
-                    onClick={handleReveal}
-                    style={{ top: '45%', height: '18%'}}
-                >
-                    <div className="bg-gray-300 w-3/4 h-full rounded-lg flex items-center justify-center text-gray-600 font-bold text-2xl group-hover:opacity-90 transition-opacity">
-                       Scratch to Reveal!
+        <>
+            <Header />
+            <main className="bg-slate-50">
+                <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-2xl py-12">
+                    <div className="text-center mb-8">
+                         <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">You are a Secret Santa!</h1>
+                         <p className="text-lg text-slate-600 mt-4">
+                            Scratch the card below to reveal who you're getting a gift for.
+                         </p>
                     </div>
+                    
+                    <div className="relative">
+                        <PrintableCard
+                            match={currentMatch!}
+                            eventDetails={styleData.eventDetails}
+                            isNameRevealed={isNameRevealed}
+                            backgroundOptions={styleData.backgroundOptions}
+                            bgId={styleData.bgId}
+                            bgImg={styleData.customBackground}
+                            txtColor={styleData.textColor}
+                            outline={styleData.useTextOutline}
+                            outColor={styleData.outlineColor}
+                            outSize={styleData.outlineSize}
+                            fontSize={styleData.fontSizeSetting}
+                            font={styleData.fontTheme}
+                            line={styleData.lineSpacing}
+                            greet={styleData.greetingText}
+                            intro={styleData.introText}
+                            wish={styleData.wishlistLabelText}
+                        />
+                         <div 
+                            className="absolute inset-0 flex items-center justify-center"
+                            style={{ 
+                                top: '40%', 
+                                height: '20%',
+                                pointerEvents: isNameRevealed ? 'none' : 'auto'
+                            }}
+                        >
+                            <ScratchToReveal onReveal={handleScratchReveal} isRevealed={isNameRevealed} />
+                        </div>
+                    </div>
+                    
+                    {isNameRevealed && (
+                        <GiftInspirationSection receiver={currentMatch!.receiver} persona={persona} giverName={currentMatch!.giver.name} />
+                    )}
                 </div>
-            )}
-        </div>
-
-
-        {isRevealed && (
-          <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200">
-            <h2 className="text-2xl font-bold text-center text-slate-800 font-serif mb-6 flex items-center justify-center gap-3">
-              <Gift className="w-7 h-7 text-indigo-500"/>
-              Gift Inspiration for {receiver.name}
-            </h2>
-
-            {persona && (
-                <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200 text-center mb-8">
-                  <p className="font-semibold text-indigo-800">Based on their interests, we think {receiver.name} is...</p>
-                  <h3 className="text-3xl font-bold text-indigo-600 my-2">{persona.name}</h3>
-                  <p className="text-indigo-700 text-sm max-w-lg mx-auto">{persona.description}</p>
-                </div>
-            )}
-            
-            <div className="space-y-6">
-                {interests.length > 0 && (
-                    <div className="p-4 bg-slate-50 rounded-lg border">
-                        <h3 className="font-bold text-slate-700 flex items-center gap-2 mb-3"><Heart className="w-5 h-5 text-rose-500"/> Interests & Hobbies</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {interests.map((interest, index) => (
-                                <a key={index} href={createAmazonLink(interest)} target="_blank" rel="noopener noreferrer" className="bg-white hover:bg-rose-100 border border-rose-200 text-rose-700 font-semibold py-2 px-4 rounded-full text-sm transition-colors" onClick={() => trackEvent('click_gift_idea', { keyword: interest, type: 'interest' })}>
-                                    {interest}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                 {likes.length > 0 && (
-                    <div className="p-4 bg-slate-50 rounded-lg border">
-                        <h3 className="font-bold text-slate-700 flex items-center gap-2 mb-3"><ShoppingCart className="w-5 h-5 text-emerald-500"/> Specific Likes</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {likes.map((like, index) => (
-                                <a key={index} href={createAmazonLink(like)} target="_blank" rel="noopener noreferrer" className="bg-white hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-semibold py-2 px-4 rounded-full text-sm transition-colors" onClick={() => trackEvent('click_gift_idea', { keyword: like, type: 'like' })}>
-                                    {like}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                {receiver.dislikes && (
-                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                        <h3 className="font-bold text-red-700 flex items-center gap-2 mb-2"><ThumbsDown className="w-5 h-5"/> Dislikes & No-Go's</h3>
-                        <p className="text-red-800 text-sm">{receiver.dislikes}</p>
-                    </div>
-                )}
-                 {receiver.links && (
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <h3 className="font-bold text-blue-700 flex items-center gap-2 mb-2"><LinkIcon className="w-5 h-5"/> Specific Links</h3>
-                        <div className="space-y-2">
-                            {receiver.links.split('\n').map((link, index) => {
-                                const trimmed = link.trim();
-                                if (!trimmed) return null;
-                                return <a key={index} href={trimmed} target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:underline text-sm truncate" onClick={() => trackEvent('click_gift_idea', { type: 'specific_link' })}>{trimmed}</a>
-                            })}
-                        </div>
-                    </div>
-                )}
-                {receiver.budget && (
-                     <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                        <h3 className="font-bold text-amber-700 flex items-center gap-2 mb-2"><Wallet className="w-5 h-5"/> Suggested Budget</h3>
-                        <p className="text-amber-800 text-lg font-semibold">${receiver.budget}</p>
-                    </div>
-                )}
-            </div>
-            
-             <p className="text-xs text-slate-400 text-center mt-6">As an Amazon Associate, we earn from qualifying purchases. This helps keep our tool 100% free!</p>
-          </div>
-        )}
-      </>
+            </main>
+            <Footer />
+        </>
     );
-  };
-
-  const renderOrganizerView = () => (
-    <>
-      <div className="text-center mb-8">
-        <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">Organizer's Master List</h1>
-        <p className="text-lg text-slate-600 mt-4">Here are all the Secret Santa matches. Keep this page safe!</p>
-        
-        {error && (
-            <div className="bg-red-100 border border-red-200 text-red-700 p-3 my-6 rounded-md text-sm text-left max-w-lg mx-auto" role="alert">
-                <p className="font-bold">Shuffle Error</p>
-                <p>{error}</p>
-            </div>
-        )}
-
-        <div className="mt-6 flex flex-wrap justify-center items-center gap-4">
-            <button onClick={() => setShowShareModal(true)} className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-colors">
-                Share Links & Download Cards
-            </button>
-            <button 
-                onClick={handleShuffle}
-                className="flex items-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 px-4 rounded-full transition-colors text-sm"
-            >
-                <RefreshCw size={16}/>
-                Shuffle Again
-            </button>
-             <button
-                onClick={handleStartOver}
-                className="text-sm text-slate-500 hover:text-red-600 font-semibold flex items-center gap-2"
-            >
-                <Home size={16}/>
-                Start Over
-            </button>
-        </div>
-      </div>
-      <ResultsDisplay matches={matches} />
-    </>
-  );
-
-  return (
-    <>
-      <Header />
-      <div className="bg-slate-50 min-h-screen">
-        <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-3xl py-12">
-          {currentParticipantId ? renderParticipantView() : renderOrganizerView()}
-        </main>
-      </div>
-      <Footer />
-      {showShareModal && (
-        <ShareLinksModal exchangeData={data} onClose={() => setShowShareModal(false)} />
-      )}
-    </>
-  );
 };
 
 export default ResultsPage;
