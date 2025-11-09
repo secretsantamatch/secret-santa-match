@@ -100,9 +100,6 @@ export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<v
         await preloadCardImages(exchangeData);
 
         for (const match of matches) {
-            // FIX: The spread operator `...styleData` passed props with incorrect names.
-            // This has been corrected by explicitly mapping `styleData` properties from the
-            // `exchangeData` object to the corresponding props required by `PrintableCard`.
             const cardComponent = React.createElement(PrintableCard, {
                 match,
                 eventDetails: styleData.eventDetails,
@@ -329,24 +326,26 @@ const drawGiftTags = (doc: jsPDF) => {
             doc.setLineWidth(0.5);
             doc.roundedRect(x, y, tagWidth, tagHeight, 5, 5, 'D');
 
-            // FIX: The `setFillColor` method was causing a TypeScript error when passed a number for a grayscale value.
-            // Converting the number to a string resolves the type conflict while maintaining the intended grayscale color.
             doc.setFillColor('240');
             doc.circle(x + 10, y + 10, 2.5, 'F');
             doc.setDrawColor(150);
             doc.setLineWidth(0.2);
-            doc.line(x+10, y+10, x+10, y+2);
-
+            doc.line(x + 10, y + 10, x + 10, y + 2);
 
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(48, 59, 83);
             doc.text("To:", x + 10, y + 25);
-            doc.line(x + 20, y + 25, x + tagWidth - 10, y + 25);
-
+            doc.setDrawColor(200);
+            doc.setLineWidth(0.2);
+            doc.line(x + 25, y + 25, x + tagWidth - 10, y + 25);
+            
+            // FIX: Reduce font size and adjust position for the "From" line to prevent text overlapping.
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
             doc.text("From:", x + 10, y + 35);
             doc.setFont('helvetica', 'normal');
-            doc.text("Your Secret Santa 🤫", x + 25, y + 35);
+            doc.text("Your Secret Santa 🤫", x + 32, y + 35);
         }
     }
 };
