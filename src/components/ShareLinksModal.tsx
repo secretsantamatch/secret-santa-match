@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match } from '../types';
 import { generateAllCardsPdf, generateMasterListPdf, generatePartyPackPdf } from '../services/pdfService';
 import { trackEvent } from '../services/analyticsService';
-import { X, Copy, Check, Link as LinkIcon, MessageSquare, Download, QrCode, Users, Star, FileText } from 'lucide-react';
+import { X, Copy, Check, Link as LinkIcon, MessageSquare, Download, QrCode, Users, Star, FileText, CheckCircle } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import PrintableCard from './PrintableCard';
 
@@ -24,6 +24,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [activeQr, setActiveQr] = useState<string | null>(null);
+  const [sentLinks, setSentLinks] = useState<Set<string>>(new Set());
 
   const { p: participants, matches: matchIds } = exchangeData;
   
@@ -35,9 +36,10 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   useEffect(() => {
     const shortenUrl = async (url: string): Promise<string> => {
         try {
-            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+            const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`http://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`)}`);
             if (!response.ok) return url;
-            return await response.text();
+            const shortUrl = await response.text();
+            return shortUrl.startsWith('http') ? shortUrl : url;
         } catch (error) {
             console.error("TinyURL error:", error);
             return url;
@@ -54,7 +56,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
         const newParticipantLinks: Record<string, LinkState> = {};
         for (const { giver } of matches) {
-            const fullUrl = `${baseUrl}?page=results&id=${giver.id}#${encodedHash}`;
+            const fullUrl = `${baseUrl}?id=${giver.id}#${encodedHash}`;
             const shortUrl = await shortenUrl(fullUrl);
             newParticipantLinks[giver.id] = { full: fullUrl, short: shortUrl };
         }
@@ -67,6 +69,9 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   const handleCopy = (id: string, textToCopy: string) => {
     navigator.clipboard.writeText(textToCopy);
     setCopiedStates(prev => ({ ...prev, [id]: true }));
+    if (id !== 'organizer' && id !== 'copy-all') {
+        setSentLinks(prev => new Set(prev).add(id));
+    }
     setTimeout(() => {
       setCopiedStates(prev => ({ ...prev, [id]: false }));
     }, 2000);
@@ -79,6 +84,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
           return `${giver.name}'s Link: ${url}`;
       }).join('\n');
       handleCopy('copy-all', allLinksText);
+      setSentLinks(new Set(matches.map(m => m.giver.id)));
   };
   
   const handlePdfDownload = async (type: 'cards' | 'masterlist' | 'partypack') => {
@@ -88,7 +94,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
               await generateAllCardsPdf(exchangeData);
               trackEvent('download_pdf', { type: 'cards' });
           } else if (type === 'masterlist') {
-              await generateMasterListPdf(exchangeData);
+              generateMasterListPdf(exchangeData);
               trackEvent('download_pdf', { type: 'masterlist' });
           } else if (type === 'partypack') {
               generatePartyPackPdf(exchangeData);
@@ -127,31 +133,37 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
         downloadLink.download = `QR_Code_for_${giverName}.png`;
         downloadLink.href = pngFile;
         downloadLink.click();
+        trackEvent('download_qr_code');
     };
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
   };
 
-  const getDisplayedUrl = (linkState?: LinkState) => (useShortLinks ? linkState?.short : linkState?.full) || linkState?.full || '';
+  const handleShareAction = (giverId: string) => {
+    setSentLinks(prev => new Set(prev).add(giverId));
+    // The link itself will handle opening the app
+  };
+
+  const getDisplayedUrl = (linkState?: LinkState) => (useShortLinks ? linkState?.short : linkState?.full) || '';
 
   const renderDownloads = () => (
     <div className="space-y-4">
-        <h3 className="font-bold text-lg text-slate-200">Downloads & Bulk Actions</h3>
+        <h3 className="font-bold text-lg text-slate-100">Downloads & Bulk Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button onClick={() => handlePdfDownload('cards')} className="bg-slate-700/50 hover:bg-slate-600/50 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
+            <button onClick={() => handlePdfDownload('cards')} className="bg-slate-700/70 hover:bg-slate-600/70 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
                 <Download className="w-6 h-6 text-slate-300 mt-1 flex-shrink-0"/>
                 <div>
                     <p className="font-bold text-white">Download All Cards</p>
                     <p className="text-sm text-slate-300">A PDF with one styled, printable card for each person.</p>
                 </div>
             </button>
-            <button onClick={() => handlePdfDownload('masterlist')} className="bg-slate-700/50 hover:bg-slate-600/50 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
+            <button onClick={() => handlePdfDownload('masterlist')} className="bg-slate-700/70 hover:bg-slate-600/70 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
                 <FileText className="w-6 h-6 text-slate-300 mt-1 flex-shrink-0"/>
                 <div>
                     <p className="font-bold text-white">Download Master List</p>
-                    <p className="text-sm text-slate-300">A simple PDF of all matches for your records.</p>
+                    <p className="text-sm text-slate-300">A detailed PDF of all matches for your records.</p>
                 </div>
             </button>
-             <button onClick={handleCopyAll} className="bg-slate-700/50 hover:bg-slate-600/50 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2">
+             <button onClick={handleCopyAll} className="bg-slate-700/70 hover:bg-slate-600/70 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2">
                 <Copy className="w-6 h-6 text-slate-300 mt-1 flex-shrink-0"/>
                 <div>
                     <p className="font-bold text-white">Copy All Links</p>
@@ -159,7 +171,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                 </div>
             </button>
             <button onClick={() => handlePdfDownload('partypack')} className="bg-purple-600 hover:bg-purple-500 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2">
-                <Star className="w-6 h-6 text-purple-300 mt-1 flex-shrink-0"/>
+                <Star className="w-6 h-6 text-purple-200 mt-1 flex-shrink-0"/>
                 <div>
                     <p className="font-bold text-white">Download Party Pack</p>
                     <p className="text-sm text-purple-200">Fun extras for your event, including Secret Santa Bingo and party awards!</p>
@@ -171,7 +183,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
   const renderLinksSection = () => (
       <div className="space-y-4">
-          <div className="bg-slate-700 p-4 rounded-xl">
+          <div className="bg-blue-900/30 border border-blue-800 p-4 rounded-xl">
             <h3 className="font-bold text-lg text-white mb-2">Your Organizer Master Link</h3>
             <p className="text-sm text-slate-300 mb-3">Save this link to get back to your results page anytime. Don't lose it!</p>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -185,7 +197,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
         <div>
             <div className="flex flex-wrap justify-between items-center gap-4 mb-3">
-                <h3 className="font-bold text-lg text-slate-200">Participant Reveal Links</h3>
+                <h3 className="font-bold text-lg text-slate-100">Participant Reveal Links</h3>
                 <div className="flex items-center">
                     <label htmlFor="short-link-toggle" className="mr-2 block text-sm font-medium text-slate-300">Show Full Links</label>
                     <input
@@ -197,31 +209,36 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                     />
                 </div>
             </div>
-            <p className="text-sm text-slate-300 mb-4">Copy, shorten, or share each link via Text/WhatsApp.</p>
+            <p className="text-sm text-slate-300 mb-4">Copy and share each link via Email/Text/WhatsApp or your favorite app.</p>
             <div className="space-y-3">
-                {matches.map(({ giver }) => (
-                <div key={giver.id} className="bg-slate-700/50 p-3 rounded-lg">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <div className="w-10 h-10 bg-slate-700 rounded-md flex items-center justify-center flex-shrink-0"><Users className="w-5 h-5 text-slate-300"/></div>
-                        <div className="flex-grow min-w-0">
-                            <p className="font-semibold text-white">{giver.name}'s Link</p>
-                            <p className="text-xs text-slate-300 truncate">{getDisplayedUrl(participantLinks[giver.id])}</p>
+                {matches.map(({ giver }) => {
+                    const isSent = sentLinks.has(giver.id);
+                    return (
+                        <div key={giver.id} className={`bg-slate-700/50 p-3 rounded-lg transition-opacity ${isSent ? 'opacity-50' : 'opacity-100'}`}>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <div className="w-10 h-10 bg-slate-700 rounded-md flex items-center justify-center flex-shrink-0">
+                                    {isSent ? <CheckCircle className="w-6 h-6 text-green-400"/> : <Users className="w-5 h-5 text-slate-300"/>}
+                                </div>
+                                <div className="flex-grow min-w-0">
+                                    <p className="font-semibold text-white">{giver.name}'s Link</p>
+                                    <p className="text-xs text-slate-300 truncate">{getDisplayedUrl(participantLinks[giver.id])}</p>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                    <button onClick={() => handleCopy(giver.id, getDisplayedUrl(participantLinks[giver.id]))} className={`p-2 rounded-md transition-colors ${copiedStates[giver.id] ? 'bg-green-600' : 'bg-slate-600 hover:bg-slate-500'}`}><span className="sr-only">Copy</span>{copiedStates[giver.id] ? <Check size={16} className="text-white"/> : <Copy size={16} className="text-slate-200"/>}</button>
+                                    <a href={`sms:?&body=Your Secret Santa link is: ${encodeURIComponent(getDisplayedUrl(participantLinks[giver.id]))}`} onClick={() => handleShareAction(giver.id)} className="p-2 rounded-md bg-slate-600 hover:bg-slate-500"><span className="sr-only">Text</span><MessageSquare size={16} className="text-slate-200"/></a>
+                                    <button onClick={() => { handleShareAction(giver.id); setActiveQr(activeQr === giver.id ? null : giver.id); }} className={`p-2 rounded-md transition-colors ${activeQr === giver.id ? 'bg-indigo-600' : 'bg-slate-600 hover:bg-slate-500'}`}><span className="sr-only">QR Code</span><QrCode size={16} className="text-slate-200"/></button>
+                                </div>
+                            </div>
+                            {activeQr === giver.id && (
+                                <div className="mt-4 p-4 bg-white rounded-lg text-center animate-fade-in-fast">
+                                     <h4 className="font-bold text-slate-800">Scan QR code for {giver.name}'s link</h4>
+                                     <div className="my-4 max-w-[150px] mx-auto"><QRCode id={`qr-${giver.id}`} value={getDisplayedUrl(participantLinks[giver.id])} size={256} style={{ height: "auto", maxWidth: "100%", width: "100%" }} /></div>
+                                     <button onClick={() => downloadQrCode(giver.id)} className="text-sm text-indigo-600 hover:underline font-semibold">Download QR Code</button>
+                                </div>
+                            )}
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            <button onClick={() => handleCopy(giver.id, getDisplayedUrl(participantLinks[giver.id]))} className={`p-2 rounded-md ${copiedStates[giver.id] ? 'bg-green-600' : 'bg-slate-600 hover:bg-slate-500'}`}><span className="sr-only">Copy</span>{copiedStates[giver.id] ? <Check size={16} className="text-white"/> : <Copy size={16} className="text-slate-200"/>}</button>
-                            <a href={`sms:?&body=Your Secret Santa link is: ${getDisplayedUrl(participantLinks[giver.id])}`} className="p-2 rounded-md bg-slate-600 hover:bg-slate-500"><span className="sr-only">Text</span><MessageSquare size={16} className="text-slate-200"/></a>
-                            <button onClick={() => setActiveQr(activeQr === giver.id ? null : giver.id)} className="p-2 rounded-md bg-slate-600 hover:bg-slate-500"><span className="sr-only">QR Code</span><QrCode size={16} className="text-slate-200"/></button>
-                        </div>
-                    </div>
-                    {activeQr === giver.id && (
-                        <div className="mt-4 p-4 bg-white rounded-lg text-center animate-fade-in-fast">
-                             <h4 className="font-bold text-slate-800">Scan QR code for {giver.name}'s link</h4>
-                             <div className="my-4 max-w-[150px] mx-auto"><QRCode id={`qr-${giver.id}`} value={getDisplayedUrl(participantLinks[giver.id])} size={256} style={{ height: "auto", maxWidth: "100%", width: "100%" }} /></div>
-                             <button onClick={() => downloadQrCode(giver.id)} className="text-sm text-indigo-600 hover:underline font-semibold">Download QR Code</button>
-                        </div>
-                    )}
-                </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
       </div>
@@ -250,34 +267,6 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                     <div className="border-t border-slate-700 pt-8 mt-8">{renderDownloads()}</div>
                 </>
             )}
-            
-            {/* Hidden cards for PDF generation */}
-            {isPdfLoading && (
-                <div style={{ position: 'absolute', left: '-9999px', top: '0' }}>
-                    {matches.map(match => (
-                        <div key={`pdf-${match.giver.id}`} id={`card-${match.giver.id}`} style={{ width: '600px', height: '800px' }}>
-                            <PrintableCard
-                                match={match}
-                                eventDetails={exchangeData.eventDetails}
-                                isNameRevealed={true}
-                                backgroundOptions={exchangeData.backgroundOptions}
-                                bgId={exchangeData.bgId}
-                                bgImg={exchangeData.customBackground}
-                                txtColor={exchangeData.textColor}
-                                outline={exchangeData.useTextOutline}
-                                outColor={exchangeData.outlineColor}
-                                outSize={exchangeData.outlineSize}
-                                fontSize={exchangeData.fontSizeSetting}
-                                font={exchangeData.fontTheme}
-                                line={exchangeData.lineSpacing}
-                                greet={exchangeData.greetingText}
-                                intro={exchangeData.introText}
-                                wish={exchangeData.wishlistLabelText}
-                            />
-                        </div>
-                    ))}
-                </div>
-            )}
         </div>
 
         <div className="p-4 bg-slate-900/50 border-t border-slate-700 text-right">
@@ -286,6 +275,32 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
           </button>
         </div>
       </div>
+      
+       {/* Hidden cards for PDF generation */}
+      <div className="absolute -left-[9999px] top-0">
+        {matches.map(match => (
+            <div key={`pdf-card-${match.giver.id}`} id={`pdf-card-${match.giver.id}`} style={{ width: '600px', height: '800px' }}>
+                <PrintableCard
+                    match={match}
+                    isNameRevealed={true}
+                    {...exchangeData}
+                    bgId={exchangeData.bgId}
+                    bgImg={exchangeData.customBackground}
+                    txtColor={exchangeData.textColor}
+                    outline={exchangeData.useTextOutline}
+                    outColor={exchangeData.outlineColor}
+                    outSize={exchangeData.outlineSize}
+                    fontSize={exchangeData.fontSizeSetting}
+                    font={exchangeData.fontTheme}
+                    line={exchangeData.lineSpacing}
+                    greet={exchangeData.greetingText}
+                    intro={exchangeData.introText}
+                    wish={exchangeData.wishlistLabelText}
+                />
+            </div>
+        ))}
+      </div>
+
        <style>{`
             @keyframes fade-in-fast { from { opacity: 0; } to { opacity: 1; } }
             .animate-fade-in-fast { animation: fade-in-fast 0.2s ease-out forwards; }
