@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -345,7 +344,7 @@ const drawGiftTags = (doc: jsPDF) => {
             doc.setFont('helvetica', 'bold');
             doc.text("From:", x + 10, y + 35);
             doc.setFont('helvetica', 'normal');
-            doc.text("Your Secret Santa 🤫", x + 32, y + 35);
+            doc.text("Your Secret Santa", x + 32, y + 35);
         }
     }
 };
