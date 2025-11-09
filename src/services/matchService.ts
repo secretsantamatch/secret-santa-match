@@ -4,73 +4,76 @@ export const generateMatches = (
     participants: Participant[],
     exclusions: Exclusion[],
     assignments: Assignment[]
-): { matches: Match[] | null, error: string | null } => {
-    
-    const validParticipants = participants.filter(p => p.name.trim() !== '');
-    if (validParticipants.length < 3) {
-        return { matches: null, error: "You need at least 3 participants to start a gift exchange." };
-    }
+): { matches: Match[] | null; error: string | null } => {
+    try {
+        if (participants.length < 2) {
+            return { matches: null, error: "Not enough participants." };
+        }
 
-    let matches: Match[] = [];
-    const maxRetries = 100;
+        let givers = [...participants];
+        let receivers = [...participants];
+        const matches: Match[] = [];
 
-    for (let i = 0; i < maxRetries; i++) {
-        let givers = [...validParticipants];
-        let receivers = [...validParticipants];
-        let tempMatches: Match[] = [];
-        let possible = true;
-
-        // Handle assignments first
-        const assignedGiverIds = new Set(assignments.map(a => a.giverId));
-        const assignedReceiverIds = new Set(assignments.map(a => a.receiverId));
-
+        // Handle fixed assignments first
         for (const assignment of assignments) {
             const giver = givers.find(p => p.id === assignment.giverId);
             const receiver = receivers.find(p => p.id === assignment.receiverId);
-            if (giver && receiver) {
-                tempMatches.push({ giver, receiver });
+
+            if (!giver || !receiver) {
+                return { matches: null, error: `Invalid assignment: Giver or receiver not found.` };
             }
+            if (giver.id === receiver.id) {
+                 return { matches: null, error: `Invalid assignment: ${giver.name} cannot be assigned to themselves.` };
+            }
+
+            matches.push({ giver, receiver });
+            givers = givers.filter(p => p.id !== giver.id);
+            receivers = receivers.filter(p => p.id !== receiver.id);
         }
 
-        givers = givers.filter(p => !assignedGiverIds.has(p.id));
-        receivers = receivers.filter(p => !assignedReceiverIds.has(p.id));
+        // Attempt to create remaining matches
+        let attempts = 0;
+        while (givers.length > 0 && attempts < 100) {
+            // Fisher-Yates shuffle on receivers
+            for (let i = receivers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [receivers[i], receivers[j]] = [receivers[j], receivers[i]];
+            }
+            
+            let possibleMatches: Match[] = [];
+            let valid = true;
 
-        // Shuffle remaining receivers
-        receivers.sort(() => Math.random() - 0.5);
+            for (let i = 0; i < givers.length; i++) {
+                const giver = givers[i];
+                const receiver = receivers[i];
 
-        for (const giver of givers) {
-            let foundMatch = false;
-            for (let j = 0; j < receivers.length; j++) {
-                const receiver = receivers[j];
-                const isSelf = giver.id === receiver.id;
+                if (giver.id === receiver.id) {
+                    valid = false;
+                    break;
+                }
+
                 const isExcluded = exclusions.some(ex =>
                     (ex.p1 === giver.id && ex.p2 === receiver.id) ||
                     (ex.p1 === receiver.id && ex.p2 === giver.id)
                 );
-                
-                if (!isSelf && !isExcluded) {
-                    tempMatches.push({ giver, receiver });
-                    receivers.splice(j, 1);
-                    foundMatch = true;
+
+                if (isExcluded) {
+                    valid = false;
                     break;
                 }
+                possibleMatches.push({ giver, receiver });
             }
 
-            if (!foundMatch) {
-                possible = false;
-                break;
+
+            if (valid) {
+                return { matches: [...matches, ...possibleMatches], error: null };
             }
-        }
-        
-        if (possible && tempMatches.length === validParticipants.length) {
-            matches = tempMatches;
-            break;
-        }
-    }
 
-    if (matches.length !== validParticipants.length) {
-        return { matches: null, error: "Could not generate valid matches with the current rules. Try removing some exclusions or assignments." };
-    }
+            attempts++;
+        }
 
-    return { matches, error: null };
+        return { matches: null, error: "Could not find a valid matching. Try removing some exclusions or assignments." };
+    } catch (e) {
+        return { matches: null, error: e instanceof Error ? e.message : "An unknown error occurred during matching." };
+    }
 };

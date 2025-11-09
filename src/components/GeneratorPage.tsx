@@ -288,6 +288,10 @@ const GeneratorPage: React.FC = () => {
         try {
             // Step 1: Generate matches
             const matchesResult = generateMatches(validParticipants, exclusions, assignments);
+            
+            if (matchesResult.error || !matchesResult.matches) {
+                throw new Error(matchesResult.error || "Failed to generate valid matches.");
+            }
 
             // Step 2: Create wishlists in the backend
             const wishlistResponse = await fetch('/.netlify/functions/create-wishlists', {
@@ -308,7 +312,7 @@ const GeneratorPage: React.FC = () => {
             // Step 4: Prepare data for URL
             const dataForUrl: Omit<ExchangeData, 'backgroundOptions'> = {
                 p: participantsWithWishlists,
-                matches: matchesResult.map((m: Match) => ({ g: m.giver.id, r: m.receiver.id })),
+                matches: matchesResult.matches.map((m: Match) => ({ g: m.giver.id, r: m.receiver.id })),
                 eventDetails,
                 bgId: selectedBackground,
                 customBackground,
