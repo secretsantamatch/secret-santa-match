@@ -19,7 +19,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   const [loadingShortLinks, setLoadingShortLinks] = useState(true);
   const [sentLinks, setSentLinks] = useState<Set<string>>(new Set());
   const [expandedQr, setExpandedQr] = useState<string | null>(null);
-  const [loadingPdf, setLoadingPdf] = useState<'cards' | 'master' | 'party' | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState<'cards' | 'master' | 'party' | 'all-links' | null>(null);
 
   const { p: participants, matches: matchIds } = exchangeData;
 
@@ -30,13 +30,13 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
   const getFullLink = (participantId: string): string => {
     const baseUrl = window.location.href.split(/[?#]/)[0];
-    const encodedData = window.location.hash.slice(1);
+    const encodedData = window.location.hash.slice(1).split('?')[0]; // Remove params from hash
     return `${baseUrl}?id=${participantId}#${encodedData}`;
   };
   
   const getFullOrganizerLink = (): string => {
       const baseUrl = window.location.href.split(/[?#]/)[0];
-      const encodedData = window.location.hash.slice(1);
+      const encodedData = window.location.hash.slice(1).split('?')[0]; // Remove params from hash
       return `${baseUrl}#${encodedData}`;
   }
 
@@ -51,14 +51,15 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
         const promises = linksToShorten.map(item => 
           fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(item.url)}`)
-            .then(res => res.text())
-            .then(shortUrl => ({ id: item.id, shortUrl }))
+            .then(res => res.ok ? res.text() : Promise.reject(`TinyURL failed for ${item.url}`))
         );
-        const results = await Promise.all(promises);
+        const results = await Promise.allSettled(promises);
+        
         const newShortLinks: Record<string, string> = {};
-        results.forEach(res => {
-          if (res.shortUrl && !res.shortUrl.toLowerCase().includes('error')) {
-            newShortLinks[res.id] = res.shortUrl;
+        results.forEach((result, index) => {
+          const { id } = linksToShorten[index];
+          if (result.status === 'fulfilled' && result.value && !result.value.toLowerCase().includes('error')) {
+            newShortLinks[id] = result.value;
           }
         });
         setShortLinks(newShortLinks);
@@ -68,13 +69,12 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
         setLoadingShortLinks(false);
       }
     };
-    // FIX: Corrected typo in function call from fetchAllShortLinks to fetchShortLinks.
     fetchShortLinks();
   }, [matches]);
 
 
   const getLinkForParticipant = (participant: Participant) => {
-    return showFullLinks ? getFullLink(participant.id) : (shortLinks[participant.id] || getFullLink(participant.id));
+    return !showFullLinks ? (shortLinks[participant.id] || getFullLink(participant.id)) : getFullLink(participant.id);
   };
   
   const handleCopy = (textToCopy: string, id: string) => {
@@ -91,10 +91,12 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   };
 
   const handleCopyAllLinks = () => {
+    setLoadingPdf('all-links');
     const allLinksText = matches.map(({ giver }) => {
         return `${giver.name}: ${getLinkForParticipant(giver)}`;
     }).join('\n');
     handleCopy(allLinksText, 'all-links');
+    setTimeout(() => setLoadingPdf(null), 2000);
   };
   
   const handleShortenToggle = (checked: boolean) => {
@@ -152,8 +154,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     try {
       if (type === 'cards') await generateAllCardsPdf(exchangeData);
       else if (type === 'master') generateMasterListPdf(exchangeData);
-      // FIX: The party pack PDF is generic and does not need exchange data.
-      else generatePartyPackPdf();
+      else generatePartyPackPdf(exchangeData);
     } catch (e) {
       console.error(e);
       alert(`Error: ${e instanceof Error ? e.message : String(e)}`);
@@ -162,13 +163,13 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     }
   };
   
-  const organizerLink = showFullLinks ? getFullOrganizerLink() : (shortLinks['organizer'] || getFullOrganizerLink());
+  const organizerLink = !showFullLinks ? (shortLinks['organizer'] || getFullOrganizerLink()) : getFullOrganizerLink();
 
   const DownloadsSection = () => (
     <section>
         <h3 className="text-xl font-bold text-slate-700 mb-4">Downloads & Bulk Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button onClick={() => handleDownload('cards')} disabled={!!loadingPdf} className="group text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-xl border transition-colors flex items-start gap-4 disabled:opacity-50">
+            <button onClick={() => handleDownload('cards')} disabled={!!loadingPdf} className="group text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-xl border transition-colors flex items-start gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
                 <Download size={24} className="text-slate-500 flex-shrink-0 mt-1" />
                 <div>
                     <h4 className="font-bold text-slate-800">Download All Cards</h4>
@@ -176,7 +177,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                     {loadingPdf === 'cards' && <p className="text-sm font-semibold text-indigo-600 mt-2 flex items-center gap-2"><Loader2 className="animate-spin" size={16}/> Processing...</p>}
                 </div>
             </button>
-             <button onClick={() => handleDownload('master')} disabled={!!loadingPdf} className="group text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-xl border transition-colors flex items-start gap-4 disabled:opacity-50">
+             <button onClick={() => handleDownload('master')} disabled={!!loadingPdf} className="group text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-xl border transition-colors flex items-start gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
                 <FileText size={24} className="text-slate-500 flex-shrink-0 mt-1" />
                 <div>
                     <h4 className="font-bold text-slate-800">Download Master List</h4>
@@ -186,16 +187,17 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
             </button>
         </div>
         <div className="mt-4">
-             <button onClick={handleCopyAllLinks} className="group text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-xl border transition-colors flex items-start gap-4 w-full">
+             <button onClick={handleCopyAllLinks} disabled={!!loadingPdf} className="group text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-xl border w-full transition-colors flex items-start gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
                 <Copy size={24} className="text-slate-500 flex-shrink-0 mt-1" />
                 <div>
                     <h4 className="font-bold text-slate-800">{copiedStates['all-links'] ? 'Copied!' : 'Copy All Links'}</h4>
                     <p className="text-sm text-slate-500">Copy a plain text list of all names and links to your clipboard.</p>
+                    {loadingPdf === 'all-links' && <p className="text-sm font-semibold text-indigo-600 mt-2">Copied to clipboard!</p>}
                 </div>
             </button>
         </div>
         <div className="mt-4">
-             <button onClick={() => handleDownload('party')} disabled={!!loadingPdf} className="group text-left p-4 bg-purple-100 hover:bg-purple-200 rounded-xl border border-purple-200 w-full transition-colors flex items-start gap-4 disabled:opacity-50">
+             <button onClick={() => handleDownload('party')} disabled={!!loadingPdf} className="group text-left p-4 bg-purple-100 hover:bg-purple-200 rounded-xl border border-purple-200 w-full transition-colors flex items-start gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
                 <PartyPopper size={24} className="text-purple-600 flex-shrink-0 mt-1" />
                 <div>
                     <h4 className="font-bold text-purple-800">Download Party Pack</h4>
@@ -236,7 +238,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
         
         <div className="space-y-3">
             {matches.map(({ giver }) => (
-            <div key={giver.id} className={`p-4 rounded-xl border transition-all ${sentLinks.has(giver.id) ? 'bg-emerald-50 border-emerald-200 opacity-70' : 'bg-yellow-50 border-yellow-200'}`}>
+            <div key={giver.id} className={`p-4 rounded-xl border transition-all ${sentLinks.has(giver.id) ? 'bg-emerald-50 border-emerald-200' : 'bg-yellow-50 border-yellow-200'}`}>
                 <div className="flex items-center gap-4">
                 <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${sentLinks.has(giver.id) ? 'bg-emerald-200 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
                     {sentLinks.has(giver.id) ? <Check size={24} /> : <Users size={24} />}
@@ -295,9 +297,11 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
        <div style={{ display: 'none' }}>
         {matches.map(({ giver, receiver }) => (
           <PrintableCard
-            key={giver.id}
+            key={`pdf-card-${giver.id}`}
             match={{ giver, receiver }}
-            {...exchangeData}
+            eventDetails={exchangeData.eventDetails}
+            isNameRevealed={true}
+            backgroundOptions={exchangeData.backgroundOptions}
             bgId={exchangeData.bgId}
             bgImg={exchangeData.customBackground}
             txtColor={exchangeData.textColor}
@@ -310,7 +314,6 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
             greet={exchangeData.greetingText}
             intro={exchangeData.introText}
             wish={exchangeData.wishlistLabelText}
-            isNameRevealed={true}
           />
         ))}
       </div>
