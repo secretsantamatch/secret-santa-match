@@ -4,12 +4,11 @@ import Header from './Header';
 import Footer from './Footer';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
-// FIX: Module '"./ShareLinksModal"' has no exported member 'ShareLinksModal'. Changed to default import.
 import ShareLinksModal from './ShareLinksModal';
 import { getGiftPersona } from '../services/personaService';
 import type { GiftPersona } from '../types';
 import { trackEvent } from '../services/analyticsService';
-import { Gift, Heart, ShoppingCart, ThumbsDown, Link as LinkIcon, Wallet, RefreshCw, Home } from 'lucide-react';
+import { Gift, Heart, ShoppingCart, ThumbsDown, Link as LinkIcon, Wallet, RefreshCw, Home, CheckCircle } from 'lucide-react';
 import { generateMatches } from '../services/matchService';
 import { encodeData } from '../services/urlService';
 
@@ -20,6 +19,7 @@ interface ResultsPageProps {
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
   const [isRevealed, setIsRevealed] = useState(false);
+  const [preRevealConfirmed, setPreRevealConfirmed] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [persona, setPersona] = useState<GiftPersona | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,11 +43,22 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
     }
   }, [currentMatch]);
 
+  useEffect(() => {
+    if (currentParticipantId) {
+        trackEvent('view_pre_reveal_page');
+    }
+  }, [currentParticipantId]);
+
   const handleReveal = () => {
     if (!isRevealed) {
       setIsRevealed(true);
       trackEvent('reveal_match');
     }
+  };
+
+  const handleConfirmPreReveal = () => {
+    setPreRevealConfirmed(true);
+    trackEvent('confirm_pre_reveal');
   };
   
   const createAmazonLink = (keyword: string) => {
@@ -101,6 +112,25 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         </div>
       );
     }
+
+    if (!preRevealConfirmed) {
+        return (
+            <div className="text-center bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-gray-200">
+                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6"/>
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {currentMatch.giver.name}!</h1>
+                <p className="text-lg text-slate-600 mt-4">Are you ready to find out who you're getting a gift for?</p>
+                <button 
+                    onClick={handleConfirmPreReveal}
+                    className="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all"
+                >
+                    Yes, Reveal My Match!
+                </button>
+                <p className="text-sm text-slate-400 mt-6">
+                    Not {currentMatch.giver.name}? This link is not for you. Please contact your event organizer.
+                </p>
+            </div>
+        );
+    }
     
     const { receiver } = currentMatch;
     const interests = (receiver.interests || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -110,27 +140,42 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
       <>
         <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">You are a Secret Santa!</h1>
-            <p className="text-lg text-slate-600 mt-2">Click the card below to reveal who you're getting a gift for.</p>
+            <p className="text-lg text-slate-600 mt-2">Scratch the card below to reveal who you're getting a gift for.</p>
         </div>
-        <PrintableCard
-          match={currentMatch}
-          eventDetails={styleData.eventDetails}
-          isNameRevealed={isRevealed}
-          onReveal={handleReveal}
-          backgroundOptions={styleData.backgroundOptions}
-          bgId={styleData.bgId}
-          bgImg={styleData.customBackground}
-          txtColor={styleData.textColor}
-          outline={styleData.useTextOutline}
-          outColor={styleData.outlineColor}
-          outSize={styleData.outlineSize}
-          fontSize={styleData.fontSizeSetting}
-          font={styleData.fontTheme}
-          line={styleData.lineSpacing}
-          greet={styleData.greetingText}
-          intro={styleData.introText}
-          wish={styleData.wishlistLabelText}
-        />
+        
+        <div className="relative max-w-md mx-auto">
+            <PrintableCard
+              match={currentMatch}
+              eventDetails={styleData.eventDetails}
+              isNameRevealed={isRevealed}
+              backgroundOptions={styleData.backgroundOptions}
+              bgId={styleData.bgId}
+              bgImg={styleData.customBackground}
+              txtColor={styleData.textColor}
+              outline={styleData.useTextOutline}
+              outColor={styleData.outlineColor}
+              outSize={styleData.outlineSize}
+              fontSize={styleData.fontSizeSetting}
+              font={styleData.fontTheme}
+              line={styleData.lineSpacing}
+              greet={styleData.greetingText}
+              intro={styleData.introText}
+              wish={styleData.wishlistLabelText}
+            />
+            {!isRevealed && (
+                <div 
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer group"
+                    onClick={handleReveal}
+                    style={{ top: '45%', height: '18%'}}
+                >
+                    <div className="bg-gray-300 w-3/4 h-full rounded-lg flex items-center justify-center text-gray-600 font-bold text-2xl group-hover:opacity-90 transition-opacity">
+                       Scratch to Reveal!
+                    </div>
+                </div>
+            )}
+        </div>
+
+
         {isRevealed && (
           <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200">
             <h2 className="text-2xl font-bold text-center text-slate-800 font-serif mb-6 flex items-center justify-center gap-3">
