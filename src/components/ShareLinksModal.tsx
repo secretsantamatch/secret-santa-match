@@ -68,7 +68,8 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
         setLoadingShortLinks(false);
       }
     };
-    fetchAllShortLinks();
+    // FIX: Corrected typo in function call from fetchAllShortLinks to fetchShortLinks.
+    fetchShortLinks();
   }, [matches]);
 
 

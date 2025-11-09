@@ -4,6 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
+// FIX: Module '"./ShareLinksModal"' has no exported member 'ShareLinksModal'. Changed to default import.
 import ShareLinksModal from './ShareLinksModal';
 import { getGiftPersona } from '../services/personaService';
 import type { GiftPersona } from '../types';
@@ -227,18 +228,16 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
                 <RefreshCw size={16}/>
                 Shuffle Again
             </button>
+             <button
+                onClick={handleStartOver}
+                className="text-sm text-slate-500 hover:text-red-600 font-semibold flex items-center gap-2"
+            >
+                <Home size={16}/>
+                Start Over
+            </button>
         </div>
       </div>
       <ResultsDisplay matches={matches} />
-       <div className="mt-8 text-center">
-            <button
-                onClick={handleStartOver}
-                className="text-sm text-slate-500 hover:text-red-600 font-semibold flex items-center gap-2 mx-auto"
-            >
-                <Home size={16}/>
-                Start a New Game
-            </button>
-        </div>
     </>
   );
 
