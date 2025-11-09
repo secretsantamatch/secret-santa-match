@@ -68,7 +68,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
         setLoadingShortLinks(false);
       }
     };
-    fetchShortLinks();
+    fetchAllShortLinks();
   }, [matches]);
 
 
@@ -182,7 +182,9 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                     {loadingPdf === 'master' && <p className="text-sm font-semibold text-indigo-600 mt-2 flex items-center gap-2"><Loader2 className="animate-spin" size={16}/> Processing...</p>}
                 </div>
             </button>
-             <button onClick={handleCopyAllLinks} className="group text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-xl border transition-colors flex items-start gap-4">
+        </div>
+        <div className="mt-4">
+             <button onClick={handleCopyAllLinks} className="group text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-xl border transition-colors flex items-start gap-4 w-full">
                 <Copy size={24} className="text-slate-500 flex-shrink-0 mt-1" />
                 <div>
                     <h4 className="font-bold text-slate-800">{copiedStates['all-links'] ? 'Copied!' : 'Copy All Links'}</h4>
