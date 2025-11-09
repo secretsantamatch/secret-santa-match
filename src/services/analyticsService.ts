@@ -4,20 +4,17 @@
 // especially for vite's `import.meta.env` and the global `gtag` function.
 declare global {
   interface Window {
-    gtag?: (command: 'config' | 'event', targetId: string, params?: Record<string, any>) => void;
+    gtag?: (command: string, eventName: string, eventParams?: Record<string, any>) => void;
     consentGranted?: boolean;
   }
-  // FIX: The original type definition for `import.meta.env` conflicted with
-  // Vite's base types. This is corrected by augmenting the `ImportMetaEnv`
-  // interface and ensuring `ImportMeta.env` uses this standard type, which
-  // resolves the "Subsequent property declarations must have the same type" error.
-  interface ImportMetaEnv {
-    readonly VITE_GA_TRACKING_ID: string;
-  }
-  interface ImportMeta {
-    readonly env: ImportMetaEnv;
-  }
 }
+interface ImportMetaEnv {
+    readonly VITE_GA_TRACKING_ID: string;
+}
+interface ImportMeta {
+    readonly env: ImportMetaEnv;
+}
+
 
 export const GA_TRACKING_ID = import.meta.env.VITE_GA_TRACKING_ID;
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import type { Match, Participant, BackgroundOption, ExchangeData } from '../types';
-// Fix: Renamed `parseUrl` to `parseExchangeData` to match the exported member from urlService.
 import { parseExchangeData } from '../services/urlService';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
@@ -8,7 +7,6 @@ import Header from './Header';
 import Footer from './Footer';
 
 const SuccessPage: React.FC = () => {
-    // Fix: Use a more specific type for the exchange data.
     const [exchangeData, setExchangeData] = useState<Omit<ExchangeData, 'backgroundOptions'> | null>(null);
     const [error, setError] = useState<string>('');
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
@@ -19,8 +17,7 @@ const SuccessPage: React.FC = () => {
             .then(data => setBackgroundOptions(data))
             .catch(console.error);
 
-        const params = new URLSearchParams(window.location.search);
-        const dataString = params.get('data');
+        const dataString = window.location.hash.slice(1) || new URLSearchParams(window.location.search).get('data');
 
         if (!dataString) {
             setError("No data found in the URL. This link may be invalid or incomplete.");
@@ -57,12 +54,11 @@ const SuccessPage: React.FC = () => {
         return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
 
-    // Fix: Destructure properties from the modern ExchangeData format instead of the old p, m, e, c structure.
     const { p: participants, matches: matchIds, eventDetails, ...styleConfig } = exchangeData;
 
-    const matches: Match[] = matchIds.map((matchData) => ({
-        giver: participants.find(p => p.id === matchData.g)!,
-        receiver: participants.find(p => p.id === matchData.r)!,
+    const matches: Match[] = matchIds.map((matchData: { g: string; r: string }) => ({
+        giver: participants.find((p: Participant) => p.id === matchData.g)!,
+        receiver: participants.find((p: Participant) => p.id === matchData.r)!,
     })).filter(m => m.giver && m.receiver);
 
     return (
@@ -91,7 +87,6 @@ const SuccessPage: React.FC = () => {
                                 eventDetails={eventDetails}
                                 isNameRevealed={true}
                                 backgroundOptions={backgroundOptions}
-                                // Fix: Use correct style properties from the new data structure.
                                 bgId={styleConfig.bgId}
                                 bgImg={styleConfig.customBackground || null}
                                 txtColor={styleConfig.textColor}

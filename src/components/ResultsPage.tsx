@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import type { Match, Participant, BackgroundOption, ExchangeData } from '../types';
-// Fix: Renamed `parseUrl` to `parseExchangeData` to match the exported member from urlService.
 import { parseExchangeData } from '../services/urlService';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
@@ -10,7 +9,6 @@ import Footer from './Footer';
 const ResultsPage: React.FC = () => {
     const [matches, setMatches] = useState<Match[]>([]);
     const [eventDetails, setEventDetails] = useState('');
-    // Fix: Use a more specific type for styleConfig.
     const [styleConfig, setStyleConfig] = useState<Omit<ExchangeData, 'p' | 'matches' | 'eventDetails' | 'backgroundOptions'> | null>(null);
     const [error, setError] = useState<string>('');
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
@@ -21,8 +19,7 @@ const ResultsPage: React.FC = () => {
             .then(data => setBackgroundOptions(data))
             .catch(console.error);
 
-        const params = new URLSearchParams(window.location.search);
-        const dataString = params.get('data');
+        const dataString = window.location.hash.slice(1) || new URLSearchParams(window.location.search).get('data');
 
         if (!dataString) {
             setError("No data found in the URL. This link may be invalid or incomplete.");
@@ -35,12 +32,11 @@ const ResultsPage: React.FC = () => {
             return;
         }
 
-        // Fix: Destructure properties from the modern ExchangeData format instead of the old p, m, e, c structure.
         const { p: participants, matches: matchIds, eventDetails: evtDetails, ...styleConf } = parsedData;
         
-        const matchList: Match[] = matchIds.map((matchData) => ({
-            giver: participants.find(p => p.id === matchData.g)!,
-            receiver: participants.find(p => p.id === matchData.r)!,
+        const matchList: Match[] = matchIds.map((matchData: { g: string; r: string }) => ({
+            giver: participants.find((p: Participant) => p.id === matchData.g)!,
+            receiver: participants.find((p: Participant) => p.id === matchData.r)!,
         }));
 
         setMatches(matchList.filter(m => m.giver && m.receiver));
@@ -97,7 +93,6 @@ const ResultsPage: React.FC = () => {
                                 eventDetails={eventDetails}
                                 isNameRevealed={true}
                                 backgroundOptions={backgroundOptions}
-                                // Fix: Use correct style properties from the new data structure.
                                 bgId={styleConfig.bgId}
                                 bgImg={styleConfig.customBackground || null}
                                 txtColor={styleConfig.textColor}

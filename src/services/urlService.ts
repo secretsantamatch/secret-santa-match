@@ -1,43 +1,22 @@
-import pako from 'pako';
+import { deflate, inflate } from 'pako';
 import type { ExchangeData } from '../types';
 
-const uint8ArrayToBase64 = (bytes: Uint8Array): string => {
-  let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-};
-
-const base64ToUint8Array = (base64: string): Uint8Array => {
-  const binary_string = atob(base64);
-  const len = binary_string.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binary_string.charCodeAt(i);
-  }
-  return bytes;
-};
-
-export const encodeData = (data: ExchangeData): string => {
-  try {
+export const serializeExchangeData = (data: Omit<ExchangeData, 'backgroundOptions'>): string => {
     const jsonString = JSON.stringify(data);
-    const compressed = pako.deflate(jsonString);
-    return uint8ArrayToBase64(compressed);
-  } catch (error) {
-    console.error("Failed to encode data:", error);
-    return '';
-  }
+    const compressed = deflate(jsonString);
+    const base64 = btoa(String.fromCharCode.apply(null, Array.from(compressed)));
+    return encodeURIComponent(base64);
 };
 
-export const decodeData = (encodedData: string): ExchangeData => {
-  try {
-    const compressed = base64ToUint8Array(encodedData);
-    const jsonString = pako.inflate(compressed, { to: 'string' });
-    return JSON.parse(jsonString);
-  } catch (error) {
-    console.error("Failed to decode data:", error);
-    throw new Error("Invalid or corrupted data in URL.");
-  }
+export const parseExchangeData = (dataString: string): Omit<ExchangeData, 'backgroundOptions'> | null => {
+    try {
+        const base64 = decodeURIComponent(dataString);
+        const compressed = atob(base64);
+        const uint8Array = new Uint8Array(compressed.split('').map(c => c.charCodeAt(0)));
+        const jsonString = inflate(uint8Array, { to: 'string' });
+        return JSON.parse(jsonString) as Omit<ExchangeData, 'backgroundOptions'>;
+    } catch (e) {
+        console.error("Failed to parse URL data:", e);
+        return null;
+    }
 };
