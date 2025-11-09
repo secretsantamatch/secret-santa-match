@@ -8,9 +8,7 @@ import ShareLinksModal from './ShareLinksModal';
 import { getGiftPersona } from '../services/personaService';
 import type { GiftPersona } from '../types';
 import { trackEvent } from '../services/analyticsService';
-// FIX: Import GoogleGenAI from @google/genai
-import { GoogleGenAI } from '@google/genai';
-import { Sparkles, Gift } from 'lucide-react';
+import { Gift, Heart, ShoppingCart, ThumbsDown, Link as LinkIcon, Wallet } from 'lucide-react';
 
 interface ResultsPageProps {
   data: ExchangeData;
@@ -21,9 +19,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   const [isRevealed, setIsRevealed] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [persona, setPersona] = useState<GiftPersona | null>(null);
-  const [giftIdeas, setGiftIdeas] = useState<string[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
 
   const { p: participants, matches: matchIds, ...styleData } = data;
 
@@ -49,59 +44,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
       trackEvent('reveal_match');
     }
   };
-
-  const generateGiftIdeas = async () => {
-    if (!currentMatch) return;
-    
-    if (!process.env.API_KEY) {
-      setAiError("AI features are currently unavailable. The API Key is not configured.");
-      trackEvent('gift_ideas_error', { reason: 'api_key_missing' });
-      return;
-    }
-
-    setIsGenerating(true);
-    setAiError(null);
-    trackEvent('generate_gift_ideas', { persona: persona?.name });
-
-    try {
-      // FIX: Use new GoogleGenAI class
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      const { receiver } = currentMatch;
-      const prompt = `
-        You are a helpful and creative gift-giving assistant. Based on the following person's profile, generate 5 unique and thoughtful gift ideas.
-        
-        **Recipient Profile:**
-        - **Name:** ${receiver.name}
-        - **Interests:** ${receiver.interests || 'Not specified'}
-        - **Likes:** ${receiver.likes || 'Not specified'}
-        - **Dislikes:** ${receiver.dislikes || 'Not specified'}
-        - **Gift Persona:** ${persona?.name || 'Not specified'}
-        - **Budget:** ${receiver.budget ? `$${receiver.budget}` : styleData.eventDetails || 'Not specified'}
-        
-        Please provide a list of 5 gift ideas. For each idea, provide a short, one-sentence description. Format the output as a numbered list.
-        Example: 
-        1. **Gourmet Coffee Subscription:** A subscription box that delivers unique coffee beans from around the world each month.
-      `;
-
-      // FIX: Use ai.models.generateContent and a modern model
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-      });
-      
-      // FIX: Use the .text property to get the response text
-      const text = response.text;
-      
-      const ideas = text.split('\n').filter(line => /^\d+\.\s*[*_]*/.test(line.trim()));
-      setGiftIdeas(ideas);
-    } catch (e) {
-      console.error(e);
-      setAiError("Sorry, couldn't generate gift ideas at the moment. Please try again later.");
-      trackEvent('gift_ideas_error');
-    } finally {
-      setIsGenerating(false);
-    }
+  
+  const createAmazonLink = (keyword: string) => {
+    const affiliateTag = 'secretsantamat-20';
+    return `https://www.amazon.com/s?k=${encodeURIComponent(keyword)}&tag=${affiliateTag}`;
   };
 
   const renderParticipantView = () => {
@@ -113,6 +59,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
         </div>
       );
     }
+    
+    const { receiver } = currentMatch;
+    const interests = (receiver.interests || '').split(',').map(s => s.trim()).filter(Boolean);
+    const likes = (receiver.likes || '').split(',').map(s => s.trim()).filter(Boolean);
     
     return (
       <>
@@ -139,34 +89,73 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
           intro={styleData.introText}
           wish={styleData.wishlistLabelText}
         />
-        {isRevealed && persona && (
+        {isRevealed && (
           <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200">
             <h2 className="text-2xl font-bold text-center text-slate-800 font-serif mb-6 flex items-center justify-center gap-3">
               <Gift className="w-7 h-7 text-indigo-500"/>
-              Gift Ideas for {currentMatch.receiver.name}
+              Gift Inspiration for {receiver.name}
             </h2>
-            <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200 text-center">
-              <p className="font-semibold text-indigo-800">Based on their interests, we think {currentMatch.receiver.name} is...</p>
-              <h3 className="text-3xl font-bold text-indigo-600 my-2">{persona.name}</h3>
-              <p className="text-indigo-700 text-sm max-w-lg mx-auto">{persona.description}</p>
-            </div>
-            
-            <div className="mt-6 text-center">
-              <button onClick={generateGiftIdeas} disabled={isGenerating} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full shadow-md transform hover:scale-105 transition-all flex items-center gap-3 mx-auto disabled:opacity-50 disabled:cursor-not-allowed">
-                <Sparkles size={20}/>
-                {isGenerating ? 'Thinking...' : 'Generate AI Gift Ideas'}
-              </button>
-            </div>
-            
-            {aiError && <p className="text-red-600 text-center mt-4">{aiError}</p>}
-            
-            {giftIdeas.length > 0 && (
-                <div className="mt-6 space-y-3">
-                    {giftIdeas.map((idea, index) => (
-                        <p key={index} className="p-3 bg-slate-50 rounded-md border text-slate-700">{idea.replace(/^\d+\.\s*[*_]*/, '')}</p>
-                    ))}
+
+            {persona && (
+                <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200 text-center mb-8">
+                  <p className="font-semibold text-indigo-800">Based on their interests, we think {receiver.name} is...</p>
+                  <h3 className="text-3xl font-bold text-indigo-600 my-2">{persona.name}</h3>
+                  <p className="text-indigo-700 text-sm max-w-lg mx-auto">{persona.description}</p>
                 </div>
             )}
+            
+            <div className="space-y-6">
+                {interests.length > 0 && (
+                    <div className="p-4 bg-slate-50 rounded-lg border">
+                        <h3 className="font-bold text-slate-700 flex items-center gap-2 mb-3"><Heart className="w-5 h-5 text-rose-500"/> Interests & Hobbies</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {interests.map((interest, index) => (
+                                <a key={index} href={createAmazonLink(interest)} target="_blank" rel="noopener noreferrer" className="bg-white hover:bg-rose-100 border border-rose-200 text-rose-700 font-semibold py-2 px-4 rounded-full text-sm transition-colors" onClick={() => trackEvent('click_gift_idea', { keyword: interest, type: 'interest' })}>
+                                    {interest}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                 {likes.length > 0 && (
+                    <div className="p-4 bg-slate-50 rounded-lg border">
+                        <h3 className="font-bold text-slate-700 flex items-center gap-2 mb-3"><ShoppingCart className="w-5 h-5 text-emerald-500"/> Specific Likes</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {likes.map((like, index) => (
+                                <a key={index} href={createAmazonLink(like)} target="_blank" rel="noopener noreferrer" className="bg-white hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-semibold py-2 px-4 rounded-full text-sm transition-colors" onClick={() => trackEvent('click_gift_idea', { keyword: like, type: 'like' })}>
+                                    {like}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {receiver.dislikes && (
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                        <h3 className="font-bold text-red-700 flex items-center gap-2 mb-2"><ThumbsDown className="w-5 h-5"/> Dislikes & No-Go's</h3>
+                        <p className="text-red-800 text-sm">{receiver.dislikes}</p>
+                    </div>
+                )}
+                 {receiver.links && (
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <h3 className="font-bold text-blue-700 flex items-center gap-2 mb-2"><LinkIcon className="w-5 h-5"/> Specific Links</h3>
+                        <div className="space-y-2">
+                            {receiver.links.split('\n').map((link, index) => {
+                                const trimmed = link.trim();
+                                if (!trimmed) return null;
+                                return <a key={index} href={trimmed} target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:underline text-sm truncate" onClick={() => trackEvent('click_gift_idea', { type: 'specific_link' })}>{trimmed}</a>
+                            })}
+                        </div>
+                    </div>
+                )}
+                {receiver.budget && (
+                     <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <h3 className="font-bold text-amber-700 flex items-center gap-2 mb-2"><Wallet className="w-5 h-5"/> Suggested Budget</h3>
+                        <p className="text-amber-800 text-lg font-semibold">${receiver.budget}</p>
+                    </div>
+                )}
+            </div>
+            
+             <p className="text-xs text-slate-400 text-center mt-6">As an Amazon Associate, we earn from qualifying purchases. This helps keep our tool 100% free!</p>
           </div>
         )}
       </>
