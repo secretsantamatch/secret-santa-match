@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import ParticipantManager from './ParticipantManager';
 import Options from './Options';
@@ -65,6 +66,7 @@ const RevealView: React.FC<{ exchangeData: ExchangeData, participantId: string }
                 greet={exchangeData.greetingText}
                 intro={exchangeData.introText}
                 wish={exchangeData.wishlistLabelText}
+                showWishlistLink={true}
             />
              <div className="mt-8 text-center bg-slate-100 p-4 rounded-lg">
                 <p className="font-semibold flex items-center justify-center gap-2"><Lock size={16}/> This is a private link.</p>
@@ -125,6 +127,7 @@ const OrganizerView: React.FC<{ exchangeData: ExchangeData }> = ({ exchangeData 
                             greet={exchangeData.greetingText}
                             intro={exchangeData.introText}
                             wish={exchangeData.wishlistLabelText}
+                            showWishlistLink={true}
                         />
                     ))}
                 </div>

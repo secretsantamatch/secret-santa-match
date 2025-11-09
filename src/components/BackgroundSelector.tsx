@@ -91,7 +91,8 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
             likes: receiverLikes,
             dislikes: receiverDislikes,
             links: receiverLinks,
-            budget: receiverBudget 
+            budget: receiverBudget,
+            wishlistId: 'preview-wishlist-id' // Add a placeholder ID for preview
         }
     };
     
@@ -321,6 +322,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                         greet={greetingText}
                         intro={introText}
                         wish={wishlistLabelText}
+                        showWishlistLink={true}
                     />
                 </div>
             </div>

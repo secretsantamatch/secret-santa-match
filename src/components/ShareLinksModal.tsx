@@ -314,6 +314,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
             greet={exchangeData.greetingText}
             intro={exchangeData.introText}
             wish={exchangeData.wishlistLabelText}
+            showWishlistLink={false}
           />
         ))}
       </div>

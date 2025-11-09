@@ -19,6 +19,7 @@ interface PrintableCardProps {
     greet: string;
     intro: string;
     wish: string;
+    showWishlistLink?: boolean;
     onReveal?: () => void;
 }
 
@@ -42,7 +43,7 @@ const outlineSizeMap: Record<OutlineSizeSetting, string> = {
 };
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
-    match, eventDetails, isNameRevealed, backgroundOptions, bgId, bgImg, txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish, onReveal
+    match, eventDetails, isNameRevealed, backgroundOptions, bgId, bgImg, txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish, showWishlistLink = true, onReveal
 }) => {
 
     const selectedBg = backgroundOptions.find(opt => opt.id === bgId);
@@ -80,9 +81,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     backgroundColor: !backgroundUrl ? '#ffffff' : undefined,
                 }}
             >
-                {/* Overlay for text readability on busy backgrounds */}
-                {backgroundUrl && <div className="absolute inset-0 bg-black/30"></div>}
-                
                 <div 
                     className={`relative z-10 flex-grow flex flex-col ${fontClassName} ${fontSizeClassName}`}
                     style={{ color: txtColor, textShadow, lineHeight: line }}
@@ -93,36 +91,36 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                         <p className="mt-2">{intro}</p>
                     </header>
                     
-                    {/* Receiver Name */}
+                    {/* Main Content: Name and Wishlist */}
                     <div
-                        className="my-auto"
+                        className="my-auto flex flex-col justify-center"
                         onClick={onReveal}
                         style={{ cursor: onReveal && !isNameRevealed ? 'pointer' : 'default' }}
                     >
-                        <div className={`font-bold text-4xl md:text-5xl transition-all duration-500 ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
+                        <div className={`font-bold text-4xl md:text-5xl transition-all duration-500 break-words ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
                             {match.receiver.name}
                         </div>
+                        
+                        {/* Wishlist */}
+                        {isNameRevealed && (
+                            <div className="text-left mt-4 text-sm space-y-2 overflow-y-auto max-h-48">
+                                <h3 className="font-bold text-center mb-2">{wish}</h3>
+                                {showWishlistLink && match.receiver.wishlistId && (
+                                    <a href={`/wishlist-editor.html?id=${match.receiver.wishlistId}`} target="_blank" rel="noopener noreferrer" className="block text-center bg-white/20 hover:bg-white/30 p-2 rounded-lg font-semibold text-blue-300 mb-3 text-base">
+                                        <Edit size={14} className="inline-block mr-2" /> View Live Wishlist
+                                    </a>
+                                )}
+                                {match.receiver.budget && <p><strong>Budget:</strong> ${match.receiver.budget}</p>}
+                                {match.receiver.interests && <p><strong>Interests:</strong> {match.receiver.interests}</p>}
+                                {match.receiver.likes && <p><strong>Likes:</strong> {match.receiver.likes}</p>}
+                                {match.receiver.dislikes && <p><strong>Dislikes:</strong> {match.receiver.dislikes}</p>}
+                                {match.receiver.links && <div><strong>Links:</strong> {renderLinks(match.receiver.links)}</div>}
+                                {!match.receiver.budget && !match.receiver.interests && !match.receiver.likes && !match.receiver.dislikes && !match.receiver.links && (
+                                    <p className="italic text-center">No wishlist details provided.</p>
+                                )}
+                            </div>
+                        )}
                     </div>
-
-                    {/* Wishlist */}
-                    {isNameRevealed && (
-                        <div className="text-left mt-4 text-sm space-y-2 overflow-y-auto max-h-48">
-                            <h3 className="font-bold text-center mb-2">{wish}</h3>
-                            {match.receiver.wishlistId && (
-                                <a href={`/wishlist-editor.html?id=${match.receiver.wishlistId}`} target="_blank" rel="noopener noreferrer" className="block text-center bg-white/20 hover:bg-white/30 p-2 rounded-lg font-semibold text-blue-300 mb-3 text-base">
-                                    <Edit size={14} className="inline-block mr-2" /> View Live Wishlist
-                                </a>
-                            )}
-                            {match.receiver.budget && <p><strong>Budget:</strong> ${match.receiver.budget}</p>}
-                            {match.receiver.interests && <p><strong>Interests:</strong> {match.receiver.interests}</p>}
-                            {match.receiver.likes && <p><strong>Likes:</strong> {match.receiver.likes}</p>}
-                            {match.receiver.dislikes && <p><strong>Dislikes:</strong> {match.receiver.dislikes}</p>}
-                            {match.receiver.links && <div><strong>Links:</strong> {renderLinks(match.receiver.links)}</div>}
-                            {!match.receiver.budget && !match.receiver.interests && !match.receiver.likes && !match.receiver.dislikes && !match.receiver.links && (
-                                <p className="italic text-center">No wishlist details provided.</p>
-                            )}
-                        </div>
-                    )}
                 </div>
                 
                 {/* Footer */}
