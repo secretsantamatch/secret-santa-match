@@ -1,3 +1,4 @@
+
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -326,7 +327,7 @@ const drawGiftTags = (doc: jsPDF) => {
             doc.setLineWidth(0.5);
             doc.roundedRect(x, y, tagWidth, tagHeight, 5, 5, 'D');
 
-            doc.setFillColor('240');
+            doc.setFillColor(String(240));
             doc.circle(x + 10, y + 10, 2.5, 'F');
             doc.setDrawColor(150);
             doc.setLineWidth(0.2);
@@ -340,7 +341,6 @@ const drawGiftTags = (doc: jsPDF) => {
             doc.setLineWidth(0.2);
             doc.line(x + 25, y + 25, x + tagWidth - 10, y + 25);
             
-            // FIX: Reduce font size and adjust position for the "From" line to prevent text overlapping.
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
             doc.text("From:", x + 10, y + 35);
