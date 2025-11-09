@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ElementType } from 'react';
 
 export interface Participant {
     id: string;
@@ -8,12 +8,12 @@ export interface Participant {
     dislikes: string;
     links: string;
     budget: string;
-    wishlistId?: string; // Added for the Living Wishlist feature
+    wishlistId?: string;
 }
 
 export interface Exclusion {
-    p1: string;
-    p2: string;
+    p1: string; // participant id
+    p2: string; // participant id
 }
 
 export interface Assignment {
@@ -24,11 +24,6 @@ export interface Assignment {
 export interface Match {
     giver: Participant;
     receiver: Participant;
-}
-
-export interface MatchId {
-    g: string; // giverId
-    r: string; // receiverId
 }
 
 export interface BackgroundOption {
@@ -50,27 +45,22 @@ export type FontSizeSetting = 'normal' | 'large' | 'extra-large';
 export type FontTheme = 'classic' | 'elegant' | 'modern' | 'whimsical';
 
 export interface ExchangeData {
-    p: Participant[];
-    matches: MatchId[];
-    exclusions: Exclusion[];
-    assignments: Assignment[];
-    eventDetails: string;
-    exchangeDate: string;
-    exchangeTime: string;
-    // Styling options
-    backgroundOptions: BackgroundOption[];
-    bgId: string;
-    customBackground: string | null;
-    textColor: string;
-    useTextOutline: boolean;
-    outlineColor: string;
-    outlineSize: OutlineSizeSetting;
-    fontSizeSetting: FontSizeSetting;
-    fontTheme: FontTheme;
-    lineSpacing: number;
-    greetingText: string;
-    introText: string;
-    wishlistLabelText: string;
+  p: Participant[];
+  matches: { g: string; r: string }[];
+  eventDetails: string;
+  backgroundOptions: BackgroundOption[];
+  bgId: string;
+  customBackground: string | null;
+  textColor: string;
+  useTextOutline: boolean;
+  outlineColor: string;
+  outlineSize: OutlineSizeSetting;
+  fontSizeSetting: FontSizeSetting;
+  fontTheme: FontTheme;
+  lineSpacing: number;
+  greetingText: string;
+  introText: string;
+  wishlistLabelText: string;
 }
 
 export interface Resource {
@@ -79,7 +69,7 @@ export interface Resource {
     description: string;
     thumbnailUrl: string;
     linkUrl: string;
-    type: 'Free Download' | 'Guide & Tips' | 'Article' | 'Guide & Printable';
+    type: string;
     lastUpdated?: string;
     keywords?: string[];
 }
@@ -99,13 +89,6 @@ export interface PayoffResult {
     totalPaid: number;
 }
 
-export interface MoneySavingTip {
-    label: string;
-    amount: number;
-    description: string;
-    icon: React.FC<any>;
-}
-
 export interface CalculatorResult {
     totalMinPayment: number;
     scenarios: (PayoffResult & { debtFreeYear: number | string })[];
@@ -115,30 +98,9 @@ export interface CalculatorResult {
     customInterestSaved: number;
     weightedAPR: number;
     interestVsPrincipal: { name: string; value: number; fill: string }[];
-    moneySavingTips: MoneySavingTip[];
+    moneySavingTips: { label: string; amount: number; description: string; icon: ElementType }[];
 }
 
-export interface GiftPersona {
-    name: string;
-    description: string;
-    categories: Record<string, string[]>;
-}
-
-export interface GiftItem {
-    id: number;
-    recipient: string;
-    budget: number;
-    actual: number;
-}
-
-export interface ExpenseItem {
-    id: number;
-    category: string;
-    budget: number;
-    actual: number;
-}
-
-// For Living Wishlist
 export interface Wishlist {
     interests: string;
     likes: string;

@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
 import { generateMasterListPdf, generateAllCardsPdf, generatePartyPackPdf } from '../services/pdfService';
-import { Copy, Check, X, Link as LinkIcon, MessageSquare, Users, Download, FileText, PartyPopper, QrCode, Smartphone, Loader2 } from 'lucide-react';
+import { Copy, Check, X, MessageSquare, Users, Download, FileText, PartyPopper, QrCode, Smartphone, Loader2 } from 'lucide-react';
 import QRCode from 'react-qr-code';
-import PrintableCard from './PrintableCard'; // Make sure this is imported
+import PrintableCard from './PrintableCard';
 
 interface ShareLinksModalProps {
   exchangeData: ExchangeData;
@@ -29,14 +29,14 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   })).filter(m => m.giver && m.receiver), [matchIds, participants]);
 
   const getFullLink = (participantId: string): string => {
-    const baseUrl = window.location.href.split(/[?#]/)[0];
-    const encodedData = window.location.hash.slice(1).split('?')[0]; // Remove params from hash
+    const baseUrl = window.location.origin + window.location.pathname;
+    const encodedData = window.location.hash.slice(1).split('?')[0];
     return `${baseUrl}?id=${participantId}#${encodedData}`;
   };
   
   const getFullOrganizerLink = (): string => {
-      const baseUrl = window.location.href.split(/[?#]/)[0];
-      const encodedData = window.location.hash.slice(1).split('?')[0]; // Remove params from hash
+      const baseUrl = window.location.origin + window.location.pathname;
+      const encodedData = window.location.hash.slice(1).split('?')[0];
       return `${baseUrl}#${encodedData}`;
   }
 
@@ -154,7 +154,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     try {
       if (type === 'cards') await generateAllCardsPdf(exchangeData);
       else if (type === 'master') generateMasterListPdf(exchangeData);
-      else generatePartyPackPdf(exchangeData);
+      else await generatePartyPackPdf(exchangeData);
     } catch (e) {
       console.error(e);
       alert(`Error: ${e instanceof Error ? e.message : String(e)}`);
