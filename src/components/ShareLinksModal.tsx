@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match } from '../types';
-import { trackEvent } from '../services/analyticsService';
 import { generateAllCardsPdf, generateMasterListPdf, generatePartyPackPdf } from '../services/pdfService';
+import { Copy, Check, Download, PartyPopper, X, Link as LinkIcon, MessageCircle, Smartphone, QrCode, DownloadCloud } from 'lucide-react';
+import { trackEvent } from '../services/analyticsService';
 import QRCode from "react-qr-code";
-import { Link, Copy, Check, Smartphone, Users, Download, Star, QrCode, MessageCircle } from 'lucide-react';
 import PrintableCard from './PrintableCard';
 
 interface ShareLinksModalProps {
@@ -13,259 +13,192 @@ interface ShareLinksModalProps {
 
 const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose }) => {
     const [copiedId, setCopiedId] = useState<string | null>(null);
-    const [useShortLinks, setUseShortLinks] = useState(false);
-    const [shortLinks, setShortLinks] = useState<Record<string, string>>({});
-    const [isLoadingShortLinks, setIsLoadingShortLinks] = useState(false);
-    const [expandedQr, setExpandedQr] = useState<string | null>(null);
-    
-    const [organizerShortLink, setOrganizerShortLink] = useState<string | null>(null);
-    const [isShorteningOrganizer, setIsShorteningOrganizer] = useState(false);
+    const [isPdfLoading, setIsPdfLoading] = useState(false);
+    const [showFullLinks, setShowFullLinks] = useState(false);
+    const [shortUrls, setShortUrls] = useState<Record<string, string>>({});
+    const [organizerShortUrl, setOrganizerShortUrl] = useState<string | null>(null);
+    const [isShortening, setIsShortening] = useState(false);
+    const [expandedQrCodeId, setExpandedQrCodeId] = useState<string | null>(null);
 
-    const [qrShortLinks, setQrShortLinks] = useState<Record<string, string>>({});
-    const [isGeneratingQr, setIsGeneratingQr] = useState<string | null>(null);
-
-    const baseOrganizerUrl = useMemo(() => {
+    const originalOrganizerLink = useMemo(() => {
         const url = new URL(window.location.href);
-        url.hash = window.location.hash.split('?')[0];
-        url.searchParams.set('page', 'results');
-        url.searchParams.delete('id');
-        return url.toString();
+        url.search = ''; // Remove query params like ?page=success
+        return url.href;
     }, []);
-
-    const fullLinks = useMemo(() => {
-        const links: Record<string, string> = {};
-        const url = new URL(window.location.href);
-        url.hash = window.location.hash.split('?')[0];
-        url.searchParams.set('page', 'results');
-        
-        exchangeData.p.forEach(p => {
-            url.searchParams.set('id', p.id);
-            links[p.id] = url.toString();
-        });
-        return links;
-    }, [exchangeData.p]);
-
+    
     const matches: Match[] = useMemo(() => exchangeData.matches.map(m => ({
         giver: exchangeData.p.find(p => p.id === m.g)!,
         receiver: exchangeData.p.find(p => p.id === m.r)!,
     })).filter(m => m.giver && m.receiver), [exchangeData]);
-    
-    useEffect(() => {
-        if (useShortLinks && Object.keys(shortLinks).length !== exchangeData.p.length) {
-            const fetchShortLinks = async () => {
-                setIsLoadingShortLinks(true);
-                trackEvent('use_shorten_toggle', { toggled_on: true });
-                const newShortLinks: Record<string, string> = {};
-                for (const p of exchangeData.p) {
-                    try {
-                        const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullLinks[p.id])}`);
-                        if (response.ok) {
-                            newShortLinks[p.id] = await response.text();
-                        } else {
-                            newShortLinks[p.id] = fullLinks[p.id];
-                        }
-                    } catch (error) {
-                        console.error('TinyURL API error:', error);
-                        newShortLinks[p.id] = fullLinks[p.id];
-                    }
-                }
-                setShortLinks(newShortLinks);
-                setIsLoadingShortLinks(false);
-            };
-            fetchShortLinks();
-        } else if (!useShortLinks) {
-            trackEvent('use_shorten_toggle', { toggled_on: false });
-        }
-    }, [useShortLinks, fullLinks, exchangeData.p, shortLinks]);
-    
-    const handleShortenOrganizerLink = async () => {
-        if (organizerShortLink) {
-            setOrganizerShortLink(null);
-            return;
-        }
-        setIsShorteningOrganizer(true);
-        trackEvent('shorten_organizer_link');
-        try {
-            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(baseOrganizerUrl)}`);
-            if (response.ok) {
-                setOrganizerShortLink(await response.text());
-            }
-        } catch (error) {
-            console.error('TinyURL API error:', error);
-        }
-        setIsShorteningOrganizer(false);
-    };
 
-    const getLink = (participantId: string) => {
-        if (useShortLinks) {
-            return isLoadingShortLinks ? 'Shortening...' : (shortLinks[participantId] || 'Error');
-        }
-        return fullLinks[participantId];
-    };
-
-    const handleCopy = (text: string, id: string, type: string) => {
-        navigator.clipboard.writeText(text).then(() => {
-            setCopiedId(id);
-            trackEvent('copy_link', { type });
-            setTimeout(() => setCopiedId(null), 2000);
+    const participantLinks = useMemo(() => {
+        const links: Record<string, string> = {};
+        matches.forEach(({ giver }) => {
+            const url = new URL(originalOrganizerLink);
+            url.searchParams.set('id', giver.id);
+            links[giver.id] = url.href;
         });
+        return links;
+    }, [matches, originalOrganizerLink]);
+
+    useEffect(() => {
+        const shortenAll = async () => {
+            trackEvent('shorten_all_links');
+            const promises = Object.entries(participantLinks).map(async ([id, url]) => {
+                try {
+                    const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+                    if (response.ok) {
+                        const shortUrl = await response.text();
+                        return { id, shortUrl };
+                    }
+                } catch (e) { console.error("Shorten failed for", id, e); }
+                return { id, shortUrl: url }; // Fallback to long url
+            });
+            const results = await Promise.all(promises);
+            const newShortUrls: Record<string, string> = {};
+            results.forEach(result => {
+                newShortUrls[result.id] = result.shortUrl;
+            });
+            setShortUrls(newShortUrls);
+        };
+        shortenAll();
+    }, [participantLinks]);
+
+    const handleCopy = (id: string, url: string) => {
+        navigator.clipboard.writeText(url);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+        trackEvent('copy_share_link', { link_type: id === 'organizer' ? 'organizer' : 'participant' });
     };
 
-    const copyAllLinks = () => {
-        const text = exchangeData.p.map(p => `${p.name}: ${getLink(p.id)}`).join('\n');
-        handleCopy(text, 'all-links', 'all_participants');
-    };
-    
-    const handleDownload = async (type: 'all_cards' | 'master_list' | 'party_pack') => {
-        trackEvent('download_results', { type });
+    const handleShortenOrganizer = async () => {
+        if (organizerShortUrl) return;
+        trackEvent('click_shorten_link', { link_type: 'organizer' });
+        setIsShortening(true);
         try {
-            if (type === 'all_cards') await generateAllCardsPdf(exchangeData);
-            else if (type === 'master_list') generateMasterListPdf(exchangeData);
-            else if (type === 'party_pack') generatePartyPackPdf(exchangeData);
+            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(originalOrganizerLink)}`);
+            if (response.ok) setOrganizerShortUrl(await response.text());
+            else throw new Error('Failed to shorten');
+        } catch (error) { alert("Could not shorten link."); }
+        setIsShortening(false);
+    };
+
+    const handleDownload = async (pdfGenerator: (data: ExchangeData) => Promise<void> | void, type: string) => {
+        trackEvent('download_pdf', { type });
+        setIsPdfLoading(true);
+        try {
+            await Promise.resolve(pdfGenerator(exchangeData));
         } catch (error) {
-            alert((error as Error).message || "An unknown error occurred during PDF generation.");
+            console.error(`Failed to generate ${type} PDF:`, error);
+            alert(`Error: ${error instanceof Error ? error.message : 'An unknown error occurred'}`);
         }
-    };
-    
-    const handleQrCodeClick = async (participantId: string) => {
-        if (expandedQr === participantId) {
-            setExpandedQr(null);
-            return;
-        }
-
-        setExpandedQr(participantId);
-        trackEvent('view_qr_code', { participant_id: participantId });
-        if (qrShortLinks[participantId] || shortLinks[participantId]) return;
-
-        setIsGeneratingQr(participantId);
-        try {
-            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullLinks[participantId])}`);
-            if (response.ok) {
-                const shortUrl = await response.text();
-                setQrShortLinks(prev => ({ ...prev, [participantId]: shortUrl }));
-            }
-        } catch (error) { console.error('QR TinyURL error:', error); }
-        setIsGeneratingQr(null);
+        setIsPdfLoading(false);
     };
 
-    const getQrLink = (participantId: string) => {
-        return shortLinks[participantId] || qrShortLinks[participantId] || fullLinks[participantId];
-    }
-    
-    const downloadQrCode = (participantId: string, participantName: string) => {
-        trackEvent('download_qr_code', { participant_name: participantName });
-        const qrContainer = document.getElementById(`qr-container-${participantId}`);
-        if (!qrContainer) return;
-        
-        const svg = qrContainer.querySelector('svg');
+    const getLinkFor = (id: string) => showFullLinks ? participantLinks[id] : (shortUrls[id] || participantLinks[id]);
+
+    const downloadQrCode = (id: string, name: string) => {
+        const svg = document.getElementById(`qr-${id}`);
         if (!svg) return;
-
+        
         const svgData = new XMLSerializer().serializeToString(svg);
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        const img = document.createElement("img");
+        const img = new Image();
         img.onload = () => {
-            const padding = 20;
-            canvas.width = img.width + padding * 2;
-            canvas.height = img.height + padding * 2;
-            
+            canvas.width = img.width;
+            canvas.height = img.height;
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, padding, padding);
-
+            ctx.drawImage(img, 0, 0);
             const pngFile = canvas.toDataURL("image/png");
+
             const downloadLink = document.createElement("a");
-            downloadLink.download = `QR_Code_for_${participantName}.png`;
+            downloadLink.download = `QR_Code_for_${name}.png`;
             downloadLink.href = pngFile;
             downloadLink.click();
         };
-        img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
+        img.src = "data:image/svg+xml;base64," + btoa(svgData);
+        trackEvent('download_qr_code');
     };
 
-    const displayOrganizerUrl = organizerShortLink || baseOrganizerUrl;
-
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-            <div className="bg-slate-800 text-slate-200 rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col transform transition-all duration-300 animate-slide-up" onClick={e => e.stopPropagation()}>
-                <header className="p-6 border-b border-slate-700 flex justify-between items-start">
-                    <div>
-                        <h2 className="text-2xl font-bold text-white font-serif">Share & Download</h2>
-                        <p className="text-slate-400 text-sm mt-1">Send each person their unique reveal link.</p>
-                    </div>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white text-3xl">&times;</button>
-                </header>
-                
-                <main className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
-                    <div className="bg-slate-700/50 border border-slate-600 p-4 rounded-xl">
-                        <label htmlFor="master-link" className="block text-sm font-bold text-indigo-300 mb-2">Your Organizer Master Link</label>
-                        <p className="text-xs text-slate-400 mb-2">Save this link to get back to your results page anytime. Don't lose it!</p>
-                        <div className="flex items-center gap-2">
-                            <input id="master-link" type="text" readOnly value={displayOrganizerUrl} className="w-full p-2 border border-slate-500 rounded-md bg-slate-800 text-slate-300 text-sm truncate"/>
-                            <button onClick={handleShortenOrganizerLink} disabled={isShorteningOrganizer} className="py-2 px-3 rounded-lg font-semibold text-sm transition-colors bg-slate-600 hover:bg-slate-500 text-white flex-shrink-0">
-                                {isShorteningOrganizer ? '...' : (organizerShortLink ? 'Full' : 'Shorten')}
+        <div className="fixed inset-0 bg-slate-900 bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in" onClick={onClose}>
+            <div className="bg-slate-800 text-slate-200 p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-slate-700" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-700">
+                    <h2 className="text-2xl font-bold text-white font-serif">Share &amp; Download</h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded-full"><X size={24} /></button>
+                </div>
+
+                <div className="flex-grow overflow-y-auto pr-2 -mr-4 space-y-8">
+                    {/* Organizer Link */}
+                    <div className="bg-slate-700/50 p-4 rounded-lg border border-slate-600">
+                        <h3 className="font-bold text-white">Your Organizer Master Link</h3>
+                        <p className="text-sm text-slate-300 mb-3">Save this link to get back to your results page anytime. Don't lose it!</p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <input type="text" readOnly value={organizerShortUrl || originalOrganizerLink} className="flex-grow p-2 border border-slate-500 rounded-md bg-slate-900 text-slate-300 text-sm truncate" />
+                            <button onClick={handleShortenOrganizer} disabled={isShortening || !!organizerShortUrl} className="flex-shrink-0 flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-md transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                <LinkIcon size={16} /> {isShortening ? '...' : 'Shorten'}
                             </button>
-                            <button onClick={() => handleCopy(displayOrganizerUrl, 'master-link', 'organizer_master_link')} className={`py-2 px-3 rounded-lg font-semibold text-sm transition-colors flex-shrink-0 ${copiedId === 'master-link' ? 'bg-green-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}>
-                                {copiedId === 'master-link' ? <Check size={16}/> : <Copy size={16}/>}
+                            <button onClick={() => handleCopy('organizer', organizerShortUrl || originalOrganizerLink)} className="flex-shrink-0 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-md transition-colors text-sm">
+                                {copiedId === 'organizer' ? <Check size={16}/> : <Copy size={16} />}
+                                {copiedId === 'organizer' ? 'Copied!' : 'Copy'}
                             </button>
                         </div>
                     </div>
-                    
+
+                    {/* Participant Links */}
                     <div>
-                         <div className="flex justify-between items-center mb-2">
-                            <div>
+                        <div className="flex flex-wrap justify-between items-center gap-4 mb-2">
+                             <div>
                                 <h3 className="text-lg font-bold text-white">Participant Reveal Links</h3>
-                                <p className="text-xs text-slate-400">Copy, shorten, or share each link via Text/WhatsApp.</p>
-                            </div>
+                                <p className="text-sm text-slate-300">Copy, Shorten, or share each link via Text/WhatsApp.</p>
+                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-slate-300">Use Short Links</span>
-                                <label className="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" checked={useShortLinks} onChange={() => setUseShortLinks(!useShortLinks)} className="sr-only peer" />
-                                    <div className="relative w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
-                                </label>
+                                <label htmlFor="link-toggle" className="text-sm font-semibold text-slate-300">Show Full Links</label>
+                                <button role="switch" id="link-toggle" aria-checked={showFullLinks} onClick={() => { setShowFullLinks(!showFullLinks); trackEvent('toggle_short_links', { enabled: !showFullLinks }); }} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${showFullLinks ? 'bg-indigo-600' : 'bg-slate-600'}`}>
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showFullLinks ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
                             </div>
                         </div>
-                        <div className="space-y-3 mt-4">
-                            {exchangeData.p.map(p => (
-                                <div key={p.id} className="bg-slate-700 p-4 rounded-xl border border-slate-600">
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-3 overflow-hidden">
-                                            <div className="bg-slate-600 p-2 rounded-lg cursor-pointer flex-shrink-0" onClick={() => handleQrCodeClick(p.id)}>
-                                                 <QrCode className="text-slate-300"/>
-                                            </div>
-                                            <div className="overflow-hidden">
-                                                <p className="font-bold text-white">{p.name}'s Link</p>
-                                                <p className="text-xs text-slate-400 truncate">{getLink(p.id)}</p>
+                        <div className="space-y-3">
+                            {matches.map(({ giver }) => (
+                                <div key={giver.id} className="bg-slate-700/50 p-3 rounded-lg border border-slate-700 transition-all">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex items-center gap-3 flex-grow min-w-0">
+                                            <button onClick={() => setExpandedQrCodeId(expandedQrCodeId === giver.id ? null : giver.id)} className="flex-shrink-0 bg-white p-1 rounded-md">
+                                                 <QRCode value={shortUrls[giver.id] || participantLinks[giver.id]} size={32} />
+                                            </button>
+                                            <div className="flex-grow min-w-0">
+                                                <p className="font-semibold text-white">{giver.name}'s Link</p>
+                                                <input type="text" readOnly value={getLinkFor(giver.id)} className="w-full bg-transparent text-slate-400 text-xs truncate" />
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 flex-wrap justify-end flex-shrink-0">
-                                            <button onClick={() => handleCopy(getLink(p.id), p.id, 'single_participant')} className={`p-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-1.5 ${copiedId === p.id ? 'bg-green-700 text-white' : 'bg-slate-600 hover:bg-slate-500 text-white'}`}>
-                                                {copiedId === p.id ? <Check size={14}/> : <Copy size={14}/>}
+                                        <div className="flex items-center gap-1 flex-shrink-0">
+                                            <button onClick={() => handleCopy(giver.id, getLinkFor(giver.id))} className={`p-2 rounded-md transition-colors ${copiedId === giver.id ? 'bg-green-600 text-white' : 'bg-slate-600 hover:bg-slate-500 text-slate-200'}`} title="Copy Link">
+                                                 {copiedId === giver.id ? <Check size={18}/> : <Copy size={18} />}
                                             </button>
-                                            <a href={`sms:?&body=Your Secret Santa match is ready! 🎁 Here is your private link: ${getLink(p.id)}`} className="p-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg hidden sm:inline-block"><Smartphone size={14}/></a>
-                                            <a href={`https://api.whatsapp.com/send?text=Your Secret Santa match is ready! 🎁 Here is your private link: ${encodeURIComponent(getLink(p.id))}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg hidden sm:inline-block"><MessageCircle size={14}/></a>
+                                            <a href={`sms:?&body=Your Secret Santa link from ${exchangeData.eventDetails || 'your group'}: ${encodeURIComponent(getLinkFor(giver.id))}`} className="p-2 bg-slate-600 hover:bg-slate-500 text-slate-200 rounded-md transition-colors" title="Send Text"><Smartphone size={18}/></a>
+                                            <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent('Your Secret Santa link: ' + getLinkFor(giver.id))}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-600 hover:bg-slate-500 text-slate-200 rounded-md transition-colors" title="Send WhatsApp"><MessageCircle size={18}/></a>
                                         </div>
                                     </div>
-                                    {expandedQr === p.id && (
-                                        <div className="mt-4 p-4 bg-slate-800 rounded-lg text-center">
-                                            <p className="text-sm font-semibold mb-2 text-slate-300">Scan QR code for {p.name}'s link</p>
-                                            {isGeneratingQr === p.id ? (
-                                                <div className="flex justify-center items-center h-40"><p className="text-slate-400">Generating short link...</p></div>
-                                            ) : (
-                                                <>
-                                                    <div id={`qr-container-${p.id}`} className="bg-white p-2 inline-block rounded-lg">
-                                                        <QRCode value={getQrLink(p.id)} size={128} bgColor="#FFFFFF" fgColor="#1e293b" />
-                                                    </div>
-                                                    <button 
-                                                        onClick={() => downloadQrCode(p.id, p.name)}
-                                                        className="mt-4 flex items-center justify-center gap-2 w-full bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                                                    >
-                                                        <Download size={16} />
-                                                        Download QR Code
-                                                    </button>
-                                                </>
-                                            )}
+                                    {expandedQrCodeId === giver.id && (
+                                        <div className="mt-4 p-4 bg-white rounded-lg text-center animate-fade-in">
+                                             <h4 className="font-bold text-slate-800">Scan QR code for {giver.name}'s link</h4>
+                                             <div className="mx-auto my-3" style={{ height: "auto", maxWidth: 128, width: "100%" }}>
+                                                 <QRCode
+                                                    id={`qr-${giver.id}`}
+                                                    size={256}
+                                                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                                                    value={shortUrls[giver.id] || participantLinks[giver.id]}
+                                                    viewBox={`0 0 256 256`}
+                                                />
+                                            </div>
+                                            <button onClick={() => downloadQrCode(giver.id, giver.name)} className="flex items-center justify-center gap-2 text-sm w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-3 rounded-md transition-colors">
+                                                <DownloadCloud size={16} /> Download QR Code
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -273,83 +206,63 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                         </div>
                     </div>
 
-                     <div>
-                        <h3 className="text-lg font-bold text-white mb-4 mt-6">Downloads & Bulk Actions</h3>
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button onClick={copyAllLinks} className="bg-slate-700 p-4 rounded-xl border border-slate-600 text-left hover:bg-slate-600 transition-colors">
-                                <div className="flex items-start gap-3">
-                                    <Copy className="w-5 h-5 text-slate-400 mt-1 flex-shrink-0"/>
-                                    <div>
-                                        <p className="font-bold text-white">Copy All Links</p>
-                                        <p className="text-xs text-slate-400">Copy a plain text list of all names and links to your clipboard.</p>
-                                    </div>
-                                </div>
+                    {/* Downloads & Bulk Actions */}
+                    <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
+                        <h3 className="text-lg font-bold text-white mb-3 text-center">Downloads &amp; Bulk Actions</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button onClick={() => handleCopy('all-links', matches.map(m => `${m.giver.name}: ${getLinkFor(m.giver.id)}`).join('\n'))} className="text-left bg-slate-700 hover:bg-slate-600 p-3 rounded-lg transition-colors">
+                                <p className="font-bold text-white flex items-center gap-2"><Copy size={18}/> Copy All Links</p>
+                                <p className="text-xs text-slate-300 mt-1">Copy a plain text list of all names and links to your clipboard.</p>
                             </button>
-                             <button onClick={() => handleDownload('all_cards')} className="bg-slate-700 p-4 rounded-xl border border-slate-600 text-left hover:bg-slate-600 transition-colors">
-                                <div className="flex items-start gap-3">
-                                    <Download className="w-5 h-5 text-slate-400 mt-1 flex-shrink-0"/>
-                                    <div>
-                                        <p className="font-bold text-white">Download All Cards</p>
-                                        <p className="text-xs text-slate-400">A PDF with one styled, printable card for each person.</p>
-                                    </div>
-                                </div>
+                             <button onClick={() => handleDownload(generateAllCardsPdf, 'all_cards')} disabled={isPdfLoading} className="text-left bg-slate-700 hover:bg-slate-600 p-3 rounded-lg transition-colors disabled:opacity-50">
+                                <p className="font-bold text-white flex items-center gap-2"><Download size={18}/> Download All Cards</p>
+                                <p className="text-xs text-slate-300 mt-1">A PDF with one styled, printable card for each person.</p>
                             </button>
-                             <button onClick={() => handleDownload('master_list')} className="bg-slate-700 p-4 rounded-xl border border-slate-600 text-left hover:bg-slate-600 transition-colors">
-                                <div className="flex items-start gap-3">
-                                    <Users className="w-5 h-5 text-slate-400 mt-1 flex-shrink-0"/>
-                                    <div>
-                                        <p className="font-bold text-white">Download Master List</p>
-                                        <p className="text-xs text-slate-400">A simple PDF of all matches for your records.</p>
-                                    </div>
-                                </div>
+                             <button onClick={() => handleDownload(generateMasterListPdf, 'master_list')} disabled={isPdfLoading} className="text-left bg-slate-700 hover:bg-slate-600 p-3 rounded-lg transition-colors disabled:opacity-50">
+                                <p className="font-bold text-white flex items-center gap-2"><Download size={18}/> Download Master List</p>
+                                <p className="text-xs text-slate-300 mt-1">A simple PDF of all matches for your records.</p>
                             </button>
-                             <button onClick={() => handleDownload('party_pack')} className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 rounded-xl border border-purple-500 text-left hover:opacity-90 transition-opacity">
-                                <div className="flex items-start gap-3">
-                                    <Star className="w-5 h-5 mt-1 flex-shrink-0"/>
-                                    <div>
-                                        <p className="font-bold">Download Party Pack</p>
-                                        <p className="text-xs opacity-90">Fun extras for your event, including Secret Santa Bingo and party awards!</p>
-                                    </div>
-                                </div>
+                            <button onClick={() => handleDownload(generatePartyPackPdf, 'party_pack')} disabled={isPdfLoading} className="text-left bg-indigo-600 hover:bg-indigo-500 p-3 rounded-lg transition-colors disabled:opacity-50">
+                                <p className="font-bold text-white flex items-center gap-2"><PartyPopper size={18}/> Download Party Pack</p>
+                                <p className="text-xs text-indigo-200 mt-1">Fun extras for your event, including Secret Santa Bingo and party awards!</p>
                             </button>
                         </div>
                     </div>
-                </main>
+                </div>
                 
-                <footer className="p-6 bg-slate-900/50 border-t border-slate-700 text-right">
-                    <button onClick={onClose} className="py-2 px-6 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg">
-                        Done
-                    </button>
-                </footer>
-            </div>
+                <div className="pt-6 border-t border-slate-700 text-center">
+                    <button onClick={onClose} className="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">Done</button>
+                </div>
 
-            <div className="absolute -left-[9999px] top-0">
-                {matches.map(match => (
-                    <PrintableCard
-                        key={match.giver.id}
-                        match={match}
-                        eventDetails={exchangeData.eventDetails}
-                        isNameRevealed={true}
-                        backgroundOptions={exchangeData.backgroundOptions}
-                        bgId={exchangeData.bgId}
-                        bgImg={exchangeData.customBackground}
-                        txtColor={exchangeData.textColor}
-                        outline={exchangeData.useTextOutline}
-                        outColor={exchangeData.outlineColor}
-                        outSize={exchangeData.outlineSize}
-                        fontSize={exchangeData.fontSizeSetting}
-                        font={exchangeData.fontTheme}
-                        line={exchangeData.lineSpacing}
-                        greet={exchangeData.greetingText}
-                        intro={exchangeData.introText}
-                        wish={exchangeData.wishlistLabelText}
-                    />
-                ))}
+                 {/* Hidden cards for PDF generation */}
+                <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', width: '600px', height: '800px' }}>
+                    {matches.map(match => (
+                         <div key={`pdf-${match.giver.id}`} id={`card-for-pdf-${match.giver.id}`} style={{ width: '600px', height: '800px' }}>
+                             <PrintableCard
+                                match={match}
+                                eventDetails={exchangeData.eventDetails}
+                                isNameRevealed={true}
+                                backgroundOptions={exchangeData.backgroundOptions}
+                                bgId={exchangeData.bgId}
+                                bgImg={exchangeData.customBackground}
+                                txtColor={exchangeData.textColor}
+                                outline={exchangeData.useTextOutline}
+                                outColor={exchangeData.outlineColor}
+                                outSize={exchangeData.outlineSize}
+                                fontSize={exchangeData.fontSizeSetting}
+                                font={exchangeData.fontTheme}
+                                line={exchangeData.lineSpacing}
+                                greet={exchangeData.greetingText}
+                                intro={exchangeData.introText}
+                                wish={exchangeData.wishlistLabelText}
+                            />
+                        </div>
+                    ))}
+                </div>
             </div>
-
-            <style>{`
-                @keyframes slide-up { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-                .animate-slide-up { animation: slide-up 0.3s ease-out forwards; }
+             <style>{`
+                @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+                .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
             `}</style>
         </div>
     );
