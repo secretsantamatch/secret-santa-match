@@ -8,7 +8,9 @@ import ShareLinksModal from './ShareLinksModal';
 import { getGiftPersona } from '../services/personaService';
 import type { GiftPersona } from '../types';
 import { trackEvent } from '../services/analyticsService';
-import { Gift, Heart, ShoppingCart, ThumbsDown, Link as LinkIcon, Wallet } from 'lucide-react';
+import { Gift, Heart, ShoppingCart, ThumbsDown, Link as LinkIcon, Wallet, RefreshCw, Home } from 'lucide-react';
+import { generateMatches } from '../services/matchService';
+import { encodeData } from '../services/urlService';
 
 interface ResultsPageProps {
   data: ExchangeData;
@@ -19,6 +21,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   const [isRevealed, setIsRevealed] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [persona, setPersona] = useState<GiftPersona | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
 
   const { p: participants, matches: matchIds, ...styleData } = data;
 
@@ -48,6 +52,43 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
   const createAmazonLink = (keyword: string) => {
     const affiliateTag = 'secretsantamat-20';
     return `https://www.amazon.com/s?k=${encodeURIComponent(keyword)}&tag=${affiliateTag}`;
+  };
+
+  const handleShuffle = () => {
+    setError(null);
+    trackEvent('click_shuffle_again', { from: 'results_page' });
+    const result = generateMatches(data.p, data.exclusions, data.assignments);
+    
+    if (result.error) {
+      setError(result.error);
+      trackEvent('generation_error', { error_message: result.error, from: 'shuffle' });
+      return;
+    }
+
+    if (!result.matches) {
+        setError("An unexpected error occurred during shuffling.");
+        trackEvent('generation_error', { error_message: 'Unexpected null matches on shuffle', from: 'shuffle' });
+        return;
+    }
+
+    const newExchangeData: ExchangeData = {
+        ...data,
+        matches: result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
+    };
+
+    const encoded = encodeData(newExchangeData);
+    if (encoded) {
+        // Just update the hash. The App component's listener will handle the refresh.
+        window.location.hash = encoded;
+        window.location.reload(); // Force reload to ensure all components get new data.
+    } else {
+        setError("There was an error creating your new shareable link.");
+    }
+  };
+
+  const handleStartOver = () => {
+    trackEvent('click_start_over', { from: 'results_page' });
+    window.location.href = '/generator.html';
   };
 
   const renderParticipantView = () => {
@@ -167,13 +208,37 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId })
       <div className="text-center mb-8">
         <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">Organizer's Master List</h1>
         <p className="text-lg text-slate-600 mt-4">Here are all the Secret Santa matches. Keep this page safe!</p>
-        <div className="mt-6 flex flex-wrap justify-center gap-4">
-             <button onClick={() => setShowShareModal(true)} className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-colors">
+        
+        {error && (
+            <div className="bg-red-100 border border-red-200 text-red-700 p-3 my-6 rounded-md text-sm text-left max-w-lg mx-auto" role="alert">
+                <p className="font-bold">Shuffle Error</p>
+                <p>{error}</p>
+            </div>
+        )}
+
+        <div className="mt-6 flex flex-wrap justify-center items-center gap-4">
+            <button onClick={() => setShowShareModal(true)} className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-colors">
                 Share Links & Download Cards
+            </button>
+            <button 
+                onClick={handleShuffle}
+                className="flex items-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 px-4 rounded-full transition-colors text-sm"
+            >
+                <RefreshCw size={16}/>
+                Shuffle Again
             </button>
         </div>
       </div>
       <ResultsDisplay matches={matches} />
+       <div className="mt-8 text-center">
+            <button
+                onClick={handleStartOver}
+                className="text-sm text-slate-500 hover:text-red-600 font-semibold flex items-center gap-2 mx-auto"
+            >
+                <Home size={16}/>
+                Start a New Game
+            </button>
+        </div>
     </>
   );
 
