@@ -1,20 +1,31 @@
-// Fix: Added a triple-slash directive to include Vite's client types, which are needed for `import.meta.env`.
-/// <reference types="vite/client" />
+// This service manages analytics tracking.
 
+// Manually define necessary global types to prevent TypeScript errors,
+// especially for vite's `import.meta.env` and the global `gtag` function.
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
+    gtag?: (command: 'config' | 'event', targetId: string, params?: Record<string, any>) => void;
     consentGranted?: boolean;
+  }
+  // FIX: The original type definition for `import.meta.env` conflicted with
+  // Vite's base types. This is corrected by augmenting the `ImportMetaEnv`
+  // interface and ensuring `ImportMeta.env` uses this standard type, which
+  // resolves the "Subsequent property declarations must have the same type" error.
+  interface ImportMetaEnv {
+    readonly VITE_GA_TRACKING_ID: string;
+  }
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
   }
 }
 
 export const GA_TRACKING_ID = import.meta.env.VITE_GA_TRACKING_ID;
 
-export const initAnalytics = () => {
-    // Logic to initialize GA would go here, often in index.html or a root component.
-    // For now, we assume it's loaded if gtag function exists.
-};
-
+/**
+ * Sends an event to Google Analytics if consent has been granted.
+ * @param eventName - The name of the event to track.
+ * @param eventParams - An object of parameters to send with the event.
+ */
 export const trackEvent = (
   eventName: string,
   eventParams: Record<string, any> = {}
@@ -24,7 +35,6 @@ export const trackEvent = (
         ...eventParams,
         'send_to': GA_TRACKING_ID
     });
-  } else {
-    // console.log(`Analytics Event (GA disabled or consent not given): ${eventName}`, eventParams);
   }
+  // If gtag is not available or consent is not granted, do nothing.
 };

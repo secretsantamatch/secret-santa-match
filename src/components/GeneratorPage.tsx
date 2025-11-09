@@ -75,10 +75,12 @@ const RevealView: React.FC<{ exchangeData: ExchangeData, participantId: string }
 
 // Sub-component for the organizer's master view
 const OrganizerView: React.FC<{ exchangeData: ExchangeData }> = ({ exchangeData }) => {
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    
     const matches: Match[] = useMemo(() => exchangeData.matches.map(m => ({
         giver: exchangeData.p.find(p => p.id === m.g)!,
         receiver: exchangeData.p.find(p => p.id === m.r)!,
-    })), [exchangeData]);
+    })).filter(match => match.giver && match.receiver), [exchangeData]);
 
     return (
         <>
@@ -87,6 +89,12 @@ const OrganizerView: React.FC<{ exchangeData: ExchangeData }> = ({ exchangeData 
                 <p className="text-lg text-slate-600 mt-4 max-w-3xl mx-auto">
                     This is your master page. Bookmark it to see all matches.
                 </p>
+                 <button 
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="mt-6 bg-red-600 hover:bg-red-700 text-white font-bold text-lg px-8 py-3 rounded-full shadow-lg transform hover:scale-105 transition-all"
+                >
+                    Share & Download Links
+                </button>
             </section>
             
             <div className="my-12">
@@ -120,6 +128,12 @@ const OrganizerView: React.FC<{ exchangeData: ExchangeData }> = ({ exchangeData 
                     ))}
                 </div>
             </div>
+            {isShareModalOpen && (
+                 <ShareLinksModal
+                    onClose={() => setIsShareModalOpen(false)}
+                    exchangeData={exchangeData}
+                />
+            )}
         </>
     );
 };
@@ -173,7 +187,7 @@ const GeneratorPage: React.FC = () => {
     useEffect(() => {
         let isMounted = true;
         
-        const processUrl = () => {
+        const processUrl = (bgOptions: BackgroundOption[]) => {
             const params = new URLSearchParams(window.location.search);
             const id = params.get('id');
             const hash = window.location.hash.slice(1);
@@ -182,8 +196,7 @@ const GeneratorPage: React.FC = () => {
                 const parsedData = parseExchangeData(hash);
                 if (parsedData) {
                     if (!isMounted) return;
-                     // We need the full backgroundOptions, so we use the already-fetched ones
-                    const fullData = { ...parsedData, backgroundOptions };
+                    const fullData = { ...parsedData, backgroundOptions: bgOptions };
                     setExchangeData(fullData);
                     if (id) {
                         setParticipantId(id);
@@ -202,11 +215,11 @@ const GeneratorPage: React.FC = () => {
 
         fetch('/templates.json')
             .then(res => res.json())
-            .then(data => {
+            .then((data: BackgroundOption[]) => {
                 if(isMounted) {
                     setBackgroundOptions(data);
-                    if (data.length > 0 && view === 'generator') { // Only set defaults if in generator mode
-                        const defaultOption = data.find((opt: BackgroundOption) => opt.id === 'gift-border') || data[0];
+                    if (data.length > 0) {
+                        const defaultOption = data.find(opt => opt.id === 'gift-border') || data[0];
                         setSelectedBackground(defaultOption.id);
                         setTextColor(defaultOption.defaultTextColor || '#333333');
                         if (defaultOption.cardText) {
@@ -215,7 +228,7 @@ const GeneratorPage: React.FC = () => {
                             setWishlistLabelText(defaultOption.cardText.wishlistLabel);
                         }
                     }
-                    processUrl(); // Process URL after templates are loaded
+                    processUrl(data);
                 }
             })
             .catch(err => {
@@ -226,7 +239,7 @@ const GeneratorPage: React.FC = () => {
             
         return () => { isMounted = false; };
 
-    }, [backgroundOptions]); // Rerun if backgroundOptions changes (though it shouldn't after first load)
+    }, []);
     
     const handleAcceptCookies = () => {
         localStorage.setItem('cookie_consent', 'granted');
@@ -272,41 +285,45 @@ const GeneratorPage: React.FC = () => {
             return;
         }
 
-        try {
-            const matches = generateMatches(validParticipants, exclusions, assignments);
-            
-            const dataForUrl: Omit<ExchangeData, 'backgroundOptions'> = {
-                p: validParticipants,
-                matches: matches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
-                eventDetails,
-                bgId: selectedBackground,
-                customBackground,
-                textColor,
-                useTextOutline,
-                outlineColor,
-                outlineSize,
-                fontSizeSetting,
-                fontTheme,
-                lineSpacing,
-                greetingText,
-                introText,
-                wishlistLabelText,
-            };
+        setTimeout(() => {
+            try {
+                const matchesResult = generateMatches(validParticipants, exclusions, assignments);
+                
+                const dataForUrl: Omit<ExchangeData, 'backgroundOptions'> = {
+                    p: validParticipants,
+                    matches: matchesResult.map(m => ({ g: m.giver.id, r: m.receiver.id })),
+                    eventDetails,
+                    bgId: selectedBackground,
+                    customBackground,
+                    textColor,
+                    useTextOutline,
+                    outlineColor,
+                    outlineSize,
+                    fontSizeSetting,
+                    fontTheme,
+                    lineSpacing,
+                    greetingText,
+                    introText,
+                    wishlistLabelText,
+                };
 
-            const fullData: ExchangeData = { ...dataForUrl, backgroundOptions };
+                const fullData: ExchangeData = { ...dataForUrl, backgroundOptions };
+                const hash = serializeExchangeData(dataForUrl);
+                
+                const newUrl = window.location.pathname + '#' + hash;
+                window.history.pushState({}, '', newUrl);
+                
+                setExchangeData(fullData);
+                setView('organizer'); // Switch to organizer view after generation
+                trackEvent('generate_success', { num_participants: validParticipants.length, num_exclusions: exclusions.length });
 
-            const hash = serializeExchangeData(dataForUrl);
-            window.location.hash = hash;
-            
-            setExchangeData(fullData);
-            setIsShareModalOpen(true);
-            trackEvent('generate_success', { num_participants: validParticipants.length, num_exclusions: exclusions.length });
-        } catch (e) {
-            setError(e instanceof Error ? e.message : "An unknown error occurred during matching.");
-            trackEvent('generate_error', { error_message: e instanceof Error ? e.message : String(e) });
-        } finally {
-            setIsLoading(false);
-        }
+            } catch (e) {
+                setError(e instanceof Error ? e.message : "An unknown error occurred during matching.");
+                trackEvent('generate_error', { error_message: e instanceof Error ? e.message : String(e) });
+            } finally {
+                setIsLoading(false);
+            }
+        }, 500); // Artificial delay for UX
     };
     
     const validParticipantCount = participants.filter(p => p.name.trim() !== '').length;
@@ -399,7 +416,7 @@ const GeneratorPage: React.FC = () => {
                                 disabled={isLoading || validParticipantCount < 3}
                                 className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-10 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all disabled:bg-slate-400 disabled:scale-100 disabled:cursor-not-allowed"
                             >
-                                {isLoading ? 'Generating...' : `Generate Matches (${validParticipantCount})`}
+                                {isLoading ? <Loader2 className="animate-spin inline-block" /> : `Generate Matches (${validParticipantCount})`}
                             </button>
                             {validParticipantCount < 3 && <p className="text-slate-500 text-sm mt-2">Add at least 3 participants to generate matches.</p>}
                         </div>
