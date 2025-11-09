@@ -26,7 +26,9 @@ const renderOffScreen = (
     const root = ReactDOM.createRoot(container);
     const cleanup = () => {
       root.unmount();
-      document.body.removeChild(container);
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
     };
 
     root.render(component);
@@ -44,27 +46,28 @@ const renderOffScreen = (
  * @param exchangeData The full data for the gift exchange.
  */
 const preloadCardImages = (exchangeData: ExchangeData): Promise<void[]> => {
-    const { backgroundOptions, p: participants } = exchangeData;
-    const uniqueBgIds = new Set(participants.map(() => exchangeData.bgId));
+    const { backgroundOptions, bgId, customBackground } = exchangeData;
+    const uniqueBgIds = new Set([bgId]);
     
-    if (exchangeData.customBackground) {
+    if (customBackground) {
         uniqueBgIds.add('custom');
     }
 
     const imagePromises: Promise<void>[] = [];
 
-    uniqueBgIds.forEach(bgId => {
+    uniqueBgIds.forEach(id => {
         let imageUrl: string | null = null;
-        if (bgId === 'custom') {
-            imageUrl = exchangeData.customBackground;
+        if (id === 'custom') {
+            imageUrl = customBackground;
         } else {
-            const bgOption = backgroundOptions.find(opt => opt.id === bgId);
+            const bgOption = backgroundOptions.find(opt => opt.id === id);
             imageUrl = bgOption?.imageUrl || null;
         }
 
         if (imageUrl) {
             const promise = new Promise<void>((resolve, reject) => {
                 const img = new Image();
+                img.crossOrigin = 'anonymous'; // Important for CORS
                 img.src = imageUrl!;
                 img.onload = () => resolve();
                 img.onerror = () => reject(new Error(`Failed to load image: ${imageUrl}`));
@@ -122,6 +125,9 @@ export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<v
             const { element, cleanup } = await renderOffScreen(cardComponent);
             
             try {
+                // Add an extra small delay right before capturing
+                await new Promise(resolve => setTimeout(resolve, 200));
+
                 const canvas = await html2canvas(element, {
                     useCORS: true,
                     allowTaint: true,
@@ -164,11 +170,14 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
     if (eventDetails) {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Event Details: ${eventDetails}`, 14, startY);
-        startY += 7;
+        const detailsLines = doc.splitTextToSize(`Event Details: ${eventDetails}`, 180);
+        doc.text(detailsLines, 14, startY);
+        startY += (detailsLines.length * 5) + 5;
     }
 
     if (exchangeDate) {
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
         let dateInfo = `Exchange Date: ${exchangeDate}`;
         if (exchangeTime) dateInfo += ` at ${exchangeTime}`;
         doc.text(dateInfo, 14, startY);
@@ -191,7 +200,7 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
         head: [['Giver', 'Receiver', "Receiver's Wishlist & Details"]],
         body: tableBody,
         theme: 'striped',
-        headStyles: { fillColor: [200, 40, 40], fontStyle: 'bold' },
+        headStyles: { fillColor: [200, 40, 40] },
         columnStyles: {
             0: { cellWidth: 40, halign: 'left' },
             1: { cellWidth: 40, halign: 'left' },
@@ -201,7 +210,10 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
             if (data.section === 'head') {
                 data.cell.styles.fontStyle = 'bold';
             }
-            if (data.column.index === 2) {
+            if (data.column.index < 2 && data.section === 'body') {
+                data.cell.styles.fontStyle = 'bold';
+            }
+             if (data.column.index === 2 && data.section === 'body') {
                 data.cell.styles.fontStyle = 'normal';
                 data.cell.styles.fontSize = 8;
             }
@@ -209,7 +221,6 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
     });
 
     const pageCount = (doc as any).internal.getNumberOfPages();
-
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(10);
@@ -221,9 +232,7 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
     doc.save('Secret_Santa_Master_List.pdf');
 };
 
-
-// START: Party Pack Generation Logic
-const drawPageHeader = (doc: jsPDF, title: string) => {
+const drawHeader = (doc: jsPDF, title: string) => {
     doc.setFillColor(200, 40, 40); // Festive Red
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 30, 'F');
     doc.setFontSize(24);
@@ -236,7 +245,7 @@ const drawFooter = (doc: jsPDF) => {
     const pageCount = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
-        doc.setFontSize(9);
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(150);
         doc.text('Generated by SecretSantaMatch.com', doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
@@ -244,16 +253,14 @@ const drawFooter = (doc: jsPDF) => {
 };
 
 const drawBingoCard = (doc: jsPDF) => {
-    drawPageHeader(doc, "Secret Santa BINGO");
-
-    doc.setFontSize(14);
+    doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(48, 59, 83);
-    doc.text("How to Play:", 15, 45);
-    
+    doc.text("Secret Santa BINGO", doc.internal.pageSize.getWidth() / 2, 45, { align: 'center' });
+
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text("Cross off squares as you watch the gift exchange happen. The first to get four in a row wins!", 15, 52, { maxWidth: 180 });
+    doc.setTextColor(100, 116, 139);
+    doc.text("How to Play: Mark a square when you see it happen during the gift exchange!", doc.internal.pageSize.getWidth() / 2, 52, { align: 'center' });
 
     const bingoItems = [
         "Someone gets socks", "Gift is handmade", "Gift is food or drink", "Someone asks 'Who had me?'",
@@ -261,18 +268,16 @@ const drawBingoCard = (doc: jsPDF) => {
         "Gift is an experience", "Someone guesses their Santa", "Gift is for a pet", "Wrapping paper is amazing",
         "Someone needs batteries", "Gift is self-care related", "Someone says 'I love it!'", "Gift is a gift card"
     ];
-
     const shuffledItems = [...bingoItems].sort(() => Math.random() - 0.5);
-    
-    const boxSize = 45;
-    const startX = 15;
+
+    const boxSize = (doc.internal.pageSize.getWidth() - 40) / 4;
+    const startX = 20;
     const startY = 65;
     
     doc.setFontSize(9);
     let itemIndex = 0;
     for (let row = 0; row < 4; row++) {
         for (let col = 0; col < 4; col++) {
-            if (itemIndex >= shuffledItems.length) break;
             const rectX = startX + col * boxSize;
             const rectY = startY + row * boxSize;
             
@@ -280,143 +285,171 @@ const drawBingoCard = (doc: jsPDF) => {
             doc.setDrawColor(226, 232, 240);
             doc.roundedRect(rectX, rectY, boxSize, boxSize, 3, 3, 'FD');
             
-            const textLines = doc.splitTextToSize(shuffledItems[itemIndex], boxSize - 6);
+            const text = shuffledItems[itemIndex] || '';
+            itemIndex++;
+            const textLines = doc.splitTextToSize(text, boxSize - 6);
             doc.setTextColor(48, 59, 83);
             doc.text(textLines, rectX + boxSize / 2, rectY + boxSize / 2, { align: 'center', baseline: 'middle' });
-            itemIndex++;
         }
+    }
+};
+
+const drawAwards = (doc: jsPDF) => {
+    const drawAward = (title: string, description: string) => {
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        
+        // Background & Border
+        doc.setDrawColor(200, 40, 40);
+        doc.setLineWidth(1.5);
+        doc.roundedRect(10, 10, pageWidth - 20, pageHeight - 20, 5, 5, 'D');
+
+        // Title
+        doc.setFontSize(28);
+        doc.setFont('serif', 'bold');
+        doc.setTextColor(48, 59, 83);
+        doc.text(title, pageWidth / 2, 60, { align: 'center' });
+        
+        // Description
+        doc.setFontSize(12);
+        doc.setFont('serif', 'italic');
+        doc.setTextColor(100, 116, 139);
+        doc.text(description, pageWidth / 2, 75, { align: 'center' });
+
+        // Recipient Line
+        doc.setFontSize(14);
+        doc.setFont('sans-serif', 'normal');
+        doc.setTextColor(48, 59, 83);
+        doc.text("Presented to:", 30, 120);
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.5);
+        doc.line(70, 120, pageWidth - 30, 120);
+    };
+
+    doc.addPage(undefined, 'l');
+    drawAward("Most Thoughtful Gift", "For the gift that truly captured the spirit of the recipient.");
+    doc.addPage(undefined, 'l');
+    drawAward("Funniest Gift", "For the gift that brought the biggest laughs of the night.");
+    doc.addPage(undefined, 'l');
+    drawAward("Best Wrapped Gift", "For the presentation that was a gift in itself.");
+};
+
+const drawGiftTags = (doc: jsPDF) => {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const tagWidth = (pageWidth - 40) / 2;
+    const tagHeight = tagWidth * 0.6;
+    const startX1 = 15;
+    const startX2 = startX1 + tagWidth + 10;
+    const startY = 45;
+    const yMargin = 10;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Cut out these tags to add a special touch to your gifts!", 15, 40);
+
+    for (let i = 0; i < 4; i++) {
+        const currentY = startY + i * (tagHeight + yMargin);
+        
+        [startX1, startX2].forEach(x => {
+            doc.setDrawColor(200, 40, 40);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(x, currentY, tagWidth, tagHeight, 5, 5, 'D');
+            
+            // Hole punch
+            doc.setFillColor(255, 255, 255);
+            doc.setDrawColor(200, 40, 40);
+            doc.circle(x + 10, currentY + 10, 2, 'FD');
+            doc.setDrawColor(200, 40, 40);
+            doc.line(x + 10, currentY + 10, x + 10, currentY); // String
+
+            // Text
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(48, 59, 83);
+            doc.text("To:", x + 10, currentY + 25);
+            doc.setDrawColor(200);
+            doc.line(x + 25, currentY + 25, x + tagWidth - 10, currentY + 25);
+            
+            doc.text("From:", x + 10, currentY + 38);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text("Your Secret Santa", x + 28, currentY + 38);
+        });
     }
 };
 
 const drawGuessingGame = (doc: jsPDF, participants: ExchangeData['p']) => {
-    drawPageHeader(doc, "Who's My Santa? Guessing Game");
-    
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
     doc.setTextColor(48, 59, 83);
-    doc.text("Everyone writes down who they think their Secret Santa is. Reveal the answers after all the gifts have been opened!", 15, 45, { maxWidth: 180 });
+    doc.text("Who's My Santa?", doc.internal.pageSize.getWidth() / 2, 45, { align: 'center' });
 
-    const tableBody = participants.map(p => [p.name, '']);
-    
-    autoTable(doc, {
-        startY: 55,
-        head: [['Participant Name', 'My Secret Santa Is...']],
-        body: tableBody,
-        theme: 'grid',
-        headStyles: { fillColor: [71, 85, 105], fontStyle: 'bold' },
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Write down your guess for who you think is your Secret Santa!", doc.internal.pageSize.getWidth() / 2, 52, { align: 'center' });
+
+    const startY = 65;
+    const lineHeight = 10;
+
+    participants.forEach((p, i) => {
+        const y = startY + i * lineHeight;
+        if (y > doc.internal.pageSize.getHeight() - 20) {
+            // This is a simple implementation. For very large groups, a second column or page would be needed.
+            return;
+        }
+        doc.setFontSize(12);
+        doc.setTextColor(48, 59, 83);
+        doc.text(`${p.name}:`, 20, y);
+        doc.setDrawColor(200);
+        doc.line(45, y, doc.internal.pageSize.getWidth() - 20, y);
     });
 };
 
-const drawGiftTags = (doc: jsPDF) => {
-    drawPageHeader(doc, "Printable Gift Tags");
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(48, 59, 83);
-    doc.text("Cut out these tags to add a special touch to your gifts!", 15, 45);
-
-    const tagWidth = 80;
-    const tagHeight = 45;
-    const xPositions = [20, 110];
-    const yPositions = [55, 105, 155, 205];
-
-    for (const y of yPositions) {
-        for (const x of xPositions) {
-            doc.setDrawColor(200, 40, 40);
-            doc.setLineWidth(0.5);
-            doc.roundedRect(x, y, tagWidth, tagHeight, 5, 5, 'D');
-
-            doc.setFillColor(String(240));
-            doc.circle(x + 10, y + 10, 2.5, 'F');
-            doc.setDrawColor(150);
-            doc.setLineWidth(0.2);
-            doc.line(x + 10, y + 10, x + 10, y + 2);
-
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(48, 59, 83);
-            doc.text("To:", x + 10, y + 25);
-            doc.setDrawColor(200);
-            doc.setLineWidth(0.2);
-            doc.line(x + 25, y + 25, x + tagWidth - 10, y + 25);
-            
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.text("From:", x + 10, y + 35);
-            doc.setFont('helvetica', 'normal');
-            doc.text("Your Secret Santa", x + 32, y + 35);
-        }
-    }
-};
-
-const drawAward = (doc: jsPDF, title: string, description: string) => {
-    doc.setDrawColor(200, 40, 40);
-    doc.setLineWidth(2);
-    doc.rect(10, 10, 277, 190); // Outer border
-
-    doc.setFontSize(32);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(48, 59, 83);
-    doc.text("Secret Santa Award", 148.5, 40, { align: 'center' });
-
-    doc.setFontSize(22);
-    doc.setTextColor(200, 40, 40);
-    doc.text(title, 148.5, 70, { align: 'center' });
-
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(100, 116, 139);
-    doc.text(description, 148.5, 85, { align: 'center' });
-
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(48, 59, 83);
-    doc.text("Presented to:", 50, 130);
-    doc.setDrawColor(150);
-    doc.setLineWidth(0.5);
-    doc.line(95, 130, 250, 130);
-
-    doc.text("Date:", 50, 150);
-    doc.line(70, 150, 150, 150);
-};
-
+/**
+ * Generates the ultimate PDF "Party Pack" with a title page, BINGO, awards, gift tags, and a guessing game.
+ * @param exchangeData The full data for the gift exchange.
+ */
 export const generatePartyPackPdf = (exchangeData: ExchangeData) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     
     // Page 1: Title Page
-    drawPageHeader(doc, "Secret Santa Party Pack");
-    doc.setFontSize(40);
-    doc.setFont('helvetica', 'bold');
+    drawHeader(doc, "Secret Santa Party Pack");
+    doc.setFontSize(36);
+    doc.setFont('serif', 'bold');
     doc.setTextColor(48, 59, 83);
-    doc.text("Let the Fun Begin!", 105, 120, { align: 'center' });
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'normal');
+    doc.text("Let the Fun Begin!", doc.internal.pageSize.getWidth() / 2, 100, { align: 'center' });
+    doc.setFontSize(14);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Everything you need for a memorable gift exchange.", doc.internal.pageSize.getWidth() / 2, 115, { align: 'center' });
     if (exchangeData.eventDetails) {
-      const eventLines = doc.splitTextToSize(`For: ${exchangeData.eventDetails}`, 180);
-      doc.text(eventLines, 105, 140, { align: 'center' });
+        doc.setFontSize(12);
+        doc.setFont('sans-serif', 'bold');
+        doc.text("For Your Event:", doc.internal.pageSize.getWidth() / 2, 140, { align: 'center' });
+        doc.setFont('sans-serif', 'normal');
+        const detailsLines = doc.splitTextToSize(exchangeData.eventDetails, 150);
+        doc.text(detailsLines, doc.internal.pageSize.getWidth() / 2, 148, { align: 'center' });
     }
     
-    // Page 2: BINGO
+    // Page 2: Secret Santa Bingo
     doc.addPage();
+    drawHeader(doc, "Party Games");
     drawBingoCard(doc);
-
+    
     // Page 3: Guessing Game
     doc.addPage();
+    drawHeader(doc, "Party Games");
     drawGuessingGame(doc, exchangeData.p);
 
-    // Page 4: Gift Tags
+    // Page 4: Printable Gift Tags
     doc.addPage();
+    drawHeader(doc, "Printable Gift Tags");
     drawGiftTags(doc);
     
-    // Page 5-7: Awards (Landscape)
-    doc.addPage(undefined, 'l');
-    drawAward(doc, "Most Thoughtful Gift", "For the gift that truly captured the spirit of the recipient.");
-    doc.addPage(undefined, 'l');
-    drawAward(doc, "Funniest Gift", "For the gift that brought the biggest laughs of the night.");
-    doc.addPage(undefined, 'l');
-    drawAward(doc, "Best Wrapped Gift", "For the presentation that was a gift in itself.");
-
+    // Awards Pages (Landscape)
+    drawAwards(doc);
+    
+    // Add footers to all pages
     drawFooter(doc);
+    
     doc.save('Secret_Santa_Party_Pack.pdf');
 };
-// END: Party Pack Generation Logic
