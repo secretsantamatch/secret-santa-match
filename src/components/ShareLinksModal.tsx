@@ -4,7 +4,6 @@ import { generateAllCardsPdf, generateMasterListPdf, generatePartyPackPdf } from
 import { trackEvent } from '../services/analyticsService';
 import { X, Copy, Check, Link as LinkIcon, MessageSquare, Download, QrCode, Users, Star, FileText } from 'lucide-react';
 import QRCode from 'react-qr-code';
-// FIX: Import the PrintableCard component to resolve the 'Cannot find name' error.
 import PrintableCard from './PrintableCard';
 
 interface ShareLinksModalProps {
@@ -138,25 +137,25 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     <div className="space-y-4">
         <h3 className="font-bold text-lg text-slate-200">Downloads & Bulk Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button onClick={() => handlePdfDownload('cards')} className="bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
-                <Download className="w-6 h-6 text-slate-400 mt-1 flex-shrink-0"/>
+            <button onClick={() => handlePdfDownload('cards')} className="bg-slate-700/50 hover:bg-slate-600/50 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
+                <Download className="w-6 h-6 text-slate-300 mt-1 flex-shrink-0"/>
                 <div>
                     <p className="font-bold text-white">Download All Cards</p>
-                    <p className="text-sm text-slate-400">A PDF with one styled, printable card for each person.</p>
+                    <p className="text-sm text-slate-300">A PDF with one styled, printable card for each person.</p>
                 </div>
             </button>
-            <button onClick={() => handlePdfDownload('masterlist')} className="bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
-                <FileText className="w-6 h-6 text-slate-400 mt-1 flex-shrink-0"/>
+            <button onClick={() => handlePdfDownload('masterlist')} className="bg-slate-700/50 hover:bg-slate-600/50 p-4 rounded-xl text-left transition-colors flex items-start gap-4">
+                <FileText className="w-6 h-6 text-slate-300 mt-1 flex-shrink-0"/>
                 <div>
                     <p className="font-bold text-white">Download Master List</p>
-                    <p className="text-sm text-slate-400">A simple PDF of all matches for your records.</p>
+                    <p className="text-sm text-slate-300">A simple PDF of all matches for your records.</p>
                 </div>
             </button>
-             <button onClick={handleCopyAll} className="bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2">
-                <Copy className="w-6 h-6 text-slate-400 mt-1 flex-shrink-0"/>
+             <button onClick={handleCopyAll} className="bg-slate-700/50 hover:bg-slate-600/50 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2">
+                <Copy className="w-6 h-6 text-slate-300 mt-1 flex-shrink-0"/>
                 <div>
                     <p className="font-bold text-white">Copy All Links</p>
-                    <p className="text-sm text-slate-400">Copy a plain text list of all names and links to your clipboard.</p>
+                    <p className="text-sm text-slate-300">Copy a plain text list of all names and links to your clipboard.</p>
                 </div>
             </button>
             <button onClick={() => handlePdfDownload('partypack')} className="bg-purple-600 hover:bg-purple-500 p-4 rounded-xl text-left transition-colors flex items-start gap-4 sm:col-span-2">
@@ -172,11 +171,11 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
   const renderLinksSection = () => (
       <div className="space-y-4">
-          <div>
-            <h3 className="font-bold text-lg text-slate-200 mb-2">Your Organizer Master Link</h3>
-            <p className="text-sm text-slate-400 mb-3">Save this link to get back to your results page anytime. Don't lose it!</p>
-            <div className="flex flex-col sm:flex-row gap-2 bg-slate-700/50 p-3 rounded-lg">
-                <input type="text" readOnly value={getDisplayedUrl(organizerLink)} className="w-full p-2 border border-slate-600 bg-slate-900 text-slate-300 rounded-md text-sm truncate"/>
+          <div className="bg-slate-700 p-4 rounded-xl">
+            <h3 className="font-bold text-lg text-white mb-2">Your Organizer Master Link</h3>
+            <p className="text-sm text-slate-300 mb-3">Save this link to get back to your results page anytime. Don't lose it!</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+                <input type="text" readOnly value={getDisplayedUrl(organizerLink)} className="w-full p-2 border border-slate-500 bg-slate-800 text-slate-200 rounded-md text-sm truncate"/>
                 <button onClick={() => handleCopy('organizer', getDisplayedUrl(organizerLink))} className={`w-full sm:w-auto px-4 py-2 text-sm font-semibold rounded-md flex items-center justify-center gap-2 ${copiedStates['organizer'] ? 'bg-green-600' : 'bg-indigo-600 hover:bg-indigo-500'}`}>
                     {copiedStates['organizer'] ? <Check size={16}/> : <Copy size={16}/>}
                     {copiedStates['organizer'] ? 'Copied!' : 'Copy'}
@@ -198,20 +197,20 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                     />
                 </div>
             </div>
-            <p className="text-sm text-slate-400 mb-4">Copy, shorten, or share each link via Text/WhatsApp.</p>
+            <p className="text-sm text-slate-300 mb-4">Copy, shorten, or share each link via Text/WhatsApp.</p>
             <div className="space-y-3">
                 {matches.map(({ giver }) => (
                 <div key={giver.id} className="bg-slate-700/50 p-3 rounded-lg">
                     <div className="flex flex-wrap items-center gap-2">
-                        <div className="w-10 h-10 bg-slate-700 rounded-md flex items-center justify-center flex-shrink-0"><Users className="w-5 h-5 text-slate-400"/></div>
+                        <div className="w-10 h-10 bg-slate-700 rounded-md flex items-center justify-center flex-shrink-0"><Users className="w-5 h-5 text-slate-300"/></div>
                         <div className="flex-grow min-w-0">
                             <p className="font-semibold text-white">{giver.name}'s Link</p>
-                            <p className="text-xs text-slate-400 truncate">{getDisplayedUrl(participantLinks[giver.id])}</p>
+                            <p className="text-xs text-slate-300 truncate">{getDisplayedUrl(participantLinks[giver.id])}</p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                            <button onClick={() => handleCopy(giver.id, getDisplayedUrl(participantLinks[giver.id]))} className={`p-2 rounded-md ${copiedStates[giver.id] ? 'bg-green-600' : 'bg-slate-600 hover:bg-slate-500'}`}><span className="sr-only">Copy</span>{copiedStates[giver.id] ? <Check size={16} className="text-white"/> : <Copy size={16} className="text-slate-300"/>}</button>
-                            <a href={`sms:?&body=Your Secret Santa link is: ${getDisplayedUrl(participantLinks[giver.id])}`} className="p-2 rounded-md bg-slate-600 hover:bg-slate-500"><span className="sr-only">Text</span><MessageSquare size={16} className="text-slate-300"/></a>
-                            <button onClick={() => setActiveQr(activeQr === giver.id ? null : giver.id)} className="p-2 rounded-md bg-slate-600 hover:bg-slate-500"><span className="sr-only">QR Code</span><QrCode size={16} className="text-slate-300"/></button>
+                            <button onClick={() => handleCopy(giver.id, getDisplayedUrl(participantLinks[giver.id]))} className={`p-2 rounded-md ${copiedStates[giver.id] ? 'bg-green-600' : 'bg-slate-600 hover:bg-slate-500'}`}><span className="sr-only">Copy</span>{copiedStates[giver.id] ? <Check size={16} className="text-white"/> : <Copy size={16} className="text-slate-200"/>}</button>
+                            <a href={`sms:?&body=Your Secret Santa link is: ${getDisplayedUrl(participantLinks[giver.id])}`} className="p-2 rounded-md bg-slate-600 hover:bg-slate-500"><span className="sr-only">Text</span><MessageSquare size={16} className="text-slate-200"/></a>
+                            <button onClick={() => setActiveQr(activeQr === giver.id ? null : giver.id)} className="p-2 rounded-md bg-slate-600 hover:bg-slate-500"><span className="sr-only">QR Code</span><QrCode size={16} className="text-slate-200"/></button>
                         </div>
                     </div>
                     {activeQr === giver.id && (
@@ -234,7 +233,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
         <div className="p-6 border-b border-slate-700 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold font-serif">Share & Download</h2>
-            <p className="text-slate-400 text-sm mt-1">Send each person their unique reveal link.</p>
+            <p className="text-slate-300 text-sm mt-1">Send each person their unique reveal link.</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-700"><X size={20}/></button>
         </div>
