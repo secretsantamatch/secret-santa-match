@@ -1,20 +1,15 @@
+
 // This service manages analytics tracking.
 
 // Manually define necessary global types to prevent TypeScript errors,
-// especially for vite's `import.meta.env` and the global `gtag` function.
+// especially for the global `gtag` function.
 declare global {
   interface Window {
     gtag?: (command: string, eventName: string, eventParams?: Record<string, any>) => void;
     consentGranted?: boolean;
   }
 }
-interface ImportMetaEnv {
-    readonly VITE_GA_TRACKING_ID: string;
-}
-interface ImportMeta {
-    readonly env: ImportMetaEnv;
-}
-
+// The 'vite/client' types in tsconfig.json will handle import.meta.env.
 
 export const GA_TRACKING_ID = import.meta.env.VITE_GA_TRACKING_ID;
 

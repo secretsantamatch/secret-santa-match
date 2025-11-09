@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import ParticipantManager from './ParticipantManager';
 import Options from './Options';
@@ -307,7 +308,7 @@ const GeneratorPage: React.FC = () => {
             // Step 4: Prepare data for URL
             const dataForUrl: Omit<ExchangeData, 'backgroundOptions'> = {
                 p: participantsWithWishlists,
-                matches: matchesResult.map(m => ({ g: m.giver.id, r: m.receiver.id })),
+                matches: matchesResult.map((m: Match) => ({ g: m.giver.id, r: m.receiver.id })),
                 eventDetails,
                 bgId: selectedBackground,
                 customBackground,
