@@ -44,21 +44,21 @@ const renderOffScreen = (
  * @param exchangeData The full data for the gift exchange.
  */
 const preloadCardImages = (exchangeData: ExchangeData): Promise<void[]> => {
-    const { backgroundOptions, p: participants } = exchangeData;
-    const uniqueBgIds = new Set(participants.map(() => exchangeData.bgId));
+    const { backgroundOptions, customBackground, bgId } = exchangeData;
+    const uniqueBgIds = new Set([bgId]);
     
-    if (exchangeData.customBackground) {
+    if (customBackground) {
         uniqueBgIds.add('custom');
     }
 
     const imagePromises: Promise<void>[] = [];
 
-    uniqueBgIds.forEach(bgId => {
+    uniqueBgIds.forEach(currentBgId => {
         let imageUrl: string | null = null;
-        if (bgId === 'custom') {
-            imageUrl = exchangeData.customBackground;
+        if (currentBgId === 'custom') {
+            imageUrl = customBackground;
         } else {
-            const bgOption = backgroundOptions.find(opt => opt.id === bgId);
+            const bgOption = backgroundOptions.find(opt => opt.id === currentBgId);
             imageUrl = bgOption?.imageUrl || null;
         }
 
@@ -100,9 +100,6 @@ export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<v
         await preloadCardImages(exchangeData);
 
         for (const match of matches) {
-            // FIX: The spread operator `...styleData` passed props with incorrect names.
-            // This has been corrected by explicitly mapping `styleData` properties from the
-            // `exchangeData` object to the corresponding props required by `PrintableCard`.
             const cardComponent = React.createElement(PrintableCard, {
                 match,
                 eventDetails: styleData.eventDetails,
@@ -211,9 +208,7 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
         }
     });
 
-    const finalY = (doc as any).lastAutoTable.finalY || doc.internal.pageSize.getHeight() - 20;
     const pageCount = (doc as any).internal.getNumberOfPages();
-
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(10);
@@ -226,107 +221,110 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
 };
 
 
-// Helper to draw a BINGO card on a jsPDF document
-const drawBingoCard = (doc: jsPDF, title: string, items: string[], x: number, y: number, width: number) => {
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text(title, x + width / 2, y + 8, { align: 'center' });
-    
-    const boxSize = (width - 10) / 4; // 4x4 grid
-    const startX = x + 5;
-    const startY = y + 15;
-    
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    let itemIndex = 0;
-    for (let row = 0; row < 4; row++) {
-        for (let col = 0; col < 4; col++) {
-            const rectX = startX + col * boxSize;
-            const rectY = startY + row * boxSize;
-            
-            // Draw rounded rectangle
-            doc.setFillColor(248, 250, 252); // slate-50
-            doc.setDrawColor(226, 232, 240); // slate-200
-            doc.roundedRect(rectX, rectY, boxSize, boxSize, 3, 3, 'FD');
-            
-            const text = items[itemIndex] || '';
-            itemIndex++;
-            const textLines = doc.splitTextToSize(text, boxSize - 6);
-            doc.setTextColor(48, 59, 83); // slate-800
-            doc.text(textLines, rectX + boxSize / 2, rectY + boxSize / 2, { align: 'center', baseline: 'middle' });
-        }
-    }
-};
+/**
+ * Generates a world-class, multi-page Party Pack PDF with Bingo and printable awards.
+ * This is the definitive fix for the Party Pack design.
+ */
+export const generatePartyPackPdf = (): void => {
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
 
-// Helper to draw a party award certificate
-const drawAward = (doc: jsPDF, title: string, description: string, y: number) => {
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(15, y, 180, 50, 5, 5, 'F');
+    // --- Page 1: Secret Santa Bingo ---
+    doc.setFillColor('#c62828'); // Festive Red
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Secret Santa Party Pack', pageWidth / 2, 25, { align: 'center' });
 
     doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(200, 40, 40);
-    doc.text(title, 105, y + 15, { align: 'center' });
+    doc.setTextColor(50);
+    doc.text('BINGO!', pageWidth / 2, 55, { align: 'center' });
 
-    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text("How to Play:", margin, 70);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 116, 139);
-    doc.text(description, 105, y + 25, { align: 'center', maxWidth: 160 });
+    doc.text("As gifts are opened, cross off the squares that match the event. The first person to get four in a row wins!", margin, 78, { maxWidth: pageWidth - margin * 2 });
 
-    doc.setFontSize(12);
-    doc.setTextColor(48, 59, 83);
-    doc.text("Presented to:", 30, y + 40);
-    doc.setDrawColor(200);
-    doc.line(65, y + 40, 180, y + 40);
-};
-
-/**
- * Generates a PDF "Party Pack" with BINGO cards and award certificates.
- */
-export const generatePartyPackPdf = () => {
-    const doc = new jsPDF('p', 'mm', 'a4');
-    
-    // Page 1: Secret Santa Bingo
-    doc.setFillColor(200, 40, 40);
-    doc.rect(0, 0, 210, 40, 'F');
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text("Secret Santa Party Pack", 105, 25, { align: 'center' });
 
     const bingoItems = [
-        "Someone gets socks", "Gift is handmade", "Gift is food or drink", "Someone asks 'Who had me?'",
-        "A gift is re-gifted", "Someone gets a mug", "Someone gets a book", "Gift makes everyone laugh",
-        "Gift is an experience", "Someone guesses their Santa", "Gift is for a pet", "Wrapping paper is amazing",
-        "Someone needs batteries", "Gift is self-care related", "Someone says 'I love it!'", "Gift is a gift card"
+        'Gift is self-care related', 'Gift is a gift card', 'Gift makes everyone laugh', 'Someone gets a book',
+        'Someone gets a mug', 'Gift is an experience', 'Someone guesses their Santa', 'Someone needs batteries',
+        'Wrapping paper is amazing', 'A gift is re-gifted', 'Someone asks "Who had me?"', 'Gift is food or drink',
+        'Gift is handmade', 'Someone gets socks', 'Gift is for a pet', "Someone says 'I love it!'"
+    ];
+    bingoItems.sort(() => 0.5 - Math.random()); // Shuffle for a unique card
+    
+    const boxSize = 40;
+    const gridWidth = 4 * boxSize;
+    const startX = (pageWidth - gridWidth) / 2;
+    const startY = 95;
+
+    doc.setFontSize(8);
+    doc.setLineWidth(0.5);
+    for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+            const x = startX + col * boxSize;
+            const y = startY + row * boxSize;
+            doc.setFillColor(248, 250, 252); // Light Slate
+            doc.setDrawColor(226, 232, 240); // Lighter border
+            doc.roundedRect(x, y, boxSize, boxSize, 3, 3, 'FD'); // Fill and Draw with rounded corners
+            const text = bingoItems[row * 4 + col];
+            if(text) {
+                doc.text(text, x + boxSize / 2, y + boxSize / 2, { align: 'center', maxWidth: boxSize - 4, baseline: 'middle' });
+            }
+        }
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Generated by SecretSantaMatch.com', pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+
+    // --- Award Pages ---
+    const awards = [
+        { title: 'Most Thoughtful Gift', subtitle: 'For the gift that truly captured the spirit of the recipient.' },
+        { title: 'Funniest Gift', subtitle: 'For the gift that made the entire room laugh out loud.' },
+        { title: 'Best Wrapped Gift', subtitle: 'For the presentation that was a gift in itself.' }
     ];
 
-    // Create a unique bingo card
-    const shuffledItems = [...bingoItems].sort(() => Math.random() - 0.5);
-    drawBingoCard(doc, "Secret Santa BINGO", shuffledItems, 10, 50, 190);
-    
-    // Page 2: Awards
-    doc.addPage();
-    doc.setFillColor(200, 40, 40);
-    doc.rect(0, 0, 210, 40, 'F');
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text("Secret Santa Party Awards", 105, 25, { align: 'center' });
-    
-    drawAward(doc, "Most Thoughtful Gift", "For the gift that truly captured the spirit of the recipient.", 50);
-    drawAward(doc, "Funniest Gift", "For the gift that brought the biggest laughs of the night.", 110);
-    drawAward(doc, "Best Wrapped Gift", "For the presentation that was a gift in itself.", 170);
-    
-    // Add footers to all pages
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
+    awards.forEach(award => {
+        doc.addPage(null, 'l'); // Add a new landscape page
+        const landscapeWidth = doc.internal.pageSize.getWidth();
+        const landscapeHeight = doc.internal.pageSize.getHeight();
+        
+        // Festive Borders
+        doc.setFillColor('#c62828');
+        doc.rect(0, 0, landscapeWidth, 15, 'F');
+        doc.rect(0, landscapeHeight - 15, landscapeWidth, 15, 'F');
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(36);
+        doc.setTextColor(50);
+        doc.text('PARTY AWARD', landscapeWidth / 2, 50, { align: 'center' });
+
+        doc.setFontSize(24);
+        doc.text(award.title, landscapeWidth / 2, 75, { align: 'center' });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(14);
+        doc.setTextColor(100);
+        doc.text(award.subtitle, landscapeWidth / 2, 90, { align: 'center' });
+        
+        doc.setFontSize(16);
+        doc.setTextColor(50);
+        doc.text('Awarded To:', landscapeWidth / 2, 125, { align: 'center' });
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.5);
+        doc.line(70, 145, landscapeWidth - 70, 145);
+
+        doc.setFontSize(8);
         doc.setTextColor(150);
-        doc.text('Generated by SecretSantaMatch.com', doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
-    }
-    
+        doc.text('Generated by SecretSantaMatch.com', landscapeWidth / 2, landscapeHeight - 20, { align: 'center' });
+    });
+
     doc.save('Secret_Santa_Party_Pack.pdf');
 };
