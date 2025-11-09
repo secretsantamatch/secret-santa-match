@@ -154,7 +154,6 @@ const GeneratorPage: React.FC = () => {
 
     // State for modals
     const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
-    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     
     // State for errors and loading
     const [error, setError] = useState('');
@@ -274,7 +273,7 @@ const GeneratorPage: React.FC = () => {
         setAssignments([]);
     };
     
-    const handleGenerateMatches = () => {
+    const handleGenerateMatches = async () => {
         setError('');
         setIsLoading(true);
         const validParticipants = participants.filter(p => p.name.trim() !== '');
@@ -285,45 +284,62 @@ const GeneratorPage: React.FC = () => {
             return;
         }
 
-        setTimeout(() => {
-            try {
-                const matchesResult = generateMatches(validParticipants, exclusions, assignments);
-                
-                const dataForUrl: Omit<ExchangeData, 'backgroundOptions'> = {
-                    p: validParticipants,
-                    matches: matchesResult.map(m => ({ g: m.giver.id, r: m.receiver.id })),
-                    eventDetails,
-                    bgId: selectedBackground,
-                    customBackground,
-                    textColor,
-                    useTextOutline,
-                    outlineColor,
-                    outlineSize,
-                    fontSizeSetting,
-                    fontTheme,
-                    lineSpacing,
-                    greetingText,
-                    introText,
-                    wishlistLabelText,
-                };
+        try {
+            // Step 1: Generate matches
+            const matchesResult = generateMatches(validParticipants, exclusions, assignments);
 
-                const fullData: ExchangeData = { ...dataForUrl, backgroundOptions };
-                const hash = serializeExchangeData(dataForUrl);
-                
-                const newUrl = window.location.pathname + '#' + hash;
-                window.history.pushState({}, '', newUrl);
-                
-                setExchangeData(fullData);
-                setView('organizer'); // Switch to organizer view after generation
-                trackEvent('generate_success', { num_participants: validParticipants.length, num_exclusions: exclusions.length });
-
-            } catch (e) {
-                setError(e instanceof Error ? e.message : "An unknown error occurred during matching.");
-                trackEvent('generate_error', { error_message: e instanceof Error ? e.message : String(e) });
-            } finally {
-                setIsLoading(false);
+            // Step 2: Create wishlists in the backend
+            const wishlistResponse = await fetch('/.netlify/functions/create-wishlists', {
+                method: 'POST',
+                body: JSON.stringify({ participants: validParticipants })
+            });
+            if (!wishlistResponse.ok) {
+                throw new Error('Could not create wishlists. Please try again.');
             }
-        }, 500); // Artificial delay for UX
+            const { wishlistIds } = await wishlistResponse.json();
+
+            // Step 3: Add wishlist IDs to participants
+            const participantsWithWishlists = validParticipants.map(p => {
+                const mapping = wishlistIds.find((w: any) => w.participantId === p.id);
+                return { ...p, wishlistId: mapping?.wishlistId };
+            });
+
+            // Step 4: Prepare data for URL
+            const dataForUrl: Omit<ExchangeData, 'backgroundOptions'> = {
+                p: participantsWithWishlists,
+                matches: matchesResult.map(m => ({ g: m.giver.id, r: m.receiver.id })),
+                eventDetails,
+                bgId: selectedBackground,
+                customBackground,
+                textColor,
+                useTextOutline,
+                outlineColor,
+                outlineSize,
+                fontSizeSetting,
+                fontTheme,
+                lineSpacing,
+                greetingText,
+                introText,
+                wishlistLabelText,
+            };
+
+            const fullData: ExchangeData = { ...dataForUrl, backgroundOptions };
+            const hash = serializeExchangeData(dataForUrl);
+            
+            // Step 5: Update URL and view
+            const newUrl = window.location.pathname + '#' + hash;
+            window.history.pushState({}, '', newUrl);
+            
+            setExchangeData(fullData);
+            setView('organizer');
+            trackEvent('generate_success', { num_participants: validParticipants.length, num_exclusions: exclusions.length });
+
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "An unknown error occurred during matching.");
+            trackEvent('generate_error', { error_message: e instanceof Error ? e.message : String(e) });
+        } finally {
+            setIsLoading(false);
+        }
     };
     
     const validParticipantCount = participants.filter(p => p.name.trim() !== '').length;
@@ -444,13 +460,6 @@ const GeneratorPage: React.FC = () => {
                 <BulkAddModal 
                     onClose={() => setIsBulkAddModalOpen(false)}
                     onConfirm={handleBulkAdd}
-                />
-            )}
-            
-            {isShareModalOpen && exchangeData && (
-                <ShareLinksModal
-                    onClose={() => setIsShareModalOpen(false)}
-                    exchangeData={exchangeData}
                 />
             )}
             
