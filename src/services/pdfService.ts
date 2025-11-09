@@ -158,7 +158,7 @@ export const generatePartyPackPdf = async (exchangeData: ExchangeData): Promise<
             minCellHeight: 35,
             cellWidth: 35,
         },
-        didParseCell: (data) => {
+        didParseCell: (data: any) => {
             if (data.cell.raw === "FREE SPACE\n(You're having fun!)") {
                 data.cell.styles.fillColor = '#f1f5f9';
                 data.cell.styles.fontStyle = 'bold';

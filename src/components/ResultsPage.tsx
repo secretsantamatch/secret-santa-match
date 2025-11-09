@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Match, Participant, BackgroundOption } from '../types';
+import type { Match, Participant, BackgroundOption, ExchangeData } from '../types';
 // Fix: Renamed `parseUrl` to `parseExchangeData` to match the exported member from urlService.
 import { parseExchangeData } from '../services/urlService';
 import PrintableCard from './PrintableCard';
@@ -10,7 +10,8 @@ import Footer from './Footer';
 const ResultsPage: React.FC = () => {
     const [matches, setMatches] = useState<Match[]>([]);
     const [eventDetails, setEventDetails] = useState('');
-    const [styleConfig, setStyleConfig] = useState<any>(null);
+    // Fix: Use a more specific type for styleConfig.
+    const [styleConfig, setStyleConfig] = useState<Omit<ExchangeData, 'p' | 'matches' | 'eventDetails' | 'backgroundOptions'> | null>(null);
     const [error, setError] = useState<string>('');
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
     
@@ -34,21 +35,17 @@ const ResultsPage: React.FC = () => {
             return;
         }
 
-        const { p, m, e, c } = parsedData;
-        const participantList: Participant[] = p.map((participantData: Omit<Participant, 'id' | 'wishlistId'>, index: number) => ({
-            id: `p-${index}`, // Recreate a temporary ID
-            wishlistId: m.find((match: any) => match.r === index)?.w,
-            ...participantData,
-        }));
+        // Fix: Destructure properties from the modern ExchangeData format instead of the old p, m, e, c structure.
+        const { p: participants, matches: matchIds, eventDetails: evtDetails, ...styleConf } = parsedData;
         
-        const matchList: Match[] = m.map((matchData: { g: number; r: number }) => ({
-            giver: participantList[matchData.g],
-            receiver: participantList[matchData.r],
+        const matchList: Match[] = matchIds.map((matchData) => ({
+            giver: participants.find(p => p.id === matchData.g)!,
+            receiver: participants.find(p => p.id === matchData.r)!,
         }));
 
-        setMatches(matchList);
-        setEventDetails(e);
-        setStyleConfig(c);
+        setMatches(matchList.filter(m => m.giver && m.receiver));
+        setEventDetails(evtDetails);
+        setStyleConfig(styleConf);
 
     }, []);
 
@@ -100,18 +97,19 @@ const ResultsPage: React.FC = () => {
                                 eventDetails={eventDetails}
                                 isNameRevealed={true}
                                 backgroundOptions={backgroundOptions}
+                                // Fix: Use correct style properties from the new data structure.
                                 bgId={styleConfig.bgId}
-                                bgImg={styleConfig.bgImg || null}
-                                txtColor={styleConfig.txt}
-                                outline={styleConfig.out}
-                                outColor={styleConfig.outC}
-                                outSize={styleConfig.outS}
-                                fontSize={styleConfig.fontS}
-                                font={styleConfig.font}
-                                line={styleConfig.line}
-                                greet={styleConfig.greet}
-                                intro={styleConfig.intro}
-                                wish={styleConfig.wish}
+                                bgImg={styleConfig.customBackground || null}
+                                txtColor={styleConfig.textColor}
+                                outline={styleConfig.useTextOutline}
+                                outColor={styleConfig.outlineColor}
+                                outSize={styleConfig.outlineSize}
+                                fontSize={styleConfig.fontSizeSetting}
+                                font={styleConfig.fontTheme}
+                                line={styleConfig.lineSpacing}
+                                greet={styleConfig.greetingText}
+                                intro={styleConfig.introText}
+                                wish={styleConfig.wishlistLabelText}
                             />
                         ))}
                     </div>
