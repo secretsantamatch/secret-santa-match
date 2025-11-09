@@ -4,6 +4,7 @@ import { trackEvent } from '../services/analyticsService';
 import { generateMasterListPdf, generateAllCardsPdf, generatePartyPackPdf } from '../services/pdfService';
 import { Copy, Check, X, Link as LinkIcon, MessageSquare, Users, Download, FileText, PartyPopper, QrCode, Smartphone, Loader2 } from 'lucide-react';
 import QRCode from 'react-qr-code';
+import PrintableCard from './PrintableCard'; // Make sure this is imported
 
 interface ShareLinksModalProps {
   exchangeData: ExchangeData;
@@ -78,14 +79,21 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   const handleCopy = (textToCopy: string, id: string) => {
     navigator.clipboard.writeText(textToCopy).then(() => {
       setCopiedStates(prev => ({ ...prev, [id]: true }));
-      if (id !== 'organizer') {
+      if (id !== 'organizer' && id !== 'all-links') {
         setSentLinks(prev => new Set(prev).add(id));
       }
       setTimeout(() => {
         setCopiedStates(prev => ({ ...prev, [id]: false }));
       }, 2000);
-      trackEvent('copy_link', { link_type: id === 'organizer' ? 'organizer' : 'participant' });
+      trackEvent('copy_link', { link_type: id });
     });
+  };
+
+  const handleCopyAllLinks = () => {
+    const allLinksText = matches.map(({ giver }) => {
+        return `${giver.name}: ${getLinkForParticipant(giver)}`;
+    }).join('\n');
+    handleCopy(allLinksText, 'all-links');
   };
   
   const handleShortenToggle = (checked: boolean) => {
@@ -121,11 +129,12 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     const img = new Image();
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
-      ctx?.drawImage(img, 0, 0);
+      ctx.drawImage(img, 0, 0);
       const pngFile = canvas.toDataURL("image/png");
       const downloadLink = document.createElement("a");
       downloadLink.download = `QR_Code_for_${participant.name}.png`;
@@ -145,7 +154,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
       else generatePartyPackPdf(exchangeData);
     } catch (e) {
       console.error(e);
-      alert(`Error: Could not find the printable card for ${e}. Please try again.`);
+      alert(`Error: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setLoadingPdf(null);
     }
@@ -171,6 +180,13 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                     <h4 className="font-bold text-slate-800">Download Master List</h4>
                     <p className="text-sm text-slate-500">A detailed PDF of all matches for your records.</p>
                     {loadingPdf === 'master' && <p className="text-sm font-semibold text-indigo-600 mt-2 flex items-center gap-2"><Loader2 className="animate-spin" size={16}/> Processing...</p>}
+                </div>
+            </button>
+             <button onClick={handleCopyAllLinks} className="group text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-xl border transition-colors flex items-start gap-4">
+                <Copy size={24} className="text-slate-500 flex-shrink-0 mt-1" />
+                <div>
+                    <h4 className="font-bold text-slate-800">{copiedStates['all-links'] ? 'Copied!' : 'Copy All Links'}</h4>
+                    <p className="text-sm text-slate-500">Copy a plain text list of all names and links to your clipboard.</p>
                 </div>
             </button>
         </div>
@@ -271,6 +287,28 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
         <footer className="p-4 bg-slate-50 border-t text-right">
           <button onClick={onClose} className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg">Done</button>
         </footer>
+      </div>
+       <div style={{ display: 'none' }}>
+        {matches.map(({ giver, receiver }) => (
+          <PrintableCard
+            key={giver.id}
+            match={{ giver, receiver }}
+            {...exchangeData}
+            bgId={exchangeData.bgId}
+            bgImg={exchangeData.customBackground}
+            txtColor={exchangeData.textColor}
+            outline={exchangeData.useTextOutline}
+            outColor={exchangeData.outlineColor}
+            outSize={exchangeData.outlineSize}
+            fontSize={exchangeData.fontSizeSetting}
+            font={exchangeData.fontTheme}
+            line={exchangeData.lineSpacing}
+            greet={exchangeData.greetingText}
+            intro={exchangeData.introText}
+            wish={exchangeData.wishlistLabelText}
+            isNameRevealed={true}
+          />
+        ))}
       </div>
        <style>{`
         .toggle-checkbox {

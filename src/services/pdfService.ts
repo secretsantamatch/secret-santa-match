@@ -1,4 +1,3 @@
-// FIX: This file was corrupted. It has been restored with the necessary PDF generation functions.
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -156,7 +155,10 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
         head: [['Giver', 'Receiver', "Receiver's Wishlist & Details"]],
         body: tableBody,
         theme: 'striped',
-        headStyles: { fillColor: [198, 40, 40] }, // A festive red
+        headStyles: { 
+            fillColor: [198, 40, 40], // A festive red
+            fontStyle: 'bold' 
+        },
         columnStyles: {
             0: { cellWidth: 40 },
             1: { cellWidth: 40 },
