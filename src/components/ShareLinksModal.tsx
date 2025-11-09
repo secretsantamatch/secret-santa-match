@@ -152,7 +152,8 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     try {
       if (type === 'cards') await generateAllCardsPdf(exchangeData);
       else if (type === 'master') generateMasterListPdf(exchangeData);
-      else generatePartyPackPdf(exchangeData);
+      // FIX: The party pack PDF is generic and does not need exchange data.
+      else generatePartyPackPdf();
     } catch (e) {
       console.error(e);
       alert(`Error: ${e instanceof Error ? e.message : String(e)}`);
