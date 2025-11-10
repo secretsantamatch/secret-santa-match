@@ -12,14 +12,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
-        generator: resolve(__dirname, 'generator.html'),
+        main: resolve(__dirname, 'index.html'), // Blog page is now the main entry
+        generator: resolve(__dirname, 'generator.html'), // Generator has its own page
         contact: resolve(__dirname, 'contact.html'),
-        'about-us': resolve(__dirname, 'public/about-us.html'),
-        'advertise': resolve(__dirname, 'public/advertise.html'),
         'minimum-payment-calculator': resolve(__dirname, 'minimum-payment-calculator.html'),
         'holiday-budget-calculator': resolve(__dirname, 'holiday-budget-calculator.html'),
-        // New entry for the wishlist editor
         'wishlist-editor': resolve(__dirname, 'wishlist-editor.html'),
       }
     }

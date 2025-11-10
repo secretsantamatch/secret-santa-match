@@ -27,7 +27,7 @@ const BlogPage: React.FC = () => {
         return response.json();
       })
       .then(data => {
-        setResources(data);
+        setResources(data.resources);
         setStatus('success');
       })
       .catch(err => {

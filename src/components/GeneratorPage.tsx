@@ -264,6 +264,9 @@ const GeneratorPage: React.FC = () => {
 
     const renderGenerator = () => (
         <>
+            <HowItWorks />
+            <VideoTutorial />
+
             <section className="text-center my-8">
                 <div className="flex justify-center items-center gap-4 mb-4">
                     <img src="/logo_256.png" alt="Secret Santa Generator Logo" className="w-16 h-16 sm:w-20 sm:h-20" />
@@ -292,7 +295,6 @@ const GeneratorPage: React.FC = () => {
 
                 {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert"><p>{error}</p></div>}
                 
-                {/* FIX: Refactored AnimatePresence to resolve a TypeScript typing error with motion.div props. */}
                 <AnimatePresence mode="wait">
                     {activeTab === 'participants' && (
                         <motion.div key="participants" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
@@ -315,7 +317,7 @@ const GeneratorPage: React.FC = () => {
             {/* Floating Navigation */}
             <div className="sticky bottom-4 z-20 mt-8">
                 <div className="max-w-md mx-auto bg-white/80 backdrop-blur-lg rounded-full shadow-2xl border p-2 flex items-center justify-between">
-                    <button onClick={() => navigateTabs('prev')} disabled={activeTab === 'participants'} className="py-2 px-5 text-gray-600 font-semibold rounded-full hover:bg-gray-200 disabled:opacity-50">Back</button>
+                    <button onClick={() => navigateTabs('prev')} disabled={activeTab === 'participants'} className={`py-2 px-5 text-gray-600 font-semibold rounded-full hover:bg-gray-200 disabled:opacity-50 ${activeTab === 'participants' ? 'invisible' : 'visible'}`}>Back</button>
                     {activeTab !== 'style' ? (
                         <button onClick={() => navigateTabs('next')} className="py-3 px-8 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full transition-colors shadow">Next Step &rarr;</button>
                     ) : (
@@ -326,9 +328,7 @@ const GeneratorPage: React.FC = () => {
                 </div>
             </div>
 
-            <HowItWorks />
             <WhyChooseUs />
-            <VideoTutorial />
             <FaqSection />
             <ShareTool />
         </>

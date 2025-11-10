@@ -2,7 +2,6 @@ const CACHE_NAME = 'secret-santa-match-v1';
 const urlsToCache = [
   '/',
   '/generator.html',
-  '/blog.html',
   '/logo_192.png',
   '/logo_512.png',
   '/manifest.json'
