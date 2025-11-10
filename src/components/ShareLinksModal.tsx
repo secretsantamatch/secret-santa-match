@@ -294,7 +294,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
           <button onClick={onClose} className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg">Done</button>
         </footer>
       </div>
-       <div style={{ display: 'none' }}>
+       <div style={{ position: 'absolute', left: '-9999px', top: 0, zIndex: -1 }}>
         {matches.map(({ giver, receiver }) => (
           <PrintableCard
             key={`pdf-card-${giver.id}`}

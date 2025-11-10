@@ -322,7 +322,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                         greet={greetingText}
                         intro={introText}
                         wish={wishlistLabelText}
-                        showWishlistLink={true}
+                        showWishlistLink={false}
                     />
                 </div>
             </div>

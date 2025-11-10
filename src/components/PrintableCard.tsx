@@ -75,14 +75,14 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
     return (
         <div id={`card-${match.giver.id}`} className="printable-card-container aspect-[3/4] w-full max-w-md mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border">
             <div 
-                className="relative w-full h-full p-6 flex flex-col justify-between text-center bg-cover bg-center" 
+                className="relative w-full h-full p-6 flex flex-col justify-center text-center bg-cover bg-center" 
                 style={{ 
                     backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
                     backgroundColor: !backgroundUrl ? '#ffffff' : undefined,
                 }}
             >
                 <div 
-                    className={`relative z-10 flex-grow flex flex-col ${fontClassName} ${fontSizeClassName}`}
+                    className={`relative z-10 flex-grow flex flex-col justify-center ${fontClassName} ${fontSizeClassName}`}
                     style={{ color: txtColor, textShadow, lineHeight: line }}
                 >
                     {/* Header */}
@@ -93,7 +93,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     
                     {/* Main Content: Name and Wishlist */}
                     <div
-                        className="my-auto flex flex-col justify-center"
+                        className="my-4 flex flex-col justify-center"
                         onClick={onReveal}
                         style={{ cursor: onReveal && !isNameRevealed ? 'pointer' : 'default' }}
                     >
@@ -125,7 +125,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 
                 {/* Footer */}
                 {eventDetails && (
-                    <footer className="relative z-10 text-xs mt-4">
+                    <footer className="relative z-10 text-xs mt-auto">
                         <p className="font-semibold">Event Details:</p>
                         <p>{eventDetails}</p>
                     </footer>
