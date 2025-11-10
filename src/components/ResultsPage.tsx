@@ -1,127 +1,131 @@
 import React, { useState, useEffect } from 'react';
-import type { Match, Participant, BackgroundOption, ExchangeData } from '../types';
-import { parseExchangeData } from '../services/urlService';
-import PrintableCard from './PrintableCard';
-import ResultsDisplay from './ResultsDisplay';
+import type { ExchangeData, Match, Participant } from '../types';
 import Header from './Header';
 import Footer from './Footer';
-// FIX: Import FindWishlistModal to handle wishlist editing.
-import FindWishlistModal from './FindWishlistModal';
+import ResultsDisplay from './ResultsDisplay';
+import PrintableCard from './PrintableCard';
+import ShareLinksModal from './ShareLinksModal';
+import { trackEvent } from '../services/analyticsService';
+import { Share2, Download, Eye, Home } from 'lucide-react';
 
-const ResultsPage: React.FC = () => {
-    const [matches, setMatches] = useState<Match[]>([]);
-    const [eventDetails, setEventDetails] = useState('');
-    const [styleConfig, setStyleConfig] = useState<Omit<ExchangeData, 'p' | 'matches' | 'eventDetails' | 'backgroundOptions'> | null>(null);
-    const [error, setError] = useState<string>('');
-    const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
-    // FIX: Add state to control the visibility of the FindWishlistModal.
-    const [showFindWishlistModal, setShowFindWishlistModal] = useState(false);
+interface ResultsPageProps {
+    data: ExchangeData;
+    currentParticipantId: string | null;
+}
+
+const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
+    const { p: participants, matches: matchIds, ...styleData } = data;
+    const isOrganizerView = !currentParticipantId;
+
+    const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
+    const [isNameRevealed, setIsNameRevealed] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     
+    const allMatches: Match[] = matchIds.map(m => ({
+        giver: participants.find(p => p.id === m.g)!,
+        receiver: participants.find(p => p.id === m.r)!,
+    })).filter(m => m.giver && m.receiver);
+
     useEffect(() => {
-        fetch('/templates.json')
-            .then(res => res.json())
-            .then(data => setBackgroundOptions(data))
-            .catch(console.error);
-
-        const dataString = window.location.hash.slice(1) || new URLSearchParams(window.location.search).get('data');
-
-        if (!dataString) {
-            setError("No data found in the URL. This link may be invalid or incomplete.");
-            return;
+        if (isOrganizerView) {
+            setIsNameRevealed(true);
+        } else {
+            const match = allMatches.find(m => m.giver.id === currentParticipantId);
+            setCurrentMatch(match || null);
         }
+    }, [currentParticipantId, allMatches, isOrganizerView]);
 
-        const parsedData = parseExchangeData(dataString);
-        if (!parsedData) {
-            setError("Could not read the data from the URL. It might be corrupted.");
-            return;
+    const handleReveal = () => {
+        setIsNameRevealed(true);
+        if (currentMatch) {
+            trackEvent('reveal_name', { participant: currentMatch.giver.name });
         }
+    };
+    
+    const handleStartOver = () => {
+        trackEvent('click_start_over', { from: 'results_page' });
+        window.location.href = '/generator.html';
+    };
 
-        const { p: participants, matches: matchIds, eventDetails: evtDetails, ...styleConf } = parsedData;
-        
-        const matchList: Match[] = matchIds.map((matchData: { g: string; r: string }) => ({
-            giver: participants.find((p: Participant) => p.id === matchData.g)!,
-            receiver: participants.find((p: Participant) => p.id === matchData.r)!,
-        }));
-
-        setMatches(matchList.filter(m => m.giver && m.receiver));
-        setEventDetails(evtDetails);
-        setStyleConfig(styleConf);
-
-    }, []);
-
-    if (error) {
+    const renderParticipantView = () => {
+        if (!currentMatch) {
+            return (
+                <div className="text-center bg-white p-8 rounded-2xl shadow-lg border">
+                    <h2 className="text-2xl font-bold text-red-600">Participant Not Found</h2>
+                    <p className="text-slate-600 mt-2">We couldn't find a match for this link. Please check the URL or contact your organizer.</p>
+                </div>
+            );
+        }
         return (
-             <div className="bg-slate-50 min-h-screen">
-                {/* FIX: Pass the required onFindWishlistClick prop to the Header component. */}
-                <Header onFindWishlistClick={() => setShowFindWishlistModal(true)} />
-                 <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-2xl my-12">
-                     <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-200 text-center">
-                        <h1 className="text-3xl font-bold text-red-700">Error</h1>
-                        <p className="text-slate-600 mt-4">{error}</p>
-                        <a href="/" className="mt-6 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full">
-                            Start a New Game
-                        </a>
+            <div className="max-w-md mx-auto">
+                <PrintableCard
+                    match={currentMatch}
+                    eventDetails={styleData.eventDetails}
+                    isNameRevealed={isNameRevealed}
+                    backgroundOptions={styleData.backgroundOptions}
+                    bgId={styleData.bgId}
+                    bgImg={styleData.customBackground}
+                    txtColor={styleData.textColor}
+                    outline={styleData.useTextOutline}
+                    outColor={styleData.outlineColor}
+                    outSize={styleData.outlineSize}
+                    fontSize={styleData.fontSizeSetting}
+                    font={styleData.fontTheme}
+                    line={styleData.lineSpacing}
+                    greet={styleData.greetingText}
+                    intro={styleData.introText}
+                    wish={styleData.wishlistLabelText}
+                    onReveal={handleReveal}
+                />
+                {!isNameRevealed && (
+                    <div className="text-center mt-6">
+                        <button onClick={handleReveal} className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">
+                            Click to Reveal Your Person!
+                        </button>
                     </div>
-                 </main>
-                <Footer />
-                {/* FIX: Render the FindWishlistModal when its state is true. */}
-                {showFindWishlistModal && <FindWishlistModal onClose={() => setShowFindWishlistModal(false)} />}
+                )}
             </div>
         );
-    }
+    };
 
-    if (!styleConfig) {
-        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-    }
+    const renderOrganizerView = () => (
+        <>
+            <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold text-slate-800 font-serif">Organizer's Master List</h1>
+                <p className="text-lg text-slate-600 mt-2">Here are all the generated matches. Keep this page safe!</p>
+            </div>
+            <div className="p-6 bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300 mb-8 flex flex-col md:flex-row gap-4 justify-center items-center">
+                <button onClick={() => setShowShareModal(true)} className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md">
+                    <Share2 size={20} /> Share Links & Download
+                </button>
+                <a href="#master-list" className="flex items-center gap-2 bg-white hover:bg-slate-200 text-slate-800 font-bold py-3 px-6 rounded-lg transition-colors border">
+                    <Eye size={20} /> View All Matches
+                </a>
+            </div>
+            <div id="master-list">
+                <ResultsDisplay matches={allMatches} />
+            </div>
+        </>
+    );
 
     return (
-        <div className="bg-slate-50">
-            {/* FIX: Pass the required onFindWishlistClick prop to the Header component. */}
-            <Header onFindWishlistClick={() => setShowFindWishlistModal(true)} />
-            <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
-                <section className="text-center my-8">
-                    <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">Your Secret Santa Event!</h1>
-                    <p className="text-lg text-slate-600 mt-4 max-w-3xl mx-auto">
-                        This is your master page for the event. Bookmark it to see all matches. Individual reveal links have been provided to you, the organizer.
-                    </p>
-                </section>
-                
-                <div className="my-12">
-                    <h2 className="text-2xl md:text-3xl font-bold text-slate-800 font-serif mb-6 text-center">Master Match List</h2>
-                    <ResultsDisplay matches={matches} />
-                </div>
-
-                <div className="my-12">
-                    <h2 className="text-2xl md:text-3xl font-bold text-slate-800 font-serif mb-6 text-center">Printable Cards</h2>
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {matches.map(match => (
-                            <PrintableCard
-                                key={match.giver.id}
-                                match={match}
-                                eventDetails={eventDetails}
-                                isNameRevealed={true}
-                                backgroundOptions={backgroundOptions}
-                                bgId={styleConfig.bgId}
-                                bgImg={styleConfig.customBackground || null}
-                                txtColor={styleConfig.textColor}
-                                outline={styleConfig.useTextOutline}
-                                outColor={styleConfig.outlineColor}
-                                outSize={styleConfig.outlineSize}
-                                fontSize={styleConfig.fontSizeSetting}
-                                font={styleConfig.fontTheme}
-                                line={styleConfig.lineSpacing}
-                                greet={styleConfig.greetingText}
-                                intro={styleConfig.introText}
-                                wish={styleConfig.wishlistLabelText}
-                            />
-                        ))}
+        <>
+            <Header />
+            <main className="bg-slate-50 min-h-screen py-12 px-4">
+                <div className="container mx-auto max-w-4xl">
+                    {isOrganizerView ? renderOrganizerView() : renderParticipantView()}
+                    <div className="text-center mt-12 pt-8 border-t border-slate-200">
+                        <button onClick={handleStartOver} className="text-slate-500 hover:text-red-600 font-semibold flex items-center gap-2 mx-auto">
+                            <Home size={18} /> Start a New Game
+                        </button>
                     </div>
                 </div>
             </main>
             <Footer />
-            {/* FIX: Render the FindWishlistModal when its state is true. */}
-            {showFindWishlistModal && <FindWishlistModal onClose={() => setShowFindWishlistModal(false)} />}
-        </div>
+            {showShareModal && isOrganizerView && (
+                <ShareLinksModal exchangeData={data} onClose={() => setShowShareModal(false)} />
+            )}
+        </>
     );
 };
 

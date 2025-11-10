@@ -12,23 +12,90 @@
     <!-- Pinterest Verification -->
     <meta name="p:domain_verify" content="bc322d28f428cbc03973572de2259667"/>
 
-    <!-- Optimized Font Loading -->
+    <!-- Optimized Font Loading Strategy -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Load ALL fonts NON-BLOCKING -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap"></noscript>
     
-    <!-- Google Analytics (GA4) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-HG140X6CQ6');
-    </script>
+    <!-- Fallback for browsers that don't support JS-based loading -->
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap"></noscript>
+    <style>
+      /* Inlined src/index.css */
+      @tailwind base;
+      @tailwind components;
+      @tailwind utilities;
+
+      :root, :root[data-theme="default"], :root[data-theme="christmas"] {
+          --primary-color: #c62828; /* A nice Christmas red */
+          --primary-color-hover: #a52121;
+          --accent-color: #2e7d32; /* A festive green */
+          --accent-color-hover: #266a2a;
+      }
+      :root[data-theme="halloween"] {
+          --primary-color: #f97316; /* Orange */
+          --primary-color-hover: #ea580c;
+          --accent-color: #4f46e5; /* Indigo */
+          --accent-color-hover: #4338ca;
+      }
+      :root[data-theme="valentines"] {
+          --primary-color: #dc2626; /* Red */
+          --primary-color-hover: #b91c1c;
+          --accent-color: #ec4899; /* Pink */
+          --accent-color-hover: #db2777;
+      }
+
+      body {
+          font-family: 'Montserrat', sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          background-color: #f8fafc; /* A light slate/gray color */
+          color: #334155;
+      }
+
+      /* Custom styles for Driver.js tour */
+      :root {
+        --driver-bg-color: #ffffff;
+        --driver-popover-bg-color: #ffffff;
+        --driver-popover-arrow-color: #ffffff;
+        --driver-popover-title-color: var(--primary-color);
+        --driver-popover-description-color: #334155;
+        --driver-popover-close-btn-bg-color: #e5e7eb;
+        --driver-popover-close-btn-color: #4b5563;
+        --driver-nav-btn-bg-color: var(--primary-color);
+        --driver-nav-btn-color: #ffffff;
+        --driver-nav-btn-hover-bg-color: var(--primary-color-hover);
+        --driver-progress-text-color: #4b5563;
+        --driver-overlay-color: #0f172a;
+        --driver-popover-border-radius: 12px;
+        --driver-popover-padding: 24px;
+        --driver-popover-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .driver-popover-title {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+      }
+
+      .driver-popover-description {
+        font-family: 'Montserrat', sans-serif !important;
+        font-size: 1rem !important;
+        line-height: 1.6 !important;
+      }
+
+      .driver-popover-progress-text {
+          font-family: 'Montserrat', sans-serif !important;
+      }
+
+      .driver-popover-navigation-btns {
+          font-family: 'Montserrat', sans-serif !important;
+      }
+    </style>
 </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/blog.tsx"></script>
+    <script type="module" defer src="/src/blog.tsx"></script>
   </body>
 </html>
