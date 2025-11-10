@@ -1,4 +1,4 @@
-const CACHE_NAME = 'v3'; // Increment this to force a cache update
+const CACHE_NAME = 'v4'; // Increment this to force a cache update
 const urlsToCache = [
   '/',
   '/generator.html',
