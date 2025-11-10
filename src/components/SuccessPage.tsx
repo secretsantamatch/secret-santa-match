@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import type { Match, Participant, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
-// Fix: Renamed `parseUrl` to `parseExchangeData` to match the exported member from urlService.
+import type { Match, Participant, BackgroundOption, ExchangeData } from '../types';
 import { parseExchangeData } from '../services/urlService';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
 import Header from './Header';
 import Footer from './Footer';
+import FindWishlistModal from './FindWishlistModal';
 
 const SuccessPage: React.FC = () => {
-    const [data, setData] = useState<any | null>(null);
-    const [error, setError] = useState<string>('');
+    const [exchangeData, setExchangeData] = useState<Omit<ExchangeData, 'backgroundOptions'> | null>(null);
+    const [error, setError] = useState('');
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
+    const [showFindWishlistModal, setShowFindWishlistModal] = useState(false);
     
     useEffect(() => {
         fetch('/templates.json')
@@ -18,8 +19,7 @@ const SuccessPage: React.FC = () => {
             .then(data => setBackgroundOptions(data))
             .catch(console.error);
 
-        const params = new URLSearchParams(window.location.search);
-        const dataString = params.get('data');
+        const dataString = window.location.hash.slice(1) || new URLSearchParams(window.location.search).get('data');
 
         if (!dataString) {
             setError("No data found in the URL. This link may be invalid or incomplete.");
@@ -31,13 +31,13 @@ const SuccessPage: React.FC = () => {
             setError("Could not read the data from the URL. It might be corrupted.");
             return;
         }
-        setData(parsedData);
+        setExchangeData(parsedData);
     }, []);
 
     if (error) {
         return (
              <div className="bg-slate-50 min-h-screen">
-                <Header />
+                <Header onFindWishlistClick={() => setShowFindWishlistModal(true)} />
                  <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-2xl my-12">
                      <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-200 text-center">
                         <h1 className="text-3xl font-bold text-red-700">Error</h1>
@@ -48,28 +48,32 @@ const SuccessPage: React.FC = () => {
                     </div>
                  </main>
                 <Footer />
+                {showFindWishlistModal && <FindWishlistModal onClose={() => setShowFindWishlistModal(false)} />}
             </div>
         );
     }
 
-    if (!data) {
-        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    if (!exchangeData) {
+        return (
+            <div className="bg-slate-50 min-h-screen">
+                <Header onFindWishlistClick={() => setShowFindWishlistModal(true)} />
+                <div className="min-h-screen flex items-center justify-center">Loading...</div>
+                <Footer />
+                {showFindWishlistModal && <FindWishlistModal onClose={() => setShowFindWishlistModal(false)} />}
+            </div>
+        );
     }
 
-    const { p, m, e, c } = data;
-    const participants: Participant[] = p.map((participantData: Omit<Participant, 'id' | 'wishlistId'>, index: number) => ({
-        id: `p-${index}`, // Recreate a temporary ID
-        wishlistId: m.find((match: any) => match.r === index)?.w,
-        ...participantData,
-    }));
-    const matches: Match[] = m.map((matchData: { g: number; r: number }) => ({
-        giver: participants[matchData.g],
-        receiver: participants[matchData.r],
-    }));
+    const { p: participants, matches: matchIds, eventDetails, ...styleConfig } = exchangeData;
+
+    const matches: Match[] = matchIds.map((matchData: { g: string; r: string }) => ({
+        giver: participants.find((p: Participant) => p.id === matchData.g)!,
+        receiver: participants.find((p: Participant) => p.id === matchData.r)!,
+    })).filter(m => m.giver && m.receiver);
 
     return (
         <div className="bg-slate-50">
-            <Header />
+            <Header onFindWishlistClick={() => setShowFindWishlistModal(true)} />
             <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
                 <section className="text-center my-8">
                     <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">Your Secret Santa Event!</h1>
@@ -90,27 +94,28 @@ const SuccessPage: React.FC = () => {
                             <PrintableCard
                                 key={match.giver.id}
                                 match={match}
-                                eventDetails={e}
+                                eventDetails={eventDetails}
                                 isNameRevealed={true}
                                 backgroundOptions={backgroundOptions}
-                                bgId={c.bgId}
-                                bgImg={c.bgImg || null}
-                                txtColor={c.txt}
-                                outline={c.out}
-                                outColor={c.outC}
-                                outSize={c.outS}
-                                fontSize={c.fontS}
-                                font={c.font}
-                                line={c.line}
-                                greet={c.greet}
-                                intro={c.intro}
-                                wish={c.wish}
+                                bgId={styleConfig.bgId}
+                                bgImg={styleConfig.customBackground || null}
+                                txtColor={styleConfig.textColor}
+                                outline={styleConfig.useTextOutline}
+                                outColor={styleConfig.outlineColor}
+                                outSize={styleConfig.outlineSize}
+                                fontSize={styleConfig.fontSizeSetting}
+                                font={styleConfig.fontTheme}
+                                line={styleConfig.lineSpacing}
+                                greet={styleConfig.greetingText}
+                                intro={styleConfig.introText}
+                                wish={styleConfig.wishlistLabelText}
                             />
                         ))}
                     </div>
                 </div>
             </main>
             <Footer />
+            {showFindWishlistModal && <FindWishlistModal onClose={() => setShowFindWishlistModal(false)} />}
         </div>
     );
 };

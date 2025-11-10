@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 
 // This service manages analytics tracking.
 
