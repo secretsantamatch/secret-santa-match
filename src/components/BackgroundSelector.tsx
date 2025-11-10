@@ -62,16 +62,16 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     }, [filter, backgroundOptions]);
 
     const previewParticipants = participants.filter(p => p.name.trim() !== '');
-    const giverName = previewParticipants.length > 0 ? previewParticipants[0].name : 'Alex';
+    const giverName = previewParticipants.length > 0 ? previewParticipants[0].name : 'Test';
     
     const receiverParticipant = previewParticipants.length > 1 ? previewParticipants[1] : null;
 
-    const receiverName = receiverParticipant ? receiverParticipant.name : 'Alexa';
-    const receiverInterests = receiverParticipant?.interests || '';
-    const receiverLikes = receiverParticipant?.likes || 'Loves dark roast coffee';
-    const receiverDislikes = receiverParticipant?.dislikes || 'Dislikes horror movies';
-    const receiverLinks = receiverParticipant?.links || '';
-    const receiverBudget = receiverParticipant?.budget || '';
+    const receiverName = receiverParticipant ? receiverParticipant.name : 'Receiver';
+    const receiverInterests = receiverParticipant?.interests || 'Coffee';
+    const receiverLikes = receiverParticipant?.likes || 'Coffee';
+    const receiverDislikes = receiverParticipant?.dislikes || 'Coffee';
+    const receiverLinks = receiverParticipant?.links || 'www.nike.com';
+    const receiverBudget = receiverParticipant?.budget || '25';
 
     // The previewMatch object must conform to the Match type, which means both giver and receiver must be complete Participant objects.
     const previewMatch: Match = {
@@ -323,6 +323,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                         intro={introText}
                         wish={wishlistLabelText}
                         showWishlistLink={false}
+                        isPreview={true}
                     />
                 </div>
             </div>

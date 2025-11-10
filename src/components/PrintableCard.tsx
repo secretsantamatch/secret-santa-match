@@ -20,6 +20,7 @@ interface PrintableCardProps {
     intro: string;
     wish: string;
     showWishlistLink?: boolean;
+    isPreview?: boolean;
     onReveal?: () => void;
 }
 
@@ -43,7 +44,7 @@ const outlineSizeMap: Record<OutlineSizeSetting, string> = {
 };
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
-    match, eventDetails, isNameRevealed, backgroundOptions, bgId, bgImg, txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish, showWishlistLink = true, onReveal
+    match, eventDetails, isNameRevealed, backgroundOptions, bgId, bgImg, txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish, showWishlistLink = true, isPreview = false, onReveal
 }) => {
 
     const selectedBg = backgroundOptions.find(opt => opt.id === bgId);
@@ -82,7 +83,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 }}
             >
                 <div 
-                    className={`relative z-10 flex-grow flex flex-col justify-center ${fontClassName} ${fontSizeClassName}`}
+                    className={`relative z-10 flex flex-col justify-center ${fontClassName} ${fontSizeClassName}`}
                     style={{ color: txtColor, textShadow, lineHeight: line }}
                 >
                     {/* Header */}
@@ -103,33 +104,36 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                         
                         {/* Wishlist */}
                         {isNameRevealed && (
-                            <div className="text-left mt-4 text-sm space-y-2 overflow-y-auto max-h-48">
+                            <div className="text-center mt-4 text-sm overflow-y-auto max-h-48">
                                 <h3 className="font-bold text-center mb-2">{wish}</h3>
                                 {showWishlistLink && match.receiver.wishlistId && (
                                     <a href={`/wishlist-editor.html?id=${match.receiver.wishlistId}`} target="_blank" rel="noopener noreferrer" className="block text-center bg-white/20 hover:bg-white/30 p-2 rounded-lg font-semibold text-blue-300 mb-3 text-base">
                                         <Edit size={14} className="inline-block mr-2" /> View Live Wishlist
                                     </a>
                                 )}
-                                {match.receiver.budget && <p><strong>Budget:</strong> ${match.receiver.budget}</p>}
-                                {match.receiver.interests && <p><strong>Interests:</strong> {match.receiver.interests}</p>}
-                                {match.receiver.likes && <p><strong>Likes:</strong> {match.receiver.likes}</p>}
-                                {match.receiver.dislikes && <p><strong>Dislikes:</strong> {match.receiver.dislikes}</p>}
-                                {match.receiver.links && <div><strong>Links:</strong> {renderLinks(match.receiver.links)}</div>}
-                                {!match.receiver.budget && !match.receiver.interests && !match.receiver.likes && !match.receiver.dislikes && !match.receiver.links && (
-                                    <p className="italic text-center">No wishlist details provided.</p>
+                                {match.receiver.budget && <p className="mt-1"><strong>Budget:</strong> ${match.receiver.budget}</p>}
+                                {match.receiver.interests && <p className="mt-1"><strong>Interests:</strong> {match.receiver.interests}</p>}
+                                {match.receiver.likes && <p className="mt-1"><strong>Likes:</strong> {match.receiver.likes}</p>}
+                                {match.receiver.dislikes && <p className="mt-1"><strong>Dislikes:</strong> {match.receiver.dislikes}</p>}
+                                
+                                {!isPreview && match.receiver.links && <div className="mt-1"><strong>Links:</strong> {renderLinks(match.receiver.links)}</div>}
+                                
+                                {eventDetails && (
+                                    <div className="mt-4 text-xs">
+                                        <p className="font-semibold">Event Details:</p>
+                                        <p>{eventDetails}</p>
+                                    </div>
                                 )}
+
+                                {!match.receiver.budget && !match.receiver.interests && !match.receiver.likes && !match.receiver.dislikes && !match.receiver.links && !eventDetails && (
+                                    <p className="italic text-center mt-1">No wishlist details provided.</p>
+                                )}
+                                
+                                <p className="text-xs mt-4 opacity-75">SecretSantaMatch.com</p>
                             </div>
                         )}
                     </div>
                 </div>
-                
-                {/* Footer */}
-                {eventDetails && (
-                    <footer className="relative z-10 text-xs mt-auto">
-                        <p className="font-semibold">Event Details:</p>
-                        <p>{eventDetails}</p>
-                    </footer>
-                )}
             </div>
         </div>
     );
