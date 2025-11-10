@@ -63,7 +63,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             if (trimmed) {
                 try {
                     // Make sure it's a valid URL before creating a link
-                    const url = new URL(trimmed);
+                    const url = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
                     return <a href={url.href} key={index} target="_blank" rel="noopener noreferrer" className="block text-blue-400 hover:text-blue-300 underline truncate">{url.hostname}</a>;
                 } catch (e) {
                     return <p key={index} className="truncate">{trimmed}</p>;
@@ -87,39 +87,39 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     style={{ color: txtColor, textShadow, lineHeight: line }}
                 >
                     {/* Header */}
-                    <header className="mb-4">
+                    <header className="mb-2">
                         <p className="font-semibold">{formattedGreeting}</p>
-                        <p className="mt-2">{intro}</p>
+                        <p className="mt-1">{intro}</p>
                     </header>
                     
                     {/* Main Content: Name and Wishlist */}
                     <div
-                        className="my-4 flex flex-col justify-center"
+                        className="my-2 flex flex-col justify-center"
                         onClick={onReveal}
                         style={{ cursor: onReveal && !isNameRevealed ? 'pointer' : 'default' }}
                     >
-                        <div className={`font-bold text-4xl md:text-5xl transition-all duration-500 break-words ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
+                        <div className={`font-bold text-3xl md:text-4xl leading-tight transition-all duration-500 break-words ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
                             {match.receiver.name}
                         </div>
                         
                         {/* Wishlist */}
                         {isNameRevealed && (
-                            <div className="text-center mt-4 text-sm overflow-y-auto max-h-48">
-                                <h3 className="font-bold text-center mb-2">{wish}</h3>
+                            <div className="text-center mt-3 text-xs overflow-y-auto max-h-48">
+                                <h3 className="font-bold text-center mb-2 text-sm">{wish}</h3>
                                 {showWishlistLink && match.receiver.wishlistId && (
-                                    <a href={`/wishlist-editor.html?id=${match.receiver.wishlistId}`} target="_blank" rel="noopener noreferrer" className="block text-center bg-white/20 hover:bg-white/30 p-2 rounded-lg font-semibold text-blue-300 mb-3 text-base">
+                                    <a href={`/wishlist-editor.html?id=${match.receiver.wishlistId}`} target="_blank" rel="noopener noreferrer" className="block text-center bg-white/20 hover:bg-white/30 p-2 rounded-lg font-semibold text-blue-300 mb-3 text-sm">
                                         <Edit size={14} className="inline-block mr-2" /> View Live Wishlist
                                     </a>
                                 )}
-                                {match.receiver.budget && <p className="mt-1"><strong>Budget:</strong> ${match.receiver.budget}</p>}
-                                {match.receiver.interests && <p className="mt-1"><strong>Interests:</strong> {match.receiver.interests}</p>}
-                                {match.receiver.likes && <p className="mt-1"><strong>Likes:</strong> {match.receiver.likes}</p>}
-                                {match.receiver.dislikes && <p className="mt-1"><strong>Dislikes:</strong> {match.receiver.dislikes}</p>}
+                                {match.receiver.budget && <p><strong>Budget:</strong> ${match.receiver.budget}</p>}
+                                {match.receiver.interests && <p><strong>Interests:</strong> {match.receiver.interests}</p>}
+                                {match.receiver.likes && <p><strong>Likes:</strong> {match.receiver.likes}</p>}
+                                {match.receiver.dislikes && <p><strong>Dislikes:</strong> {match.receiver.dislikes}</p>}
                                 
                                 {!isPreview && match.receiver.links && <div className="mt-1"><strong>Links:</strong> {renderLinks(match.receiver.links)}</div>}
                                 
                                 {eventDetails && (
-                                    <div className="mt-4 text-xs">
+                                    <div className="mt-3">
                                         <p className="font-semibold">Event Details:</p>
                                         <p>{eventDetails}</p>
                                     </div>
@@ -128,8 +128,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                                 {!match.receiver.budget && !match.receiver.interests && !match.receiver.likes && !match.receiver.dislikes && !match.receiver.links && !eventDetails && (
                                     <p className="italic text-center mt-1">No wishlist details provided.</p>
                                 )}
-                                
-                                <p className="text-xs mt-4 opacity-75">SecretSantaMatch.com</p>
                             </div>
                         )}
                     </div>
