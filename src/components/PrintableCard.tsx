@@ -74,6 +74,14 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
     const wishlistOverflowClass = !isPreview && showWishlistLink ? 'overflow-y-auto' : 'overflow-hidden';
 
+    const nameLength = match.receiver.name.length;
+    let nameSizeClass = 'text-3xl'; // Default large size for short names
+    if (nameLength > 12 && nameLength <= 20) {
+        nameSizeClass = 'text-2xl'; // Medium size
+    } else if (nameLength > 20) {
+        nameSizeClass = 'text-xl'; // Smallest size for very long names
+    }
+
     return (
         <div id={`card-${match.giver.id}`} className="printable-card-container aspect-[3/4] w-full max-w-md mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border">
             <div 
@@ -99,13 +107,13 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                         onClick={onReveal}
                         style={{ cursor: onReveal && !isNameRevealed ? 'pointer' : 'default' }}
                     >
-                        <div className={`font-bold text-2xl leading-tight break-words transition-all duration-500 ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
+                        <div className={`font-bold ${nameSizeClass} leading-tight break-words transition-all duration-500 ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
                             {match.receiver.name}
                         </div>
                         
                         {/* Wishlist */}
                         {isNameRevealed && (
-                            <div className={`text-center mt-3 text-xs max-h-48 ${wishlistOverflowClass}`}>
+                            <div className={`text-center mt-3 text-xs max-h-48 ${wishlistOverflowClass} px-4`}>
                                 <h3 className="font-bold text-center mb-2">{wish}</h3>
                                 {showWishlistLink && match.receiver.wishlistId && (
                                     <a href={`/wishlist-editor.html?id=${match.receiver.wishlistId}`} target="_blank" rel="noopener noreferrer" className="block text-center bg-white/20 hover:bg-white/30 p-2 rounded-lg font-semibold text-blue-300 mb-3 text-sm">
