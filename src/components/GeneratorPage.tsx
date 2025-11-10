@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import ParticipantManager from './ParticipantManager';
 import Options from './Options';
@@ -377,7 +375,7 @@ const GeneratorPage: React.FC = () => {
                 />
              </div>
               <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-                 <h2 className="text-2xl md:text-3xl font-bold text-slate-800 font-serif mb-6">3. Customize Your Cards (Optional)</h2>
+                 <h2 className="text-2xl md:text-3xl font-bold text-slate-800 font-serif mb-6">3. Design Your Reveal Cards</h2>
                  <BackgroundSelector
                     participants={participants}
                     eventDetails={eventDetails}

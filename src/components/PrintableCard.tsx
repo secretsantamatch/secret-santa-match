@@ -92,12 +92,12 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 }}
             >
                 <div 
-                    className={`relative z-10 flex flex-col h-full justify-center ${fontClassName} ${fontSizeClassName}`}
+                    className={`relative z-10 flex flex-col h-full justify-center pt-2 ${fontClassName} ${fontSizeClassName}`}
                     style={{ color: txtColor, textShadow, lineHeight: line }}
                 >
                     {/* Header */}
                     <header className="mb-2">
-                        <p className="font-semibold">{formattedGreeting}</p>
+                        <p className="font-semibold break-words">{formattedGreeting}</p>
                         <p className="mt-1">{intro}</p>
                     </header>
                     
@@ -107,7 +107,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                         onClick={onReveal}
                         style={{ cursor: onReveal && !isNameRevealed ? 'pointer' : 'default' }}
                     >
-                        <div className={`font-bold ${nameSizeClass} leading-tight break-words transition-all duration-500 ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
+                        <div className={`font-bold mt-2 ${nameSizeClass} leading-tight break-words transition-all duration-500 ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
                             {match.receiver.name}
                         </div>
                         
