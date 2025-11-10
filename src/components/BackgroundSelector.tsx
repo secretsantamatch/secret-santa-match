@@ -159,6 +159,16 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                                         setSelectedBackground(option.id);
                                         setCustomBackground(null);
                                         setUploadError('');
+
+                                        if (option.defaultTextColor) {
+                                            setTextColor(option.defaultTextColor);
+                                        }
+                                        if (option.cardText) {
+                                            setGreetingText(option.cardText.greeting);
+                                            setIntroText(option.cardText.intro);
+                                            setWishlistLabelText(option.cardText.wishlistLabel);
+                                        }
+                                        
                                         trackEvent('customize_card', { style_type: 'theme', value: option.id });
                                     }}
                                     onMouseOver={() => setPreviewBackground(option.id)}

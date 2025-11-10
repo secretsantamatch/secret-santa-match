@@ -143,7 +143,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
-                                <p className="text-xs text-slate-400 mt-1">Got a specific item in mind? Paste the full link here. Add one link per line.</p>
+                                <p className="text-xs text-slate-400 mt-1">Paste direct links to specific gift ideas (e.g., from Amazon, Etsy). Add one link per line. These will be clickable on the digital reveal cards for your Secret Santa.</p>
                             </div>
                              <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget</label>
