@@ -1,178 +1,152 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import GeneratorPage from './components/GeneratorPage';
-import CookieConsentBanner from './components/CookieConsentBanner';
-import { decodeData } from './services/urlService';
+import ResultsPage from './components/ResultsPage';
+import ShareLinksModal from './components/ShareLinksModal';
+import { parseExchangeData } from './services/urlService';
 import type { ExchangeData } from './types';
-
-// Lazy load the ResultsPage component
-const ResultsPage = lazy(() => import('./components/ResultsPage'));
-
-const loadTrackingScripts = () => {
-  if ((window as any).trackingScriptsLoaded) {
-    return;
-  }
-  (window as any).trackingScriptsLoaded = true;
-
-  // Pinterest
-  const pScript = document.createElement('script');
-  pScript.type = 'text/javascript';
-  pScript.innerHTML = `
-    !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(
-    Array.prototype.slice.call(arguments))};var
-    n=window.pintrk;n.queue=[],n.version="3.0";var
-    t=document.createElement("script");t.async=!0,t.src="https://s.pinimg.com/ct/core.js";var
-    r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
-    pintrk('load', '2612962984250');
-    pintrk('page');
-    pintrk('track', 'pagevisit');
-  `;
-  document.head.appendChild(pScript);
-
-  const pNoscript = document.createElement('noscript');
-  const pImg = document.createElement('img');
-  pImg.height = 1;
-  pImg.width = 1;
-  pImg.style.display = 'none';
-  pImg.alt = '';
-  pImg.src = "https://ct.pinterest.com/v3/?tid=2612962984250&noscript=1";
-  pNoscript.appendChild(pImg);
-  document.body.insertBefore(pNoscript, document.body.firstChild);
-
-  // Google AdSense
-  const adScript = document.createElement('script');
-  adScript.async = true;
-  adScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3037944530219260";
-  adScript.crossOrigin = "anonymous";
-  document.head.appendChild(adScript);
-
-  // Google Analytics (GA4)
-  const gaScript = document.createElement('script');
-  gaScript.async = true;
-  gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6";
-  document.head.appendChild(gaScript);
-
-  const gaConfigScript = document.createElement('script');
-  gaConfigScript.innerHTML = `
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-HG140X6CQ6');
-  `;
-  document.head.appendChild(gaConfigScript);
-};
-
-const LoadingFallback = () => (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="text-center">
-        <svg className="animate-spin h-10 w-10 text-red-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p className="mt-4 text-slate-600 font-semibold">Loading your page...</p>
-      </div>
-    </div>
-  );
-
+import Header from './components/Header';
+import Footer from './components/Footer';
+import BackToTopButton from './components/BackToTopButton';
+import CookieConsentBanner from './components/CookieConsentBanner';
+import { trackEvent, initAnalytics } from './services/analyticsService';
 
 const App: React.FC = () => {
-  const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
-  const [participantId, setParticipantId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showCookieBanner, setShowCookieBanner] = useState(false);
+    const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [showCookieBanner, setShowCookieBanner] = useState(false);
+    const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+    const [initialModalView, setInitialModalView] = useState<string | null>(null);
 
-  useEffect(() => {
-    const consent = localStorage.getItem('cookie_consent');
-    if (consent === 'accepted') {
-      loadTrackingScripts();
-    } else if (!consent) {
-      setShowCookieBanner(true);
+    useEffect(() => {
+        const consent = localStorage.getItem('cookie_consent');
+        if (!consent) {
+            setShowCookieBanner(true);
+        } else if (consent === 'true') {
+            initAnalytics();
+        }
+
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setDeferredInstallPrompt(e);
+            trackEvent('pwa_install_prompt_shown');
+        };
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash.slice(1);
+            const urlParams = new URLSearchParams(window.location.search);
+            const participantId = urlParams.get('id');
+
+            if (hash) {
+                const dataString = hash.split('?')[0];
+                const data = parseExchangeData(dataString);
+                if (data) {
+                    fetch('/templates.json')
+                        .then(res => res.json())
+                        .then(bgOptions => {
+                            setExchangeData({ ...data, backgroundOptions: bgOptions });
+                        });
+
+                    if (urlParams.get('share') === 'true') {
+                       setIsShareModalOpen(true);
+                    }
+                    if (urlParams.get('view') === 'print') {
+                        setIsShareModalOpen(true);
+                        setInitialModalView('print');
+                    }
+
+                } else if (!participantId) {
+                     // Invalid hash, clear it
+                    window.location.hash = '';
+                    setExchangeData(null);
+                }
+            } else {
+                setExchangeData(null);
+            }
+        };
+
+        window.addEventListener('hashchange', handleHashChange);
+        handleHashChange(); // Initial check
+
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange);
+        };
+    }, []);
+    
+    const handleAcceptCookies = () => {
+        localStorage.setItem('cookie_consent', 'true');
+        initAnalytics();
+        setShowCookieBanner(false);
+        trackEvent('accept_cookies');
+    };
+
+    const handleDeclineCookies = () => {
+        localStorage.setItem('cookie_consent', 'false');
+        setShowCookieBanner(false);
+        trackEvent('decline_cookies');
+    };
+
+    const handleInstallClick = () => {
+        if (deferredInstallPrompt) {
+            deferredInstallPrompt.prompt();
+            deferredInstallPrompt.userChoice.then((choiceResult: { outcome: string }) => {
+                if (choiceResult.outcome === 'accepted') {
+                    trackEvent('pwa_install_accepted');
+                } else {
+                    trackEvent('pwa_install_dismissed');
+                }
+                setDeferredInstallPrompt(null);
+            });
+        }
+    };
+    
+    const openShareModal = () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('share', 'true');
+        window.history.pushState({}, '', url);
+        setIsShareModalOpen(true);
+    }
+    
+    const closeShareModal = () => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('share');
+        url.searchParams.delete('view');
+        window.history.pushState({}, '', url);
+        setIsShareModalOpen(false);
+        setInitialModalView(null);
     }
 
-    const handleHashChange = () => {
-      try {
-        setError(null);
-        const hash = window.location.hash.slice(1);
-        const searchParams = new URLSearchParams(window.location.search);
-        
-        if (hash) {
-          const mainHash = hash.split('?')[0];
-          const decoded = decodeData(mainHash);
-          setExchangeData(decoded);
-          
-          // Set theme based on data from URL
-          if (decoded.pageTheme) {
-            document.documentElement.dataset.theme = decoded.pageTheme;
-          } else {
-            document.documentElement.dataset.theme = 'default';
-          }
-
-          // Check for participant ID in either hash or query string
-          const hashParams = new URLSearchParams(hash.split('?')[1] || '');
-          const id = searchParams.get('id') || hashParams.get('id');
-          setParticipantId(id);
-          
-        } else {
-          setExchangeData(null);
-          setParticipantId(null);
-          document.documentElement.dataset.theme = 'default'; // Reset to default theme
+    const renderContent = () => {
+        // Here you would add logic to handle individual participant view based on `?id=`
+        // For now, we'll just show Organizer view
+        if (exchangeData) {
+            return <ResultsPage exchangeData={exchangeData} onShareClick={openShareModal} />;
         }
-      } catch (e) {
-        console.error(e);
-        setError("The link you followed seems to be broken or corrupted. Please check the link and try again.");
-        setExchangeData(null);
-      }
+        return <GeneratorPage />;
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // Initial load
-
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, []);
-
-  const handleAcceptCookies = () => {
-    localStorage.setItem('cookie_consent', 'accepted');
-    setShowCookieBanner(false);
-    loadTrackingScripts();
-  };
-
-  const handleDeclineCookies = () => {
-    localStorage.setItem('cookie_consent', 'declined');
-    setShowCookieBanner(false);
-  };
-
-  if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
-          <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Link Error</h1>
-          <p className="text-slate-700 text-lg">{error}</p>
-          <a href="/" onClick={(e) => { e.preventDefault(); window.location.href = window.location.pathname; }} className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
-            Start a New Game
-          </a>
+        <div className="bg-slate-50 min-h-screen font-sans">
+            <Header />
+            <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+                {renderContent()}
+            </main>
+            <Footer showInstallButton={!!deferredInstallPrompt} onInstallClick={handleInstallClick} />
+            <BackToTopButton />
+            {isShareModalOpen && exchangeData && (
+                <ShareLinksModal exchangeData={exchangeData} onClose={closeShareModal} initialView={initialModalView} />
+            )}
+            {showCookieBanner && (
+                <CookieConsentBanner onAccept={handleAcceptCookies} onDecline={handleDeclineCookies} />
+            )}
         </div>
-      </div>
     );
-  }
-
-  return (
-    <>
-      <Suspense fallback={<LoadingFallback />}>
-        {exchangeData ? (
-          <ResultsPage data={exchangeData} currentParticipantId={participantId} />
-        ) : (
-          <GeneratorPage />
-        )}
-      </Suspense>
-      {showCookieBanner && (
-        <CookieConsentBanner
-          onAccept={handleAcceptCookies}
-          onDecline={handleDeclineCookies}
-        />
-      )}
-    </>
-  );
 };
 
 export default App;
