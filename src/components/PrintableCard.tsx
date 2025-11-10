@@ -26,15 +26,15 @@ interface PrintableCardProps {
 
 const fontClassMap: Record<FontTheme, string> = {
     classic: 'font-serif', // e.g., Playfair Display
-    elegant: 'font-[Georgia,serif]',
+    elegant: 'font-[Cormorant Garamond,serif]',
     modern: 'font-sans', // e.g., Montserrat
-    whimsical: 'font-["Comic_Sans_MS",cursive]',
+    whimsical: 'font-[Patrick Hand,cursive]',
 };
 
 const fontSizeMap: Record<FontSizeSetting, string> = {
-    normal: 'text-base',
-    large: 'text-lg',
-    'extra-large': 'text-xl',
+    normal: 'text-sm',
+    large: 'text-base',
+    'extra-large': 'text-lg',
 };
 
 const outlineSizeMap: Record<OutlineSizeSetting, string> = {
@@ -62,7 +62,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             const trimmed = link.trim();
             if (trimmed) {
                 try {
-                    // Make sure it's a valid URL before creating a link
                     const url = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
                     return <a href={url.href} key={index} target="_blank" rel="noopener noreferrer" className="block text-blue-400 hover:text-blue-300 underline truncate">{url.hostname}</a>;
                 } catch (e) {
@@ -72,6 +71,10 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             return null;
         });
     };
+
+    // Use a scrollbar for the final digital reveal card, but clip the content
+    // for the fixed-size printable PDF cards and the live preview.
+    const wishlistOverflowClass = !isPreview && showWishlistLink ? 'overflow-y-auto' : 'overflow-hidden';
 
     return (
         <div id={`card-${match.giver.id}`} className="printable-card-container aspect-[3/4] w-full max-w-md mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border">
@@ -83,38 +86,40 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 }}
             >
                 <div 
-                    className={`relative z-10 flex flex-col justify-center ${fontClassName} ${fontSizeClassName}`}
+                    className={`relative z-10 flex flex-col h-full ${fontClassName} ${fontSizeClassName}`}
                     style={{ color: txtColor, textShadow, lineHeight: line }}
                 >
                     {/* Header */}
-                    <header className="mb-2">
+                    <header>
                         <p className="font-semibold">{formattedGreeting}</p>
                         <p className="mt-1">{intro}</p>
                     </header>
                     
                     {/* Main Content: Name and Wishlist */}
                     <div
-                        className="my-2 flex flex-col justify-center"
+                        className="my-2 flex-grow flex flex-col justify-center"
                         onClick={onReveal}
                         style={{ cursor: onReveal && !isNameRevealed ? 'pointer' : 'default' }}
                     >
-                        <div className={`font-bold text-3xl md:text-4xl leading-tight transition-all duration-500 break-words ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
+                        <div className={`font-bold text-xl leading-snug break-words transition-all duration-500 ${isNameRevealed ? 'blur-0' : 'blur-lg select-none'}`}>
                             {match.receiver.name}
                         </div>
                         
                         {/* Wishlist */}
                         {isNameRevealed && (
-                            <div className="text-center mt-3 text-xs overflow-y-auto max-h-48">
+                            <div className={`text-center mt-3 text-xs max-h-48 ${wishlistOverflowClass}`}>
                                 <h3 className="font-bold text-center mb-2 text-sm">{wish}</h3>
                                 {showWishlistLink && match.receiver.wishlistId && (
                                     <a href={`/wishlist-editor.html?id=${match.receiver.wishlistId}`} target="_blank" rel="noopener noreferrer" className="block text-center bg-white/20 hover:bg-white/30 p-2 rounded-lg font-semibold text-blue-300 mb-3 text-sm">
                                         <Edit size={14} className="inline-block mr-2" /> View Live Wishlist
                                     </a>
                                 )}
-                                {match.receiver.budget && <p><strong>Budget:</strong> ${match.receiver.budget}</p>}
-                                {match.receiver.interests && <p><strong>Interests:</strong> {match.receiver.interests}</p>}
-                                {match.receiver.likes && <p><strong>Likes:</strong> {match.receiver.likes}</p>}
-                                {match.receiver.dislikes && <p><strong>Dislikes:</strong> {match.receiver.dislikes}</p>}
+                                <div className="space-y-0 text-center">
+                                    {match.receiver.budget && <p><strong>Budget:</strong> {match.receiver.budget}</p>}
+                                    {match.receiver.interests && <p><strong>Interests:</strong> {match.receiver.interests}</p>}
+                                    {match.receiver.likes && <p><strong>Likes:</strong> {match.receiver.likes}</p>}
+                                    {match.receiver.dislikes && <p><strong>Dislikes:</strong> {match.receiver.dislikes}</p>}
+                                </div>
                                 
                                 {!isPreview && match.receiver.links && <div className="mt-1"><strong>Links:</strong> {renderLinks(match.receiver.links)}</div>}
                                 
@@ -124,13 +129,15 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                                         <p>{eventDetails}</p>
                                     </div>
                                 )}
-
-                                {!match.receiver.budget && !match.receiver.interests && !match.receiver.likes && !match.receiver.dislikes && !match.receiver.links && !eventDetails && (
-                                    <p className="italic text-center mt-1">No wishlist details provided.</p>
-                                )}
                             </div>
                         )}
                     </div>
+                     {/* Watermark/Footer Area */}
+                    <footer>
+                         {!match.receiver.budget && !match.receiver.interests && !match.receiver.likes && !match.receiver.dislikes && !match.receiver.links && !eventDetails && isNameRevealed && (
+                            <p className="italic text-center text-xs mt-1">No wishlist details provided.</p>
+                        )}
+                    </footer>
                 </div>
             </div>
         </div>

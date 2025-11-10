@@ -122,10 +122,10 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                 <p className="text-xs text-slate-400 mt-1">Got a specific item in mind? Paste the full link here. Add one link per line.</p>
                             </div>
                              <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget ($)</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget</label>
                                 <input
                                     type="text"
-                                    placeholder="e.g., 25"
+                                    placeholder="e.g., $25, £20, or up to 30"
                                     value={participant.budget}
                                     onChange={(e) => handleParticipantChange(participant.id, 'budget', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
