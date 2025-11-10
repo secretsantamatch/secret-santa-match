@@ -3,6 +3,8 @@ import Header from './Header';
 import Footer from './Footer';
 import { Gift, Save, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import type { Wishlist } from '../types';
+// FIX: Import FindWishlistModal to handle wishlist editing.
+import FindWishlistModal from './FindWishlistModal';
 
 const WishlistEditorPage: React.FC = () => {
     const [wishlist, setWishlist] = useState<Wishlist>({
@@ -15,6 +17,8 @@ const WishlistEditorPage: React.FC = () => {
     const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'success' | 'error'>('loading');
     const [error, setError] = useState('');
     const [wishlistId, setWishlistId] = useState<string | null>(null);
+    // FIX: Add state to control the visibility of the FindWishlistModal.
+    const [showFindWishlistModal, setShowFindWishlistModal] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -83,7 +87,8 @@ const WishlistEditorPage: React.FC = () => {
     
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col">
-            <Header />
+            {/* FIX: Pass the required onFindWishlistClick prop to the Header component. */}
+            <Header onFindWishlistClick={() => setShowFindWishlistModal(true)} />
             <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 max-w-2xl my-12">
                 <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
                     <div className="text-center mb-8">
@@ -138,6 +143,8 @@ const WishlistEditorPage: React.FC = () => {
                 </div>
             </main>
             <Footer />
+            {/* FIX: Render the FindWishlistModal when its state is true. */}
+            {showFindWishlistModal && <FindWishlistModal onClose={() => setShowFindWishlistModal(false)} />}
         </div>
     );
 };

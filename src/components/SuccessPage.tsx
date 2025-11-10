@@ -5,11 +5,15 @@ import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
 import Header from './Header';
 import Footer from './Footer';
+// FIX: Import FindWishlistModal to handle wishlist editing.
+import FindWishlistModal from './FindWishlistModal';
 
 const SuccessPage: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<Omit<ExchangeData, 'backgroundOptions'> | null>(null);
     const [error, setError] = useState<string>('');
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
+    // FIX: Add state to control the visibility of the FindWishlistModal.
+    const [showFindWishlistModal, setShowFindWishlistModal] = useState(false);
     
     useEffect(() => {
         fetch('/templates.json')
@@ -35,7 +39,8 @@ const SuccessPage: React.FC = () => {
     if (error) {
         return (
              <div className="bg-slate-50 min-h-screen">
-                <Header />
+                {/* FIX: Pass the required onFindWishlistClick prop to the Header component. */}
+                <Header onFindWishlistClick={() => setShowFindWishlistModal(true)} />
                  <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-2xl my-12">
                      <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-200 text-center">
                         <h1 className="text-3xl font-bold text-red-700">Error</h1>
@@ -46,6 +51,8 @@ const SuccessPage: React.FC = () => {
                     </div>
                  </main>
                 <Footer />
+                {/* FIX: Render the FindWishlistModal when its state is true. */}
+                {showFindWishlistModal && <FindWishlistModal onClose={() => setShowFindWishlistModal(false)} />}
             </div>
         );
     }
@@ -63,7 +70,8 @@ const SuccessPage: React.FC = () => {
 
     return (
         <div className="bg-slate-50">
-            <Header />
+            {/* FIX: Pass the required onFindWishlistClick prop to the Header component. */}
+            <Header onFindWishlistClick={() => setShowFindWishlistModal(true)} />
             <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
                 <section className="text-center my-8">
                     <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">Your Secret Santa Event!</h1>
@@ -105,6 +113,8 @@ const SuccessPage: React.FC = () => {
                 </div>
             </main>
             <Footer />
+            {/* FIX: Render the FindWishlistModal when its state is true. */}
+            {showFindWishlistModal && <FindWishlistModal onClose={() => setShowFindWishlistModal(false)} />}
         </div>
     );
 };

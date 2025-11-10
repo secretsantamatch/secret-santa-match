@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import { Mail, MessageSquare, Briefcase, Lightbulb, Copy, Check } from 'lucide-react';
+// FIX: Import FindWishlistModal to handle wishlist editing.
+import FindWishlistModal from './FindWishlistModal';
 
 const ContactPage: React.FC = () => {
     const [email, setEmail] = useState('...');
     const [mailto, setMailto] = useState('');
     const [isCopied, setIsCopied] = useState(false);
+    // FIX: Add state to control the visibility of the FindWishlistModal.
+    const [showFindWishlistModal, setShowFindWishlistModal] = useState(false);
 
     // Obfuscate email to prevent spam bots from scraping it easily.
     // The address is constructed client-side.
@@ -27,7 +31,8 @@ const ContactPage: React.FC = () => {
 
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col">
-            <Header />
+            {/* FIX: Pass the required onFindWishlistClick prop to the Header component. */}
+            <Header onFindWishlistClick={() => setShowFindWishlistModal(true)} />
             <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl my-12">
                 <div className="text-center">
                     <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif">Get In Touch</h1>
@@ -104,6 +109,8 @@ const ContactPage: React.FC = () => {
                 </div>
             </main>
             <Footer />
+            {/* FIX: Render the FindWishlistModal when its state is true. */}
+            {showFindWishlistModal && <FindWishlistModal onClose={() => setShowFindWishlistModal(false)} />}
         </div>
     );
 };
