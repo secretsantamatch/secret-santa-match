@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import type { Participant, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
+import type { Participant, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme, Match } from '../types';
 import PrintableCard from './PrintableCard';
 import Tooltip from './Tooltip';
 
@@ -62,31 +62,44 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     }, [filter, backgroundOptions]);
 
     const previewParticipants = participants.filter(p => p.name.trim() !== '');
-    const giverName = previewParticipants.length > 0 ? previewParticipants[0].name : 'Alex';
+    const giverName = previewParticipants.length > 0 ? previewParticipants[0].name : 'Test';
     
     const receiverParticipant = previewParticipants.length > 1 ? previewParticipants[1] : null;
 
-    const receiverName = receiverParticipant ? receiverParticipant.name : 'Alexa';
-    const receiverInterests = receiverParticipant?.interests || '';
-    const receiverLikes = receiverParticipant?.likes || 'Loves dark roast coffee';
-    const receiverDislikes = receiverParticipant?.dislikes || 'Dislikes horror movies';
-    const receiverLinks = receiverParticipant?.links || '';
-    const receiverBudget = receiverParticipant?.budget || '';
+    const receiverName = receiverParticipant ? receiverParticipant.name : 'Receiver';
+    const receiverInterests = receiverParticipant?.interests || 'Coffee';
+    const receiverLikes = receiverParticipant?.likes || 'Coffee';
+    const receiverDislikes = receiverParticipant?.dislikes || 'Coffee';
+    const receiverLinks = receiverParticipant?.links || 'www.nike.com';
+    const receiverBudget = receiverParticipant?.budget || '25';
 
-    const previewMatch = {
-        giver: { name: giverName },
+    // The previewMatch object must conform to the Match type, which means both giver and receiver must be complete Participant objects.
+    const previewMatch: Match = {
+        giver: { 
+            id: 'preview-giver',
+            name: giverName,
+            interests: '',
+            likes: '',
+            dislikes: '',
+            links: '',
+            budget: ''
+        },
         receiver: { 
+            id: 'preview-receiver',
             name: receiverName, 
             interests: receiverInterests,
             likes: receiverLikes,
             dislikes: receiverDislikes,
             links: receiverLinks,
-            budget: receiverBudget 
+            budget: receiverBudget,
+            // FIX: Removed `wishlistId` as it does not exist on the Participant type.
         }
     };
     
     const handleLineSpacingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLineSpacing(parseFloat(e.target.value));
+        const value = parseFloat(e.target.value);
+        setLineSpacing(value);
+        trackEvent('customize_card', { style_type: 'line_spacing', value });
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,7 +122,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
             const result = reader.result as string;
             setCustomBackground(result);
             setSelectedBackground('plain-white');
-            trackEvent('upload_custom_background');
+            trackEvent('customize_card', { style_type: 'custom_background' });
         };
         reader.onerror = () => {
             setUploadError('Failed to read the file.');
@@ -146,6 +159,17 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                                         setSelectedBackground(option.id);
                                         setCustomBackground(null);
                                         setUploadError('');
+
+                                        if (option.defaultTextColor) {
+                                            setTextColor(option.defaultTextColor);
+                                        }
+                                        if (option.cardText) {
+                                            setGreetingText(option.cardText.greeting);
+                                            setIntroText(option.cardText.intro);
+                                            setWishlistLabelText(option.cardText.wishlistLabel);
+                                        }
+                                        
+                                        trackEvent('customize_card', { style_type: 'theme', value: option.id });
                                     }}
                                     onMouseOver={() => setPreviewBackground(option.id)}
                                     className={`text-left border-2 rounded-lg transition-all transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${selectedBackground === option.id ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-400'}`}
@@ -215,11 +239,11 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                     <div className="grid grid-cols-2 gap-x-6 gap-y-4 p-4 bg-slate-50 rounded-lg border">
                         <div>
                             <label htmlFor="text-color" className="block text-sm font-medium text-slate-700">Text Color</label>
-                            <input type="color" id="text-color" value={textColor} onChange={e => setTextColor(e.target.value)} className="mt-1 block w-full h-10 rounded-md border-slate-300 shadow-sm" />
+                            <input type="color" id="text-color" value={textColor} onChange={e => { setTextColor(e.target.value); trackEvent('customize_card', { style_type: 'text_color' }); }} className="mt-1 block w-full h-10 rounded-md border-slate-300 shadow-sm" />
                         </div>
                         <div>
                             <label htmlFor="font-size" className="block text-sm font-medium text-slate-700">Font Size</label>
-                            <select id="font-size" value={fontSizeSetting} onChange={e => setFontSizeSetting(e.target.value as FontSizeSetting)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <select id="font-size" value={fontSizeSetting} onChange={e => { const val = e.target.value as FontSizeSetting; setFontSizeSetting(val); trackEvent('customize_card', { style_type: 'font_size', value: val }); }} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                                 <option value="normal">Normal</option>
                                 <option value="large">Large</option>
                                 <option value="extra-large">Extra Large</option>
@@ -227,7 +251,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                         </div>
                         <div className="col-span-2">
                             <label htmlFor="font-style" className="block text-sm font-medium text-slate-700">Font Style</label>
-                            <select id="font-style" value={fontTheme} onChange={e => setFontTheme(e.target.value as FontTheme)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <select id="font-style" value={fontTheme} onChange={e => { const val = e.target.value as FontTheme; setFontTheme(val); trackEvent('customize_card', { style_type: 'font_theme', value: val }); }} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                                 <option value="classic">Classic (Serif)</option>
                                 <option value="elegant">Elegant (Serif)</option>
                                 <option value="modern">Modern (Sans-serif)</option>
@@ -240,7 +264,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                         </div>
                         <div className="col-span-2 mt-2">
                             <div className="flex items-center">
-                                <input id="text-outline" type="checkbox" checked={useTextOutline} onChange={e => setUseTextOutline(e.target.checked)} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                                <input id="text-outline" type="checkbox" checked={useTextOutline} onChange={e => { const val = e.target.checked; setUseTextOutline(val); trackEvent('customize_card', { style_type: 'text_outline', value: val }); }} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
                                 <label htmlFor="text-outline" className="ml-2 block text-sm text-slate-900">Add text outline for better visibility</label>
                             </div>
                         </div>
@@ -248,11 +272,11 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                             <>
                                 <div>
                                     <label htmlFor="outline-color" className="block text-sm font-medium text-slate-700">Outline Color</label>
-                                    <input type="color" id="outline-color" value={outlineColor} onChange={e => setOutlineColor(e.target.value)} className="mt-1 block w-full h-10 rounded-md border-slate-300 shadow-sm" />
+                                    <input type="color" id="outline-color" value={outlineColor} onChange={e => { setOutlineColor(e.target.value); trackEvent('customize_card', { style_type: 'outline_color' }); }} className="mt-1 block w-full h-10 rounded-md border-slate-300 shadow-sm" />
                                 </div>
                                 <div>
                                     <label htmlFor="outline-size" className="block text-sm font-medium text-slate-700">Outline Size</label>
-                                    <select id="outline-size" value={outlineSize} onChange={e => setOutlineSize(e.target.value as OutlineSizeSetting)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                    <select id="outline-size" value={outlineSize} onChange={e => { const val = e.target.value as OutlineSizeSetting; setOutlineSize(val); trackEvent('customize_card', { style_type: 'outline_size', value: val }); }} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                                         <option value="thin">Thin</option>
                                         <option value="normal">Normal</option>
                                         <option value="thick">Thick</option>
@@ -308,6 +332,8 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                         greet={greetingText}
                         intro={introText}
                         wish={wishlistLabelText}
+                        // FIX: Removed `showWishlistLink` as it is not a valid prop for PrintableCard.
+                        isPreview={true}
                     />
                 </div>
             </div>
