@@ -92,9 +92,8 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   };
   
   const getWishlistFontSize = () => {
-      if (wishlistLength > 150) return 'text-xs';
-      if (wishlistLength > 100) return 'text-sm';
-      return 'text-sm'; // Made smaller
+      if (wishlistLength > 100) return 'text-[11px] leading-tight';
+      return 'text-xs';
   };
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
@@ -113,7 +112,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div
-        className={`absolute inset-0 flex flex-col items-center justify-start pt-20 px-12 pb-16 text-center gap-y-2 ${baseFontSizeClasses[fontSize]}`}
+        className={`absolute inset-0 flex flex-col items-center justify-start pt-20 px-16 pb-16 text-center gap-y-1 ${baseFontSizeClasses[fontSize]}`}
         style={{ color: txtColor, textShadow, lineHeight: line, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
@@ -131,7 +130,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
         {/* Wishlist */}
         {isNameRevealed && (
-          <div className={`space-y-2 ${getWishlistFontSize()}`}>
+          <div className={`space-y-1 ${getWishlistFontSize()}`}>
             <h3 className="font-bold text-lg">{wish}</h3>
             <ul className="list-none text-center">
               {renderWishlistItem('Interests', receiver.interests)}
