@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { produce } from 'immer';
 import type { Participant, Exclusion, Assignment, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import ParticipantManager from './ParticipantManager';
@@ -35,6 +35,7 @@ const GeneratorPage: React.FC = () => {
     const [showBulkAdd, setShowBulkAdd] = useState(false);
     const [activeStep, setActiveStep] = useState(1);
     const [loadingMessage, setLoadingMessage] = useState('Drawing names...');
+    const generatorRef = useRef<HTMLDivElement>(null);
     
     // Options State
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
@@ -239,7 +240,7 @@ const GeneratorPage: React.FC = () => {
     const handleNextStep = () => {
         if(activeStep < 3) {
             setActiveStep(activeStep + 1);
-            window.scrollTo(0, 0);
+            generatorRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     };
 
@@ -289,7 +290,7 @@ const GeneratorPage: React.FC = () => {
                      <div className="flex justify-center mb-4">
                         <img src="/logo_256.png" alt="Secret Santa Match Logo" className="h-20 w-20" />
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 font-serif">Free Secret Santa Generator</h1>
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-red-700 font-serif">Free Secret Santa Generator</h1>
                     <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">The easiest way to organize a gift exchange. No emails or sign-ups required. Instantly draw names online, set rules, and share private links!</p>
                 </div>
 
@@ -298,7 +299,7 @@ const GeneratorPage: React.FC = () => {
                     <VideoTutorial />
                 </div>
                 
-                <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
+                <div ref={generatorRef} className="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
                     <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
                         <div className="flex border-b mb-6">
                             {steps.map(step => (
