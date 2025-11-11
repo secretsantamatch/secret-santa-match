@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { produce } from 'immer';
 import type { Participant, Exclusion, Assignment, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import ParticipantManager from './ParticipantManager';
@@ -13,7 +13,7 @@ import SocialProof from './SocialProof';
 import VideoTutorial from './VideoTutorial';
 import { generateMatches } from '../services/matchService';
 import { trackEvent } from '../services/analyticsService';
-import { Users, GitPullRequest, Settings, Shuffle, X, AlertTriangle } from 'lucide-react';
+import { Users, GitPullRequest, Settings, Shuffle, X, AlertTriangle, ArrowRight } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import { getRandomPersona } from '../services/personaService';
 
@@ -29,7 +29,7 @@ const GeneratorPage: React.FC = () => {
     
     // UI State
     const [showBulkAdd, setShowBulkAdd] = useState(false);
-    const [activeTab, setActiveTab] = useState<'participants' | 'rules' | 'style'>('participants');
+    const [activeStep, setActiveStep] = useState(1);
     const [loadingMessage, setLoadingMessage] = useState('Drawing names...');
     
     // Options State
@@ -78,7 +78,6 @@ const GeneratorPage: React.FC = () => {
             })
             .catch(err => console.error("Failed to load templates.json", err));
         
-        // Listen for participants from Chrome extension
         const handleExtensionData = (event: CustomEvent) => {
              const extensionParticipants = event.detail.map((p: any) => ({
                 id: p.id || crypto.randomUUID(),
@@ -128,28 +127,20 @@ const GeneratorPage: React.FC = () => {
     };
     
     // Rules management
-    const addExclusion = () => {
-        setExclusions(produce(draft => {
-            draft.push({ p1: '', p2: '' });
-        }));
-    };
+    const addExclusion = () => setExclusions(produce(draft => { draft.push({ p1: '', p2: '' }); }));
+    const updateExclusion = (index: number, field: 'p1' | 'p2', value: string) => setExclusions(produce(draft => { draft[index][field] = value; }));
+    const removeExclusion = (index: number) => setExclusions(exclusions.filter((_, i) => i !== index));
 
-    const updateExclusion = (index: number, field: 'p1' | 'p2', value: string) => {
-        setExclusions(produce(draft => {
-            draft[index][field] = value;
-        }));
-    };
-
-    const removeExclusion = (index: number) => {
-        setExclusions(exclusions.filter((_, i) => i !== index));
-    };
+    const addAssignment = () => setAssignments(produce(draft => { draft.push({ giverId: '', receiverId: '' }); }));
+    const updateAssignment = (index: number, field: 'giverId' | 'receiverId', value: string) => setAssignments(produce(draft => { draft[index][field] = value; }));
+    const removeAssignment = (index: number) => setAssignments(assignments.filter((_, i) => i !== index));
 
     const handleGenerate = async () => {
         setError(null);
         const validParticipants = participants.filter(p => p.name.trim() !== '');
         if (validParticipants.length < 2) {
             setError("You need at least two participants to start a gift exchange.");
-            setActiveTab('participants');
+            setActiveStep(1);
             return;
         }
         
@@ -160,7 +151,7 @@ const GeneratorPage: React.FC = () => {
         
         if (!result.matches) {
             setError(result.error);
-            setActiveTab('rules');
+            setActiveStep(2);
             setIsLoading(false);
             trackEvent('generate_fail', { error: result.error, participants: validParticipants.length });
             return;
@@ -201,16 +192,22 @@ const GeneratorPage: React.FC = () => {
             const { id } = await response.json();
             trackEvent('generate_success', { participants: validParticipants.length, method: 'firebase' });
             
-            // Allow loading animation to complete
             setTimeout(() => {
                 window.location.href = `/generator.html#${id}`;
-                window.location.reload(); // Reload to let App.tsx handle the new hash
+                window.location.reload(); 
             }, 500);
 
         } catch (apiError) {
             setError(apiError instanceof Error ? apiError.message : "Could not save the gift exchange. Please try again.");
             setIsLoading(false);
             trackEvent('generate_fail', { error: 'api_error', participants: validParticipants.length });
+        }
+    };
+    
+    const handleNextStep = () => {
+        if(activeStep < 3) {
+            setActiveStep(activeStep + 1);
+            window.scrollTo(0, 0);
         }
     };
 
@@ -234,34 +231,14 @@ const GeneratorPage: React.FC = () => {
         }
     };
 
-    const validParticipants = participants.filter(p => p.name.trim() !== '');
-
-    const renderRules = () => (
-        <div className="space-y-6">
-            <div>
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">Exclusions</h3>
-                <p className="text-slate-500 mb-4 text-sm">Prevent people from drawing each other. Perfect for couples or family members.</p>
-                <div className="space-y-3">
-                    {exclusions.map((ex, index) => (
-                        <div key={index} className="flex items-center gap-2 bg-slate-50 p-3 rounded-lg border">
-                            <select value={ex.p1} onChange={(e) => updateExclusion(index, 'p1', e.target.value)} className="w-full p-2 border rounded-md">
-                                <option value="">Select Person</option>
-                                {validParticipants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                            </select>
-                            <span className="font-bold text-red-500">can't draw</span>
-                            <select value={ex.p2} onChange={(e) => updateExclusion(index, 'p2', e.target.value)} className="w-full p-2 border rounded-md">
-                                <option value="">Select Person</option>
-                                {validParticipants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                            </select>
-                            <button onClick={() => removeExclusion(index)} className="text-red-500 hover:text-red-700 p-2"><X size={18}/></button>
-                        </div>
-                    ))}
-                </div>
-                <button onClick={addExclusion} className="mt-4 text-indigo-600 font-semibold text-sm hover:text-indigo-800">Add Exclusion</button>
-            </div>
-        </div>
-    );
+    const validParticipants = useMemo(() => participants.filter(p => p.name.trim() !== ''), [participants]);
     
+    const steps = [
+        { id: 1, label: '1. Add Participants', icon: Users },
+        { id: 2, label: '2. Add Details & Rules', icon: GitPullRequest },
+        { id: 3, label: '3. Style Your Cards', icon: Settings }
+    ];
+
     if (isLoading) {
         return (
             <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-50 text-center p-4">
@@ -287,21 +264,91 @@ const GeneratorPage: React.FC = () => {
                 <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
                     <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
                         <div className="flex border-b mb-6">
-                            {['participants', 'rules', 'style'].map(tab => (
-                                <button key={tab} onClick={() => setActiveTab(tab as any)} className={`capitalize flex items-center gap-2 font-semibold py-3 px-4 -mb-px border-b-2 transition-colors ${activeTab === tab ? 'text-red-600 border-red-600' : 'text-slate-500 border-transparent hover:text-slate-800'}`}>
-                                    {tab === 'participants' && <Users size={18} />}
-                                    {tab === 'rules' && <GitPullRequest size={18} />}
-                                    {tab === 'style' && <Settings size={18} />}
-                                    {tab}
+                            {steps.map(step => (
+                                <button key={step.id} onClick={() => setActiveStep(step.id)} className={`flex items-center gap-2 font-semibold py-3 px-4 -mb-px border-b-2 transition-colors ${activeStep === step.id ? 'text-red-600 border-red-600' : 'text-slate-500 border-transparent hover:text-slate-800'}`}>
+                                    <step.icon size={18} />
+                                    <span className="hidden sm:inline">{step.label}</span>
+                                    <span className="sm:hidden">{step.id}</span>
                                 </button>
                             ))}
                         </div>
                         
-                        {activeTab === 'participants' && <ParticipantManager participants={participants} setParticipants={setParticipants} onBulkAddClick={() => setShowBulkAdd(true)} onClearClick={handleClear} />}
-                        {activeTab === 'rules' && renderRules()}
-                        {activeTab === 'style' && (
-                             <Options
-                                eventDetails={eventDetails} setEventDetails={setEventDetails}
+                        {error && (
+                             <div className="mb-6 p-4 bg-red-100 text-red-800 rounded-lg border border-red-200 flex items-center gap-3">
+                                <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+                                <div>
+                                    <h3 className="font-bold">Oops! There's an issue.</h3>
+                                    <p>{error}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className={activeStep === 1 ? 'block' : 'hidden'}>
+                            <ParticipantManager participants={participants} setParticipants={setParticipants} onBulkAddClick={() => setShowBulkAdd(true)} onClearClick={handleClear} />
+                        </div>
+
+                        <div className={activeStep === 2 ? 'block' : 'hidden'}>
+                             <div className="space-y-8">
+                                <div>
+                                    <label htmlFor="event-details" className="text-lg font-semibold text-slate-700 block mb-2">Event Details</label>
+                                    <textarea
+                                      id="event-details"
+                                      value={eventDetails}
+                                      onChange={(e) => setEventDetails(e.target.value)}
+                                      placeholder="e.g., Gift exchange at the annual holiday party on Dec 20th. Budget: $25."
+                                      className="w-full p-2 border border-slate-300 rounded-md"
+                                      rows={3}
+                                    />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-slate-700 mb-2">Exclusions (Optional)</h3>
+                                    <p className="text-slate-500 mb-4 text-sm">Prevent certain people from being matched together.</p>
+                                    <div className="space-y-3">
+                                        {exclusions.map((ex, index) => (
+                                            <div key={index} className="flex items-center gap-2 bg-slate-50 p-3 rounded-lg border">
+                                                <select value={ex.p1} onChange={(e) => updateExclusion(index, 'p1', e.target.value)} className="w-full p-2 border rounded-md">
+                                                    <option value="">Select Person 1</option>
+                                                    {validParticipants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                                </select>
+                                                <span className="font-bold text-slate-500">can't draw</span>
+                                                <select value={ex.p2} onChange={(e) => updateExclusion(index, 'p2', e.target.value)} className="w-full p-2 border rounded-md">
+                                                    <option value="">Select Person 2</option>
+                                                    {validParticipants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                                </select>
+                                                <button onClick={() => removeExclusion(index)} className="text-red-500 hover:text-red-700 p-2"><X size={18}/></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button onClick={addExclusion} className="mt-4 text-indigo-600 font-semibold text-sm hover:text-indigo-800">Add Exclusion</button>
+                                </div>
+                                 <div>
+                                    <h3 className="text-lg font-semibold text-slate-700 mb-2">Assignments (Optional)</h3>
+                                    <p className="text-slate-500 mb-4 text-sm">Force a specific person to be another's Secret Santa.</p>
+                                    <div className="space-y-3">
+                                        {assignments.map((as, index) => (
+                                            <div key={index} className="flex items-center gap-2 bg-slate-50 p-3 rounded-lg border">
+                                                <select value={as.giverId} onChange={(e) => updateAssignment(index, 'giverId', e.target.value)} className="w-full p-2 border rounded-md">
+                                                    <option value="">Select Giver</option>
+                                                    {validParticipants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                                </select>
+                                                <span className="font-bold text-slate-500">must draw</span>
+                                                <select value={as.receiverId} onChange={(e) => updateAssignment(index, 'receiverId', e.target.value)} className="w-full p-2 border rounded-md">
+                                                    <option value="">Select Receiver</option>
+                                                    {validParticipants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                                </select>
+                                                <button onClick={() => removeAssignment(index)} className="text-red-500 hover:text-red-700 p-2"><X size={18}/></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button onClick={addAssignment} className="mt-4 text-indigo-600 font-semibold text-sm hover:text-indigo-800">Add Assignment</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={activeStep === 3 ? 'block' : 'hidden'}>
+                            <Options
+                                participants={validParticipants}
+                                eventDetails={eventDetails}
                                 selectedBackgroundId={selectedBackgroundId} setSelectedBackgroundId={setSelectedBackgroundId}
                                 customBackground={customBackground} setCustomBackground={setCustomBackground}
                                 backgroundOptions={backgroundOptions}
@@ -316,26 +363,22 @@ const GeneratorPage: React.FC = () => {
                                 introText={introText} setIntroText={setIntroText}
                                 wishlistLabelText={wishlistLabelText} setWishlistLabelText={setWishlistLabelText}
                             />
-                        )}
-                    </div>
-                    
-                    {error && (
-                         <div className="p-4 bg-red-100 text-red-800 rounded-lg border border-red-200 flex items-center gap-3">
-                            <AlertTriangle className="w-6 h-6 flex-shrink-0" />
-                            <div>
-                                <h3 className="font-bold">Oops! There's an issue.</h3>
-                                <p>{error}</p>
-                            </div>
                         </div>
-                    )}
+                    </div>
 
                     <div className="text-center pt-4">
-                        <button
-                            onClick={handleGenerate}
-                            className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto"
-                        >
-                            <Shuffle /> Draw Names!
-                        </button>
+                        {activeStep < 3 ? (
+                            <button onClick={handleNextStep} className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto">
+                                Next Step <ArrowRight />
+                            </button>
+                        ) : (
+                             <button
+                                onClick={handleGenerate}
+                                className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                            >
+                                <Shuffle /> Draw Names!
+                            </button>
+                        )}
                     </div>
                 </div>
 
