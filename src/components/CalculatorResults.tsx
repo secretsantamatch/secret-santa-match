@@ -12,12 +12,6 @@ interface CalculatorResultsProps {
   setCustomPayment: Dispatch<SetStateAction<number>>;
 }
 
-declare global {
-  interface Window {
-    gtag: (...args: any[]) => void;
-  }
-}
-
 const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) => {
   if (typeof window.gtag === 'function') {
     window.gtag('event', eventName, eventParams);
@@ -105,7 +99,9 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({ debts, results, c
         const handler = setTimeout(() => {
             const newCustomResults = calculatePayoff(customPayment);
             setDynamicCustomResults(newCustomResults);
-            setDynamicInterestSaved(results.scenarios[0].totalInterest - newCustomResults.totalInterest);
+            if (results.scenarios[0]) {
+                setDynamicInterestSaved(results.scenarios[0].totalInterest - newCustomResults.totalInterest);
+            }
         }, 100); // Debounce calculation
 
         return () => clearTimeout(handler);

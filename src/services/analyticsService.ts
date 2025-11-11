@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 // This file centralizes Google Analytics tracking.
 
 /**
