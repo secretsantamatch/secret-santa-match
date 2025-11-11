@@ -21,6 +21,8 @@ const GeneratorPage: React.FC = () => {
     // Core State
     const [participants, setParticipants] = useState<Participant[]>([
         { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+        { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+        { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
     ]);
     const [exclusions, setExclusions] = useState<Exclusion[]>([]);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -137,7 +139,11 @@ const GeneratorPage: React.FC = () => {
     };
 
     const handleClear = () => {
-        setParticipants([{ id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' }]);
+        setParticipants([
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+        ]);
         setExclusions([]);
         setAssignments([]);
         setError(null);
@@ -289,8 +295,8 @@ const GeneratorPage: React.FC = () => {
                     <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
                         <div className="flex border-b mb-6">
                             {steps.map(step => (
-                                <button key={step.id} onClick={() => setActiveStep(step.id)} className={`flex items-center gap-2 font-semibold py-3 px-4 -mb-px border-b-2 transition-colors ${activeStep === step.id ? 'text-red-600 border-red-600' : 'text-slate-500 border-transparent hover:text-slate-800'}`}>
-                                    <step.icon size={18} />
+                                <button key={step.id} onClick={() => setActiveStep(step.id)} className={`group flex items-center gap-2 font-semibold py-3 px-4 -mb-px border-b-2 transition-colors ${activeStep === step.id ? 'text-red-600 border-red-600' : 'text-slate-500 border-transparent hover:text-slate-800'}`}>
+                                    <step.icon size={18} className={`transition-colors ${activeStep === step.id ? 'text-red-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
                                     <span className="hidden sm:inline">{step.label}</span>
                                     <span className="sm:hidden">{step.id}</span>
                                 </button>
