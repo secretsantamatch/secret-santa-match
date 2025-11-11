@@ -1,19 +1,7 @@
-// FIX: Add Vite client types locally to resolve type errors with import.meta.env.
-// This is necessary when the global vite/client types are not picked up automatically.
-// By declaring this in the global scope, we augment the existing ImportMeta type.
-declare global {
-    interface ImportMetaEnv {
-        readonly BASE_URL: string;
-        readonly MODE: string;
-        readonly DEV: boolean;
-        readonly PROD: boolean;
-        readonly SSR: boolean;
-    }
-    
-    interface ImportMeta {
-        readonly env: ImportMetaEnv;
-    }
-}
+// FIX: The global declaration for `import.meta.env` has been removed.
+// It was conflicting with Vite's built-in client types, which should be
+// configured project-wide (e.g., in tsconfig.json). This redundant
+// declaration caused errors about property modifiers not being identical.
 
 // This file centralizes Google Analytics tracking.
 
