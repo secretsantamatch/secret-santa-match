@@ -77,7 +77,7 @@ const Options: React.FC<OptionsProps> = (props) => {
 
       {/* Background Selector */}
       <BackgroundSelector
-        selectedBackgroundId={selectedBackgroundId}
+        selected={selectedBackgroundId}
         setSelectedBackgroundId={setSelectedBackgroundId}
         customBackground={customBackground}
         setCustomBackground={setCustomBackground}

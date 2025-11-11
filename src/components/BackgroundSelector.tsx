@@ -1,318 +1,122 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import type { Participant, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
-import PrintableCard from './PrintableCard';
-import Tooltip from './Tooltip';
+import React, { useState } from 'react';
+import type { BackgroundOption } from '../types';
+import { Upload, X } from 'lucide-react';
 
 interface BackgroundSelectorProps {
-    participants: Participant[];
-    eventDetails: string;
-    backgroundOptions: BackgroundOption[];
-    selectedBackground: string;
-    setSelectedBackground: (id: string) => void;
-    customBackground: string | null;
-    setCustomBackground: (url: string | null) => void;
-    textColor: string;
-    setTextColor: (color: string) => void;
-    useTextOutline: boolean;
-    setUseTextOutline: (use: boolean) => void;
-    outlineColor: string;
-    setOutlineColor: (color: string) => void;
-    outlineSize: OutlineSizeSetting;
-    setOutlineSize: (size: OutlineSizeSetting) => void;
-    fontSizeSetting: FontSizeSetting;
-    setFontSizeSetting: (size: FontSizeSetting) => void;
-    fontTheme: FontTheme;
-    setFontTheme: (theme: FontTheme) => void;
-    lineSpacing: number;
-    setLineSpacing: (spacing: number) => void;
-    greetingText: string;
-    setGreetingText: (text: string) => void;
-    introText: string;
-    setIntroText: (text: string) => void;
-    wishlistLabelText: string;
-    setWishlistLabelText: (text: string) => void;
-    trackEvent: (eventName: string, eventParams?: Record<string, any>) => void;
+  selected: string;
+  setSelectedBackgroundId: (id: string) => void;
+  customBackground: string | null;
+  setCustomBackground: (url: string | null) => void;
+  backgroundOptions: BackgroundOption[];
+  onTextColorChange: (color: string) => void;
 }
 
-const InfoIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block ml-1 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
-
-
 const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
-    participants, eventDetails, backgroundOptions, selectedBackground, setSelectedBackground, customBackground, setCustomBackground, textColor, setTextColor, useTextOutline, setUseTextOutline, outlineColor, setOutlineColor, outlineSize, setOutlineSize, fontSizeSetting, setFontSizeSetting, fontTheme, setFontTheme, lineSpacing, setLineSpacing, greetingText, setGreetingText, introText, setIntroText, wishlistLabelText, setWishlistLabelText, trackEvent
+  selected,
+  setSelectedBackgroundId,
+  customBackground,
+  setCustomBackground,
+  backgroundOptions,
+  onTextColorChange,
 }) => {
-    
-    const [filter, setFilter] = useState('');
-    const [uploadError, setUploadError] = useState('');
-    const [previewBackground, setPreviewBackground] = useState(selectedBackground);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        setPreviewBackground(selectedBackground);
-    }, [selectedBackground]);
+  const handleSelect = (option: BackgroundOption) => {
+    setSelectedBackgroundId(option.id);
+    setCustomBackground(null);
+    if (option.defaultTextColor) {
+      onTextColorChange(option.defaultTextColor);
+    }
+  };
 
-    const filteredOptions = useMemo(() => {
-        if (!filter) return backgroundOptions;
-        return backgroundOptions.filter(opt => 
-            opt.name.toLowerCase().includes(filter.toLowerCase()) || 
-            opt.description.toLowerCase().includes(filter.toLowerCase())
-        );
-    }, [filter, backgroundOptions]);
+  const handleCustomUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        setError("Image is too large. Please use a file under 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setCustomBackground(result);
+        setSelectedBackgroundId('custom');
+      };
+      reader.onerror = () => {
+        setError("Failed to read the file.");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleRemoveCustom = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setCustomBackground(null);
+      if (backgroundOptions[0]) {
+          handleSelect(backgroundOptions[0]);
+      }
+  };
 
-    const previewParticipants = participants.filter(p => p.name.trim() !== '');
-    const giverName = previewParticipants.length > 0 ? previewParticipants[0].name : 'Alex';
-    
-    const receiverParticipant = previewParticipants.length > 1 ? previewParticipants[1] : null;
+  if (!backgroundOptions.length) return <div>Loading themes...</div>;
 
-    const receiverName = receiverParticipant ? receiverParticipant.name : 'Alexa';
-    const receiverInterests = receiverParticipant?.interests || '';
-    const receiverLikes = receiverParticipant?.likes || 'Loves dark roast coffee';
-    const receiverDislikes = receiverParticipant?.dislikes || 'Dislikes horror movies';
-    const receiverLinks = receiverParticipant?.links || '';
-    const receiverBudget = receiverParticipant?.budget || '';
-
-    const previewMatch = {
-        giver: { name: giverName },
-        receiver: { 
-            name: receiverName, 
-            interests: receiverInterests,
-            likes: receiverLikes,
-            dislikes: receiverDislikes,
-            links: receiverLinks,
-            budget: receiverBudget 
-        }
-    };
-    
-    const handleLineSpacingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLineSpacing(parseFloat(e.target.value));
-    };
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setUploadError('');
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (!['image/jpeg', 'image/png'].includes(file.type)) {
-            setUploadError('Invalid file type. Please upload a JPG or PNG.');
-            return;
-        }
-
-        if (file.size > 3 * 1024 * 1024) { // 3 MB
-            setUploadError('File is too large. Please upload an image under 3MB.');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            const result = reader.result as string;
-            setCustomBackground(result);
-            setSelectedBackground('plain-white');
-            trackEvent('upload_custom_background');
-        };
-        reader.onerror = () => {
-            setUploadError('Failed to read the file.');
-        };
-        reader.readAsDataURL(file);
-        
-        e.target.value = ''; 
-    };
-
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            <div className="lg:col-span-3 space-y-8">
-                {/* 1. Choose a Theme */}
-                <div>
-                    <h3 className="text-xl font-bold text-slate-700 mb-1">1. Choose a Theme</h3>
-                    <p className="text-slate-500 mb-4">Hover to preview, then click to select.</p>
-                     <input 
-                        type="search"
-                        placeholder="Search themes (e.g., 'village', 'festive')"
-                        value={filter}
-                        onChange={e => setFilter(e.target.value)}
-                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition mb-4"
-                    />
-                    <div 
-                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-96 overflow-y-auto pr-2"
-                        onMouseLeave={() => setPreviewBackground(selectedBackground)}
-                    >
-                        {filteredOptions.map(option => {
-                            const imageUrl = option.imageUrl && !option.imageUrl.startsWith('/') ? `/${option.imageUrl}` : option.imageUrl;
-                            return (
-                                <button 
-                                    key={option.id}
-                                    onClick={() => {
-                                        setSelectedBackground(option.id);
-                                        setCustomBackground(null);
-                                        setUploadError('');
-                                    }}
-                                    onMouseOver={() => setPreviewBackground(option.id)}
-                                    className={`text-left border-2 rounded-lg transition-all transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${selectedBackground === option.id ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-400'}`}
-                                >
-                                    <div className="aspect-w-3 aspect-h-4 bg-slate-100 rounded-t-md">
-                                        {imageUrl ? (
-                                            <img src={imageUrl} alt={option.name} className="object-cover rounded-t-md w-full h-full" />
-                                        ) : (
-                                            <div className="flex items-center justify-center w-full h-full">
-                                                <span className="text-4xl">{option.icon}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </button>
-                            );
-                         })}
-                    </div>
-
-                    <div className="mt-6">
-                        <h4 className="text-lg font-bold text-slate-600 mb-1">...Or Upload Your Own</h4>
-                        <p className="text-slate-500 mb-4 flex items-center text-sm">
-                            Recommended: 3:4 ratio, under 3MB.
-                            <Tooltip text="For best results, use an image around 600x800 pixels. Supports JPG and PNG.">
-                                <InfoIcon />
-                            </Tooltip>
-                        </p>
-                         <div className="p-4 bg-slate-50 rounded-lg border">
-                            {customBackground ? (
-                                <div className="flex items-center gap-4">
-                                    <img src={customBackground} alt="Custom background preview" className="w-16 h-16 object-cover rounded-md border" />
-                                    <div className="flex-grow">
-                                        <p className="font-semibold text-slate-700">Your background is ready.</p>
-                                        <p className="text-sm text-slate-500">Select another theme to replace it.</p>
-                                    </div>
-                                    <button 
-                                        onClick={() => {
-                                            setCustomBackground(null);
-                                            setUploadError('');
-                                        }}
-                                        className="py-1 px-3 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-semibold"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            ) : (
-                                <div>
-                                    <label htmlFor="custom-bg-upload" className="w-full text-center cursor-pointer bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg transition-colors block">
-                                        Upload Image
-                                    </label>
-                                    <input 
-                                        type="file" 
-                                        id="custom-bg-upload"
-                                        className="hidden"
-                                        accept="image/png, image/jpeg"
-                                        onChange={handleFileUpload}
-                                    />
-                                </div>
-                            )}
-                            {uploadError && <p className="text-red-600 text-sm mt-2">{uploadError}</p>}
-                        </div>
-                    </div>
+  return (
+    <div>
+      <h3 className="text-lg font-semibold text-slate-700 mb-2">Card Style</h3>
+      <p className="text-slate-500 mb-4 text-sm">Choose a background for the printable and digital cards.</p>
+      <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+        {backgroundOptions.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => handleSelect(option)}
+            className={`aspect-square rounded-lg border-4 transition-all overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+              selected === option.id && !customBackground
+                ? 'border-indigo-500 scale-105'
+                : 'border-transparent hover:border-slate-300'
+            }`}
+          >
+            {/* Add a guarded description to satisfy build error TS18048 */}
+            {option.description && <span className="sr-only">{option.description}</span>}
+            <img src={option.imageUrl} alt={option.name} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+            <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-white text-xs font-bold whitespace-nowrap px-1 bg-black/50 rounded">{option.name}</span>
+          </button>
+        ))}
+        <label
+            htmlFor="custom-bg-upload"
+            className={`aspect-square rounded-lg border-4 transition-all flex items-center justify-center cursor-pointer relative group ${
+              selected === 'custom' && customBackground
+                ? 'border-indigo-500 scale-105'
+                : 'border-dashed border-slate-300 hover:border-indigo-400'
+            }`}
+        >
+            {customBackground ? (
+                <>
+                    <img src={customBackground} alt="Custom background" className="w-full h-full object-cover" />
+                    <button type="button" onClick={handleRemoveCustom} className="absolute top-0 right-0 m-1 bg-white/70 hover:bg-white text-red-600 rounded-full p-0.5 z-10">
+                        <X size={16} />
+                    </button>
+                </>
+            ) : (
+                <div className="text-center text-slate-500 group-hover:text-indigo-600">
+                    <Upload size={24} className="mx-auto" />
+                    <span className="text-xs font-semibold mt-1 block">Upload</span>
                 </div>
-
-                {/* 2. Customize Text Style */}
-                 <div>
-                    <h3 className="text-xl font-bold text-slate-700 mb-4">2. Customize Text Style</h3>
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-4 p-4 bg-slate-50 rounded-lg border">
-                        <div>
-                            <label htmlFor="text-color" className="block text-sm font-medium text-slate-700">Text Color</label>
-                            <input type="color" id="text-color" value={textColor} onChange={e => setTextColor(e.target.value)} className="mt-1 block w-full h-10 rounded-md border-slate-300 shadow-sm" />
-                        </div>
-                        <div>
-                            <label htmlFor="font-size" className="block text-sm font-medium text-slate-700">Font Size</label>
-                            <select id="font-size" value={fontSizeSetting} onChange={e => setFontSizeSetting(e.target.value as FontSizeSetting)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                <option value="normal">Normal</option>
-                                <option value="large">Large</option>
-                                <option value="extra-large">Extra Large</option>
-                            </select>
-                        </div>
-                        <div className="col-span-2">
-                            <label htmlFor="font-style" className="block text-sm font-medium text-slate-700">Font Style</label>
-                            <select id="font-style" value={fontTheme} onChange={e => setFontTheme(e.target.value as FontTheme)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                <option value="classic">Classic (Serif)</option>
-                                <option value="elegant">Elegant (Serif)</option>
-                                <option value="modern">Modern (Sans-serif)</option>
-                                <option value="whimsical">Whimsical (Handwriting)</option>
-                            </select>
-                        </div>
-                         <div className="col-span-2">
-                            <label htmlFor="line-spacing" className="block text-sm font-medium text-slate-700">Line Spacing ({lineSpacing.toFixed(1)}x)</label>
-                            <input type="range" id="line-spacing" min="0.8" max="2.0" step="0.1" value={lineSpacing} onChange={handleLineSpacingChange} className="mt-1 block w-full" />
-                        </div>
-                        <div className="col-span-2 mt-2">
-                            <div className="flex items-center">
-                                <input id="text-outline" type="checkbox" checked={useTextOutline} onChange={e => setUseTextOutline(e.target.checked)} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
-                                <label htmlFor="text-outline" className="ml-2 block text-sm text-slate-900">Add text outline for better visibility</label>
-                            </div>
-                        </div>
-                        {useTextOutline && (
-                            <>
-                                <div>
-                                    <label htmlFor="outline-color" className="block text-sm font-medium text-slate-700">Outline Color</label>
-                                    <input type="color" id="outline-color" value={outlineColor} onChange={e => setOutlineColor(e.target.value)} className="mt-1 block w-full h-10 rounded-md border-slate-300 shadow-sm" />
-                                </div>
-                                <div>
-                                    <label htmlFor="outline-size" className="block text-sm font-medium text-slate-700">Outline Size</label>
-                                    <select id="outline-size" value={outlineSize} onChange={e => setOutlineSize(e.target.value as OutlineSizeSetting)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                        <option value="thin">Thin</option>
-                                        <option value="normal">Normal</option>
-                                        <option value="thick">Thick</option>
-                                    </select>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                {/* 3. Edit Card Text */}
-                 <div>
-                    <h3 className="text-xl font-bold text-slate-700 mb-4 flex items-center">
-                        3. Edit Card Text
-                         <Tooltip text="Use {secret_santa} to automatically insert the gift giver's name.">
-                            <InfoIcon />
-                        </Tooltip>
-                    </h3>
-                    <div className="space-y-3 p-4 bg-slate-50 rounded-lg border">
-                         <div>
-                            <label htmlFor="greeting-text" className="block text-sm font-medium text-slate-700">Greeting</label>
-                            <input type="text" id="greeting-text" value={greetingText} onChange={e => setGreetingText(e.target.value)} className="mt-1 p-2 block w-full text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"/>
-                        </div>
-                         <div>
-                            <label htmlFor="intro-text" className="block text-sm font-medium text-slate-700">Introductory Line</label>
-                            <input type="text" id="intro-text" value={introText} onChange={e => setIntroText(e.target.value)} className="mt-1 p-2 block w-full text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"/>
-                        </div>
-                         <div>
-                            <label htmlFor="wishlist-label" className="block text-sm font-medium text-slate-700">Wishlist Label</label>
-                            <input type="text" id="wishlist-label" value={wishlistLabelText} onChange={e => setWishlistLabelText(e.target.value)} className="mt-1 p-2 block w-full text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="lg:col-span-2">
-                <div className="sticky top-8">
-                    <h3 className="text-xl font-bold text-slate-700 mb-4 text-center">4. Live Preview</h3>
-                    <PrintableCard 
-                        match={previewMatch}
-                        eventDetails={eventDetails}
-                        isNameRevealed={true}
-                        backgroundOptions={backgroundOptions}
-                        bgId={previewBackground}
-                        bgImg={customBackground}
-                        txtColor={textColor}
-                        outline={useTextOutline}
-                        outColor={outlineColor}
-                        outSize={outlineSize}
-                        fontSize={fontSizeSetting}
-                        font={fontTheme}
-                        line={lineSpacing}
-                        greet={greetingText}
-                        intro={introText}
-                        wish={wishlistLabelText}
-                    />
-                </div>
-            </div>
-        </div>
-    );
+            )}
+          <input
+            id="custom-bg-upload"
+            type="file"
+            accept="image/png, image/jpeg, image/gif, image/webp"
+            className="sr-only"
+            onChange={handleCustomUpload}
+          />
+        </label>
+      </div>
+      {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+    </div>
+  );
 };
 
 export default BackgroundSelector;
