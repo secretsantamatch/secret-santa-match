@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import type { Match, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 
 interface PrintableCardProps {
@@ -18,140 +18,122 @@ interface PrintableCardProps {
   greet: string;
   intro: string;
   wish: string;
-  isForPdf?: boolean; // New prop
+  isForPdf?: boolean;
 }
 
-const fontClasses: Record<FontTheme, string> = {
-    classic: 'font-serif',
-    elegant: 'font-[Cormorant Garamond, serif]',
-    modern: 'font-sans',
-    whimsical: 'font-[Patrick Hand, cursive]'
-};
-
-const fontSizeClasses: Record<FontSizeSetting, { base: string, header: string, name: string }> = {
-    normal: { base: 'text-sm', header: 'text-2xl', name: 'text-4xl' },
-    large: { base: 'text-base', header: 'text-3xl', name: 'text-5xl' },
-    'extra-large': { base: 'text-lg', header: 'text-4xl', name: 'text-6xl' }
-};
-
-const outlineSizeMap: Record<OutlineSizeSetting, string> = {
-    thin: '1px',
-    normal: '2px',
-    thick: '3px'
-};
-
 const PrintableCard: React.FC<PrintableCardProps> = ({
-  match, eventDetails, isNameRevealed, backgroundOptions, bgId, bgImg,
-  txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish,
-  isForPdf = false // Default to false
+  match,
+  eventDetails,
+  isNameRevealed,
+  backgroundOptions,
+  bgId,
+  bgImg,
+  txtColor,
+  outline,
+  outColor,
+  outSize,
+  fontSize,
+  font,
+  line,
+  greet,
+  intro,
+  wish,
+  isForPdf = false
 }) => {
-    const { giver, receiver } = match;
+  const { giver, receiver } = match;
 
-    const backgroundUrl = useMemo(() => {
-        if (bgId === 'custom' && bgImg) {
-            return bgImg;
-        }
-        const selectedOption = backgroundOptions.find(opt => opt.id === bgId);
-        return selectedOption ? selectedOption.imageUrl : (backgroundOptions[0]?.imageUrl || '');
-    }, [bgId, bgImg, backgroundOptions]);
+  const backgroundUrl = bgImg || backgroundOptions.find(opt => opt.id === bgId)?.imageUrl || '';
 
-    const textShadow = useMemo(() => {
-        if (!outline) return 'none';
-        const size = outlineSizeMap[outSize];
-        const color = outColor || '#000000';
-        return `${size} ${size} 0 ${color}, -${size} -${size} 0 ${color}, ${size} -${size} 0 ${color}, -${size} ${size} 0 ${color}, ${size} 0 0 ${color}, -${size} 0 0 ${color}, 0 ${size} 0 ${color}, 0 -${size} 0 ${color}`;
-    }, [outline, outColor, outSize]);
-    
-    const hasDetails = receiver.interests || receiver.likes || receiver.dislikes || receiver.links || receiver.budget;
-    const currentFontSize = fontSizeClasses[fontSize];
+  const fontStyles: Record<FontTheme, React.CSSProperties> = {
+    classic: { fontFamily: "'Playfair Display', serif" },
+    modern: { fontFamily: "'Montserrat', sans-serif" },
+    elegant: { fontFamily: 'Garamond, serif' },
+    whimsical: { fontFamily: 'cursive' },
+  };
 
-    // Auto-fit name logic
-    let nameSizeClass = currentFontSize.name;
-    const nameLength = receiver.name.length;
-    if (nameLength > 15) {
-      nameSizeClass = `text-3xl`;
-    } else if (nameLength > 10) {
-      nameSizeClass = currentFontSize.header;
+  const fontSizeClasses: Record<FontSizeSetting, string> = {
+    normal: 'text-base',
+    large: 'text-lg',
+    'extra-large': 'text-xl',
+  };
+
+  const outlineSizeMap: Record<OutlineSizeSetting, string> = {
+      'thin': '1px',
+      'normal': '1.5px',
+      'thick': '2px',
+  };
+
+  const createTextShadow = (size: OutlineSizeSetting, color: string): string => {
+    const s = outlineSizeMap[size];
+    const shadows = [
+        `-${s} -${s} 0 ${color}`, `${s} -${s} 0 ${color}`,
+        `-${s} ${s} 0 ${color}`, `${s} ${s} 0 ${color}`
+    ];
+    if (size === 'thick') {
+        shadows.push(`-${s} 0 0 ${color}`, `${s} 0 0 ${color}`, `0 -${s} 0 ${color}`, `0 ${s} 0 ${color}`);
     }
-    
-    const renderLinks = (links: string) => {
-        return links.split('\n').filter(Boolean).map((link, i) => {
-            let href = link.trim();
-            if (!href.startsWith('http://') && !href.startsWith('https://')) {
-                href = `https://${href}`;
-            }
-            try {
-                new URL(href);
-                return <li key={i}><a href={href} target="_blank" rel="noopener noreferrer" className="underline break-all">{link.trim()}</a></li>;
-            } catch {
-                return <li key={i} className="break-all">{link.trim()}</li>;
-            }
-        });
-    }
+    return shadows.join(', ');
+  };
+  
+  const textShadow = outline ? createTextShadow(outSize, outColor) : 'none';
+  
+  const receiverName = isNameRevealed ? receiver.name : '????????';
+  const formattedGreeting = greet.replace('{secret_santa}', giver.name);
 
+  const renderWishlistItem = (label: string, value: string) => {
+    if (!value || value.trim() === '') return null;
     return (
-        <div 
-            id={`printable-card-${giver.id}`} 
-            className="printable-card-container aspect-[3/4] w-full bg-white text-black relative shadow-lg overflow-hidden select-none rounded-xl"
-        >
-            {backgroundUrl ? (
-                <img src={backgroundUrl} alt="Card background" className="absolute inset-0 w-full h-full object-cover" />
-            ) : (
-                <div className="absolute inset-0 bg-white"></div>
-            )}
-            <div
-                className={`absolute inset-0 pt-10 pb-8 px-10 flex flex-col text-center justify-center gap-y-4 ${currentFontSize.base} ${fontClasses[font]}`}
-                style={{
-                    color: txtColor,
-                    textShadow: textShadow,
-                    lineHeight: line,
-                }}
-            >
-                <header>
-                    <h2 className={`${currentFontSize.header} font-bold`}>{greet.replace('{secret_santa}', giver.name)}</h2>
-                    <p>{intro}</p>
-                </header>
-
-                <main className="flex items-center justify-center py-2">
-                    {isNameRevealed ? (
-                        <p className={`font-serif font-extrabold tracking-tight break-words ${nameSizeClass}`}>{receiver.name}</p>
-                    ) : (
-                        <div className="bg-white/20 backdrop-blur-sm p-4 rounded-lg">
-                            <p className="text-lg">Your match is hidden!</p>
-                            <p className="text-sm">Click the button to reveal your person.</p>
-                        </div>
-                    )}
-                </main>
-
-                <footer className="text-center overflow-hidden">
-                    {isNameRevealed && hasDetails && (
-                        <>
-                            <h3 className={`font-bold text-lg mb-2`}>{wish}</h3>
-                             <ul className="space-y-1 list-none p-0 m-0 inline-block text-center">
-                                {receiver.budget && <li className="break-words"><strong className="font-semibold">Budget:</strong> {receiver.budget}</li>}
-                                {receiver.interests && <li className="break-words"><strong className="font-semibold">Interests:</strong> {receiver.interests}</li>}
-                                {receiver.likes && <li className="break-words"><strong className="font-semibold">Likes:</strong> {receiver.likes}</li>}
-                                {receiver.dislikes && <li className="break-words"><strong className="font-semibold">Dislikes:</strong> {receiver.dislikes}</li>}
-                                {!isForPdf && receiver.links && <li className="list-none"><strong className="font-semibold">Links:</strong><ul className="pl-4 text-center">{renderLinks(receiver.links)}</ul></li>}
-                            </ul>
-                        </>
-                    )}
-                    {isNameRevealed && !hasDetails && (
-                         <p className="italic">No wishlist details were provided for {receiver.name}.</p>
-                    )}
-                </footer>
-                
-                <div className="flex-grow"></div>
-                
-                 {isNameRevealed && eventDetails && (
-                    <p className="italic text-sm">{eventDetails}</p>
-                )}
-                 {bgId === 'custom' && bgImg && (
-                    <p className="text-center text-[8px] opacity-70" style={{ textShadow: '1px 1px 2px #000' }}>SecretSantaMatch.com</p>
-                 )}
-            </div>
-        </div>
+      <div className="mt-1">
+        <p className="font-bold opacity-90 text-[0.8em]">{label}:</p>
+        <p className="text-[0.9em] whitespace-pre-wrap">{value}</p>
+      </div>
     );
+  };
+  
+  const wishlistLinks = receiver.links?.split('\n').filter(link => link.trim() !== '');
+
+  return (
+    <div className={`printable-card-container w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-lg relative bg-cover bg-center ${isForPdf ? '' : 'transition-all duration-300'}`} style={{ backgroundImage: `url(${backgroundUrl})` }}>
+      <div
+        className={`absolute inset-0 flex flex-col justify-between p-6 text-center ${fontSizeClasses[fontSize]}`}
+        style={{ color: txtColor, textShadow, lineHeight: line, ...fontStyles[font] }}
+      >
+        <header>
+          <p className="font-bold text-[1.1em]">{formattedGreeting}</p>
+          <p className="mt-1 text-[0.9em]">{intro}</p>
+        </header>
+
+        <main className="flex-grow flex flex-col justify-center my-2">
+          <div className="my-2">
+            <h2 className="text-[2.5em] font-bold leading-tight">
+              {receiverName}
+            </h2>
+          </div>
+          {isNameRevealed && (
+            <div className="text-left text-[0.8em] bg-black/20 p-3 rounded-lg backdrop-blur-sm max-h-48 overflow-y-auto">
+                <h3 className="font-bold text-[1.2em] mb-1">{wish}</h3>
+                {renderWishlistItem('Interests', receiver.interests)}
+                {renderWishlistItem('Likes', receiver.likes)}
+                {renderWishlistItem('Dislikes', receiver.dislikes)}
+                {wishlistLinks && wishlistLinks.length > 0 && (
+                     <div className="mt-1">
+                        <p className="font-bold opacity-90 text-[0.8em]">Links:</p>
+                        <ul className="list-disc list-inside text-[0.9em]">
+                            {wishlistLinks.map((link, index) => <li key={index} className="truncate"><a href={link.startsWith('http') ? link : `//${link}`} target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">{link}</a></li>)}
+                        </ul>
+                    </div>
+                )}
+                {renderWishlistItem('Budget', receiver.budget)}
+            </div>
+          )}
+        </main>
+
+        <footer>
+          <p className="text-[0.7em] opacity-80">{eventDetails}</p>
+        </footer>
+      </div>
+    </div>
+  );
 };
 
 export default PrintableCard;
