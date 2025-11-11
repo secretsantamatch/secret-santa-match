@@ -8,6 +8,29 @@ interface ParticipantManagerProps {
     onClearClick: () => void;
 }
 
+const WISHLIST_CHAR_LIMIT = 150;
+
+const CharacterCounter: React.FC<{ value: string }> = ({ value }) => {
+    const length = value.length;
+    const isOverLimit = length > WISHLIST_CHAR_LIMIT;
+    return (
+        <div className="text-xs text-slate-400 mt-1">
+            <div className="flex justify-between">
+                <span>Separate with commas.</span>
+                <span className={isOverLimit ? 'text-red-500 font-bold' : ''}>
+                    {length} / {WISHLIST_CHAR_LIMIT}
+                </span>
+            </div>
+            {isOverLimit && (
+                <p className="text-red-500 font-semibold">
+                    Note: Long text may be cut off on printable cards.
+                </p>
+            )}
+        </div>
+    );
+};
+
+
 const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, onClearClick }) => {
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -87,7 +110,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     onChange={(e) => handleParticipantChange(participant.id, 'interests', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                 />
-                                 <p className="text-xs text-slate-400 mt-1">Separate with commas for clickable gift ideas.</p>
+                                 <CharacterCounter value={participant.interests} />
                             </div>
                              <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Likes</label>
@@ -98,7 +121,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     onChange={(e) => handleParticipantChange(participant.id, 'likes', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                 />
-                                <p className="text-xs text-slate-400 mt-1">Separate with commas for more gift ideas.</p>
+                                <CharacterCounter value={participant.likes} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Dislikes & No-Go's</label>
@@ -109,6 +132,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
+                                <CharacterCounter value={participant.dislikes} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Specific Links (Optional)</label>
@@ -119,13 +143,13 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
-                                <p className="text-xs text-slate-400 mt-1">Got a specific item in mind? Paste the full link here. Add one link per line.</p>
+                                <p className="text-xs text-slate-400 mt-1">Paste direct links to specific gift ideas (e.g., from Amazon, Etsy). Add one link per line. These will be clickable on the digital reveal cards for your Secret Santa.</p>
                             </div>
                              <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget ($)</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget</label>
                                 <input
                                     type="text"
-                                    placeholder="e.g., 25"
+                                    placeholder="e.g., $25, £20, or up to 30"
                                     value={participant.budget}
                                     onChange={(e) => handleParticipantChange(participant.id, 'budget', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
