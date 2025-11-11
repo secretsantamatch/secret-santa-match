@@ -8,15 +8,17 @@ interface ParticipantManagerProps {
     onClearClick: () => void;
 }
 
-const WISHLIST_CHAR_LIMIT = 150;
+const WISHLIST_CHAR_LIMIT = 100;
 
-const CharacterCounter: React.FC<{ value: string }> = ({ value }) => {
+const CharacterCounter: React.FC<{ value: string, fieldName: string }> = ({ value, fieldName }) => {
     const length = value.length;
     const isOverLimit = length > WISHLIST_CHAR_LIMIT;
+    const isLinks = fieldName === 'links';
+
     return (
         <div className="text-xs text-slate-400 mt-1">
             <div className="flex justify-between">
-                <span>Separate with commas.</span>
+                <span>{isLinks ? "Paste one link per line." : "Separate with commas."}</span>
                 <span className={isOverLimit ? 'text-red-500 font-bold' : ''}>
                     {length} / {WISHLIST_CHAR_LIMIT}
                 </span>
@@ -110,7 +112,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     onChange={(e) => handleParticipantChange(participant.id, 'interests', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                 />
-                                 <CharacterCounter value={participant.interests} />
+                                 <CharacterCounter value={participant.interests} fieldName="interests" />
                             </div>
                              <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Likes</label>
@@ -121,7 +123,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     onChange={(e) => handleParticipantChange(participant.id, 'likes', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                 />
-                                <CharacterCounter value={participant.likes} />
+                                <CharacterCounter value={participant.likes} fieldName="likes" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Dislikes & No-Go's</label>
@@ -132,7 +134,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
-                                <CharacterCounter value={participant.dislikes} />
+                                <CharacterCounter value={participant.dislikes} fieldName="dislikes" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Specific Links (Optional)</label>
@@ -143,7 +145,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
-                                <p className="text-xs text-slate-400 mt-1">Paste direct links to specific gift ideas (e.g., from Amazon, Etsy). Add one link per line. These will be clickable on the digital reveal cards for your Secret Santa.</p>
+                                <CharacterCounter value={participant.links} fieldName="links" />
                             </div>
                              <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget</label>

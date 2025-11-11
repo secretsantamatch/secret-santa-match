@@ -18,6 +18,7 @@ interface PrintableCardProps {
   greet: string;
   intro: string;
   wish: string;
+  isForPdf?: boolean; // New prop
 }
 
 const fontClasses: Record<FontTheme, string> = {
@@ -41,7 +42,8 @@ const outlineSizeMap: Record<OutlineSizeSetting, string> = {
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
   match, eventDetails, isNameRevealed, backgroundOptions, bgId, bgImg,
-  txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish
+  txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish,
+  isForPdf = false // Default to false
 }) => {
     const { giver, receiver } = match;
 
@@ -67,7 +69,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
     let nameSizeClass = currentFontSize.name;
     const nameLength = receiver.name.length;
     if (nameLength > 15) {
-      nameSizeClass = `text-3xl`; // smaller than text-4xl
+      nameSizeClass = `text-3xl`;
     } else if (nameLength > 10) {
       nameSizeClass = currentFontSize.header;
     }
@@ -79,7 +81,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 href = `https://${href}`;
             }
             try {
-                // To check if it's a valid URL, otherwise render as text
                 new URL(href);
                 return <li key={i}><a href={href} target="_blank" rel="noopener noreferrer" className="underline break-all">{link.trim()}</a></li>;
             } catch {
@@ -99,7 +100,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 <div className="absolute inset-0 bg-white"></div>
             )}
             <div
-                className={`absolute inset-0 pt-12 pb-8 px-8 flex flex-col text-center justify-center gap-y-2 ${currentFontSize.base} ${fontClasses[font]}`}
+                className={`absolute inset-0 pt-10 pb-8 px-10 flex flex-col text-center justify-center gap-y-4 ${currentFontSize.base} ${fontClasses[font]}`}
                 style={{
                     color: txtColor,
                     textShadow: textShadow,
@@ -122,28 +123,31 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     )}
                 </main>
 
-                <footer className="text-center overflow-y-auto p-2 rounded-lg scrollbar-thin">
+                <footer className="text-center overflow-hidden">
                     {isNameRevealed && hasDetails && (
                         <>
                             <h3 className={`font-bold text-lg mb-2`}>{wish}</h3>
                              <ul className="space-y-1 list-none p-0 m-0 inline-block text-center">
-                                {receiver.budget && <li><strong className="font-semibold">Budget:</strong> {receiver.budget}</li>}
-                                {receiver.interests && <li><strong className="font-semibold">Interests:</strong> {receiver.interests}</li>}
-                                {receiver.likes && <li><strong className="font-semibold">Likes:</strong> {receiver.likes}</li>}
-                                {receiver.dislikes && <li><strong className="font-semibold">Dislikes:</strong> {receiver.dislikes}</li>}
-                                {receiver.links && <li className="list-none"><strong className="font-semibold">Links:</strong><ul className="pl-4 text-left">{renderLinks(receiver.links)}</ul></li>}
+                                {receiver.budget && <li className="break-words"><strong className="font-semibold">Budget:</strong> {receiver.budget}</li>}
+                                {receiver.interests && <li className="break-words"><strong className="font-semibold">Interests:</strong> {receiver.interests}</li>}
+                                {receiver.likes && <li className="break-words"><strong className="font-semibold">Likes:</strong> {receiver.likes}</li>}
+                                {receiver.dislikes && <li className="break-words"><strong className="font-semibold">Dislikes:</strong> {receiver.dislikes}</li>}
+                                {!isForPdf && receiver.links && <li className="list-none"><strong className="font-semibold">Links:</strong><ul className="pl-4 text-center">{renderLinks(receiver.links)}</ul></li>}
                             </ul>
                         </>
                     )}
                     {isNameRevealed && !hasDetails && (
                          <p className="italic">No wishlist details were provided for {receiver.name}.</p>
                     )}
-                     {isNameRevealed && eventDetails && (
-                        <p className="mt-2 pt-2 italic text-sm">{eventDetails}</p>
-                    )}
                 </footer>
+                
+                <div className="flex-grow"></div>
+                
+                 {isNameRevealed && eventDetails && (
+                    <p className="italic text-sm">{eventDetails}</p>
+                )}
                  {bgId === 'custom' && bgImg && (
-                    <p className="text-center text-[8px] absolute bottom-1 left-1/2 -translate-x-1/2 opacity-70" style={{ textShadow: '1px 1px 2px #000' }}>SecretSantaMatch.com</p>
+                    <p className="text-center text-[8px] opacity-70" style={{ textShadow: '1px 1px 2px #000' }}>SecretSantaMatch.com</p>
                  )}
             </div>
         </div>
