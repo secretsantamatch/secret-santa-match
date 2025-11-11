@@ -6,6 +6,7 @@ interface ParticipantManagerProps {
     setParticipants: (participants: Participant[]) => void;
     onBulkAddClick: () => void;
     onClearClick: () => void;
+    setError: (error: string | null) => void;
 }
 
 const WISHLIST_CHAR_LIMIT = 100;
@@ -33,10 +34,22 @@ const CharacterCounter: React.FC<{ value: string, fieldName: string }> = ({ valu
 };
 
 
-const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, onClearClick }) => {
+const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, onClearClick, setError }) => {
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
     const handleParticipantChange = (id: string, field: keyof Omit<Participant, 'id'>, value: string) => {
+        if (field === 'name') {
+            setError(null); // Clear previous errors
+            const trimmedValue = value.trim().toLowerCase();
+            if (trimmedValue) { // Only check for duplicates if the name is not empty
+                const isDuplicate = participants.some(p => p.id !== id && p.name.trim().toLowerCase() === trimmedValue);
+                if (isDuplicate) {
+                    setError('Participant names must be unique.');
+                    // To avoid confusion, we'll still update the input visually but the error will prevent generation.
+                }
+            }
+        }
+        
         const participantIndex = participants.findIndex(p => p.id === id);
         const isLastParticipant = participantIndex === participants.length - 1;
         const isNameField = field === 'name';

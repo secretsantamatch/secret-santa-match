@@ -13,7 +13,7 @@ import SocialProof from './SocialProof';
 import VideoTutorial from './VideoTutorial';
 import { generateMatches } from '../services/matchService';
 import { trackEvent } from '../services/analyticsService';
-import { Users, GitPullRequest, Settings, Shuffle, X, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Users, ScrollText, Palette, Shuffle, X, AlertTriangle, ArrowRight } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import { getRandomPersona } from '../services/personaService';
 
@@ -113,12 +113,25 @@ const GeneratorPage: React.FC = () => {
      }, [selectedBackgroundId, backgroundOptions, customBackground]);
 
     const handleBulkAdd = (names: string) => {
-        const newParticipants = names.split('\n').map(name => name.trim()).filter(Boolean);
-        if (newParticipants.length > 0) {
+        const newNames = names.split('\n').map(name => name.trim()).filter(Boolean);
+        if (newNames.length > 0) {
             const currentNonEmpty = participants.filter(p => p.name.trim() !== '');
-            const combined = [...currentNonEmpty, ...newParticipants.map(name => ({ id: crypto.randomUUID(), name, interests: '', likes: '', dislikes: '', links: '', budget: '' }))];
-            setParticipants([...combined, { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' }]);
-            trackEvent('bulk_add', { count: newParticipants.length });
+            const currentNamesLower = new Set(currentNonEmpty.map(p => p.name.trim().toLowerCase()));
+            
+            const uniqueNewNames = [...new Set(newNames)] // Dedupe within the new list
+                .filter(name => !currentNamesLower.has(name.trim().toLowerCase())); // Dedupe against existing list
+            
+            if (uniqueNewNames.length < newNames.length) {
+                setError("Some duplicate names were not added.");
+            } else {
+                setError(null);
+            }
+
+            if (uniqueNewNames.length > 0) {
+                const combined = [...currentNonEmpty, ...uniqueNewNames.map(name => ({ id: crypto.randomUUID(), name, interests: '', likes: '', dislikes: '', links: '', budget: '' }))];
+                setParticipants([...combined, { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' }]);
+                trackEvent('bulk_add', { count: uniqueNewNames.length });
+            }
         }
         setShowBulkAdd(false);
     };
@@ -143,9 +156,15 @@ const GeneratorPage: React.FC = () => {
     const handleGenerate = async () => {
         setError(null);
         const validParticipants = participants.filter(p => p.name.trim() !== '');
-        if (validParticipants.length < 2) {
-            setError("You need at least two participants to start a gift exchange.");
+        if (validParticipants.length < 3) {
+            setError("You need at least three participants to start a gift exchange.");
             setActiveStep(1);
+            return;
+        }
+
+        if (selectedBackgroundId === 'plain-white' || !selectedBackgroundId) {
+            setError("Please choose a theme for your cards from the 'Style Your Cards' tab.");
+            setActiveStep(3);
             return;
         }
         
@@ -240,8 +259,8 @@ const GeneratorPage: React.FC = () => {
     
     const steps = [
         { id: 1, label: '1. Add Participants', icon: Users },
-        { id: 2, label: '2. Add Details & Rules', icon: GitPullRequest },
-        { id: 3, label: '3. Style Your Cards', icon: Settings }
+        { id: 2, label: '2. Add Details & Rules', icon: ScrollText },
+        { id: 3, label: '3. Style Your Cards', icon: Palette }
     ];
 
     if (isLoading) {
@@ -289,7 +308,7 @@ const GeneratorPage: React.FC = () => {
                         )}
 
                         <div className={activeStep === 1 ? 'block' : 'hidden'}>
-                            <ParticipantManager participants={participants} setParticipants={setParticipants} onBulkAddClick={() => setShowBulkAdd(true)} onClearClick={handleClear} />
+                            <ParticipantManager participants={participants} setParticipants={setParticipants} onBulkAddClick={() => setShowBulkAdd(true)} onClearClick={handleClear} setError={setError} />
                         </div>
 
                         <div className={activeStep === 2 ? 'block' : 'hidden'}>
@@ -381,7 +400,7 @@ const GeneratorPage: React.FC = () => {
                                 onClick={handleGenerate}
                                 className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto"
                             >
-                                <Shuffle /> Draw Names!
+                                <Shuffle /> Generate Matches!
                             </button>
                         )}
                     </div>
