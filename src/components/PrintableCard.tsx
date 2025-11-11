@@ -1,3 +1,5 @@
+<script src="https://aistudiocdn.com/react@^19.2.0"></script>
+<script src="https://aistudiocdn.com/react-dom@^19.2.0/client"></script>
 import React from 'react';
 import type { Match, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 
@@ -109,7 +111,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       <span className="break-words">{value}</span>;
 
     return (
-      <div>
+      <div className="break-words">
         <strong className="font-bold">{label}:</strong> {content}
       </div>
     );
@@ -121,7 +123,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div
-        className={`absolute inset-0 flex flex-col items-center justify-center p-6 text-center gap-y-4 ${baseFontSizeClasses[fontSize]}`}
+        className={`absolute inset-0 flex flex-col items-center justify-start pt-20 px-8 pb-16 text-center gap-y-2 ${baseFontSizeClasses[fontSize]}`}
         style={{ color: txtColor, textShadow, lineHeight: line, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
@@ -153,7 +155,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         
         {/* Footer */}
         <footer className="absolute bottom-4 left-0 right-0 px-4 text-center">
-             {eventDetails && <p className="text-sm opacity-90">{eventDetails}</p>}
+             {eventDetails && <p className="text-sm opacity-90 break-words">{eventDetails}</p>}
              {showWatermark && <p className="text-xs opacity-70 mt-1">SecretSantaMatch.com</p>}
         </footer>
 
