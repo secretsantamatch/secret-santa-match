@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { produce } from 'immer';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
+import PrintableCard from './PrintableCard';
+import ResultsDisplay from './ResultsDisplay';
+import ShareLinksModal from './ShareLinksModal';
+import WishlistEditorModal from './WishlistEditorModal';
 import Header from './Header';
 import Footer from './Footer';
-import ResultsDisplay from './ResultsDisplay';
-import PrintableCard from './PrintableCard';
-import ShareLinksModal from './ShareLinksModal';
-import WishlistEditorModal from './WishlistEditorModal'; // New component
 import { trackEvent } from '../services/analyticsService';
-import { Share2, Download, Eye, Home, Edit } from 'lucide-react';
+import { Download, Share2, Edit, Gift, Users } from 'lucide-react';
 
 interface ResultsPageProps {
     data: ExchangeData;
@@ -16,168 +15,151 @@ interface ResultsPageProps {
 }
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId }) => {
-    const [exchangeData, setExchangeData] = useState<ExchangeData>(data);
-    const { p: participants, matches: matchIds, ...styleData } = exchangeData;
-    const isOrganizerView = !currentParticipantId;
-
-    const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
     const [isNameRevealed, setIsNameRevealed] = useState(false);
-    const [showShareModal, setShowShareModal] = useState(false);
-    const [isWishlistEditorOpen, setIsWishlistEditorOpen] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+    const [exchangeData, setExchangeData] = useState(data);
+    const [shareModalInitialView, setShareModalInitialView] = useState<'links' | 'print' | null>(null);
 
-    const allMatches: Match[] = useMemo(() => matchIds.map(m => ({
+    useEffect(() => {
+        // Track page view based on user type
+        trackEvent('view_results_page', {
+            is_organizer: !currentParticipantId,
+            participant_id: currentParticipantId
+        });
+    }, [currentParticipantId]);
+
+    const { p: participants, matches: matchIds } = exchangeData;
+
+    const matches: Match[] = useMemo(() => matchIds.map(m => ({
         giver: participants.find(p => p.id === m.g)!,
         receiver: participants.find(p => p.id === m.r)!,
     })).filter(m => m.giver && m.receiver), [matchIds, participants]);
 
-    const loggedInParticipant = useMemo(() => {
-        return participants.find(p => p.id === currentParticipantId);
-    }, [currentParticipantId, participants]);
-
-    useEffect(() => {
-        if (isOrganizerView) {
-            setIsNameRevealed(true);
-        } else {
-            const match = allMatches.find(m => m.giver.id === currentParticipantId);
-            setCurrentMatch(match || null);
-        }
-    }, [currentParticipantId, allMatches, isOrganizerView]);
+    const isOrganizer = !currentParticipantId;
     
-     useEffect(() => {
-        // This effect ensures that if the data prop changes (e.g., from an external refresh),
-        // the component's internal state is updated.
-        setExchangeData(data);
-    }, [data]);
+    const currentParticipant = useMemo(() =>
+        currentParticipantId ? participants.find(p => p.id === currentParticipantId) : null,
+    [participants, currentParticipantId]);
+    
+    const currentMatch = useMemo(() =>
+        currentParticipant ? matches.find(m => m.giver.id === currentParticipant.id) : null,
+    [matches, currentParticipant]);
 
     const handleReveal = () => {
         setIsNameRevealed(true);
-        if (currentMatch) {
-            trackEvent('reveal_name', { participant: currentMatch.giver.name });
-        }
+        trackEvent('reveal_name');
     };
     
-    const handleStartOver = () => {
-        trackEvent('click_start_over', { from: 'results_page' });
-        window.location.href = '/generator.html';
-    };
-
     const handleSaveWishlist = (updatedParticipant: Participant) => {
-        // Optimistically update the UI for a snappy user experience
-        const nextState = produce(exchangeData, draft => {
-            const pIndex = draft.p.findIndex(p => p.id === updatedParticipant.id);
-            if (pIndex !== -1) {
-                draft.p[pIndex] = updatedParticipant;
-            }
-        });
-        setExchangeData(nextState);
-        trackEvent('wishlist_updated');
+        setExchangeData(prevData => ({
+            ...prevData,
+            p: prevData.p.map(p => p.id === updatedParticipant.id ? updatedParticipant : p)
+        }));
+        trackEvent('wishlist_save_success');
     };
 
-    const renderParticipantView = () => {
-        if (!currentMatch || !loggedInParticipant) {
-            return (
-                <div className="text-center bg-white p-8 rounded-2xl shadow-lg border">
-                    <h2 className="text-2xl font-bold text-red-600">Participant Not Found</h2>
-                    <p className="text-slate-600 mt-2">We couldn't find a match for this link. Please check the URL or contact your organizer.</p>
+    const openShareModal = (view: 'links' | 'print') => {
+        setShareModalInitialView(view);
+        setIsShareModalOpen(true);
+        trackEvent('open_share_modal', { initial_view: view });
+    };
+    
+    if (!isOrganizer && !currentMatch) {
+         return (
+            <div className="flex items-center justify-center min-h-screen p-4">
+                <div className="text-center bg-white p-8 rounded-2xl shadow-lg border max-w-lg">
+                    <h2 className="text-2xl font-bold text-red-600">Invalid Link</h2>
+                    <p className="text-slate-600 mt-2">We couldn't find your match. Please check the link or contact your organizer.</p>
                 </div>
-            );
-        }
-        return (
-            <div className="space-y-8">
-                <div className="max-w-md mx-auto">
-                    <PrintableCard
-                        match={currentMatch}
-                        eventDetails={styleData.eventDetails}
-                        isNameRevealed={isNameRevealed}
-                        backgroundOptions={styleData.backgroundOptions}
-                        bgId={styleData.bgId}
-                        bgImg={styleData.customBackground}
-                        txtColor={styleData.textColor}
-                        outline={styleData.useTextOutline}
-                        outColor={styleData.outlineColor}
-                        outSize={styleData.outlineSize}
-                        fontSize={styleData.fontSizeSetting}
-                        font={styleData.fontTheme}
-                        line={styleData.lineSpacing}
-                        greet={styleData.greetingText}
-                        intro={styleData.introText}
-                        wish={styleData.wishlistLabelText}
-                    />
-                    {!isNameRevealed && (
-                        <div className="text-center mt-6">
-                            <button onClick={handleReveal} className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105">
-                                Click to Reveal Your Person!
-                            </button>
-                        </div>
-                    )}
-                </div>
-                
-                {isNameRevealed && (
-                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
-                        <h3 className="text-xl font-bold text-slate-800 text-center mb-4">My Wishlist</h3>
-                        <p className="text-center text-slate-500 text-sm mb-4">Your Secret Santa will see this information. You can update it anytime!</p>
-                        <div className="text-left text-sm space-y-2 bg-slate-50 p-4 rounded-lg">
-                           <p><strong>Interests:</strong> {loggedInParticipant.interests || 'N/A'}</p>
-                           <p><strong>Likes:</strong> {loggedInParticipant.likes || 'N/A'}</p>
-                           <p><strong>Dislikes:</strong> {loggedInParticipant.dislikes || 'N/A'}</p>
-                           <p><strong>Links:</strong> {loggedInParticipant.links || 'N/A'}</p>
-                           <p><strong>Budget:</strong> {loggedInParticipant.budget || 'N/A'}</p>
-                        </div>
-                        <div className="text-center mt-4">
-                            <button onClick={() => setIsWishlistEditorOpen(true)} className="flex items-center gap-2 mx-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">
-                                <Edit size={16} /> Edit My Wishlist
-                            </button>
-                        </div>
-                    </div>
-                )}
             </div>
         );
-    };
-
-    const renderOrganizerView = () => (
-        <>
-            <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-slate-800 font-serif">Organizer's Master List</h1>
-                <p className="text-lg text-slate-600 mt-2">Here are all the generated matches. Keep this page safe!</p>
-            </div>
-            <div className="p-6 bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300 mb-8 flex flex-col md:flex-row gap-4 justify-center items-center">
-                <button onClick={() => setShowShareModal(true)} className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md">
-                    <Share2 size={20} /> Share Links & Download
-                </button>
-                <a href="#master-list" className="flex items-center gap-2 bg-white hover:bg-slate-200 text-slate-800 font-bold py-3 px-6 rounded-lg transition-colors border">
-                    <Eye size={20} /> View All Matches
-                </a>
-            </div>
-            <div id="master-list">
-                <ResultsDisplay matches={allMatches} />
-            </div>
-        </>
-    );
-
+    }
+    
     return (
-        <>
-            <main className="bg-slate-50 min-h-screen py-12 px-4">
-                <div className="container mx-auto max-w-4xl">
-                    {isOrganizerView ? renderOrganizerView() : renderParticipantView()}
-                    <div className="text-center mt-12 pt-8 border-t border-slate-200">
-                        <button onClick={handleStartOver} className="text-slate-500 hover:text-red-600 font-semibold flex items-center gap-2 mx-auto">
-                            <Home size={18} /> Start a New Game
-                        </button>
-                    </div>
-                </div>
-            </main>
-            {showShareModal && isOrganizerView && (
-                <ShareLinksModal exchangeData={exchangeData} onClose={() => setShowShareModal(false)} />
-            )}
-            {isWishlistEditorOpen && loggedInParticipant && exchangeData.id && (
-                <WishlistEditorModal
-                    participant={loggedInParticipant}
-                    exchangeId={exchangeData.id}
-                    onClose={() => setIsWishlistEditorOpen(false)}
+        <div className="bg-slate-50 min-h-screen">
+            {isShareModalOpen && <ShareLinksModal exchangeData={exchangeData} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
+            {isWishlistModalOpen && currentParticipant && (
+                <WishlistEditorModal 
+                    participant={currentParticipant} 
+                    exchangeId={exchangeData.id!}
+                    onClose={() => setIsWishlistModalOpen(false)}
                     onSave={handleSaveWishlist}
                 />
             )}
-        </>
+            <Header />
+            <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl">
+                {isOrganizer ? (
+                    // Organizer View
+                    <div className="space-y-8">
+                        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200 text-center">
+                             <Gift className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Success! Your Game is Ready!</h1>
+                            <p className="text-slate-600 mt-2 max-w-2xl mx-auto">
+                                All names have been drawn. Use the buttons below to share the private links with each participant or download printable cards for your event.
+                            </p>
+                             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                                <button onClick={() => openShareModal('links')} className="py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg">
+                                    <Share2 size={20} /> Share Links
+                                </button>
+                                <button onClick={() => openShareModal('print')} className="py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <Download size={20} /> Download & Print
+                                </button>
+                            </div>
+                        </div>
+                        <ResultsDisplay matches={matches} />
+                    </div>
+                ) : (
+                    // Participant View
+                    currentMatch && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                            <div className="w-full max-w-sm mx-auto">
+                                 <PrintableCard
+                                    match={currentMatch}
+                                    eventDetails={exchangeData.eventDetails}
+                                    isNameRevealed={isNameRevealed}
+                                    backgroundOptions={exchangeData.backgroundOptions}
+                                    bgId={exchangeData.bgId}
+                                    bgImg={exchangeData.customBackground}
+                                    txtColor={exchangeData.textColor}
+                                    outline={exchangeData.useTextOutline}
+                                    outColor={exchangeData.outlineColor}
+                                    outSize={exchangeData.outlineSize}
+                                    fontSize={exchangeData.fontSizeSetting}
+                                    font={exchangeData.fontTheme}
+                                    line={exchangeData.lineSpacing}
+                                    greet={exchangeData.greetingText}
+                                    intro={exchangeData.introText}
+                                    wish={exchangeData.wishlistLabelText}
+                                />
+                            </div>
+                            <div className="text-center md:text-left">
+                                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {currentMatch.giver.name}!</h1>
+                                <p className="text-lg text-slate-600 mt-2">You're a Secret Santa! Here is your private card with your match's details.</p>
+                                
+                                {!isNameRevealed && (
+                                     <button onClick={handleReveal} className="mt-8 w-full md:w-auto py-4 px-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                                        Click to Reveal Your Person!
+                                    </button>
+                                )}
+                                {isNameRevealed && (
+                                    <div className="mt-8 space-y-4">
+                                        <div className="bg-white rounded-lg p-6 border text-left">
+                                            <h3 className="font-bold text-lg text-slate-700 flex items-center gap-2"><Users size={20}/>Your Person:</h3>
+                                            <p className="text-2xl font-bold text-red-600">{currentMatch.receiver.name}</p>
+                                        </div>
+                                         <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                                            <Edit size={18} /> Edit My Wishlist for My Santa
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )
+                )}
+            </main>
+            <Footer />
+        </div>
     );
 };
 
