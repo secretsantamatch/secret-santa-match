@@ -99,7 +99,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 <div className="absolute inset-0 bg-white"></div>
             )}
             <div
-                className={`absolute inset-0 pt-16 pb-8 px-8 flex flex-col text-center justify-between ${currentFontSize.base} ${fontClasses[font]}`}
+                className={`absolute inset-0 pt-10 pb-8 px-8 flex flex-col text-center justify-center gap-y-4 ${currentFontSize.base} ${fontClasses[font]}`}
                 style={{
                     color: txtColor,
                     textShadow: textShadow,
@@ -108,7 +108,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             >
                 <header>
                     <h2 className={`${currentFontSize.header} font-bold`}>{greet.replace('{secret_santa}', giver.name)}</h2>
-                    <p className="mt-1">{intro}</p>
+                    <p>{intro}</p>
                 </header>
 
                 <main className="flex items-center justify-center">
@@ -126,15 +126,13 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     {isNameRevealed && hasDetails && (
                         <>
                             <h3 className={`font-bold text-lg mb-2`}>{wish}</h3>
-                            <div className="text-center">
-                                <ul className="space-y-1 list-none">
-                                    {receiver.budget && <li><strong className="font-semibold">Budget:</strong> {receiver.budget}</li>}
-                                    {receiver.interests && <li><strong className="font-semibold">Interests:</strong> {receiver.interests}</li>}
-                                    {receiver.likes && <li><strong className="font-semibold">Likes:</strong> {receiver.likes}</li>}
-                                    {receiver.dislikes && <li><strong className="font-semibold">Dislikes:</strong> {receiver.dislikes}</li>}
-                                    {receiver.links && <li className="list-none"><strong className="font-semibold">Links:</strong><ul className="pl-4">{renderLinks(receiver.links)}</ul></li>}
-                                </ul>
-                            </div>
+                             <ul className="space-y-1 list-none p-0 m-0 inline-block text-left">
+                                {receiver.budget && <li><strong className="font-semibold">Budget:</strong> {receiver.budget}</li>}
+                                {receiver.interests && <li><strong className="font-semibold">Interests:</strong> {receiver.interests}</li>}
+                                {receiver.likes && <li><strong className="font-semibold">Likes:</strong> {receiver.likes}</li>}
+                                {receiver.dislikes && <li><strong className="font-semibold">Dislikes:</strong> {receiver.dislikes}</li>}
+                                {receiver.links && <li className="list-none"><strong className="font-semibold">Links:</strong><ul className="pl-4">{renderLinks(receiver.links)}</ul></li>}
+                            </ul>
                         </>
                     )}
                     {isNameRevealed && !hasDetails && (
