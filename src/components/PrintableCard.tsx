@@ -76,7 +76,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   // Auto-sizing logic
   const giverNameLength = giver.name.length;
   const receiverNameLength = receiverName.length;
-  const wishlistContent = [receiver.interests, receiver.likes, receiver.dislikes, receiver.links, receiver.budget].join(' ');
+  const wishlistContent = [receiver.interests, receiver.likes, receiver.dislikes, receiver.budget].join(' ');
   const wishlistLength = wishlistContent.length;
 
   const getHeaderFontSize = () => {
@@ -99,19 +99,11 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
     if (!value || value.trim() === '') return null;
-    if (label === 'Links' && isForPdf) return null; // Don't show links on PDF
-
-    const isLinks = label === 'Links';
-    const content = isLinks ? 
-      value.split('\n').filter(link => link.trim()).map((link, i) => (
-        <a key={i} href={link.startsWith('http') ? link : `//${link}`} target="_blank" rel="noopener noreferrer" className="underline break-all block">{link}</a>
-      )) : 
-      <span className="break-words">{value}</span>;
-
+    
     return (
-      <div className="break-words">
-        <strong className="font-bold">{label}:</strong> {content}
-      </div>
+      <li className="break-words">
+        <strong className="font-bold">{label}:</strong> <span>{value}</span>
+      </li>
     );
   };
   
@@ -121,7 +113,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div
-        className={`absolute inset-0 flex flex-col items-center justify-start pt-20 px-8 pb-16 text-center gap-y-2 ${baseFontSizeClasses[fontSize]}`}
+        className={`absolute inset-0 flex flex-col items-center justify-start pt-20 px-12 pb-16 text-center gap-y-4 ${baseFontSizeClasses[fontSize]}`}
         style={{ color: txtColor, textShadow, lineHeight: line, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
@@ -145,17 +137,16 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
               {renderWishlistItem('Interests', receiver.interests)}
               {renderWishlistItem('Likes', receiver.likes)}
               {renderWishlistItem('Dislikes', receiver.dislikes)}
-              {renderWishlistItem('Links', receiver.links)}
               {renderWishlistItem('Budget', receiver.budget)}
             </ul>
+            {eventDetails && <p className="text-sm opacity-90 break-words mt-4">{eventDetails}</p>}
           </div>
         )}
         
-        {/* Footer */}
-        <footer className="absolute bottom-4 left-0 right-0 px-4 text-center">
-             {eventDetails && <p className="text-sm opacity-90 break-words">{eventDetails}</p>}
-             {showWatermark && <p className="text-xs opacity-70 mt-1">SecretSantaMatch.com</p>}
-        </footer>
+        {/* Absolutely positioned watermark */}
+        <div className="absolute bottom-4 left-0 right-0 px-4 text-center">
+             {showWatermark && <p className="text-xs opacity-70">SecretSantaMatch.com</p>}
+        </div>
 
       </div>
     </div>
