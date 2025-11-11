@@ -38,7 +38,7 @@ const GeneratorPage: React.FC = () => {
     const [selectedBackgroundId, setSelectedBackgroundId] = useState('gift-border');
     const [customBackground, setCustomBackground] = useState<string | null>(null);
     const [textColor, setTextColor] = useState('#FFFFFF');
-    const [useTextOutline, setUseTextOutline] = useState(true);
+    const [useTextOutline, setUseTextOutline] = useState(false);
     const [outlineColor, setOutlineColor] = useState('#000000');
     const [outlineSize, setOutlineSize] = useState<OutlineSizeSetting>('normal');
     const [fontSize, setFontSize] = useState<FontSizeSetting>('normal');
@@ -100,10 +100,15 @@ const GeneratorPage: React.FC = () => {
      useEffect(() => {
         if (customBackground) return;
         const selectedOption = backgroundOptions.find(opt => opt.id === selectedBackgroundId);
-        if (selectedOption?.cardText) {
-            setGreetingText(selectedOption.cardText.greeting);
-            setIntroText(selectedOption.cardText.intro);
-            setWishlistLabelText(selectedOption.cardText.wishlistLabel);
+        if (selectedOption) {
+            if (selectedOption.cardText) {
+                setGreetingText(selectedOption.cardText.greeting);
+                setIntroText(selectedOption.cardText.intro);
+                setWishlistLabelText(selectedOption.cardText.wishlistLabel);
+            }
+            if (selectedOption.defaultTextColor) {
+                setTextColor(selectedOption.defaultTextColor);
+            }
         }
      }, [selectedBackgroundId, backgroundOptions, customBackground]);
 

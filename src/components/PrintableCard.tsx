@@ -1,13 +1,11 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import type { Match, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 
 interface PrintableCardProps {
-  match: Match | { giver: { name: string }, receiver: { name: string, interests: string, likes: string, dislikes: string, links: string, budget: string } };
+  match: Match;
   eventDetails: string;
   isNameRevealed: boolean;
-  onReveal?: () => void;
   backgroundOptions: BackgroundOption[];
-  // Style props are now individual
   bgId: string;
   bgImg: string | null;
   txtColor: string;
@@ -22,223 +20,132 @@ interface PrintableCardProps {
   wish: string;
 }
 
-const PrintableCard: React.FC<PrintableCardProps> = ({ 
-  match, eventDetails, isNameRevealed, onReveal, backgroundOptions,
-  bgId, bgImg, txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish 
+const fontClasses: Record<FontTheme, string> = {
+    classic: 'font-serif',
+    elegant: 'font-[Cormorant Garamond, serif]',
+    modern: 'font-sans',
+    whimsical: 'font-[Patrick Hand, cursive]'
+};
+
+const fontSizeClasses: Record<FontSizeSetting, { base: string, header: string, name: string }> = {
+    normal: { base: 'text-sm', header: 'text-2xl', name: 'text-4xl' },
+    large: { base: 'text-base', header: 'text-3xl', name: 'text-5xl' },
+    'extra-large': { base: 'text-lg', header: 'text-4xl', name: 'text-6xl' }
+};
+
+const outlineSizeMap: Record<OutlineSizeSetting, string> = {
+    thin: '1px',
+    normal: '2px',
+    thick: '3px'
+};
+
+const PrintableCard: React.FC<PrintableCardProps> = ({
+  match, eventDetails, isNameRevealed, backgroundOptions, bgId, bgImg,
+  txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const isDrawing = useRef(false);
-  const [isRevealing, setIsRevealing] = useState(false);
+    const { giver, receiver } = match;
 
-  const fontFamilies: Record<string, string> = {
-    classic: '"Playfair Display", serif',
-    elegant: '"Cormorant Garamond", serif',
-    modern: '"Montserrat", sans-serif',
-    whimsical: '"Patrick Hand", cursive',
-  };
-
-  const fontSizes: Record<string, string> = {
-    normal: '1rem',
-    large: '1.15rem',
-    'extra-large': '1.3rem',
-  };
-
-  const outlineSizes: Record<string, string> = {
-    thin: '0.5px',
-    normal: '1px',
-    thick: '2px',
-  };
-
-  const dynamicStyles = {
-    '--base-font-size': fontSizes[fontSize] || '1rem',
-    '--line-spacing': line,
-    '--text-color': txtColor,
-    '--font-family': fontFamilies[font] || '"Playfair Display", serif',
-    textShadow: outline ? `${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `${outlineSizes[outSize]} ${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `-${outlineSizes[outSize]} -${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `${outlineSizes[outSize]} -${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `-${outlineSizes[outSize]} ${outlineSizes[outSize]} 0`} ${outColor}` : 'none',
-  } as React.CSSProperties;
-
-  const backgroundImageUrlRaw = bgImg || (bgId !== 'plain-white' && backgroundOptions.find(b => b.id === bgId)?.imageUrl);
-  
-  let backgroundImageUrl = backgroundImageUrlRaw;
-  if (backgroundImageUrl && !backgroundImageUrl.startsWith('http') && !backgroundImageUrl.startsWith('data:') && !backgroundImageUrl.startsWith('/')) {
-    backgroundImageUrl = `/${backgroundImageUrl}`;
-  }
-
-  // Combine interests, likes and dislikes for the printable card view
-  const combinedNotes = [
-    match.receiver.interests ? `Interests: ${match.receiver.interests}` : '',
-    match.receiver.likes ? `Likes: ${match.receiver.likes}` : '',
-    match.receiver.dislikes ? `Dislikes: ${match.receiver.dislikes}` : ''
-  ].filter(Boolean).join('\n');
-
-
-  useEffect(() => {
-    if (isNameRevealed || !onReveal) return;
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    
-    // Create a silver-like gradient for the scratch-off surface
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#d1d5db');
-    gradient.addColorStop(0.5, '#9ca3af');
-    gradient.addColorStop(1, '#d1d5db');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Add text overlay
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.font = 'bold 20px "Montserrat", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('Scratch to Reveal!', canvas.width / 2, canvas.height / 2);
-
-
-    const getCoordinates = (event: MouseEvent | TouchEvent) => {
-        const rect = canvas.getBoundingClientRect();
-        if (event instanceof MouseEvent) {
-            return { x: event.clientX - rect.left, y: event.clientY - rect.top };
-        } else if (event.touches[0]) {
-            return { x: event.touches[0].clientX - rect.left, y: event.touches[0].clientY - rect.top };
+    const backgroundUrl = useMemo(() => {
+        if (bgId === 'custom' && bgImg) {
+            return bgImg;
         }
-        return null;
-    };
+        const selectedOption = backgroundOptions.find(opt => opt.id === bgId);
+        return selectedOption ? selectedOption.imageUrl : (backgroundOptions[0]?.imageUrl || '');
+    }, [bgId, bgImg, backgroundOptions]);
 
-    const scratch = (e: MouseEvent | TouchEvent) => {
-        if (!isDrawing.current) return;
-        e.preventDefault();
-        const coords = getCoordinates(e);
-        if (coords) {
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.beginPath();
-            ctx.arc(coords.x, coords.y, 25, 0, Math.PI * 2, true);
-            ctx.fill();
-        }
-    };
+    const textShadow = useMemo(() => {
+        if (!outline) return 'none';
+        const size = outlineSizeMap[outSize];
+        const color = outColor || '#000000';
+        return `${size} ${size} 0 ${color}, -${size} -${size} 0 ${color}, ${size} -${size} 0 ${color}, -${size} ${size} 0 ${color}, ${size} 0 0 ${color}, -${size} 0 0 ${color}, 0 ${size} 0 ${color}, 0 -${size} 0 ${color}`;
+    }, [outline, outColor, outSize]);
+    
+    const hasDetails = receiver.interests || receiver.likes || receiver.dislikes || receiver.links || receiver.budget;
+    const currentFontSize = fontSizeClasses[fontSize];
 
-    const checkReveal = () => {
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const pixelData = imageData.data;
-        let transparentPixels = 0;
-        for (let i = 3; i < pixelData.length; i += 4) {
-            if (pixelData[i] === 0) {
-                transparentPixels++;
+    // Auto-fit name logic
+    const nameLength = receiver.name.length;
+    let nameSizeClass = currentFontSize.name;
+    if (nameLength > 20) {
+      nameSizeClass = fontSizeClasses[fontSize].base; 
+    } else if (nameLength > 12) {
+      nameSizeClass = fontSizeClasses[fontSize].header;
+    }
+    
+    const renderLinks = (links: string) => {
+        return links.split('\n').filter(Boolean).map((link, i) => {
+            let href = link.trim();
+            if (!href.startsWith('http://') && !href.startsWith('https://')) {
+                href = `https://${href}`;
             }
-        }
-        const revealedPercentage = (transparentPixels / (canvas.width * canvas.height));
-        
-        if (revealedPercentage > 0.6) {
-            setIsRevealing(true);
-            setTimeout(() => {
-                onReveal();
-            }, 300); // Animation delay
-        }
-    };
+            try {
+                // To check if it's a valid URL, otherwise render as text
+                new URL(href);
+                return <li key={i}><a href={href} target="_blank" rel="noopener noreferrer" className="underline break-all">{link.trim()}</a></li>;
+            } catch {
+                return <li key={i} className="break-all">{link.trim()}</li>;
+            }
+        });
+    }
 
-    const startScratching = (e: MouseEvent | TouchEvent) => {
-        e.preventDefault();
-        isDrawing.current = true;
-        scratch(e);
-    };
+    return (
+        <div 
+            id={`printable-card-${giver.id}`} 
+            className="printable-card-container aspect-[3/4] w-full bg-white text-black relative shadow-lg overflow-hidden select-none rounded-xl"
+        >
+            {backgroundUrl ? (
+                <img src={backgroundUrl} alt="Card background" className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+                <div className="absolute inset-0 bg-white"></div>
+            )}
+            <div
+                className={`absolute inset-0 p-6 flex flex-col justify-between ${fontClasses[font]} ${currentFontSize.base}`}
+                style={{
+                    color: txtColor,
+                    textShadow: textShadow,
+                    lineHeight: line,
+                }}
+            >
+                <header className="text-center">
+                    <h2 className={`${currentFontSize.header} font-bold`}>{greet.replace('{secret_santa}', giver.name)}</h2>
+                    <p className="mt-2">{intro}</p>
+                </header>
 
-    const stopScratching = () => {
-        isDrawing.current = false;
-        checkReveal();
-    };
-
-    canvas.addEventListener('mousedown', startScratching);
-    canvas.addEventListener('touchstart', startScratching, { passive: false });
-    canvas.addEventListener('mousemove', scratch);
-    canvas.addEventListener('touchmove', scratch, { passive: false });
-    window.addEventListener('mouseup', stopScratching);
-    window.addEventListener('touchend', stopScratching);
-
-    return () => {
-        if (canvas) {
-            canvas.removeEventListener('mousedown', startScratching);
-            canvas.removeEventListener('touchstart', startScratching);
-            canvas.removeEventListener('mousemove', scratch);
-            canvas.removeEventListener('touchmove', scratch);
-        }
-        window.removeEventListener('mouseup', stopScratching);
-        window.removeEventListener('touchend', stopScratching);
-    };
-
-  }, [isNameRevealed, onReveal]);
-
-  return (
-    <div 
-        className="printable-card aspect-[3/4] w-full max-w-sm mx-auto rounded-2xl shadow-lg relative overflow-hidden bg-white flex flex-col items-center justify-center p-6" 
-        style={dynamicStyles}
-    >
-      {backgroundImageUrl && (
-        <img 
-          src={backgroundImageUrl} 
-          alt="" 
-          className="absolute inset-0 w-full h-full object-cover" 
-          crossOrigin="anonymous" 
-          loading="lazy"
-          width="338"
-          height="450"
-        />
-      )}
-      <div className="relative z-10 text-center flex flex-col h-full w-full">
-        <div className="flex-grow flex flex-col items-center justify-center text-center">
-            <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)', lineHeight: 'var(--line-spacing)' }} className="opacity-90">
-                {greet.replace('{secret_santa}', match.giver.name)}
-            </p>
-            <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 1.1)', lineHeight: 'var(--line-spacing)' }} className="mt-1">
-                {intro.replace('{secret_santa}', match.giver.name)}
-            </p>
-            
-            <div className="my-4 w-full relative">
-                {isNameRevealed ? (
-                    <>
-                      <h2 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 2.25)' }} className="font-bold break-words">
-                          {match.receiver.name}
-                      </h2>
-                      
-                      {(combinedNotes || match.receiver.budget) && (
-                          <div className="mt-4 w-full text-center">
-                              <h3 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)'}} className="font-bold tracking-widest uppercase opacity-70">
-                                  {wish}
-                              </h3>
-                              <div style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words px-4 whitespace-pre-wrap">
-                                  {combinedNotes && <p>{combinedNotes}</p>}
-                                  {match.receiver.budget && <p className="mt-1">{`Budget: $${match.receiver.budget}`}</p>}
-                              </div>
-                          </div>
-                      )}
-
-                      {eventDetails && (
-                        <div className="w-full text-center px-4 mt-4">
-                          <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)' }} className="opacity-80 break-words">
-                            {eventDetails}
-                          </p>
+                <main className="text-center my-4 flex-grow flex items-center justify-center">
+                    {isNameRevealed ? (
+                        <p className={`${nameSizeClass} font-extrabold tracking-tight break-words`}>{receiver.name}</p>
+                    ) : (
+                        <div className="bg-white/20 backdrop-blur-sm p-4 rounded-lg">
+                            <p className="text-lg">Your match is hidden!</p>
+                            <p className="text-sm">Click the button to reveal your person.</p>
                         </div>
-                      )}
-                    </>
-                ) : (
-                    <div className="w-full aspect-[3/1] max-w-[80%] mx-auto relative cursor-pointer group">
-                         <div className="w-full h-full flex items-center justify-center rounded-xl bg-white/30 backdrop-blur-sm border border-white/50">
-                            {/* This is the content that will be revealed */}
-                         </div>
-                         <canvas 
-                            ref={canvasRef} 
-                            className={`absolute inset-0 w-full h-full rounded-xl transition-opacity duration-300 ${isRevealing ? 'opacity-0' : 'opacity-100'}`}
-                         ></canvas>
-                    </div>
-                )}
+                    )}
+                </main>
+
+                <footer className="text-left max-h-[45%] overflow-y-auto p-3 rounded-lg bg-black/30 backdrop-blur-sm scrollbar-thin">
+                    {isNameRevealed && hasDetails && (
+                        <>
+                            <h3 className="font-bold text-lg mb-2">{wish}</h3>
+                            <ul className="space-y-1.5 list-disc list-inside">
+                                {receiver.budget && <li><strong>Budget:</strong> {receiver.budget}</li>}
+                                {receiver.interests && <li><strong>Interests:</strong> {receiver.interests}</li>}
+                                {receiver.likes && <li><strong>Likes:</strong> {receiver.likes}</li>}
+                                {receiver.dislikes && <li><strong>Dislikes:</strong> {receiver.dislikes}</li>}
+                                {receiver.links && <li className="list-none -ml-4"><strong>Links:</strong><ul className="pl-4">{renderLinks(receiver.links)}</ul></li>}
+                            </ul>
+                        </>
+                    )}
+                    {isNameRevealed && !hasDetails && (
+                         <p className="italic">No wishlist details were provided for {receiver.name}.</p>
+                    )}
+                     {isNameRevealed && eventDetails && (
+                        <p className="mt-3 pt-3 border-t border-white/30 italic text-sm">{eventDetails}</p>
+                    )}
+                </footer>
+                 <p className="text-center text-[8px] absolute bottom-1 left-1/2 -translate-x-1/2 opacity-70" style={{ textShadow: '1px 1px 2px #000' }}>SecretSantaMatch.com</p>
             </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default PrintableCard;

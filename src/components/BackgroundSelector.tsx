@@ -33,8 +33,8 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     setError(null);
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        setError("Image is too large. Please use a file under 2MB.");
+      if (file.size > 3 * 1024 * 1024) { // 3MB limit
+        setError("Image is too large. Please use a file under 3MB.");
         return;
       }
       const reader = new FileReader();
@@ -63,30 +63,28 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-slate-700 mb-2">Card Style</h3>
-      <p className="text-slate-500 mb-4 text-sm">Choose a background for the printable and digital cards.</p>
-      <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
         {backgroundOptions.map((option) => (
           <button
             key={option.id}
             type="button"
             onClick={() => handleSelect(option)}
-            className={`aspect-square rounded-lg border-4 transition-all overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+            className={`aspect-[3/4] rounded-lg border-4 transition-all overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
               selected === option.id && !customBackground
                 ? 'border-indigo-500 scale-105'
                 : 'border-transparent hover:border-slate-300'
             }`}
+            title={option.name}
           >
-            {/* Add a guarded description to satisfy build error TS18048 */}
             {option.description && <span className="sr-only">{option.description}</span>}
             <img src={option.imageUrl} alt={option.name} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
-            <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-white text-xs font-bold whitespace-nowrap px-1 bg-black/50 rounded">{option.name}</span>
+            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors"></div>
+            <span className="absolute bottom-1 right-1 text-white text-[10px] font-bold whitespace-nowrap px-1.5 py-0.5 bg-black/50 rounded">{option.icon}</span>
           </button>
         ))}
         <label
             htmlFor="custom-bg-upload"
-            className={`aspect-square rounded-lg border-4 transition-all flex items-center justify-center cursor-pointer relative group ${
+            className={`aspect-[3/4] rounded-lg border-4 transition-all flex items-center justify-center cursor-pointer relative group ${
               selected === 'custom' && customBackground
                 ? 'border-indigo-500 scale-105'
                 : 'border-dashed border-slate-300 hover:border-indigo-400'
