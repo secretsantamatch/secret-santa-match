@@ -39,6 +39,8 @@ export type FontTheme = 'classic' | 'elegant' | 'modern' | 'whimsical';
 export interface BackgroundOption {
   id: string;
   name: string;
+  description?: string;
+  icon?: string;
   imageUrl: string;
   defaultTextColor?: string;
   cardText?: {

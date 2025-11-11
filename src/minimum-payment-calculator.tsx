@@ -2,22 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Calculator, Trash2, PlusCircle, Banknote, Coffee, Utensils, Tv, Phone, Pizza, TreePalm, Share2, Download, BookOpen, AlertTriangle } from 'lucide-react';
 import CalculatorResults from './components/CalculatorResults';
 import type { CalculatorResult, Debt } from './types';
-
-// FIX: Change gtag type to be consistent with other declarations in the project to avoid type errors.
-declare global {
-  interface Window {
-    gtag: (...args: any[]) => void;
-  }
-}
-
-// FIX: Add trackEvent helper function to send analytics events.
-const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) => {
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', eventName, eventParams);
-  } else {
-    console.log(`Analytics Event (gtag not found): ${eventName}`, eventParams);
-  }
-};
+import { trackEvent } from './services/analyticsService';
 
 const MinimumPaymentCalculator: React.FC = () => {
     const [debts, setDebts] = useState<Debt[]>([
@@ -162,7 +147,7 @@ const MinimumPaymentCalculator: React.FC = () => {
                         <img src="/logo_256.png" alt="Logo" className="h-8 w-8" />
                         SecretSantaMatch
                     </a>
-                    <a href="/" className="font-semibold text-slate-600 hover:text-indigo-600 text-sm">
+                    <a href="/blog.html" className="font-semibold text-slate-600 hover:text-indigo-600 text-sm">
                         &larr; Back to Blog
                     </a>
                 </div>

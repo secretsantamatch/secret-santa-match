@@ -4,6 +4,7 @@ import { Zap, Flame, Award, Download, Share2, BookOpen, ArrowRight, AlertTriangl
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import type { CalculatorResult, Debt, PayoffResult } from '../types';
+import { trackEvent } from '../services/analyticsService';
 
 interface CalculatorResultsProps {
   debts: Debt[];
@@ -11,20 +12,6 @@ interface CalculatorResultsProps {
   customPayment: number;
   setCustomPayment: Dispatch<SetStateAction<number>>;
 }
-
-declare global {
-  interface Window {
-    gtag: (...args: any[]) => void;
-  }
-}
-
-const trackEvent = (eventName: string, eventParams: Record<string, any> = {}) => {
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', eventName, eventParams);
-  } else {
-    console.log(`Analytics Event (gtag not found): ${eventName}`, eventParams);
-  }
-};
 
 const formatCurrency = (num: number) => {
     if (num === Infinity || isNaN(num)) return '∞';
@@ -105,7 +92,9 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({ debts, results, c
         const handler = setTimeout(() => {
             const newCustomResults = calculatePayoff(customPayment);
             setDynamicCustomResults(newCustomResults);
-            setDynamicInterestSaved(results.scenarios[0].totalInterest - newCustomResults.totalInterest);
+            if (results.scenarios[0]) {
+                setDynamicInterestSaved(results.scenarios[0].totalInterest - newCustomResults.totalInterest);
+            }
         }, 100); // Debounce calculation
 
         return () => clearTimeout(handler);
