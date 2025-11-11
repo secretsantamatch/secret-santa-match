@@ -63,12 +63,15 @@ const Options: React.FC<OptionsProps> = (props) => {
   const displayBgId = hoveredBgId || selectedBackgroundId;
   const displayBgImg = displayBgId === 'custom' ? styleProps.customBackground : null;
   
-  const activeOption = backgroundOptions.find(opt => opt.id === (hoveredBgId || selectedBackgroundId));
+  const hoveredOption = backgroundOptions.find(opt => opt.id === hoveredBgId);
+  const selectedOption = backgroundOptions.find(opt => opt.id === selectedBackgroundId);
   
-  const displayTextColor = activeOption?.defaultTextColor ?? styleProps.textColor;
-  const displayGreetingText = activeOption?.cardText?.greeting ?? styleProps.greetingText;
-  const displayIntroText = activeOption?.cardText?.intro ?? styleProps.introText;
-  const displayWishlistLabelText = activeOption?.cardText?.wishlistLabel ?? styleProps.wishlistLabelText;
+  // Use hover state for preview, otherwise use the actual state
+  const displayTextColor = hoveredOption?.defaultTextColor ?? styleProps.textColor;
+  const displayGreetingText = hoveredOption?.cardText?.greeting ?? styleProps.greetingText;
+  const displayIntroText = hoveredOption?.cardText?.intro ?? styleProps.introText;
+  const displayWishlistLabelText = hoveredOption?.cardText?.wishlistLabel ?? styleProps.wishlistLabelText;
+  const displayBgOption = hoveredOption || selectedOption;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 lg:items-start">
@@ -87,15 +90,17 @@ const Options: React.FC<OptionsProps> = (props) => {
                         className="w-full p-2 pl-10 border border-slate-300 rounded-md"
                      />
                 </div>
-                <BackgroundSelector
-                    selected={selectedBackgroundId}
-                    setSelectedBackgroundId={setSelectedBackgroundId}
-                    setHoveredBackgroundId={setHoveredBgId}
-                    customBackground={styleProps.customBackground}
-                    setCustomBackground={styleProps.setCustomBackground}
-                    backgroundOptions={filteredThemes}
-                    onTextColorChange={styleProps.setTextColor}
-                />
+                 <div className="max-h-96 overflow-y-auto pr-2">
+                    <BackgroundSelector
+                        selected={selectedBackgroundId}
+                        setSelectedBackgroundId={setSelectedBackgroundId}
+                        setHoveredBackgroundId={setHoveredBgId}
+                        customBackground={styleProps.customBackground}
+                        setCustomBackground={styleProps.setCustomBackground}
+                        backgroundOptions={filteredThemes}
+                        onTextColorChange={styleProps.setTextColor}
+                    />
+                </div>
                 <div className="flex items-start gap-2 text-slate-500 text-xs mt-3 bg-slate-50 p-2 rounded-md">
                    <Info size={14} className="flex-shrink-0 mt-0.5" />
                    <p>Hover to preview, click to select. Recommended image size for custom uploads: 3:4 ratio, under 3MB.</p>
@@ -106,7 +111,7 @@ const Options: React.FC<OptionsProps> = (props) => {
             <section>
                 <h3 className="text-xl font-bold text-slate-800 mb-4">2. Customize Text Style</h3>
                 <div className="space-y-4 bg-slate-50 p-4 rounded-lg border">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="flex items-center gap-2">
                              <Palette className="w-5 h-5 text-slate-500" />
                              <label htmlFor="text-color" className="font-semibold text-sm text-slate-600">Text Color</label>
@@ -122,7 +127,7 @@ const Options: React.FC<OptionsProps> = (props) => {
                              </select>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                          <div className="flex items-center gap-2">
                              <Type className="w-5 h-5 text-slate-500" />
                              <label htmlFor="font-theme" className="font-semibold text-sm text-slate-600">Font Style</label>
@@ -146,6 +151,24 @@ const Options: React.FC<OptionsProps> = (props) => {
                             <label htmlFor="use-outline" className="font-semibold text-sm text-slate-600">Add text outline for better visibility</label>
                         </div>
                     </div>
+                     {styleProps.useTextOutline && (
+                        <div className="pt-3 border-t grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           <div className="flex items-center gap-2">
+                             <Droplet className="w-5 h-5 text-slate-500" />
+                             <label htmlFor="outline-color" className="font-semibold text-sm text-slate-600">Outline Color</label>
+                             <input id="outline-color" type="color" value={styleProps.outlineColor} onChange={(e) => styleProps.setOutlineColor(e.target.value)} className="w-8 h-8 border-none rounded cursor-pointer bg-transparent"/>
+                           </div>
+                           <div className="flex items-center gap-2">
+                               <BoxSelect className="w-5 h-5 text-slate-500" />
+                               <label htmlFor="outline-size" className="font-semibold text-sm text-slate-600">Outline Size</label>
+                               <select id="outline-size" value={styleProps.outlineSize} onChange={(e) => styleProps.setOutlineSize(e.target.value as OutlineSizeSetting)} className="p-1 border border-slate-300 rounded-md text-sm w-full">
+                                   <option value="thin">Thin</option>
+                                   <option value="normal">Normal</option>
+                                   <option value="thick">Thick</option>
+                               </select>
+                           </div>
+                        </div>
+                    )}
                 </div>
             </section>
             
@@ -163,7 +186,7 @@ const Options: React.FC<OptionsProps> = (props) => {
                         <input type="text" value={styleProps.introText} onChange={e => styleProps.setIntroText(e.target.value)} className="w-full p-2 mt-1 border border-slate-300 rounded-md text-sm" />
                     </div>
                      <div>
-                        <label className="text-sm font-semibold text-slate-600">Wishlist Header</label>
+                        <label className="text-sm font-semibold text-slate-600">Wishlist Label</label>
                         <input type="text" value={styleProps.wishlistLabelText} onChange={e => styleProps.setWishlistLabelText(e.target.value)} className="w-full p-2 mt-1 border border-slate-300 rounded-md text-sm" />
                     </div>
                  </div>
@@ -179,8 +202,8 @@ const Options: React.FC<OptionsProps> = (props) => {
                     eventDetails={eventDetails}
                     isNameRevealed={true}
                     backgroundOptions={backgroundOptions}
-                    bgId={displayBgId}
-                    bgImg={displayBgImg}
+                    bgId={displayBgOption?.id ?? ''}
+                    bgImg={displayBgId === 'custom' ? styleProps.customBackground : (displayBgOption?.imageUrl ?? '')}
                     txtColor={displayTextColor}
                     outline={styleProps.useTextOutline}
                     outColor={styleProps.outlineColor}
