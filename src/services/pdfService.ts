@@ -1,139 +1,183 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import html2canvas from 'html2canvas';
-import type { Match, PdfCardOptions } from '../types';
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import PrintableCard from '../components/PrintableCard';
+import type { BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
+import BackgroundSelector from './BackgroundSelector';
+import { Palette, Type, Droplet, Text, BoxSelect, Baseline, MessageSquare } from 'lucide-react';
 
-interface ListPdfOptions {
-    matches: Match[];
-    eventDetails: string;
-    exchangeDate?: string;
-    exchangeTime?: string;
+interface OptionsProps {
+  eventDetails: string;
+  setEventDetails: (details: string) => void;
+  
+  // Background props
+  selectedBackgroundId: string;
+  setSelectedBackgroundId: (id: string) => void;
+  customBackground: string | null;
+  setCustomBackground: (url: string | null) => void;
+  backgroundOptions: BackgroundOption[];
+  
+  // Text style props
+  textColor: string;
+  setTextColor: (color: string) => void;
+  useTextOutline: boolean;
+  setUseTextOutline: (use: boolean) => void;
+  outlineColor: string;
+  setOutlineColor: (color: string) => void;
+  outlineSize: OutlineSizeSetting;
+  setOutlineSize: (size: OutlineSizeSetting) => void;
+  
+  // Font props
+  fontSize: FontSizeSetting;
+  setFontSize: (size: FontSizeSetting) => void;
+  fontTheme: FontTheme;
+  setFontTheme: (theme: FontTheme) => void;
+  lineSpacing: number;
+  setLineSpacing: (spacing: number) => void;
+  
+  // Card text props
+  greetingText: string;
+  setGreetingText: (text: string) => void;
+  introText: string;
+  setIntroText: (text: string) => void;
+  wishlistLabelText: string;
+  setWishlistLabelText: (text: string) => void;
 }
 
-const renderComponentToCanvas = async (element: HTMLElement): Promise<HTMLCanvasElement> => {
-    // Add a small delay for images to load, especially for cross-origin images
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return await html2canvas(element, {
-        useCORS: true,
-        allowTaint: true,
-        scale: 2, // Higher scale for better quality
-        backgroundColor: null,
-    });
+const Options: React.FC<OptionsProps> = (props) => {
+  const {
+    eventDetails, setEventDetails,
+    selectedBackgroundId, setSelectedBackgroundId,
+    customBackground, setCustomBackground,
+    backgroundOptions,
+    textColor, setTextColor,
+    useTextOutline, setUseTextOutline,
+    outlineColor, setOutlineColor,
+    outlineSize, setOutlineSize,
+    fontSize, setFontSize,
+    fontTheme, setFontTheme,
+    lineSpacing, setLineSpacing,
+    greetingText, setGreetingText,
+    introText, setIntroText,
+    wishlistLabelText, setWishlistLabelText,
+  } = props;
+
+  return (
+    <div className="space-y-8">
+      {/* Event Details */}
+      <div>
+        <label htmlFor="event-details" className="text-lg font-semibold text-slate-700 block mb-2">Event Message</label>
+        <textarea
+          id="event-details"
+          value={eventDetails}
+          onChange={(e) => setEventDetails(e.target.value)}
+          placeholder="e.g., Exchange will be at the holiday party on Dec 20th!"
+          className="w-full p-2 border border-slate-300 rounded-md"
+          rows={2}
+        />
+        <p className="text-slate-500 mt-1 text-sm">This message will appear on each participant's card.</p>
+      </div>
+
+      {/* Background Selector */}
+      <BackgroundSelector
+        selectedBackgroundId={selectedBackgroundId}
+        setSelectedBackgroundId={setSelectedBackgroundId}
+        customBackground={customBackground}
+        setCustomBackground={setCustomBackground}
+        backgroundOptions={backgroundOptions}
+        onTextColorChange={setTextColor}
+      />
+      
+      {/* Advanced Styling Options */}
+      <details className="group">
+        <summary className="font-semibold text-slate-800 cursor-pointer list-none flex justify-between items-center">
+            <span>Advanced Card Styling Options</span>
+            <span className="transition-transform transform group-open:rotate-180">
+                <svg className="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+            </span>
+        </summary>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 border-t pt-6">
+
+          {/* Text Color */}
+          <div className="flex items-center gap-4">
+            <Palette className="w-6 h-6 text-slate-500" />
+            <label htmlFor="text-color" className="font-semibold text-slate-600">Text Color</label>
+            <input id="text-color" type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-10 h-10 border-none rounded-md cursor-pointer bg-white" />
+          </div>
+
+          {/* Text Outline */}
+          <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input id="use-outline" type="checkbox" checked={useTextOutline} onChange={(e) => setUseTextOutline(e.target.checked)} className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"/>
+                <label htmlFor="use-outline" className="font-semibold text-slate-600">Use Text Outline</label>
+              </div>
+              {useTextOutline && (
+                  <div className="pl-6 flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                          <Droplet className="w-5 h-5 text-slate-500" />
+                          <input id="outline-color" type="color" value={outlineColor} onChange={(e) => setOutlineColor(e.target.value)} className="w-8 h-8 border-none rounded-md cursor-pointer bg-white"/>
+                      </div>
+                      <div className="flex items-center gap-2">
+                           <BoxSelect className="w-5 h-5 text-slate-500" />
+                           <select id="outline-size" value={outlineSize} onChange={(e) => setOutlineSize(e.target.value as OutlineSizeSetting)} className="p-1 border border-slate-300 rounded-md text-sm">
+                               <option value="thin">Thin</option>
+                               <option value="normal">Normal</option>
+                               <option value="thick">Thick</option>
+                           </select>
+                      </div>
+                  </div>
+              )}
+          </div>
+
+          {/* Font Size */}
+          <div className="flex items-center gap-4">
+            <Text className="w-6 h-6 text-slate-500" />
+            <label htmlFor="font-size" className="font-semibold text-slate-600">Font Size</label>
+            <select id="font-size" value={fontSize} onChange={(e) => setFontSize(e.target.value as FontSizeSetting)} className="p-2 border border-slate-300 rounded-md text-sm">
+              <option value="normal">Normal</option>
+              <option value="large">Large</option>
+              <option value="extra-large">Extra Large</option>
+            </select>
+          </div>
+          
+          {/* Font Theme */}
+          <div className="flex items-center gap-4">
+            <Type className="w-6 h-6 text-slate-500" />
+            <label htmlFor="font-theme" className="font-semibold text-slate-600">Font Theme</label>
+            <select id="font-theme" value={fontTheme} onChange={(e) => setFontTheme(e.target.value as FontTheme)} className="p-2 border border-slate-300 rounded-md text-sm">
+              <option value="classic">Classic (Serif)</option>
+              <option value="elegant">Elegant (Garamond)</option>
+              <option value="modern">Modern (Sans-serif)</option>
+              <option value="whimsical">Whimsical (Cursive)</option>
+            </select>
+          </div>
+
+          {/* Line Spacing */}
+          <div className="flex items-center gap-4 md:col-span-2">
+            <Baseline className="w-6 h-6 text-slate-500" />
+            <label htmlFor="line-spacing" className="font-semibold text-slate-600">Line Spacing</label>
+            <input id="line-spacing" type="range" min="1" max="2" step="0.1" value={lineSpacing} onChange={(e) => setLineSpacing(parseFloat(e.target.value))} className="w-full" />
+            <span className="text-sm font-mono">{lineSpacing.toFixed(1)}</span>
+          </div>
+
+           {/* Card Text Customization */}
+           <div className="md:col-span-2 space-y-4 border-t pt-6 mt-2">
+             <div className="flex items-start gap-4">
+               <MessageSquare className="w-6 h-6 text-slate-500 mt-1" />
+               <div className="w-full">
+                <h4 className="font-semibold text-slate-600 mb-2">Card Text Customization</h4>
+                 <div className="space-y-2">
+                   <input type="text" value={greetingText} onChange={e => setGreetingText(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" placeholder="Greeting" />
+                   <input type="text" value={introText} onChange={e => setIntroText(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" placeholder="Introduction" />
+                   <input type="text" value={wishlistLabelText} onChange={e => setWishlistLabelText(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" placeholder="Wishlist Label" />
+                 </div>
+               </div>
+             </div>
+           </div>
+
+        </div>
+      </details>
+    </div>
+  );
 };
 
-export const generateIndividualCardsPdf = async (options: PdfCardOptions & { matches: Match[] }): Promise<void> => {
-    const { matches, ...cardProps } = options;
-    const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [338, 450] // Proportional to a 3:4 aspect ratio
-    });
-
-    // Hide the first page generated by default
-    doc.deletePage(1);
-
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.top = '-9999px';
-    tempContainer.style.width = '338px';
-    document.body.appendChild(tempContainer);
-
-    const root = ReactDOM.createRoot(tempContainer);
-
-    for (const match of matches) {
-        await new Promise<void>(resolve => {
-            root.render(
-                React.createElement(PrintableCard, {
-                    ...cardProps,
-                    match,
-                    isNameRevealed: true,
-                })
-            );
-            
-            setTimeout(async () => {
-                const cardElement = tempContainer.firstChild as HTMLElement;
-                if (cardElement) {
-                    const canvas = await renderComponentToCanvas(cardElement);
-                    const imgData = canvas.toDataURL('image/png');
-                    doc.addPage();
-                    doc.addImage(imgData, 'PNG', 0, 0, 338, 450);
-                }
-                resolve();
-            }, 500); // Allow time for render and image loading
-        });
-    }
-
-    document.body.removeChild(tempContainer);
-    doc.save('Secret_Santa_Cards.pdf');
-};
-
-
-export const generateMasterListPdf = ({ matches, eventDetails, exchangeDate, exchangeTime }: ListPdfOptions): void => {
-    const doc = new jsPDF();
-    
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.text('Secret Santa - Master List', doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-
-    if (eventDetails) {
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Event Details: ${eventDetails}`, 14, 35);
-    }
-
-    if (exchangeDate) {
-        let dateInfo = `Exchange Date: ${exchangeDate}`;
-        if (exchangeTime) dateInfo += ` at ${exchangeTime}`;
-        doc.text(dateInfo, 14, 42);
-    }
-    
-    const tableBody = matches.map(match => {
-        const details = [];
-        if (match.receiver.budget) details.push(`Budget: $${match.receiver.budget}`);
-        if (match.receiver.interests) details.push(`Interests: ${match.receiver.interests}`);
-        if (match.receiver.likes) details.push(`Likes: ${match.receiver.likes}`);
-        if (match.receiver.dislikes) details.push(`Dislikes: ${match.receiver.dislikes}`);
-        if (match.receiver.links) details.push(`Links: ${match.receiver.links}`);
-        
-        return [match.giver.name, match.receiver.name, details.join('\n')];
-    });
-
-    autoTable(doc, {
-        startY: 50,
-        head: [['Giver', 'Receiver', "Receiver's Wishlist & Details"]],
-        body: tableBody,
-        theme: 'striped',
-        headStyles: { fillColor: [22, 160, 133] }, // Teal color for header
-        columnStyles: {
-            0: { cellWidth: 40, halign: 'center' },
-            1: { cellWidth: 40, halign: 'center' },
-            2: { halign: 'left', cellWidth: 'auto' }
-        },
-        didParseCell: function (data) {
-            if (data.column.index === 2) {
-                data.cell.styles.fontStyle = 'normal';
-                data.cell.styles.fontSize = 8;
-            }
-        }
-    });
-
-    const finalY = (doc as any).lastAutoTable.finalY || doc.internal.pageSize.getHeight() - 20;
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let footerY = finalY + 20;
-
-    if (footerY > pageHeight - 10) {
-        footerY = pageHeight - 10;
-    }
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(150);
-    doc.text('secretsantamatch.com', pageWidth / 2, footerY, { align: 'center' });
-
-    doc.save('Secret_Santa_Master_List.pdf');
-};
+export default Options;

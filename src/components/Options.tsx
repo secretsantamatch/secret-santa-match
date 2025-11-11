@@ -1,8 +1,7 @@
 import React from 'react';
 import type { BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import BackgroundSelector from './BackgroundSelector';
-// FIX: The 'SpacingVertical' icon does not exist in 'lucide-react'. It has been replaced with the 'LineHeight' icon.
-import { Palette, Type, Droplet, Text, BoxSelect, LineHeight, MessageSquare } from 'lucide-react';
+import { Palette, Type, Droplet, Text, BoxSelect, Baseline, MessageSquare } from 'lucide-react';
 
 interface OptionsProps {
   eventDetails: string;
@@ -154,8 +153,7 @@ const Options: React.FC<OptionsProps> = (props) => {
 
           {/* Line Spacing */}
           <div className="flex items-center gap-4 md:col-span-2">
-            {/* FIX: Replaced non-existent 'SpacingVertical' icon with 'LineHeight'. */}
-            <LineHeight className="w-6 h-6 text-slate-500" />
+            <Baseline className="w-6 h-6 text-slate-500" />
             <label htmlFor="line-spacing" className="font-semibold text-slate-600">Line Spacing</label>
             <input id="line-spacing" type="range" min="1" max="2" step="0.1" value={lineSpacing} onChange={(e) => setLineSpacing(parseFloat(e.target.value))} className="w-full" />
             <span className="text-sm font-mono">{lineSpacing.toFixed(1)}</span>
