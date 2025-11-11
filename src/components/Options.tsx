@@ -111,57 +111,67 @@ const Options: React.FC<OptionsProps> = (props) => {
             <section>
                 <h3 className="text-xl font-bold text-slate-800 mb-4">2. Customize Text Style</h3>
                 <div className="space-y-4 bg-slate-50 p-4 rounded-lg border">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2">
-                             <Palette className="w-5 h-5 text-slate-500" />
-                             <label htmlFor="text-color" className="font-semibold text-sm text-slate-600">Text Color</label>
-                             <input id="text-color" type="color" value={styleProps.textColor} onChange={(e) => styleProps.setTextColor(e.target.value)} className="w-8 h-8 border-none rounded cursor-pointer bg-transparent"/>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                        {/* Text Color */}
+                        <div className="flex items-center justify-between">
+                            <label htmlFor="text-color" className="flex items-center gap-2 font-semibold text-sm text-slate-600">
+                                <Palette className="w-5 h-5" /> Text Color
+                            </label>
+                            <input id="text-color" type="color" value={styleProps.textColor} onChange={(e) => styleProps.setTextColor(e.target.value)} className="w-10 h-8 p-0 border-none rounded cursor-pointer bg-transparent"/>
                         </div>
-                         <div className="flex items-center gap-2">
-                             <Text className="w-5 h-5 text-slate-500" />
-                             <label htmlFor="font-size" className="font-semibold text-sm text-slate-600">Font Size</label>
-                             <select id="font-size" value={styleProps.fontSize} onChange={(e) => styleProps.setFontSize(e.target.value as FontSizeSetting)} className="p-1 border border-slate-300 rounded-md text-sm w-full">
-                               <option value="normal">Normal</option>
-                               <option value="large">Large</option>
-                               <option value="extra-large">Extra Large</option>
-                             </select>
+                        {/* Font Size */}
+                        <div className="flex items-center justify-between">
+                            <label htmlFor="font-size" className="flex items-center gap-2 font-semibold text-sm text-slate-600">
+                                <Text className="w-5 h-5" /> Font Size
+                            </label>
+                            <select id="font-size" value={styleProps.fontSize} onChange={(e) => styleProps.setFontSize(e.target.value as FontSizeSetting)} className="p-1 border border-slate-300 rounded-md text-sm w-32">
+                                <option value="normal">Normal</option>
+                                <option value="large">Large</option>
+                                <option value="extra-large">Extra Large</option>
+                            </select>
+                        </div>
+                        {/* Font Style */}
+                        <div className="flex items-center justify-between">
+                            <label htmlFor="font-theme" className="flex items-center gap-2 font-semibold text-sm text-slate-600">
+                                <Type className="w-5 h-5" /> Font Style
+                            </label>
+                            <select id="font-theme" value={styleProps.fontTheme} onChange={(e) => styleProps.setFontTheme(e.target.value as FontTheme)} className="p-1 border border-slate-300 rounded-md text-sm w-32">
+                                <option value="classic">Classic (Serif)</option>
+                                <option value="modern">Modern (Sans)</option>
+                                <option value="elegant">Elegant (Garamond)</option>
+                                <option value="whimsical">Whimsical (Hand)</option>
+                            </select>
+                        </div>
+                        {/* Line Spacing */}
+                        <div className="flex items-center justify-between gap-2">
+                            <label htmlFor="line-spacing" className="flex items-center gap-2 font-semibold text-sm text-slate-600">
+                                <Baseline className="w-5 h-5" /> Line Spacing
+                            </label>
+                            <input id="line-spacing" type="range" min="1" max="2" step="0.1" value={styleProps.lineSpacing} onChange={(e) => styleProps.setLineSpacing(parseFloat(e.target.value))} className="w-full max-w-[70px]" />
+                            <span className="text-xs font-mono w-8 text-right">{styleProps.lineSpacing.toFixed(1)}x</span>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                         <div className="flex items-center gap-2">
-                             <Type className="w-5 h-5 text-slate-500" />
-                             <label htmlFor="font-theme" className="font-semibold text-sm text-slate-600">Font Style</label>
-                             <select id="font-theme" value={styleProps.fontTheme} onChange={(e) => styleProps.setFontTheme(e.target.value as FontTheme)} className="p-1 border border-slate-300 rounded-md text-sm w-full">
-                               <option value="classic">Classic (Serif)</option>
-                               <option value="modern">Modern (Sans-serif)</option>
-                               <option value="elegant">Elegant (Garamond)</option>
-                               <option value="whimsical">Whimsical (Handwriting)</option>
-                             </select>
-                        </div>
-                         <div className="flex items-center gap-2">
-                            <Baseline className="w-5 h-5 text-slate-500" />
-                            <label htmlFor="line-spacing" className="font-semibold text-sm text-slate-600">Line Spacing</label>
-                             <input id="line-spacing" type="range" min="1" max="2" step="0.1" value={styleProps.lineSpacing} onChange={(e) => styleProps.setLineSpacing(parseFloat(e.target.value))} className="w-full" />
-                             <span className="text-xs font-mono">{styleProps.lineSpacing.toFixed(1)}x</span>
-                         </div>
-                    </div>
+
                     <div className="pt-3 border-t">
                         <div className="flex items-center gap-2">
                             <input id="use-outline" type="checkbox" checked={styleProps.useTextOutline} onChange={(e) => styleProps.setUseTextOutline(e.target.checked)} className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"/>
                             <label htmlFor="use-outline" className="font-semibold text-sm text-slate-600">Add text outline for better visibility</label>
                         </div>
                     </div>
-                     {styleProps.useTextOutline && (
-                        <div className="pt-3 border-t grid grid-cols-1 sm:grid-cols-2 gap-4">
-                           <div className="flex items-center gap-2">
-                             <Droplet className="w-5 h-5 text-slate-500" />
-                             <label htmlFor="outline-color" className="font-semibold text-sm text-slate-600">Outline Color</label>
-                             <input id="outline-color" type="color" value={styleProps.outlineColor} onChange={(e) => styleProps.setOutlineColor(e.target.value)} className="w-8 h-8 border-none rounded cursor-pointer bg-transparent"/>
+
+                    {styleProps.useTextOutline && (
+                        <div className="pt-3 border-t grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                           <div className="flex items-center justify-between">
+                             <label htmlFor="outline-color" className="flex items-center gap-2 font-semibold text-sm text-slate-600">
+                                 <Droplet className="w-5 h-5" /> Outline Color
+                            </label>
+                             <input id="outline-color" type="color" value={styleProps.outlineColor} onChange={(e) => styleProps.setOutlineColor(e.target.value)} className="w-10 h-8 p-0 border-none rounded cursor-pointer bg-transparent"/>
                            </div>
-                           <div className="flex items-center gap-2">
-                               <BoxSelect className="w-5 h-5 text-slate-500" />
-                               <label htmlFor="outline-size" className="font-semibold text-sm text-slate-600">Outline Size</label>
-                               <select id="outline-size" value={styleProps.outlineSize} onChange={(e) => styleProps.setOutlineSize(e.target.value as OutlineSizeSetting)} className="p-1 border border-slate-300 rounded-md text-sm w-full">
+                           <div className="flex items-center justify-between">
+                               <label htmlFor="outline-size" className="flex items-center gap-2 font-semibold text-sm text-slate-600">
+                                   <BoxSelect className="w-5 h-5" /> Outline Size
+                                </label>
+                               <select id="outline-size" value={styleProps.outlineSize} onChange={(e) => styleProps.setOutlineSize(e.target.value as OutlineSizeSetting)} className="p-1 border border-slate-300 rounded-md text-sm w-32">
                                    <option value="thin">Thin</option>
                                    <option value="normal">Normal</option>
                                    <option value="thick">Thick</option>

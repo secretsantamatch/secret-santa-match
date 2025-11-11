@@ -52,12 +52,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
     whimsical: "'Patrick Hand', cursive",
   };
   
-  const baseFontSizeClasses: Record<FontSizeSetting, string> = {
-    normal: 'text-base',
-    large: 'text-lg',
-    'extra-large': 'text-xl',
-  };
-
   const outlineSizeMap: Record<OutlineSizeSetting, string> = {
     'thin': '1px', 'normal': '1.5px', 'thick': '2px',
   };
@@ -80,20 +74,29 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const wishlistLength = wishlistContent.length;
 
   const getHeaderFontSize = () => {
-    if (giverNameLength > 20) return 'text-sm';
-    if (giverNameLength > 15) return 'text-base';
-    return 'text-lg';
+    let baseClass = 'text-lg';
+    if (fontSize === 'large') baseClass = 'text-xl';
+    if (fontSize === 'extra-large') baseClass = 'text-2xl';
+    if (giverNameLength > 20) return 'text-base';
+    if (giverNameLength > 15) return 'text-lg';
+    return baseClass;
   };
   
   const getReceiverNameFontSize = () => {
-    if (receiverNameLength > 15) return 'text-3xl';
-    if (receiverNameLength > 10) return 'text-4xl';
-    return 'text-5xl';
+    let baseClass = 'text-5xl';
+    if (fontSize === 'large') baseClass = 'text-6xl';
+    if (fontSize === 'extra-large') baseClass = 'text-7xl';
+    if (receiverNameLength > 15) return 'text-4xl';
+    if (receiverNameLength > 10) return 'text-5xl';
+    return baseClass;
   };
   
   const getWishlistFontSize = () => {
-      if (wishlistLength > 100) return 'text-[10px] leading-tight';
-      return 'text-xs leading-tight';
+      let baseClass = 'text-xs';
+      if (fontSize === 'large') baseClass = 'text-sm';
+      if (fontSize === 'extra-large') baseClass = 'text-base';
+      if (wishlistLength > 100) return 'text-[10px]';
+      return baseClass;
   };
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
@@ -112,7 +115,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div
-        className={`absolute inset-0 flex flex-col items-center justify-start pt-20 px-16 pb-16 text-center ${baseFontSizeClasses[fontSize]}`}
+        className="absolute inset-0 flex flex-col items-center justify-start pt-20 px-16 pb-16 text-center"
         style={{ color: txtColor, textShadow, lineHeight: line, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
