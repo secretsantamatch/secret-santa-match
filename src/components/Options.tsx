@@ -86,7 +86,7 @@ const Options: React.FC<OptionsProps> = (props) => {
       />
       
       {/* Advanced Styling Options */}
-      <details className="group">
+      <details className="group" open>
         <summary className="font-semibold text-slate-800 cursor-pointer list-none flex justify-between items-center">
             <span>Advanced Card Styling Options</span>
             <span className="transition-transform transform group-open:rotate-180">
@@ -147,7 +147,7 @@ const Options: React.FC<OptionsProps> = (props) => {
               <option value="classic">Classic (Serif)</option>
               <option value="elegant">Elegant (Garamond)</option>
               <option value="modern">Modern (Sans-serif)</option>
-              <option value="whimsical">Whimsical (Cursive)</option>
+              <option value="whimsical">Whimsical (Handwriting)</option>
             </select>
           </div>
 
@@ -166,6 +166,7 @@ const Options: React.FC<OptionsProps> = (props) => {
                <div className="w-full">
                 <h4 className="font-semibold text-slate-600 mb-2">Card Text Customization</h4>
                  <div className="space-y-2">
+                    <p className="text-xs text-slate-500">Use <code className="bg-slate-200 text-slate-700 px-1 rounded-sm">{`{secret_santa}`}</code> to automatically insert the giver's name.</p>
                    <input type="text" value={greetingText} onChange={e => setGreetingText(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" placeholder="Greeting" />
                    <input type="text" value={introText} onChange={e => setIntroText(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" placeholder="Introduction" />
                    <input type="text" value={wishlistLabelText} onChange={e => setWishlistLabelText(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" placeholder="Wishlist Label" />

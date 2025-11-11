@@ -35,7 +35,7 @@ const GeneratorPage: React.FC = () => {
     // Options State
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
     const [eventDetails, setEventDetails] = useState('Gift exchange on Dec 25th!');
-    const [selectedBackgroundId, setSelectedBackgroundId] = useState('christmas-1');
+    const [selectedBackgroundId, setSelectedBackgroundId] = useState('gift-border');
     const [customBackground, setCustomBackground] = useState<string | null>(null);
     const [textColor, setTextColor] = useState('#FFFFFF');
     const [useTextOutline, setUseTextOutline] = useState(true);
@@ -44,9 +44,9 @@ const GeneratorPage: React.FC = () => {
     const [fontSize, setFontSize] = useState<FontSizeSetting>('normal');
     const [fontTheme, setFontTheme] = useState<FontTheme>('classic');
     const [lineSpacing, setLineSpacing] = useState(1.2);
-    const [greetingText, setGreetingText] = useState('Happy Holidays');
-    const [introText, setIntroText] = useState('You are the Secret Santa for...');
-    const [wishlistLabelText, setWishlistLabelText] = useState("Here are some gift ideas:");
+    const [greetingText, setGreetingText] = useState("Happy Holidays, {secret_santa}!");
+    const [introText, setIntroText] = useState("You are the Secret Santa for...");
+    const [wishlistLabelText, setWishlistLabelText] = useState("Gift Ideas & Wishlist");
 
     // PWA & Cookie State
     const [showCookieBanner, setShowCookieBanner] = useState(false);
@@ -70,7 +70,7 @@ const GeneratorPage: React.FC = () => {
             .then(res => res.json())
             .then(data => {
                 setBackgroundOptions(data);
-                const defaultOption = data[0];
+                const defaultOption = data.find((opt: BackgroundOption) => opt.id === 'gift-border') || data[0];
                 if (defaultOption) {
                     setSelectedBackgroundId(defaultOption.id);
                     setTextColor(defaultOption.defaultTextColor || '#FFFFFF');
@@ -99,13 +99,14 @@ const GeneratorPage: React.FC = () => {
 
     // Update card text based on selected background
      useEffect(() => {
+        if (customBackground) return;
         const selectedOption = backgroundOptions.find(opt => opt.id === selectedBackgroundId);
         if (selectedOption?.cardText) {
             setGreetingText(selectedOption.cardText.greeting);
             setIntroText(selectedOption.cardText.intro);
             setWishlistLabelText(selectedOption.cardText.wishlistLabel);
         }
-     }, [selectedBackgroundId, backgroundOptions]);
+     }, [selectedBackgroundId, backgroundOptions, customBackground]);
 
     const handleBulkAdd = (names: string) => {
         const newParticipants = names.split('\n').map(name => name.trim()).filter(Boolean);
@@ -202,7 +203,7 @@ const GeneratorPage: React.FC = () => {
             
             // Allow loading animation to complete
             setTimeout(() => {
-                window.location.hash = id;
+                window.location.href = `/generator.html#${id}`;
                 window.location.reload(); // Reload to let App.tsx handle the new hash
             }, 500);
 
