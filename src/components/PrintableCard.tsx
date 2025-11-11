@@ -99,7 +99,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 <div className="absolute inset-0 bg-white"></div>
             )}
             <div
-                className={`absolute inset-0 pt-16 pb-8 px-8 flex flex-col text-center justify-center gap-y-4 ${currentFontSize.base} ${fontClasses[font]}`}
+                className={`absolute inset-0 pt-12 pb-8 px-8 flex flex-col text-center justify-center gap-y-2 ${currentFontSize.base} ${fontClasses[font]}`}
                 style={{
                     color: txtColor,
                     textShadow: textShadow,
@@ -111,7 +111,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     <p>{intro}</p>
                 </header>
 
-                <main className="flex items-center justify-center">
+                <main className="flex items-center justify-center py-2">
                     {isNameRevealed ? (
                         <p className={`font-serif font-extrabold tracking-tight break-words ${nameSizeClass}`}>{receiver.name}</p>
                     ) : (
@@ -122,7 +122,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     )}
                 </main>
 
-                <footer className="text-center max-h-[45%] overflow-y-auto p-2 rounded-lg scrollbar-thin">
+                <footer className="text-center overflow-y-auto p-2 rounded-lg scrollbar-thin">
                     {isNameRevealed && hasDetails && (
                         <>
                             <h3 className={`font-bold text-lg mb-2`}>{wish}</h3>
