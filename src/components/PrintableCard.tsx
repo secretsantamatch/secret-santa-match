@@ -64,8 +64,8 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
     const currentFontSize = fontSizeClasses[fontSize];
 
     // Auto-fit name logic
-    const nameLength = receiver.name.length;
     let nameSizeClass = currentFontSize.name;
+    const nameLength = receiver.name.length;
     if (nameLength > 15) {
       nameSizeClass = `text-3xl`; // smaller than text-4xl
     } else if (nameLength > 10) {
@@ -99,19 +99,19 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 <div className="absolute inset-0 bg-white"></div>
             )}
             <div
-                className={`absolute inset-0 pt-10 pb-6 px-8 flex flex-col text-center ${currentFontSize.base}`}
+                className={`absolute inset-0 pt-12 pb-8 px-8 flex flex-col text-center justify-between ${currentFontSize.base} ${fontClasses[font]}`}
                 style={{
                     color: txtColor,
                     textShadow: textShadow,
                     lineHeight: line,
                 }}
             >
-                <header className={`${fontClasses[font]}`}>
+                <header>
                     <h2 className={`${currentFontSize.header} font-bold`}>{greet.replace('{secret_santa}', giver.name)}</h2>
-                    <p className="mt-2">{intro}</p>
+                    <p className="mt-1">{intro}</p>
                 </header>
 
-                <main className="my-4 flex-grow flex items-center justify-center">
+                <main className="flex items-center justify-center">
                     {isNameRevealed ? (
                         <p className={`font-serif font-extrabold tracking-tight break-words ${nameSizeClass}`}>{receiver.name}</p>
                     ) : (
@@ -122,12 +122,12 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     )}
                 </main>
 
-                <footer className="font-sans text-center max-h-[45%] overflow-y-auto p-2 rounded-lg scrollbar-thin mt-auto">
+                <footer className="text-center max-h-[45%] overflow-y-auto p-2 rounded-lg scrollbar-thin">
                     {isNameRevealed && hasDetails && (
                         <>
-                            <h3 className={`font-bold text-lg mb-2 ${fontClasses[font]}`}>{wish}</h3>
+                            <h3 className={`font-bold text-lg mb-2`}>{wish}</h3>
                             <div className="inline-block text-left">
-                                <ul className="space-y-1.5 list-disc list-inside">
+                                <ul className="space-y-1 list-disc list-inside">
                                     {receiver.budget && <li><strong className="font-semibold">Budget:</strong> {receiver.budget}</li>}
                                     {receiver.interests && <li><strong className="font-semibold">Interests:</strong> {receiver.interests}</li>}
                                     {receiver.likes && <li><strong className="font-semibold">Likes:</strong> {receiver.likes}</li>}
@@ -141,7 +141,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                          <p className="italic">No wishlist details were provided for {receiver.name}.</p>
                     )}
                      {isNameRevealed && eventDetails && (
-                        <p className="mt-3 pt-3 border-t border-white/30 italic text-sm">{eventDetails}</p>
+                        <p className="mt-2 pt-2 italic text-sm">{eventDetails}</p>
                     )}
                 </footer>
                  {bgId === 'custom' && bgImg && (
