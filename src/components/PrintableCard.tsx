@@ -1,5 +1,3 @@
-<script src="https://aistudiocdn.com/react@^19.2.0"></script>
-<script src="https://aistudiocdn.com/react-dom@^19.2.0/client"></script>
 import React from 'react';
 import type { Match, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 
