@@ -118,7 +118,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         {/* Header */}
         <header className={`break-words ${getHeaderFontSize()}`}>
           <p className="font-bold">{formattedGreeting}</p>
-          <p className="mt-1">{intro}</p>
+          <p className="mt-1 whitespace-nowrap">{intro}</p>
         </header>
 
         {/* Receiver Name */}

@@ -71,7 +71,7 @@ const Options: React.FC<OptionsProps> = (props) => {
   const displayWishlistLabelText = activeOption?.cardText?.wishlistLabel ?? styleProps.wishlistLabelText;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 lg:items-start">
         {/* Left Column: Controls */}
         <div className="space-y-8">
             {/* 1. Choose a Theme */}
