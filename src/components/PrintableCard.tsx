@@ -43,7 +43,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const { giver, receiver } = match;
 
   const backgroundUrl = bgImg || backgroundOptions.find(opt => opt.id === bgId)?.imageUrl || '';
-  const showWatermark = !!bgImg; // Only show watermark on custom uploads
+  const showWatermark = bgId === 'custom'; // Corrected logic: Only show watermark on custom uploads
 
   const fontFamilies: Record<FontTheme, string> = {
     classic: "'Playfair Display', serif",
@@ -126,7 +126,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
         {/* Receiver Name */}
         <main className="mb-2">
-          <h2 className={`font-bold leading-tight ${fontFamilies.classic} ${getReceiverNameFontSize()}`}>
+          <h2 className={`font-bold ${fontFamilies.classic} ${getReceiverNameFontSize()}`}>
             {receiverName}
           </h2>
         </main>
