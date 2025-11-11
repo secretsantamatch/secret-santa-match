@@ -66,10 +66,10 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
     // Auto-fit name logic
     const nameLength = receiver.name.length;
     let nameSizeClass = currentFontSize.name;
-    if (nameLength > 20) {
-      nameSizeClass = fontSizeClasses[fontSize].base; 
-    } else if (nameLength > 12) {
-      nameSizeClass = fontSizeClasses[fontSize].header;
+    if (nameLength > 15) {
+      nameSizeClass = `text-3xl`; // smaller than text-4xl
+    } else if (nameLength > 10) {
+      nameSizeClass = currentFontSize.header;
     }
     
     const renderLinks = (links: string) => {
@@ -99,21 +99,21 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 <div className="absolute inset-0 bg-white"></div>
             )}
             <div
-                className={`absolute inset-0 p-6 flex flex-col justify-between ${fontClasses[font]} ${currentFontSize.base}`}
+                className={`absolute inset-0 pt-8 pb-4 px-6 flex flex-col text-center ${currentFontSize.base}`}
                 style={{
                     color: txtColor,
                     textShadow: textShadow,
                     lineHeight: line,
                 }}
             >
-                <header className="text-center">
+                <header className={`${fontClasses[font]}`}>
                     <h2 className={`${currentFontSize.header} font-bold`}>{greet.replace('{secret_santa}', giver.name)}</h2>
                     <p className="mt-2">{intro}</p>
                 </header>
 
-                <main className="text-center my-4 flex-grow flex items-center justify-center">
+                <main className="my-4 flex-grow flex items-center justify-center">
                     {isNameRevealed ? (
-                        <p className={`${nameSizeClass} font-extrabold tracking-tight break-words`}>{receiver.name}</p>
+                        <p className={`font-serif font-extrabold tracking-tight break-words ${nameSizeClass}`}>{receiver.name}</p>
                     ) : (
                         <div className="bg-white/20 backdrop-blur-sm p-4 rounded-lg">
                             <p className="text-lg">Your match is hidden!</p>
@@ -122,7 +122,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     )}
                 </main>
 
-                <footer className="text-left max-h-[45%] overflow-y-auto p-3 rounded-lg bg-black/30 backdrop-blur-sm scrollbar-thin">
+                <footer className="font-sans text-left max-h-[45%] overflow-y-auto p-3 rounded-lg scrollbar-thin mt-auto">
                     {isNameRevealed && hasDetails && (
                         <>
                             <h3 className="font-bold text-lg mb-2">{wish}</h3>
