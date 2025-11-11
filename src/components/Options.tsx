@@ -171,7 +171,7 @@ const Options: React.FC<OptionsProps> = (props) => {
         </div>
 
         {/* Right Column: Live Preview */}
-        <div className="lg:sticky top-24 h-full">
+        <div className="lg:sticky top-24">
             <h3 className="text-xl font-bold text-slate-800 mb-4">4. Live Preview</h3>
             <div className="w-full max-w-sm mx-auto">
                  <PrintableCard

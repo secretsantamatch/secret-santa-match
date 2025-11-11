@@ -65,7 +65,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
 
   return (
     <div>
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 gap-3">
         {backgroundOptions.map((option) => (
           <button
             key={option.id}
