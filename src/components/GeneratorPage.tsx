@@ -11,6 +11,8 @@ import FaqSection from './FaqSection';
 import WhyChooseUs from './WhyChooseUs';
 import SocialProof from './SocialProof';
 import VideoTutorial from './VideoTutorial';
+import ShareTool from './ShareTool';
+import FeaturedResources from './FeaturedResources';
 import { generateMatches } from '../services/matchService';
 import { trackEvent } from '../services/analyticsService';
 import { Users, ScrollText, Palette, Shuffle, X, AlertTriangle, ArrowRight } from 'lucide-react';
@@ -287,8 +289,13 @@ const GeneratorPage: React.FC = () => {
                      <div className="flex justify-center mb-4">
                         <img src="/logo_256.png" alt="Secret Santa Match Logo" className="h-20 w-20" />
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 font-serif">The Easiest Secret Santa Generator</h1>
-                    <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">Instantly draw names for your gift exchange. 100% free, private, and no sign-ups required. Ever.</p>
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 font-serif">Free Secret Santa Generator</h1>
+                    <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">The easiest way to organize a gift exchange. No emails or sign-ups required. Instantly draw names online, set rules, and share private links!</p>
+                </div>
+
+                <div className="max-w-5xl mx-auto px-4 md:px-8">
+                    <HowItWorks />
+                    <VideoTutorial />
                 </div>
                 
                 <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
@@ -413,11 +420,11 @@ const GeneratorPage: React.FC = () => {
                 </div>
 
                 <div className="max-w-5xl mx-auto px-4 md:px-8">
-                    <HowItWorks />
                     <WhyChooseUs />
                     <SocialProof />
-                    <VideoTutorial />
+                    <ShareTool />
                     <FaqSection />
+                    <FeaturedResources />
                 </div>
             </main>
             <Footer showInstallButton={!!deferredInstallPrompt} onInstallClick={handleInstallClick} />
