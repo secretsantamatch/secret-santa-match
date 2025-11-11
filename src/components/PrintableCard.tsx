@@ -116,16 +116,19 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
     >
       <div
         className="absolute inset-0 flex flex-col items-center justify-start pt-20 px-16 pb-16 text-center"
-        style={{ color: txtColor, textShadow, lineHeight: line, fontFamily: fontFamilies[font] }}
+        style={{ color: txtColor, textShadow, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
-        <header className={`break-words ${getHeaderFontSize()}`}>
+        <header 
+          className={`break-words ${getHeaderFontSize()}`}
+          style={{ lineHeight: line }}
+        >
           <p className="font-bold">{formattedGreeting}</p>
           <p className="mt-1">{intro}</p>
         </header>
 
         {/* Receiver Name */}
-        <main className="mb-2">
+        <main className="mb-2" style={{ lineHeight: 1.1 }}>
           <h2 className={`font-bold ${fontFamilies.classic} ${getReceiverNameFontSize()}`}>
             {receiverName}
           </h2>
@@ -133,7 +136,10 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
         {/* Wishlist */}
         {isNameRevealed && (
-          <div className={`space-y-0 ${getWishlistFontSize()}`}>
+          <div 
+            className={`space-y-0 ${getWishlistFontSize()}`}
+            style={{ lineHeight: line }}
+          >
             <h3 className="font-bold text-lg mb-1">{wish}</h3>
             <ul className="list-none text-center space-y-0">
               {renderWishlistItem('Interests', receiver.interests)}
