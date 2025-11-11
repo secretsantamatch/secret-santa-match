@@ -99,7 +99,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 <div className="absolute inset-0 bg-white"></div>
             )}
             <div
-                className={`absolute inset-0 pt-8 pb-4 px-6 flex flex-col text-center ${currentFontSize.base}`}
+                className={`absolute inset-0 pt-10 pb-6 px-8 flex flex-col text-center ${currentFontSize.base}`}
                 style={{
                     color: txtColor,
                     textShadow: textShadow,
@@ -122,17 +122,19 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     )}
                 </main>
 
-                <footer className="font-sans text-left max-h-[45%] overflow-y-auto p-3 rounded-lg scrollbar-thin mt-auto">
+                <footer className="font-sans text-center max-h-[45%] overflow-y-auto p-2 rounded-lg scrollbar-thin mt-auto">
                     {isNameRevealed && hasDetails && (
                         <>
-                            <h3 className="font-bold text-lg mb-2">{wish}</h3>
-                            <ul className="space-y-1.5 list-disc list-inside">
-                                {receiver.budget && <li><strong>Budget:</strong> {receiver.budget}</li>}
-                                {receiver.interests && <li><strong>Interests:</strong> {receiver.interests}</li>}
-                                {receiver.likes && <li><strong>Likes:</strong> {receiver.likes}</li>}
-                                {receiver.dislikes && <li><strong>Dislikes:</strong> {receiver.dislikes}</li>}
-                                {receiver.links && <li className="list-none -ml-4"><strong>Links:</strong><ul className="pl-4">{renderLinks(receiver.links)}</ul></li>}
-                            </ul>
+                            <h3 className={`font-bold text-lg mb-2 ${fontClasses[font]}`}>{wish}</h3>
+                            <div className="inline-block text-left">
+                                <ul className="space-y-1.5 list-disc list-inside">
+                                    {receiver.budget && <li><strong className="font-semibold">Budget:</strong> {receiver.budget}</li>}
+                                    {receiver.interests && <li><strong className="font-semibold">Interests:</strong> {receiver.interests}</li>}
+                                    {receiver.likes && <li><strong className="font-semibold">Likes:</strong> {receiver.likes}</li>}
+                                    {receiver.dislikes && <li><strong className="font-semibold">Dislikes:</strong> {receiver.dislikes}</li>}
+                                    {receiver.links && <li className="list-none -ml-4"><strong className="font-semibold">Links:</strong><ul className="pl-4">{renderLinks(receiver.links)}</ul></li>}
+                                </ul>
+                            </div>
                         </>
                     )}
                     {isNameRevealed && !hasDetails && (
@@ -142,7 +144,9 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                         <p className="mt-3 pt-3 border-t border-white/30 italic text-sm">{eventDetails}</p>
                     )}
                 </footer>
-                 <p className="text-center text-[8px] absolute bottom-1 left-1/2 -translate-x-1/2 opacity-70" style={{ textShadow: '1px 1px 2px #000' }}>SecretSantaMatch.com</p>
+                 {bgId === 'custom' && bgImg && (
+                    <p className="text-center text-[8px] absolute bottom-1 left-1/2 -translate-x-1/2 opacity-70" style={{ textShadow: '1px 1px 2px #000' }}>SecretSantaMatch.com</p>
+                 )}
             </div>
         </div>
     );
