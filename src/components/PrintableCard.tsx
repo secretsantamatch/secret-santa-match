@@ -93,7 +93,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   
   const getWishlistFontSize = () => {
       if (wishlistLength > 100) return 'text-[10px] leading-tight';
-      return 'text-[11px] leading-tight';
+      return 'text-xs leading-tight';
   };
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
@@ -138,7 +138,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
               {renderWishlistItem('Dislikes', receiver.dislikes)}
               {renderWishlistItem('Budget', receiver.budget)}
             </ul>
-            {eventDetails && <p className="text-sm opacity-90 break-words mt-2">{eventDetails}</p>}
+            {eventDetails && <p className="text-sm opacity-90 break-words mt-4">{eventDetails}</p>}
           </div>
         )}
         
