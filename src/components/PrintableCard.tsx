@@ -92,8 +92,8 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   };
   
   const getWishlistFontSize = () => {
-      if (wishlistLength > 100) return 'text-[11px] leading-tight';
-      return 'text-xs';
+      if (wishlistLength > 100) return 'text-[10px] leading-tight';
+      return 'text-[11px] leading-tight';
   };
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
@@ -112,7 +112,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div
-        className={`absolute inset-0 flex flex-col items-center justify-start pt-20 px-16 pb-16 text-center gap-y-1 ${baseFontSizeClasses[fontSize]}`}
+        className={`absolute inset-0 flex flex-col items-center justify-start pt-20 px-16 pb-16 text-center ${baseFontSizeClasses[fontSize]}`}
         style={{ color: txtColor, textShadow, lineHeight: line, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
@@ -122,7 +122,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         </header>
 
         {/* Receiver Name */}
-        <main>
+        <main className="mb-2">
           <h2 className={`font-bold leading-tight ${fontFamilies.classic} ${getReceiverNameFontSize()}`}>
             {receiverName}
           </h2>
@@ -130,15 +130,15 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
         {/* Wishlist */}
         {isNameRevealed && (
-          <div className={`space-y-1 ${getWishlistFontSize()}`}>
-            <h3 className="font-bold text-lg">{wish}</h3>
-            <ul className="list-none text-center">
+          <div className={`space-y-0 ${getWishlistFontSize()}`}>
+            <h3 className="font-bold text-lg mb-1">{wish}</h3>
+            <ul className="list-none text-center space-y-0">
               {renderWishlistItem('Interests', receiver.interests)}
               {renderWishlistItem('Likes', receiver.likes)}
               {renderWishlistItem('Dislikes', receiver.dislikes)}
               {renderWishlistItem('Budget', receiver.budget)}
             </ul>
-            {eventDetails && <p className="text-sm opacity-90 break-words mt-4">{eventDetails}</p>}
+            {eventDetails && <p className="text-sm opacity-90 break-words mt-2">{eventDetails}</p>}
           </div>
         )}
         
