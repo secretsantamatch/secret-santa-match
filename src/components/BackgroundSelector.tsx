@@ -5,6 +5,7 @@ import { Upload, X } from 'lucide-react';
 interface BackgroundSelectorProps {
   selected: string;
   setSelectedBackgroundId: (id: string) => void;
+  setHoveredBackgroundId: (id: string | null) => void;
   customBackground: string | null;
   setCustomBackground: (url: string | null) => void;
   backgroundOptions: BackgroundOption[];
@@ -14,6 +15,7 @@ interface BackgroundSelectorProps {
 const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
   selected,
   setSelectedBackgroundId,
+  setHoveredBackgroundId,
   customBackground,
   setCustomBackground,
   backgroundOptions,
@@ -63,12 +65,13 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
 
   return (
     <div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {backgroundOptions.map((option) => (
           <button
             key={option.id}
             type="button"
             onClick={() => handleSelect(option)}
+            onMouseEnter={() => setHoveredBackgroundId(option.id)}
             className={`aspect-[3/4] rounded-lg border-4 transition-all overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
               selected === option.id && !customBackground
                 ? 'border-indigo-500 scale-105'
@@ -84,6 +87,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
         ))}
         <label
             htmlFor="custom-bg-upload"
+            onMouseEnter={() => setHoveredBackgroundId(customBackground ? 'custom' : null)}
             className={`aspect-[3/4] rounded-lg border-4 transition-all flex items-center justify-center cursor-pointer relative group ${
               selected === 'custom' && customBackground
                 ? 'border-indigo-500 scale-105'

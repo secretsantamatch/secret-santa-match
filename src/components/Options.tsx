@@ -42,6 +42,7 @@ const Options: React.FC<OptionsProps> = (props) => {
   const { participants, eventDetails, ...styleProps } = props;
   const { backgroundOptions, selectedBackgroundId, setSelectedBackgroundId } = styleProps;
   const [themeSearch, setThemeSearch] = useState('');
+  const [hoveredBgId, setHoveredBgId] = useState<string | null>(null);
 
   const filteredThemes = useMemo(() => {
     if (!themeSearch) return backgroundOptions;
@@ -58,13 +59,23 @@ const Options: React.FC<OptionsProps> = (props) => {
       return { giver, receiver };
   }, [participants]);
 
+  // Determine which props to display based on hover state
+  const displayBgId = hoveredBgId || selectedBackgroundId;
+  const displayBgImg = displayBgId === 'custom' ? styleProps.customBackground : null;
+  
+  const activeOption = backgroundOptions.find(opt => opt.id === (hoveredBgId || selectedBackgroundId));
+  
+  const displayTextColor = activeOption?.defaultTextColor ?? styleProps.textColor;
+  const displayGreetingText = activeOption?.cardText?.greeting ?? styleProps.greetingText;
+  const displayIntroText = activeOption?.cardText?.intro ?? styleProps.introText;
+  const displayWishlistLabelText = activeOption?.cardText?.wishlistLabel ?? styleProps.wishlistLabelText;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {/* Left Column: Controls */}
         <div className="space-y-8">
             {/* 1. Choose a Theme */}
-            <section>
+            <section onMouseLeave={() => setHoveredBgId(null)}>
                 <h3 className="text-xl font-bold text-slate-800 mb-4">1. Choose a Theme</h3>
                 <div className="relative mb-4">
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20}/>
@@ -79,6 +90,7 @@ const Options: React.FC<OptionsProps> = (props) => {
                 <BackgroundSelector
                     selected={selectedBackgroundId}
                     setSelectedBackgroundId={setSelectedBackgroundId}
+                    setHoveredBackgroundId={setHoveredBgId}
                     customBackground={styleProps.customBackground}
                     setCustomBackground={styleProps.setCustomBackground}
                     backgroundOptions={filteredThemes}
@@ -167,18 +179,18 @@ const Options: React.FC<OptionsProps> = (props) => {
                     eventDetails={eventDetails}
                     isNameRevealed={true}
                     backgroundOptions={backgroundOptions}
-                    bgId={selectedBackgroundId}
-                    bgImg={styleProps.customBackground}
-                    txtColor={styleProps.textColor}
+                    bgId={displayBgId}
+                    bgImg={displayBgImg}
+                    txtColor={displayTextColor}
                     outline={styleProps.useTextOutline}
                     outColor={styleProps.outlineColor}
                     outSize={styleProps.outlineSize}
                     fontSize={styleProps.fontSize}
                     font={styleProps.fontTheme}
                     line={styleProps.lineSpacing}
-                    greet={styleProps.greetingText}
-                    intro={styleProps.introText}
-                    wish={styleProps.wishlistLabelText}
+                    greet={displayGreetingText}
+                    intro={displayIntroText}
+                    wish={displayWishlistLabelText}
                 />
             </div>
         </div>

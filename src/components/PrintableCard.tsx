@@ -138,7 +138,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
               {renderWishlistItem('Dislikes', receiver.dislikes)}
               {renderWishlistItem('Budget', receiver.budget)}
             </ul>
-            {eventDetails && <p className="text-sm opacity-90 break-words mt-4">{eventDetails}</p>}
+            {eventDetails && <p className="text-sm opacity-90 break-words mt-6">{eventDetails}</p>}
           </div>
         )}
         
