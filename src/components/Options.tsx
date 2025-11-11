@@ -1,158 +1,183 @@
-import React, { useState } from 'react';
-import type { Participant, Exclusion, Assignment } from '../types';
+import React from 'react';
+import type { BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
+import BackgroundSelector from './BackgroundSelector';
+import { Palette, Type, Droplet, Text, BoxSelect, SpacingVertical, MessageSquare } from 'lucide-react';
 
 interface OptionsProps {
-    participants: Participant[];
-    exclusions: Exclusion[];
-    setExclusions: (exclusions: Exclusion[]) => void;
-    assignments: Assignment[];
-    setAssignments: (assignments: Assignment[]) => void;
-    eventDetails: string;
-    setEventDetails: (details: string) => void;
+  eventDetails: string;
+  setEventDetails: (details: string) => void;
+  
+  // Background props
+  selectedBackgroundId: string;
+  setSelectedBackgroundId: (id: string) => void;
+  customBackground: string | null;
+  setCustomBackground: (url: string | null) => void;
+  backgroundOptions: BackgroundOption[];
+  
+  // Text style props
+  textColor: string;
+  setTextColor: (color: string) => void;
+  useTextOutline: boolean;
+  setUseTextOutline: (use: boolean) => void;
+  outlineColor: string;
+  setOutlineColor: (color: string) => void;
+  outlineSize: OutlineSizeSetting;
+  setOutlineSize: (size: OutlineSizeSetting) => void;
+  
+  // Font props
+  fontSize: FontSizeSetting;
+  setFontSize: (size: FontSizeSetting) => void;
+  fontTheme: FontTheme;
+  setFontTheme: (theme: FontTheme) => void;
+  lineSpacing: number;
+  setLineSpacing: (spacing: number) => void;
+  
+  // Card text props
+  greetingText: string;
+  setGreetingText: (text: string) => void;
+  introText: string;
+  setIntroText: (text: string) => void;
+  wishlistLabelText: string;
+  setWishlistLabelText: (text: string) => void;
 }
 
-const Options: React.FC<OptionsProps> = ({
-    participants,
-    exclusions,
-    setExclusions,
-    assignments,
-    setAssignments,
-    eventDetails,
-    setEventDetails,
-}) => {
-    const [exclusionP1, setExclusionP1] = useState<string>('');
-    const [exclusionP2, setExclusionP2] = useState<string>('');
-    const [assignmentGiver, setAssignmentGiver] = useState<string>('');
-    const [assignmentReceiver, setAssignmentReceiver] = useState<string>('');
-    const [error, setError] = useState<string>('');
+const Options: React.FC<OptionsProps> = (props) => {
+  const {
+    eventDetails, setEventDetails,
+    selectedBackgroundId, setSelectedBackgroundId,
+    customBackground, setCustomBackground,
+    backgroundOptions,
+    textColor, setTextColor,
+    useTextOutline, setUseTextOutline,
+    outlineColor, setOutlineColor,
+    outlineSize, setOutlineSize,
+    fontSize, setFontSize,
+    fontTheme, setFontTheme,
+    lineSpacing, setLineSpacing,
+    greetingText, setGreetingText,
+    introText, setIntroText,
+    wishlistLabelText, setWishlistLabelText,
+  } = props;
 
-    const getParticipantName = (id: string) => participants.find(p => p.id === id)?.name || 'Unknown';
+  return (
+    <div className="space-y-8">
+      {/* Event Details */}
+      <div>
+        <label htmlFor="event-details" className="text-lg font-semibold text-slate-700 block mb-2">Event Message</label>
+        <textarea
+          id="event-details"
+          value={eventDetails}
+          onChange={(e) => setEventDetails(e.target.value)}
+          placeholder="e.g., Exchange will be at the holiday party on Dec 20th!"
+          className="w-full p-2 border border-slate-300 rounded-md"
+          rows={2}
+        />
+        <p className="text-slate-500 mt-1 text-sm">This message will appear on each participant's card.</p>
+      </div>
 
-    const handleAddExclusion = () => {
-        setError('');
-        if (!exclusionP1 || !exclusionP2) {
-            setError('Please select two participants for the exclusion.');
-            return;
-        }
-        if (exclusionP1 === exclusionP2) {
-            setError('A participant cannot be excluded from themselves.');
-            return;
-        }
-        const exists = exclusions.some(ex => 
-            (ex.p1 === exclusionP1 && ex.p2 === exclusionP2) ||
-            (ex.p1 === exclusionP2 && ex.p2 === exclusionP1)
-        );
-        if (!exists) {
-            setExclusions([...exclusions, { p1: exclusionP1, p2: exclusionP2 }]);
-        }
-        setExclusionP1('');
-        setExclusionP2('');
-    };
+      {/* Background Selector */}
+      <BackgroundSelector
+        selectedBackgroundId={selectedBackgroundId}
+        setSelectedBackgroundId={setSelectedBackgroundId}
+        customBackground={customBackground}
+        setCustomBackground={setCustomBackground}
+        backgroundOptions={backgroundOptions}
+        onTextColorChange={setTextColor}
+      />
+      
+      {/* Advanced Styling Options */}
+      <details className="group">
+        <summary className="font-semibold text-slate-800 cursor-pointer list-none flex justify-between items-center">
+            <span>Advanced Card Styling Options</span>
+            <span className="transition-transform transform group-open:rotate-180">
+                <svg className="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+            </span>
+        </summary>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 border-t pt-6">
 
-    const handleRemoveExclusion = (p1: string, p2: string) => {
-        setExclusions(exclusions.filter(ex => 
-            !((ex.p1 === p1 && ex.p2 === p2) || (ex.p1 === p2 && ex.p2 === p1))
-        ));
-    };
-    
-    const handleAddAssignment = () => {
-        setError('');
-        if (!assignmentGiver || !assignmentReceiver) {
-            setError('Please select a giver and a receiver for the assignment.');
-            return;
-        }
-        if (assignmentGiver === assignmentReceiver) {
-            setError('A participant cannot be assigned to themselves.');
-            return;
-        }
-        const giverExists = assignments.some(a => a.giverId === assignmentGiver);
-        const receiverExists = assignments.some(a => a.receiverId === assignmentReceiver);
-        
-        if (giverExists) {
-            setError(`${getParticipantName(assignmentGiver)} is already assigned as a giver.`);
-            return;
-        }
-        if (receiverExists) {
-             setError(`${getParticipantName(assignmentReceiver)} is already assigned as a receiver.`);
-            return;
-        }
-        
-        setAssignments([...assignments, { giverId: assignmentGiver, receiverId: assignmentReceiver }]);
-        setAssignmentGiver('');
-        setAssignmentReceiver('');
-    };
-    
-    const handleRemoveAssignment = (giverId: string) => {
-        setAssignments(assignments.filter(a => a.giverId !== giverId));
-    };
+          {/* Text Color */}
+          <div className="flex items-center gap-4">
+            <Palette className="w-6 h-6 text-slate-500" />
+            <label htmlFor="text-color" className="font-semibold text-slate-600">Text Color</label>
+            <input id="text-color" type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-10 h-10 border-none rounded-md cursor-pointer bg-white" />
+          </div>
 
-    return (
-        <div className="space-y-8">
-            {error && <p className="text-red-600 bg-red-50 p-3 rounded-md text-sm">{error}</p>}
-            
-            <div>
-                <label htmlFor="event-details" className="block text-lg font-semibold text-slate-700 mb-2">Event Details</label>
-                <textarea
-                    id="event-details"
-                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                    placeholder="e.g., Gift exchange at the annual holiday party on Dec 20th. Budget: $25."
-                    value={eventDetails}
-                    onChange={(e) => setEventDetails(e.target.value)}
-                    rows={3}
-                />
-            </div>
+          {/* Text Outline */}
+          <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input id="use-outline" type="checkbox" checked={useTextOutline} onChange={(e) => setUseTextOutline(e.target.checked)} className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"/>
+                <label htmlFor="use-outline" className="font-semibold text-slate-600">Use Text Outline</label>
+              </div>
+              {useTextOutline && (
+                  <div className="pl-6 flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                          <Droplet className="w-5 h-5 text-slate-500" />
+                          <input id="outline-color" type="color" value={outlineColor} onChange={(e) => setOutlineColor(e.target.value)} className="w-8 h-8 border-none rounded-md cursor-pointer bg-white"/>
+                      </div>
+                      <div className="flex items-center gap-2">
+                           <BoxSelect className="w-5 h-5 text-slate-500" />
+                           <select id="outline-size" value={outlineSize} onChange={(e) => setOutlineSize(e.target.value as OutlineSizeSetting)} className="p-1 border border-slate-300 rounded-md text-sm">
+                               <option value="thin">Thin</option>
+                               <option value="normal">Normal</option>
+                               <option value="thick">Thick</option>
+                           </select>
+                      </div>
+                  </div>
+              )}
+          </div>
 
-            <div>
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">Exclusions (Optional)</h3>
-                <p className="text-slate-500 mb-4 text-sm">Prevent certain people from being matched together.</p>
-                <div className="flex flex-wrap items-center gap-2 mb-4 p-4 bg-slate-50 rounded-lg border">
-                    <select value={exclusionP1} onChange={e => setExclusionP1(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select first person for exclusion">
-                        <option value="">Select Person 1</option>
-                        {participants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <span className="font-semibold text-slate-500 flex-shrink-0">can't draw</span>
-                    <select value={exclusionP2} onChange={e => setExclusionP2(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select second person for exclusion">
-                         <option value="">Select Person 2</option>
-                         {participants.filter(p => p.id !== exclusionP1).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <button onClick={handleAddExclusion} className="p-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition flex-shrink-0" aria-label="Add exclusion rule">+</button>
-                </div>
-                <div className="space-y-2">
-                    {exclusions.map((ex, i) => (
-                        <div key={i} className="flex justify-between items-center bg-slate-100 p-2 rounded-md text-sm">
-                           <span><strong>{getParticipantName(ex.p1)}</strong> and <strong>{getParticipantName(ex.p2)}</strong> can't be matched.</span>
-                           <button onClick={() => handleRemoveExclusion(ex.p1, ex.p2)} className="text-red-500 hover:text-red-700 font-bold text-xl px-2" aria-label={`Remove exclusion between ${getParticipantName(ex.p1)} and ${getParticipantName(ex.p2)}`}>&times;</button>
-                        </div>
-                    ))}
-                </div>
-            </div>
+          {/* Font Size */}
+          <div className="flex items-center gap-4">
+            <Text className="w-6 h-6 text-slate-500" />
+            <label htmlFor="font-size" className="font-semibold text-slate-600">Font Size</label>
+            <select id="font-size" value={fontSize} onChange={(e) => setFontSize(e.target.value as FontSizeSetting)} className="p-2 border border-slate-300 rounded-md text-sm">
+              <option value="normal">Normal</option>
+              <option value="large">Large</option>
+              <option value="extra-large">Extra Large</option>
+            </select>
+          </div>
+          
+          {/* Font Theme */}
+          <div className="flex items-center gap-4">
+            <Type className="w-6 h-6 text-slate-500" />
+            <label htmlFor="font-theme" className="font-semibold text-slate-600">Font Theme</label>
+            <select id="font-theme" value={fontTheme} onChange={(e) => setFontTheme(e.target.value as FontTheme)} className="p-2 border border-slate-300 rounded-md text-sm">
+              <option value="classic">Classic (Serif)</option>
+              <option value="elegant">Elegant (Garamond)</option>
+              <option value="modern">Modern (Sans-serif)</option>
+              <option value="whimsical">Whimsical (Cursive)</option>
+            </select>
+          </div>
 
-            <div>
-                 <h3 className="text-lg font-semibold text-slate-700 mb-2">Assignments (Optional)</h3>
-                <p className="text-slate-500 mb-4 text-sm">Force a specific person to be another's Secret Santa.</p>
-                <div className="flex flex-wrap items-center gap-2 mb-4 p-4 bg-slate-50 rounded-lg border">
-                    <select value={assignmentGiver} onChange={e => setAssignmentGiver(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select giver for assignment">
-                        <option value="">Select Giver</option>
-                        {participants.filter(p => !assignments.some(a => a.giverId === p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <span className="font-semibold text-slate-500 flex-shrink-0">must draw</span>
-                    <select value={assignmentReceiver} onChange={e => setAssignmentReceiver(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select receiver for assignment">
-                         <option value="">Select Receiver</option>
-                         {participants.filter(p => p.id !== assignmentGiver && !assignments.some(a => a.receiverId === p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <button onClick={handleAddAssignment} className="p-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition flex-shrink-0" aria-label="Add assignment rule">+</button>
-                </div>
-                <div className="space-y-2">
-                    {assignments.map((a, i) => (
-                        <div key={i} className="flex justify-between items-center bg-slate-100 p-2 rounded-md text-sm">
-                           <span><strong>{getParticipantName(a.giverId)}</strong> will be the Secret Santa for <strong>{getParticipantName(a.receiverId)}</strong>.</span>
-                           <button onClick={() => handleRemoveAssignment(a.giverId)} className="text-red-500 hover:text-red-700 font-bold text-xl px-2" aria-label={`Remove assignment for ${getParticipantName(a.giverId)}`}>&times;</button>
-                        </div>
-                    ))}
-                </div>
-            </div>
+          {/* Line Spacing */}
+          <div className="flex items-center gap-4 md:col-span-2">
+            <SpacingVertical className="w-6 h-6 text-slate-500" />
+            <label htmlFor="line-spacing" className="font-semibold text-slate-600">Line Spacing</label>
+            <input id="line-spacing" type="range" min="1" max="2" step="0.1" value={lineSpacing} onChange={(e) => setLineSpacing(parseFloat(e.target.value))} className="w-full" />
+            <span className="text-sm font-mono">{lineSpacing.toFixed(1)}</span>
+          </div>
+
+           {/* Card Text Customization */}
+           <div className="md:col-span-2 space-y-4 border-t pt-6 mt-2">
+             <div className="flex items-start gap-4">
+               <MessageSquare className="w-6 h-6 text-slate-500 mt-1" />
+               <div className="w-full">
+                <h4 className="font-semibold text-slate-600 mb-2">Card Text Customization</h4>
+                 <div className="space-y-2">
+                   <input type="text" value={greetingText} onChange={e => setGreetingText(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" placeholder="Greeting" />
+                   <input type="text" value={introText} onChange={e => setIntroText(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" placeholder="Introduction" />
+                   <input type="text" value={wishlistLabelText} onChange={e => setWishlistLabelText(e.target.value)} className="w-full p-2 border border-slate-300 rounded-md text-sm" placeholder="Wishlist Label" />
+                 </div>
+               </div>
+             </div>
+           </div>
+
         </div>
-    );
+      </details>
+    </div>
+  );
 };
 
 export default Options;

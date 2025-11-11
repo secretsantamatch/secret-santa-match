@@ -1,108 +1,122 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { produce } from 'immer';
+import type { Participant, Exclusion, Assignment, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import ParticipantManager from './ParticipantManager';
-import Options from './Options';
 import BulkAddModal from './BulkAddModal';
-import BackgroundSelector from './BackgroundSelector';
+import Options from './Options';
+import Header from './Header';
+import Footer from './Footer';
 import HowItWorks from './HowItWorks';
-import WhyChooseUs from './WhyChooseUs';
 import FaqSection from './FaqSection';
+import WhyChooseUs from './WhyChooseUs';
 import SocialProof from './SocialProof';
 import VideoTutorial from './VideoTutorial';
-import ShareTool from './ShareTool';
 import { generateMatches } from '../services/matchService';
 import { serializeExchangeData } from '../services/urlService';
 import { trackEvent } from '../services/analyticsService';
-import type { Participant, Exclusion, Assignment, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
-import { Palette, Settings, Check } from 'lucide-react';
+import { Users, GitPullRequest, Settings, Shuffle, X, AlertTriangle } from 'lucide-react';
+import CookieConsentBanner from './CookieConsentBanner';
+import { getRandomPersona } from '../services/personaService';
 
 const GeneratorPage: React.FC = () => {
+    // Core State
     const [participants, setParticipants] = useState<Participant[]>([
         { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
     ]);
     const [exclusions, setExclusions] = useState<Exclusion[]>([]);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
-    const [eventDetails, setEventDetails] = useState('');
-    const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [step, setStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
     
-    // Customization state
+    // UI State
+    const [showBulkAdd, setShowBulkAdd] = useState(false);
+    const [activeTab, setActiveTab] = useState<'participants' | 'rules' | 'style'>('participants');
+    const [loadingMessage, setLoadingMessage] = useState('Drawing names...');
+    
+    // Options State
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
-    const [selectedBgId, setSelectedBgId] = useState('christmas-lights');
+    const [eventDetails, setEventDetails] = useState('Gift exchange on Dec 25th!');
+    const [selectedBackgroundId, setSelectedBackgroundId] = useState('christmas-1');
     const [customBackground, setCustomBackground] = useState<string | null>(null);
     const [textColor, setTextColor] = useState('#FFFFFF');
     const [useTextOutline, setUseTextOutline] = useState(true);
     const [outlineColor, setOutlineColor] = useState('#000000');
     const [outlineSize, setOutlineSize] = useState<OutlineSizeSetting>('normal');
-    const [fontSizeSetting, setFontSizeSetting] = useState<FontSizeSetting>('normal');
+    const [fontSize, setFontSize] = useState<FontSizeSetting>('normal');
     const [fontTheme, setFontTheme] = useState<FontTheme>('classic');
-    const [lineSpacing, setLineSpacing] = useState(1.5);
-    const [greetingText, setGreetingText] = useState("Merry Christmas,");
-    const [introText, setIntroText] = useState("You are the Secret Santa for...");
-    const [wishlistLabelText, setWishlistLabelText] = useState("Their Wishlist:");
+    const [lineSpacing, setLineSpacing] = useState(1.2);
+    const [greetingText, setGreetingText] = useState('Happy Holidays');
+    const [introText, setIntroText] = useState('You are the Secret Santa for...');
+    const [wishlistLabelText, setWishlistLabelText] = useState("Here are some gift ideas:");
 
-    const updateTextsFromTemplate = useCallback((bgId: string, options: BackgroundOption[]) => {
-      const option = options.find(opt => opt.id === bgId);
-      if (option?.cardText) {
-        setGreetingText(option.cardText.greeting);
-        setIntroText(option.cardText.intro);
-        setWishlistLabelText(option.cardText.wishlistLabel);
-      }
-    }, []);
+    // PWA & Cookie State
+    const [showCookieBanner, setShowCookieBanner] = useState(false);
+    const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
 
+    // Initial load effects
     useEffect(() => {
+        const consent = localStorage.getItem('cookie_consent');
+        if (consent === null) {
+            setShowCookieBanner(true);
+        } else if (consent === 'true') {
+            trackEvent('page_view', { page_title: 'Generator' });
+        }
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            setDeferredInstallPrompt(e);
+        });
+
         fetch('/templates.json')
             .then(res => res.json())
             .then(data => {
                 setBackgroundOptions(data);
-                const defaultOption = data.find((opt: BackgroundOption) => opt.id === selectedBgId) || data[0];
+                const defaultOption = data[0];
                 if (defaultOption) {
+                    setSelectedBackgroundId(defaultOption.id);
                     setTextColor(defaultOption.defaultTextColor || '#FFFFFF');
-                    updateTextsFromTemplate(selectedBgId, data);
                 }
             })
-            .catch(err => console.error("Failed to load background templates:", err));
-
+            .catch(err => console.error("Failed to load templates.json", err));
+        
         // Listen for participants from Chrome extension
-        const handleExtensionParticipants = (event: Event) => {
-            const customEvent = event as CustomEvent;
-            const injectedParticipants = customEvent.detail;
-            if (Array.isArray(injectedParticipants)) {
-                const newParticipants: Participant[] = injectedParticipants.map(p => ({
-                    id: p.id || crypto.randomUUID(),
-                    name: p.name || '',
-                    interests: p.notes || '',
-                    likes: '', dislikes: '', links: '', budget: p.budget || ''
-                }));
-                const finalParticipants = newParticipants.filter(p => p.name.trim() !== '');
-                finalParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' });
-                setParticipants(finalParticipants);
-                trackEvent('extension_import', { count: injectedParticipants.length });
+        const handleExtensionData = (event: CustomEvent) => {
+             const extensionParticipants = event.detail.map((p: any) => ({
+                id: p.id || crypto.randomUUID(),
+                name: p.name || '',
+                interests: p.notes || '',
+                likes: '', dislikes: '', links: '',
+                budget: p.budget || '',
+            }));
+            if (extensionParticipants.length > 0) {
+                 setParticipants([...extensionParticipants, { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' }]);
+                 trackEvent('extension_import_success', { count: extensionParticipants.length });
             }
         };
-        window.addEventListener('ssm-participants-ready', handleExtensionParticipants);
-        return () => window.removeEventListener('ssm-participants-ready', handleExtensionParticipants);
+        window.addEventListener('ssm-participants-ready', handleExtensionData as EventListener);
+        return () => window.removeEventListener('ssm-participants-ready', handleExtensionData as EventListener);
+
     }, []);
 
-    useEffect(() => {
-      if (backgroundOptions.length > 0) {
-        updateTextsFromTemplate(selectedBgId, backgroundOptions);
-      }
-    }, [selectedBgId, backgroundOptions, updateTextsFromTemplate]);
+    // Update card text based on selected background
+     useEffect(() => {
+        const selectedOption = backgroundOptions.find(opt => opt.id === selectedBackgroundId);
+        if (selectedOption?.cardText) {
+            setGreetingText(selectedOption.cardText.greeting);
+            setIntroText(selectedOption.cardText.intro);
+            setWishlistLabelText(selectedOption.cardText.wishlistLabel);
+        }
+     }, [selectedBackgroundId, backgroundOptions]);
 
     const handleBulkAdd = (names: string) => {
-        const nameList = names.split('\n').map(name => name.trim()).filter(Boolean);
-        const newParticipants = nameList.map(name => ({
-            id: crypto.randomUUID(), name, interests: '', likes: '', dislikes: '', links: '', budget: ''
-        }));
-        
-        const existingNames = new Set(participants.filter(p => p.name).map(p => p.name.toLowerCase()));
-        const uniqueNew = newParticipants.filter(p => !existingNames.has(p.name.toLowerCase()));
-        
-        const currentParticipants = participants.filter(p => p.name.trim() !== '');
-        setParticipants([...currentParticipants, ...uniqueNew, { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' }]);
-        setIsBulkAddModalOpen(false);
-        trackEvent('bulk_add', { count: uniqueNew.length });
+        const newParticipants = names.split('\n').map(name => name.trim()).filter(Boolean);
+        if (newParticipants.length > 0) {
+            const currentNonEmpty = participants.filter(p => p.name.trim() !== '');
+            const combined = [...currentNonEmpty, ...newParticipants.map(name => ({ id: crypto.randomUUID(), name, interests: '', likes: '', dislikes: '', links: '', budget: '' }))];
+            setParticipants([...combined, { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' }]);
+            trackEvent('bulk_add', { count: newParticipants.length });
+        }
+        setShowBulkAdd(false);
     };
 
     const handleClear = () => {
@@ -110,149 +124,220 @@ const GeneratorPage: React.FC = () => {
         setExclusions([]);
         setAssignments([]);
         setError(null);
-        trackEvent('clear_list');
+        trackEvent('click_clear_all');
     };
     
-    const handleNextStep = () => {
-        const finalParticipants = participants.map(p => ({ ...p, name: p.name.trim() })).filter(p => p.name);
-        if (finalParticipants.length < 2) {
-            setError("You need at least two participants to start a gift exchange.");
-            window.scrollTo(0, 0);
-            return;
-        }
-        setError(null);
-        setStep(step + 1);
-        window.scrollTo(0, 0);
+    // Rules management
+    const addExclusion = () => {
+        setExclusions(produce(draft => {
+            draft.push({ p1: '', p2: '' });
+        }));
+    };
+
+    const updateExclusion = (index: number, field: 'p1' | 'p2', value: string) => {
+        setExclusions(produce(draft => {
+            draft[index][field] = value;
+        }));
+    };
+
+    const removeExclusion = (index: number) => {
+        setExclusions(exclusions.filter((_, i) => i !== index));
     };
 
     const handleGenerate = () => {
-        const finalParticipants = participants.map(p => ({ ...p, name: p.name.trim() })).filter(p => p.name);
-        if (finalParticipants.length < 2) {
+        setError(null);
+        const validParticipants = participants.filter(p => p.name.trim() !== '');
+        if (validParticipants.length < 2) {
             setError("You need at least two participants to start a gift exchange.");
+            setActiveTab('participants');
             return;
         }
+        
+        setIsLoading(true);
+        setLoadingMessage(getRandomPersona());
 
-        const result = generateMatches(finalParticipants, exclusions, assignments);
-        if (result.matches) {
-            setError(null);
-            const dataToSerialize = {
-                p: finalParticipants,
-                matches: result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
-                eventDetails,
-                bgId: selectedBgId,
-                customBackground,
-                textColor,
-                useTextOutline,
-                outlineColor,
-                outlineSize,
-                fontSizeSetting,
-                fontTheme,
-                lineSpacing,
-                greetingText,
-                introText,
-                wishlistLabelText,
-            };
-            const hash = serializeExchangeData(dataToSerialize);
-            window.location.hash = hash;
-            trackEvent('generate_success', { participants: finalParticipants.length, exclusions: exclusions.length, assignments: assignments.length });
-        } else {
-            setError(result.error);
-            trackEvent('generate_fail', { error: result.error });
-        }
+        // Use a timeout to allow the loading UI to render and feel more responsive
+        setTimeout(() => {
+            const result = generateMatches(validParticipants, exclusions, assignments);
+            if (result.matches) {
+                const dataToSerialize = {
+                    p: validParticipants,
+                    matches: result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
+                    exclusions,
+                    assignments,
+                    eventDetails,
+                    bgId: selectedBackgroundId,
+                    customBackground,
+                    textColor,
+                    useTextOutline,
+                    outlineColor,
+                    outlineSize,
+                    fontSizeSetting: fontSize,
+                    fontTheme,
+                    lineSpacing,
+                    greetingText,
+                    introText,
+                    wishlistLabelText,
+                };
+                const serializedData = serializeExchangeData(dataToSerialize);
+                trackEvent('generate_success', { participants: validParticipants.length });
+                window.location.hash = serializedData;
+                // Force a reload to trigger the App component's routing logic
+                window.location.reload();
+            } else {
+                setError(result.error);
+                setActiveTab('rules');
+                setIsLoading(false);
+                trackEvent('generate_fail', { error: result.error, participants: validParticipants.length });
+            }
+        }, 1500); // Simulate some work
+    };
+
+    const handleCookieAccept = () => {
+        localStorage.setItem('cookie_consent', 'true');
+        setShowCookieBanner(false);
+        trackEvent('cookie_consent_accept');
+    };
+
+    const handleCookieDecline = () => {
+        localStorage.setItem('cookie_consent', 'false');
+        setShowCookieBanner(false);
     };
     
-    const renderStepContent = () => {
-        const validParticipants = participants.filter(p => p.name.trim());
-        switch (step) {
-            case 1:
-                return (
-                    <div>
-                        <h3 className="text-xl font-bold text-slate-800 mb-4">Step 1: Add Participant Names</h3>
-                        <ParticipantManager
-                            participants={participants}
-                            setParticipants={setParticipants}
-                            onBulkAddClick={() => setIsBulkAddModalOpen(true)}
-                            onClearClick={handleClear}
-                        />
-                        <div className="mt-8 text-center">
-                            <button onClick={handleNextStep} className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
-                                Next: Add Details & Rules &rarr;
-                            </button>
-                        </div>
-                    </div>
-                );
-            case 2:
-                return (
-                    <div>
-                        <h3 className="text-xl font-bold text-slate-800 mb-4">Step 2: Add Details & Rules</h3>
-                        <Options
-                            participants={validParticipants}
-                            exclusions={exclusions}
-                            setExclusions={setExclusions}
-                            assignments={assignments}
-                            setAssignments={setAssignments}
-                            eventDetails={eventDetails}
-                            setEventDetails={setEventDetails}
-                            trackEvent={trackEvent}
-                        />
-                         <div className="mt-8 flex justify-between items-center">
-                            <button onClick={() => setStep(1)} className="text-slate-600 hover:text-slate-800 font-semibold">&larr; Back to Names</button>
-                            <button onClick={handleNextStep} className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
-                                Next: Customize Cards &rarr;
-                            </button>
-                        </div>
-                    </div>
-                );
-            case 3:
-                return (
-                    <div>
-                        <h3 className="text-xl font-bold text-slate-800 mb-4">Step 3: Customize Your Cards (Optional)</h3>
-                        <BackgroundSelector
-                            selectedBackgroundId={selectedBgId}
-                            setSelectedBackgroundId={setSelectedBgId}
-                            customBackground={customBackground}
-                            setCustomBackground={setCustomBackground}
-                            backgroundOptions={backgroundOptions}
-                            onTextColorChange={setTextColor}
-                        />
-                        <div className="mt-8 flex justify-between items-center">
-                            <button onClick={() => setStep(2)} className="text-slate-600 hover:text-slate-800 font-semibold">&larr; Back to Rules</button>
-                            <button onClick={handleGenerate} className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
-                                Generate Matches!
-                            </button>
-                        </div>
-                    </div>
-                )
-            default: return null;
+    const handleInstallClick = () => {
+        if (deferredInstallPrompt) {
+            deferredInstallPrompt.prompt();
+            deferredInstallPrompt.userChoice.then((choiceResult: { outcome: string }) => {
+                trackEvent('pwa_install_prompt', { outcome: choiceResult.outcome });
+            });
         }
+    };
+
+    const validParticipants = participants.filter(p => p.name.trim() !== '');
+
+    const renderRules = () => (
+        <div className="space-y-6">
+            <div>
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">Exclusions</h3>
+                <p className="text-slate-500 mb-4 text-sm">Prevent people from drawing each other. Perfect for couples or family members.</p>
+                <div className="space-y-3">
+                    {exclusions.map((ex, index) => (
+                        <div key={index} className="flex items-center gap-2 bg-slate-50 p-3 rounded-lg border">
+                            <select value={ex.p1} onChange={(e) => updateExclusion(index, 'p1', e.target.value)} className="w-full p-2 border rounded-md">
+                                <option value="">Select Person</option>
+                                {validParticipants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                            <span className="font-bold text-red-500">can't draw</span>
+                            <select value={ex.p2} onChange={(e) => updateExclusion(index, 'p2', e.target.value)} className="w-full p-2 border rounded-md">
+                                <option value="">Select Person</option>
+                                {validParticipants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                            <button onClick={() => removeExclusion(index)} className="text-red-500 hover:text-red-700 p-2"><X size={18}/></button>
+                        </div>
+                    ))}
+                </div>
+                <button onClick={addExclusion} className="mt-4 text-indigo-600 font-semibold text-sm hover:text-indigo-800">Add Exclusion</button>
+            </div>
+            {/* Note: Assignments UI is commented out as it's a more advanced feature. The logic is there.
+            <div>
+                <h3 className="text-lg font-semibold text-slate-700">Assignments</h3>
+                <p className="text-slate-500 text-sm">Force someone to draw a specific person.</p>
+            </div>
+            */}
+        </div>
+    );
+    
+    if (isLoading) {
+        return (
+            <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-50 text-center p-4">
+                 <img src="/logo_256.png" alt="Loading" className="w-24 h-24 animate-pulse mb-6" />
+                 <h2 className="text-2xl font-bold text-slate-800 animate-pulse">{loadingMessage}</h2>
+                 <p className="text-slate-500 mt-2">Just a moment...</p>
+            </div>
+        )
     }
 
     return (
-        <div className="space-y-12">
-            <div className="text-center">
-                <h1 className="text-4xl md:text-5xl font-bold text-slate-800 font-serif mb-3">Secret Santa Generator</h1>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">The fast, free, and private way to draw names for your gift exchange. No emails or sign-ups required.</p>
-            </div>
+        <>
+            <Header />
+            <main className="bg-slate-50">
+                {/* Hero Section */}
+                <div className="text-center py-16 px-4 bg-white border-b">
+                     <div className="flex justify-center mb-4">
+                        <img src="/logo_256.png" alt="Secret Santa Match Logo" className="h-20 w-20" />
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 font-serif">The Easiest Secret Santa Generator</h1>
+                    <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">Instantly draw names for your gift exchange. 100% free, private, and no sign-ups required. Ever.</p>
+                </div>
+                
+                <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
+                        <div className="flex border-b mb-6">
+                            {['participants', 'rules', 'style'].map(tab => (
+                                <button key={tab} onClick={() => setActiveTab(tab as any)} className={`capitalize flex items-center gap-2 font-semibold py-3 px-4 -mb-px border-b-2 transition-colors ${activeTab === tab ? 'text-red-600 border-red-600' : 'text-slate-500 border-transparent hover:text-slate-800'}`}>
+                                    {tab === 'participants' && <Users size={18} />}
+                                    {tab === 'rules' && <GitPullRequest size={18} />}
+                                    {tab === 'style' && <Settings size={18} />}
+                                    {tab}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {activeTab === 'participants' && <ParticipantManager participants={participants} setParticipants={setParticipants} onBulkAddClick={() => setShowBulkAdd(true)} onClearClick={handleClear} />}
+                        {activeTab === 'rules' && renderRules()}
+                        {activeTab === 'style' && (
+                             <Options
+                                eventDetails={eventDetails} setEventDetails={setEventDetails}
+                                selectedBackgroundId={selectedBackgroundId} setSelectedBackgroundId={setSelectedBackgroundId}
+                                customBackground={customBackground} setCustomBackground={setCustomBackground}
+                                backgroundOptions={backgroundOptions}
+                                textColor={textColor} setTextColor={setTextColor}
+                                useTextOutline={useTextOutline} setUseTextOutline={setUseTextOutline}
+                                outlineColor={outlineColor} setOutlineColor={setOutlineColor}
+                                outlineSize={outlineSize} setOutlineSize={setOutlineSize}
+                                fontSize={fontSize} setFontSize={setFontSize}
+                                fontTheme={fontTheme} setFontTheme={setFontTheme}
+                                lineSpacing={lineSpacing} setLineSpacing={setLineSpacing}
+                                greetingText={greetingText} setGreetingText={setGreetingText}
+                                introText={introText} setIntroText={setIntroText}
+                                wishlistLabelText={wishlistLabelText} setWishlistLabelText={setWishlistLabelText}
+                            />
+                        )}
+                    </div>
+                    
+                    {error && (
+                         <div className="p-4 bg-red-100 text-red-800 rounded-lg border border-red-200 flex items-center gap-3">
+                            <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+                            <div>
+                                <h3 className="font-bold">Oops! There's an issue.</h3>
+                                <p>{error}</p>
+                            </div>
+                        </div>
+                    )}
 
-            <div className="p-6 md:p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-                {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert"><p>{error}</p></div>}
-                {renderStepContent()}
-            </div>
+                    <div className="text-center pt-4">
+                        <button
+                            onClick={handleGenerate}
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                        >
+                            <Shuffle /> Draw Names!
+                        </button>
+                    </div>
+                </div>
 
-            <HowItWorks />
-            <WhyChooseUs />
-            <SocialProof />
-            <VideoTutorial />
-            <FaqSection />
-            <ShareTool />
-
-            {isBulkAddModalOpen && (
-                <BulkAddModal
-                    onClose={() => setIsBulkAddModalOpen(false)}
-                    onConfirm={handleBulkAdd}
-                />
-            )}
-        </div>
+                {/* Additional Content Sections */}
+                <div className="max-w-5xl mx-auto px-4 md:px-8">
+                    <HowItWorks />
+                    <WhyChooseUs />
+                    <SocialProof />
+                    <VideoTutorial />
+                    <FaqSection />
+                </div>
+            </main>
+            <Footer showInstallButton={!!deferredInstallPrompt} onInstallClick={handleInstallClick} />
+            {showBulkAdd && <BulkAddModal onConfirm={handleBulkAdd} onClose={() => setShowBulkAdd(false)} />}
+            {showCookieBanner && <CookieConsentBanner onAccept={handleCookieAccept} onDecline={handleCookieDecline} />}
+        </>
     );
 };
 
