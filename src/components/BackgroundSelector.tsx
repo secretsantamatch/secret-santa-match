@@ -54,9 +54,24 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
 
     return (
         <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+            {/* Pre-defined Themes */}
+            {backgroundOptions.map(option => (
+                <div
+                    key={option.id}
+                    title={option.name}
+                    className={`relative aspect-[3/4] rounded-lg border-2 cursor-pointer bg-cover bg-center transition-all
+                        ${selected === option.id ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-slate-200 hover:border-indigo-400'}`}
+                    style={{ backgroundImage: `url(${option.imageUrl})` }}
+                    onClick={() => handleSelect(option)}
+                    onMouseEnter={() => setHoveredBackgroundId(option.id)}
+                >
+                    {/* You could add an icon or overlay here if needed */}
+                </div>
+            ))}
+
             {/* Custom Upload Button */}
             <div
-                className={`relative aspect-square rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center text-center p-1 transition-all
+                className={`relative aspect-[3/4] rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center text-center p-1 transition-all
                     ${selected === 'custom' ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-slate-300 hover:border-indigo-400'}
                     ${customBackground ? 'bg-cover bg-center' : 'bg-slate-100'}`}
                 style={customBackground ? { backgroundImage: `url(${customBackground})` } : {}}
@@ -78,21 +93,6 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                     className="hidden"
                 />
             </div>
-
-            {/* Pre-defined Themes */}
-            {backgroundOptions.map(option => (
-                <div
-                    key={option.id}
-                    title={option.name}
-                    className={`relative aspect-square rounded-lg border-2 cursor-pointer bg-cover bg-center transition-all
-                        ${selected === option.id ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-slate-200 hover:border-indigo-400'}`}
-                    style={{ backgroundImage: `url(${option.imageUrl})` }}
-                    onClick={() => handleSelect(option)}
-                    onMouseEnter={() => setHoveredBackgroundId(option.id)}
-                >
-                    {/* You could add an icon or overlay here if needed */}
-                </div>
-            ))}
         </div>
     );
 };
