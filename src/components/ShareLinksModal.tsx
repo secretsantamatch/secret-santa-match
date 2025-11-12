@@ -21,7 +21,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   const [expandedQr, setExpandedQr] = useState<string | null>(null);
   const [loadingPdf, setLoadingPdf] = useState<'cards' | 'master' | 'party' | 'all-links' | null>(null);
 
-  const { p: participants, matches: matchIds } = exchangeData;
+  const { p: participants, matches: matchIds, id: exchangeId } = exchangeData;
 
   const matches: Match[] = useMemo(() => matchIds.map(m => ({
     giver: participants.find(p => p.id === m.g)!,
@@ -30,14 +30,12 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
   const getFullLink = (participantId: string): string => {
     const baseUrl = window.location.origin + window.location.pathname;
-    const encodedData = window.location.hash.slice(1).split('?')[0];
-    return `${baseUrl}?id=${participantId}#${encodedData}`;
+    return `${baseUrl}#${exchangeId}?id=${participantId}`;
   };
   
   const getFullOrganizerLink = (): string => {
       const baseUrl = window.location.origin + window.location.pathname;
-      const encodedData = window.location.hash.slice(1).split('?')[0];
-      return `${baseUrl}#${encodedData}`;
+      return `${baseUrl}#${exchangeId}`;
   }
 
   useEffect(() => {
@@ -70,7 +68,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
       }
     };
     fetchShortLinks();
-  }, [matches]);
+  }, [matches, exchangeId]);
 
 
   const getLinkForParticipant = (participant: Participant) => {

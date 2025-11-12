@@ -26,16 +26,15 @@ const ErrorDisplay = ({ message }: { message: string }) => (
     </div>
 );
 
-// Helper function to fetch data with retries, accounting for database replication lag.
+// Helper function to fetch data with retries using exponential backoff.
 const fetchWithRetry = async (url: string, retries = 4, initialDelay = 500): Promise<Response> => {
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);
             if (response.ok) return response; // Success!
             
-            // If it's a 404 and we have retries left, wait and try again.
             if (response.status === 404 && i < retries - 1) {
-                const delay = initialDelay * (i + 1); // Increasing delay
+                const delay = initialDelay * Math.pow(2, i); // Exponential backoff
                 console.warn(`Attempt ${i + 1}: Not found, retrying in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
@@ -43,7 +42,7 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 500): Pro
             }
         } catch (error) {
             if (i < retries - 1) {
-                const delay = initialDelay * (i + 1);
+                const delay = initialDelay * Math.pow(2, i);
                 console.warn(`Attempt ${i + 1}: Network error, retrying in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
@@ -53,7 +52,6 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 500): Pro
     }
     throw new Error('Failed to fetch after multiple retries.');
 };
-
 
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
@@ -66,27 +64,27 @@ const App: React.FC = () => {
             setError(null);
             const hash = window.location.hash.slice(1);
             
-            // If there's no hash, we're on the generator page.
-            // Reset state and don't show a loading indicator.
             if (!hash) {
                 setExchangeData(null);
+                setParticipantId(null);
                 setIsLoading(false);
                 return;
             }
 
-            // If there is a hash, it means we should be on a results page.
-            // Now we show the loading indicator while we fetch.
             setIsLoading(true);
             try {
-                const exchangeId = hash.split('?')[0];
+                const [exchangeId, queryString] = hash.split('?');
                 
+                if (!exchangeId) {
+                    throw new Error("Invalid URL: No exchange ID found.");
+                }
+
                 const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
                 if (!exchangeRes.ok) {
                     throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
                 }
                 const exchangePayload = await exchangeRes.json();
                 
-                // Fetch templates separately and merge them in
                 const templatesRes = await fetch('/templates.json');
                 if (!templatesRes.ok) throw new Error('Failed to load design templates.');
                 const backgroundOptions = await templatesRes.json();
@@ -94,27 +92,25 @@ const App: React.FC = () => {
                 const fullData: ExchangeData = { ...exchangePayload, backgroundOptions };
                 setExchangeData(fullData);
 
-                // Check for participant ID in the query string
-                const params = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams(queryString || '');
                 setParticipantId(params.get('id'));
 
             } catch (err) {
                 console.error("Error loading exchange data:", err);
                 setError(err instanceof Error ? err.message : "An unknown error occurred.");
-                setExchangeData(null); // Clear any stale data on error
+                setExchangeData(null);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        loadData(); // Run on initial page load
-        window.addEventListener('hashchange', loadData); // Run whenever the hash changes
+        loadData();
+        window.addEventListener('hashchange', loadData);
 
-        // Cleanup the event listener when the component unmounts
         return () => {
             window.removeEventListener('hashchange', loadData);
         };
-    }, []); // Empty dependency array is correct: this effect should run only once to set up listeners.
+    }, []);
 
     if (isLoading) {
         return <LoadingFallback />;
@@ -124,7 +120,6 @@ const App: React.FC = () => {
         return <ErrorDisplay message={error} />;
     }
 
-    // If exchange data was successfully loaded, show the results page.
     if (exchangeData) {
         return (
             <Suspense fallback={<LoadingFallback />}>
@@ -133,7 +128,6 @@ const App: React.FC = () => {
         );
     }
 
-    // Otherwise, show the main generator page.
     return (
         <Suspense fallback={<LoadingFallback />}>
             <GeneratorPage />
