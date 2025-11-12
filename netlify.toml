@@ -1,10 +1,13 @@
-# This rule specifically tells Netlify that any request for /blog or /blog.html
-# should be served by your main index.html file. This allows your React
-# router to take over and display the correct blog component.
-#
-# This rule does NOT affect any of your other static HTML files like
-# privacy-policy.html, which will continue to load normally.
+# This file provides explicit build instructions for Netlify.
 
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions/"
+
+# Your existing redirect rules for the blog.
 [[redirects]]
   from = "/blog"
   to = "/index.html"
@@ -14,9 +17,3 @@
   from = "/blog.html"
   to = "/index.html"
   status = 200
-
-# Your get-blog-posts.ts function is disabled and returns an empty array.
-# You can safely remove this [functions] block if you are no longer using
-# Netlify functions for any part of your build or deployment process.
-[functions]
-  directory = "netlify/functions/"
