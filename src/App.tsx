@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Added file extension to imports to be explicit.
-import GeneratorPage from './components/GeneratorPage.tsx';
-// FIX: Added file extension to imports to be explicit.
-import ResultsPage from './components/ResultsPage.tsx';
-// FIX: Added .ts extension to types import
-import type { ExchangeData } from './types.ts';
+// FIX: Removed file extensions from imports to resolve TypeScript build error.
+import GeneratorPage from './components/GeneratorPage';
+// FIX: Removed file extensions from imports to resolve TypeScript build error.
+import ResultsPage from './components/ResultsPage';
+// FIX: Removed file extensions from imports to resolve TypeScript build error.
+import type { ExchangeData } from './types';
 
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
