@@ -177,6 +177,19 @@ const GeneratorPage: React.FC = () => {
             setActiveStep(3);
             return;
         }
+
+        // Track popular interests anonymously before generating
+        validParticipants.forEach(participant => {
+            const interests = (participant.interests || '').split(',');
+            const likes = (participant.likes || '').split(',');
+
+            [...interests, ...likes].forEach(keyword => {
+                const trimmedKeyword = keyword.trim().toLowerCase();
+                if (trimmedKeyword) {
+                    trackEvent('interest_added', { interest_name: trimmedKeyword });
+                }
+            });
+        });
         
         setIsLoading(true);
         setLoadingMessage(getRandomPersona());

@@ -16,10 +16,13 @@ const CharacterCounter: React.FC<{ value: string, fieldName: string }> = ({ valu
     const isOverLimit = length > WISHLIST_CHAR_LIMIT;
     const isLinks = fieldName === 'links';
 
+    const linksHelperText = "e.g., Amazon wishlist, Pinterest board.";
+    const defaultHelperText = "Separate with commas.";
+
     return (
         <div className="text-xs text-slate-400 mt-1">
             <div className="flex justify-between">
-                <span>{isLinks ? "Paste one link per line." : "Separate with commas."}</span>
+                <span>{isLinks ? linksHelperText : defaultHelperText}</span>
                 <span className={isOverLimit ? 'text-red-500 font-bold' : ''}>
                     {length} / {WISHLIST_CHAR_LIMIT}
                 </span>
@@ -150,7 +153,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                 <CharacterCounter value={participant.dislikes} fieldName="dislikes" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">Specific Links (Optional)</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Wishlist Links (Optional)</label>
                                 <textarea
                                     placeholder="Paste one link per line"
                                     value={participant.links}
