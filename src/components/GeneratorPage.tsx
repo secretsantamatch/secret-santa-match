@@ -239,10 +239,8 @@ const GeneratorPage: React.FC = () => {
             const { id } = await response.json();
             trackEvent('generate_success', { participants: validParticipants.length, method: 'firebase' });
             
-            setTimeout(() => {
-                window.location.href = `/generator.html#${id}`;
-                window.location.reload(); 
-            }, 500);
+            // Set the hash; the App component will listen for this change and update.
+            window.location.hash = id;
 
         } catch (apiError) {
             const errorMessage = apiError instanceof Error ? apiError.message : "Could not save the gift exchange. Please try again.";

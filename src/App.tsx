@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import GeneratorPage from './components/GeneratorPage';
-import ResultsPage from './components/ResultsPage';
-import type { ExchangeData } from './types';
+// FIX: Added file extension to imports to be explicit.
+import GeneratorPage from './components/GeneratorPage.tsx';
+// FIX: Added file extension to imports to be explicit.
+import ResultsPage from './components/ResultsPage.tsx';
+// FIX: Added .ts extension to types import
+import type { ExchangeData } from './types.ts';
 
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
@@ -12,32 +15,36 @@ const App: React.FC = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
+                // Reset state for re-fetches on hash change
+                setExchangeData(null);
+                setError(null);
+                setIsLoading(true);
+
                 const hash = window.location.hash.slice(1);
                 if (hash) {
                     const exchangeId = hash.split('?')[0]; // Clean params
                     if (!exchangeId) {
-                        setIsLoading(false);
-                        return;
-                    }
-                    
-                    const exchangeRes = await fetch(`/.netlify/functions/get-exchange?id=${exchangeId}`);
-                    if (!exchangeRes.ok) {
-                        throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
-                    }
-                    const exchangePayload = await exchangeRes.json();
-                    
-                    const templatesRes = await fetch('/templates.json');
-                    if (!templatesRes.ok) {
-                        throw new Error('Failed to load design templates.');
-                    }
-                    const backgroundOptions = await templatesRes.json();
+                        // No ID, so just show the generator page
+                    } else {
+                        const exchangeRes = await fetch(`/.netlify/functions/get-exchange?id=${exchangeId}`);
+                        if (!exchangeRes.ok) {
+                            throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
+                        }
+                        const exchangePayload = await exchangeRes.json();
+                        
+                        const templatesRes = await fetch('/templates.json');
+                        if (!templatesRes.ok) {
+                            throw new Error('Failed to load design templates.');
+                        }
+                        const backgroundOptions = await templatesRes.json();
 
-                    const fullData: ExchangeData = { ...exchangePayload, backgroundOptions };
-                    setExchangeData(fullData);
+                        const fullData: ExchangeData = { ...exchangePayload, backgroundOptions };
+                        setExchangeData(fullData);
 
-                    const params = new URLSearchParams(window.location.search);
-                    const id = params.get('id');
-                    setParticipantId(id);
+                        const params = new URLSearchParams(window.location.search);
+                        const id = params.get('id');
+                        setParticipantId(id);
+                    }
                 }
             } catch (error) {
                 console.error("Error loading exchange data:", error);
@@ -47,7 +54,16 @@ const App: React.FC = () => {
             }
         };
         
+        // Load data on initial page load
         loadData();
+
+        // Add a listener to re-load data when the hash changes
+        window.addEventListener('hashchange', loadData);
+
+        // Clean up the listener when the component unmounts
+        return () => {
+            window.removeEventListener('hashchange', loadData);
+        };
     }, []);
 
     if (isLoading) {
