@@ -26,16 +26,17 @@ const ErrorDisplay = ({ message }: { message: string }) => (
     </div>
 );
 
-// DEFINITIVE FIX: Robust fetch function to handle the database race condition.
-const fetchWithRetry = async (url: string, retries = 4, initialDelay = 500): Promise<Response> => {
+// DEFINITIVE FIX: Robust fetch function with exponential backoff to handle the database race condition.
+const fetchWithRetry = async (url: string, retries = 4, initialDelay = 300): Promise<Response> => {
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);
-            if (response.ok) return response; // Success!
+            // Success!
+            if (response.ok) return response;
             
             // Only retry on 404, which is the expected error during the race condition
             if (response.status === 404 && i < retries - 1) {
-                const delay = initialDelay * Math.pow(2, i); // Exponential backoff
+                const delay = initialDelay * Math.pow(2, i); // e.g., 300ms, 600ms, 1200ms
                 console.warn(`Attempt ${i + 1}: Not found, retrying in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
@@ -43,6 +44,7 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 500): Pro
                 return response;
             }
         } catch (error) {
+            // Handle network errors
             if (i < retries - 1) {
                 const delay = initialDelay * Math.pow(2, i);
                 console.warn(`Attempt ${i + 1}: Network error, retrying in ${delay}ms...`);
@@ -52,13 +54,14 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 500): Pro
             }
         }
     }
+    // This line should not be reachable if retries > 0, but is a fallback.
     throw new Error('Failed to fetch after multiple retries.');
 };
 
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
     const [participantId, setParticipantId] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Default to false
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -66,6 +69,7 @@ const App: React.FC = () => {
             setError(null);
             const hash = window.location.hash.slice(1);
             
+            // If there's no hash, we're on the generator page. Do nothing.
             if (!hash) {
                 setExchangeData(null);
                 setParticipantId(null);
@@ -82,6 +86,7 @@ const App: React.FC = () => {
                     throw new Error("Invalid URL: No exchange ID found.");
                 }
 
+                // Use the robust retry mechanism
                 const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
                 if (!exchangeRes.ok) {
                     throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
@@ -95,6 +100,7 @@ const App: React.FC = () => {
                 const fullData: ExchangeData = { ...exchangePayload, backgroundOptions };
                 setExchangeData(fullData);
 
+                // Correctly parse participantId from the hash's query string
                 const params = new URLSearchParams(queryString || '');
                 setParticipantId(params.get('id'));
 
@@ -107,7 +113,7 @@ const App: React.FC = () => {
             }
         };
 
-        // DEFINITIVE FIX: Load data on initial page visit AND listen for changes.
+        // DEFINITIVE FIX: Load data on initial page visit AND listen for hash changes for seamless SPA transitions.
         loadData();
         window.addEventListener('hashchange', loadData);
 
@@ -115,7 +121,7 @@ const App: React.FC = () => {
         return () => {
             window.removeEventListener('hashchange', loadData);
         };
-    }, []); // Empty array ensures this setup runs only once.
+    }, []); // Empty array ensures this setup runs only once per component lifecycle.
 
     if (isLoading) {
         return <LoadingFallback />;
@@ -133,6 +139,7 @@ const App: React.FC = () => {
         );
     }
 
+    // Default view: The generator page
     return (
         <Suspense fallback={<LoadingFallback />}>
             <GeneratorPage />
