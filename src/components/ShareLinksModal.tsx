@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
 import { generateMasterListPdf, generateAllCardsPdf, generatePartyPackPdf } from '../services/pdfService';
-import { Copy, Check, X, MessageSquare, Users, Download, FileText, PartyPopper, QrCode, Smartphone, Loader2 } from 'lucide-react';
+import { Copy, Check, X, Smartphone, Users, Download, FileText, PartyPopper, QrCode, Loader2 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import PrintableCard from './PrintableCard';
 
@@ -29,12 +29,12 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   })).filter(m => m.giver && m.receiver), [matchIds, participants]);
 
   const getFullLink = (participantId: string): string => {
-    const baseUrl = window.location.origin + window.location.pathname;
+    const baseUrl = window.location.origin + '/generator.html';
     return `${baseUrl}#${exchangeId}?id=${participantId}`;
   };
   
   const getFullOrganizerLink = (): string => {
-      const baseUrl = window.location.origin + window.location.pathname;
+      const baseUrl = window.location.origin + '/generator.html';
       return `${baseUrl}#${exchangeId}`;
   }
 

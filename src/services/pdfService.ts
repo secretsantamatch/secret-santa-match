@@ -70,7 +70,7 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
 
     let yPos = 40;
     matches.forEach((match, index) => {
-        if (yPos > 280) {
+        if (yPos > 280) { // Check for page break
             pdf.addPage();
             yPos = 20;
         }
