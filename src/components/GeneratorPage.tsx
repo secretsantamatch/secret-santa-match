@@ -18,6 +18,7 @@ import { trackEvent } from '../services/analyticsService';
 import { Users, ScrollText, Palette, Shuffle, X, AlertTriangle, ArrowRight } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import { getRandomPersona } from '../services/personaService';
+import AdBanner from './AdBanner';
 
 const GeneratorPage: React.FC = () => {
     // Core State
@@ -294,6 +295,13 @@ const GeneratorPage: React.FC = () => {
                     <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">The easiest way to organize a gift exchange. No emails or sign-ups required. Instantly draw names online, set rules, and share private links!</p>
                 </div>
 
+                <AdBanner
+                    data-ad-client="ca-pub-3037944530219260"
+                    data-ad-slot="YOUR_AD_SLOT_ID_1" // Replace with your ad slot ID
+                    data-ad-format="auto"
+                    data-full-width-responsive="true"
+                />
+
                 <div className="max-w-5xl mx-auto px-4 md:px-8">
                     <HowItWorks />
                     <VideoTutorial />
@@ -422,6 +430,12 @@ const GeneratorPage: React.FC = () => {
 
                 <div className="max-w-5xl mx-auto px-4 md:px-8">
                     <WhyChooseUs />
+                    <AdBanner
+                        data-ad-client="ca-pub-3037944530219260"
+                        data-ad-slot="YOUR_AD_SLOT_ID_2" // Replace with your ad slot ID
+                        data-ad-format="auto"
+                        data-full-width-responsive="true"
+                    />
                     <SocialProof />
                     <ShareTool />
                     <FaqSection />
