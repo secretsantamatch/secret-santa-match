@@ -18,7 +18,8 @@ export async function handler(event: any, context: any) {
         const db = admin.firestore();
         
         // Perform a simple read operation to confirm the connection works
-        await db.collection('__test_connection__').limit(1).get();
+        // FIX: Changed from "__test_connection__" which is a reserved name.
+        await db.collection('_debug_connection_test').limit(1).get();
 
         response.status = 'SUCCESS';
         response.message = 'Firebase Admin SDK initialized and Firestore connection successful! Your environment variables appear to be configured correctly.';
