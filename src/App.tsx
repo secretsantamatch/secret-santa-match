@@ -1,10 +1,40 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Removed file extensions from imports to resolve TypeScript build error.
 import GeneratorPage from './components/GeneratorPage';
-// FIX: Removed file extensions from imports to resolve TypeScript build error.
 import ResultsPage from './components/ResultsPage';
-// FIX: Removed file extensions from imports to resolve TypeScript build error.
 import type { ExchangeData } from './types';
+
+// Helper function to fetch data with retries, accounting for database replication lag.
+const fetchWithRetry = async (url: string, retries = 3, delay = 750): Promise<Response> => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url);
+            // If response is OK, we're done
+            if (response.ok) {
+                return response;
+            }
+            // If it's a 404 (Not Found) and we have retries left, wait and try again.
+            // This is the key to solving the race condition.
+            if (response.status === 404 && i < retries - 1) {
+                console.warn(`Attempt ${i + 1}: Exchange not found, retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                // For non-404 errors or the last retry attempt, return the failing response immediately.
+                return response;
+            }
+        } catch (error) {
+            // On a network error, retry as well.
+            if (i < retries - 1) {
+                console.warn(`Attempt ${i + 1}: Network error, retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                // If it's the last attempt on a network error, throw it to be caught by the main logic.
+                throw error;
+            }
+        }
+    }
+    // This should not be reached, but serves as a fallback.
+    throw new Error('Failed to fetch after multiple retries.');
+};
 
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
@@ -15,18 +45,17 @@ const App: React.FC = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                // Reset state for re-fetches on hash change
                 setExchangeData(null);
                 setError(null);
                 setIsLoading(true);
 
                 const hash = window.location.hash.slice(1);
                 if (hash) {
-                    const exchangeId = hash.split('?')[0]; // Clean params
-                    if (!exchangeId) {
-                        // No ID, so just show the generator page
-                    } else {
-                        const exchangeRes = await fetch(`/.netlify/functions/get-exchange?id=${exchangeId}`);
+                    const exchangeId = hash.split('?')[0];
+                    if (exchangeId) {
+                        // Use the new fetchWithRetry function to be more resilient.
+                        const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
+
                         if (!exchangeRes.ok) {
                             throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
                         }
@@ -54,13 +83,8 @@ const App: React.FC = () => {
             }
         };
         
-        // Load data on initial page load
         loadData();
-
-        // Add a listener to re-load data when the hash changes
         window.addEventListener('hashchange', loadData);
-
-        // Clean up the listener when the component unmounts
         return () => {
             window.removeEventListener('hashchange', loadData);
         };
@@ -95,7 +119,6 @@ const App: React.FC = () => {
         return <ResultsPage data={exchangeData} currentParticipantId={participantId} />;
     }
 
-    // Default to GeneratorPage if no valid hash data
     return <GeneratorPage />;
 };
 
