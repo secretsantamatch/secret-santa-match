@@ -1,7 +1,6 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import type { ExchangeData } from './types';
 
-// CORRECTED PATHS: Removed './src/' and file extensions from imports to fix build errors.
 const GeneratorPage = lazy(() => import('./components/GeneratorPage'));
 const ResultsPage = lazy(() => import('./components/ResultsPage'));
 
@@ -26,37 +25,26 @@ const ErrorDisplay = ({ message }: { message: string }) => (
     </div>
 );
 
-// PERMANENT FIX for Race Condition: A robust fetch function with exponential backoff.
-// It retries a few times if it can't find the data immediately, giving the database time to catch up.
 const fetchWithRetry = async (url: string, retries = 4, initialDelay = 300): Promise<Response> => {
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);
-            // If the response is OK (200-299), we have the data, return it immediately.
             if (response.ok) return response;
-            
-            // The specific race condition error is a 404 (Not Found). Only retry on this.
-            // For other errors (like 500), fail immediately.
             if (response.status === 404 && i < retries - 1) {
-                const delay = initialDelay * Math.pow(2, i); // e.g., 300ms, 600ms, 1200ms
-                console.warn(`Attempt ${i + 1}: Data not found, retrying in ${delay}ms...`);
+                const delay = initialDelay * Math.pow(2, i);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-                // Return the failing response on the last try or for non-404 errors.
                 return response; 
             }
         } catch (error) {
-            // This catches network errors (e.g., offline)
             if (i < retries - 1) {
                 const delay = initialDelay * Math.pow(2, i);
-                console.warn(`Attempt ${i + 1}: Network error, retrying in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-                throw error; // Throw after the last attempt.
+                throw error;
             }
         }
     }
-    // This should theoretically not be reached, but it's good practice.
     throw new Error('Failed to fetch after multiple retries.');
 };
 
@@ -64,70 +52,83 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 300): Pro
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
     const [participantId, setParticipantId] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false); // Default to false, only true when loading from hash
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const loadData = async () => {
-            setError(null);
-            const hash = window.location.hash.slice(1);
+    // This function is now memoized and depends on `exchangeData`
+    // to prevent refetching data that's already in state.
+    const loadDataFromHash = useCallback(async () => {
+        const hash = window.location.hash.slice(1);
+        const [exchangeId, queryString] = hash.split('?');
+
+        // **THE FIX**: If the component already has data matching the hash, do not refetch.
+        // This is crucial for the transition from the generator to the results page.
+        if (exchangeData && exchangeId === exchangeData.id) {
+            setIsLoading(false);
+            return;
+        }
+
+        // If there's no hash, we are on the generator page.
+        if (!exchangeId) {
+            setExchangeData(null);
+            setParticipantId(null);
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
+            if (!exchangeRes.ok) {
+                throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
+            }
+            const exchangePayload = await exchangeRes.json();
             
-            // If there's no hash, we are on the generator page. Do nothing.
-            if (!hash) {
-                setExchangeData(null);
-                setParticipantId(null);
-                setIsLoading(false);
-                return;
-            }
+            const templatesRes = await fetch('/templates.json');
+            if (!templatesRes.ok) throw new Error('Failed to load design templates.');
+            const backgroundOptions = await templatesRes.json();
 
-            setIsLoading(true);
-            try {
-                // PERMANENT FIX for URL Parsing: Correctly parse both the exchangeId and participantId
-                // from the URL hash (e.g., #exchangeId?id=participantId).
-                const [exchangeId, queryString] = hash.split('?');
-                
-                if (!exchangeId) {
-                    throw new Error("Invalid URL: No exchange ID found.");
-                }
+            const fullData: ExchangeData = { ...exchangePayload, backgroundOptions };
+            setExchangeData(fullData);
 
-                // Use the robust retry mechanism to fetch data.
-                const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
-                if (!exchangeRes.ok) {
-                    // This error is now only thrown after multiple retries have failed.
-                    throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
-                }
-                const exchangePayload = await exchangeRes.json();
-                
-                // Merge in the client-side templates.
-                const templatesRes = await fetch('/templates.json');
-                if (!templatesRes.ok) throw new Error('Failed to load design templates.');
-                const backgroundOptions = await templatesRes.json();
+            const params = new URLSearchParams(queryString || '');
+            setParticipantId(params.get('id'));
 
-                const fullData: ExchangeData = { ...exchangePayload, backgroundOptions };
-                setExchangeData(fullData);
+        } catch (err) {
+            console.error("Error loading exchange data:", err);
+            setError(err instanceof Error ? err.message : "An unknown error occurred.");
+            setExchangeData(null);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [exchangeData]);
 
-                // Correctly parse participantId from the HASH's query string.
-                const params = new URLSearchParams(queryString || '');
-                setParticipantId(params.get('id'));
-
-            } catch (err) {
-                console.error("Error loading exchange data:", err);
-                setError(err instanceof Error ? err.message : "An unknown error occurred.");
-                setExchangeData(null); // Clear data on error to ensure the error screen is shown.
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        // PERMANENT FIX for Transitions: This runs on initial load AND listens for hash changes,
-        // allowing for seamless transitions from the generator to the results page without a page reload.
-        loadData();
-        window.addEventListener('hashchange', loadData);
+    useEffect(() => {
+        // This effect sets up the hash-based routing on initial load and for any subsequent hash changes.
+        window.addEventListener('hashchange', loadDataFromHash);
+        loadDataFromHash(); // Initial load
 
         return () => {
-            window.removeEventListener('hashchange', loadData);
+            window.removeEventListener('hashchange', loadDataFromHash);
         };
-    }, []); // The empty dependency array is correct to set up the listener only once on component mount.
+    }, [loadDataFromHash]);
+
+    // **THE FIX**: This callback receives the newly created data directly from the GeneratorPage,
+    // completely avoiding the race condition by not needing to re-fetch the data.
+    const handleExchangeCreated = (newData: ExchangeData) => {
+        setIsLoading(true);
+        setExchangeData(newData);
+        setParticipantId(null); // The creator is always the organizer first.
+        
+        // Update the URL. This triggers the 'hashchange' listener, but `loadDataFromHash` will
+        // see that the data is already in state and will skip the fetch.
+        window.location.hash = newData.id!;
+        
+        // A small delay ensures a smooth visual transition.
+        setTimeout(() => setIsLoading(false), 100);
+    };
 
     if (isLoading) {
         return <LoadingFallback />;
@@ -137,9 +138,7 @@ const App: React.FC = () => {
         return <ErrorDisplay message={error} />;
     }
 
-    // This is the core routing logic.
     if (exchangeData) {
-        // If we successfully loaded data from a hash, show the results.
         return (
             <Suspense fallback={<LoadingFallback />}>
                 <ResultsPage data={exchangeData} currentParticipantId={participantId} />
@@ -147,10 +146,10 @@ const App: React.FC = () => {
         );
     }
 
-    // If there's no data and no error, show the generator page.
+    // Pass the callback to GeneratorPage.
     return (
         <Suspense fallback={<LoadingFallback />}>
-            <GeneratorPage />
+            <GeneratorPage onExchangeCreated={handleExchangeCreated} />
         </Suspense>
     );
 };

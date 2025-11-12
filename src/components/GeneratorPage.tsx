@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { produce } from 'immer';
-import type { Participant, Exclusion, Assignment, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
+import type { Participant, Exclusion, Assignment, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme, ExchangeData } from '../types';
 import ParticipantManager from './ParticipantManager';
 import BulkAddModal from './BulkAddModal';
 import Options from './Options';
@@ -20,7 +20,11 @@ import CookieConsentBanner from './CookieConsentBanner';
 import { getRandomPersona } from '../services/personaService';
 import AdBanner from './AdBanner';
 
-const GeneratorPage: React.FC = () => {
+interface GeneratorPageProps {
+  onExchangeCreated: (data: ExchangeData) => void;
+}
+
+const GeneratorPage: React.FC<GeneratorPageProps> = ({ onExchangeCreated }) => {
     // Core State
     const [participants, setParticipants] = useState<Participant[]>([
         { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
@@ -204,7 +208,7 @@ const GeneratorPage: React.FC = () => {
             return;
         }
 
-        const exchangeData = {
+        const exchangeDataForApi = {
             p: validParticipants,
             matches: result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })),
             exclusions,
@@ -228,7 +232,7 @@ const GeneratorPage: React.FC = () => {
             const response = await fetch('/.netlify/functions/create-exchange', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(exchangeData),
+                body: JSON.stringify(exchangeDataForApi),
             });
             
             if (!response.ok) {
@@ -239,8 +243,13 @@ const GeneratorPage: React.FC = () => {
             const { id } = await response.json();
             trackEvent('generate_success', { participants: validParticipants.length, method: 'firebase' });
             
-            // Set the hash; the App component will listen for this change and update.
-            window.location.hash = id;
+            // **THE FIX**: Instead of setting window.location.hash, call the parent callback.
+            const fullDataForState: ExchangeData = {
+                ...exchangeDataForApi,
+                id,
+                backgroundOptions, // Pass the already-loaded templates
+            };
+            onExchangeCreated(fullDataForState);
 
         } catch (apiError) {
             const errorMessage = apiError instanceof Error ? apiError.message : "Could not save the gift exchange. Please try again.";
