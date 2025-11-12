@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import type { ExchangeData } from './types';
 
-// CORRECTED PATHS: Removed './src/' and file extensions to fix build errors
+// CORRECTED PATHS: Removed './src/' and file extensions from imports to fix build errors.
 const GeneratorPage = lazy(() => import('./components/GeneratorPage'));
 const ResultsPage = lazy(() => import('./components/ResultsPage'));
 
@@ -26,42 +26,40 @@ const ErrorDisplay = ({ message }: { message: string }) => (
     </div>
 );
 
-// DEFINITIVE FIX: Robust fetch function with exponential backoff to handle the database race condition.
+// PERMANENT FIX for Race Condition: A robust fetch function with exponential backoff.
+// It retries a few times if it can't find the data immediately, giving the database time to catch up.
 const fetchWithRetry = async (url: string, retries = 4, initialDelay = 300): Promise<Response> => {
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);
-            // Success!
-            if (response.ok) return response;
+            if (response.ok) return response; // Success!
             
-            // Only retry on 404, which is the expected error during the race condition
+            // Only retry on 404, which is the specific error for the race condition.
             if (response.status === 404 && i < retries - 1) {
                 const delay = initialDelay * Math.pow(2, i); // e.g., 300ms, 600ms, 1200ms
-                console.warn(`Attempt ${i + 1}: Not found, retrying in ${delay}ms...`);
+                console.warn(`Attempt ${i + 1}: Data not found, retrying in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-                // Return the failing response on the last attempt or for other errors (e.g., 500)
-                return response;
+                return response; // Return the failing response on the last try or for other errors (e.g., 500).
             }
         } catch (error) {
-            // Handle network errors
             if (i < retries - 1) {
                 const delay = initialDelay * Math.pow(2, i);
                 console.warn(`Attempt ${i + 1}: Network error, retrying in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-                throw error; // Throw the error on the last attempt
+                throw error; // Throw after the last attempt.
             }
         }
     }
-    // This line should not be reachable if retries > 0, but is a fallback.
     throw new Error('Failed to fetch after multiple retries.');
 };
+
 
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
     const [participantId, setParticipantId] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false); // Default to false
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -69,7 +67,7 @@ const App: React.FC = () => {
             setError(null);
             const hash = window.location.hash.slice(1);
             
-            // If there's no hash, we're on the generator page. Do nothing.
+            // If there's no hash, we are on the generator page. Do nothing.
             if (!hash) {
                 setExchangeData(null);
                 setParticipantId(null);
@@ -79,20 +77,22 @@ const App: React.FC = () => {
 
             setIsLoading(true);
             try {
-                // DEFINITIVE FIX: Correctly parse exchangeId and participantId from the URL hash.
+                // PERMANENT FIX for URL Parsing: Correctly parse both the exchangeId and participantId
+                // from the URL hash (e.g., #exchangeId?id=participantId).
                 const [exchangeId, queryString] = hash.split('?');
                 
                 if (!exchangeId) {
                     throw new Error("Invalid URL: No exchange ID found.");
                 }
 
-                // Use the robust retry mechanism
+                // Use the robust retry mechanism to fetch data.
                 const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
                 if (!exchangeRes.ok) {
                     throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
                 }
                 const exchangePayload = await exchangeRes.json();
                 
+                // Merge in the client-side templates.
                 const templatesRes = await fetch('/templates.json');
                 if (!templatesRes.ok) throw new Error('Failed to load design templates.');
                 const backgroundOptions = await templatesRes.json();
@@ -100,28 +100,28 @@ const App: React.FC = () => {
                 const fullData: ExchangeData = { ...exchangePayload, backgroundOptions };
                 setExchangeData(fullData);
 
-                // Correctly parse participantId from the hash's query string
+                // Correctly parse participantId from the HASH's query string.
                 const params = new URLSearchParams(queryString || '');
                 setParticipantId(params.get('id'));
 
             } catch (err) {
                 console.error("Error loading exchange data:", err);
                 setError(err instanceof Error ? err.message : "An unknown error occurred.");
-                setExchangeData(null);
+                setExchangeData(null); // Clear data on error to show the error screen.
             } finally {
                 setIsLoading(false);
             }
         };
 
-        // DEFINITIVE FIX: Load data on initial page visit AND listen for hash changes for seamless SPA transitions.
+        // PERMANENT FIX for Transitions: This runs on initial load AND listens for hash changes,
+        // allowing for seamless transitions from the generator to the results page without a page reload.
         loadData();
         window.addEventListener('hashchange', loadData);
 
-        // Cleanup the event listener when the component unmounts.
         return () => {
             window.removeEventListener('hashchange', loadData);
         };
-    }, []); // Empty array ensures this setup runs only once per component lifecycle.
+    }, []); // Empty dependency array is correct to set up the listener only once.
 
     if (isLoading) {
         return <LoadingFallback />;
@@ -131,7 +131,9 @@ const App: React.FC = () => {
         return <ErrorDisplay message={error} />;
     }
 
+    // This is the core routing logic.
     if (exchangeData) {
+        // If we successfully loaded data from a hash, show the results.
         return (
             <Suspense fallback={<LoadingFallback />}>
                 <ResultsPage data={exchangeData} currentParticipantId={participantId} />
@@ -139,7 +141,7 @@ const App: React.FC = () => {
         );
     }
 
-    // Default view: The generator page
+    // If there's no data and no error, show the generator page.
     return (
         <Suspense fallback={<LoadingFallback />}>
             <GeneratorPage />
