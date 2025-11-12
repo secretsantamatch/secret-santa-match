@@ -32,17 +32,21 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 300): Pro
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);
-            if (response.ok) return response; // Success!
+            // If the response is OK (200-299), we have the data, return it immediately.
+            if (response.ok) return response;
             
-            // Only retry on 404, which is the specific error for the race condition.
+            // The specific race condition error is a 404 (Not Found). Only retry on this.
+            // For other errors (like 500), fail immediately.
             if (response.status === 404 && i < retries - 1) {
                 const delay = initialDelay * Math.pow(2, i); // e.g., 300ms, 600ms, 1200ms
                 console.warn(`Attempt ${i + 1}: Data not found, retrying in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-                return response; // Return the failing response on the last try or for other errors (e.g., 500).
+                // Return the failing response on the last try or for non-404 errors.
+                return response; 
             }
         } catch (error) {
+            // This catches network errors (e.g., offline)
             if (i < retries - 1) {
                 const delay = initialDelay * Math.pow(2, i);
                 console.warn(`Attempt ${i + 1}: Network error, retrying in ${delay}ms...`);
@@ -52,6 +56,7 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 300): Pro
             }
         }
     }
+    // This should theoretically not be reached, but it's good practice.
     throw new Error('Failed to fetch after multiple retries.');
 };
 
@@ -59,7 +64,7 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 300): Pro
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
     const [participantId, setParticipantId] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Default to false, only true when loading from hash
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -88,6 +93,7 @@ const App: React.FC = () => {
                 // Use the robust retry mechanism to fetch data.
                 const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
                 if (!exchangeRes.ok) {
+                    // This error is now only thrown after multiple retries have failed.
                     throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
                 }
                 const exchangePayload = await exchangeRes.json();
@@ -107,7 +113,7 @@ const App: React.FC = () => {
             } catch (err) {
                 console.error("Error loading exchange data:", err);
                 setError(err instanceof Error ? err.message : "An unknown error occurred.");
-                setExchangeData(null); // Clear data on error to show the error screen.
+                setExchangeData(null); // Clear data on error to ensure the error screen is shown.
             } finally {
                 setIsLoading(false);
             }
@@ -121,7 +127,7 @@ const App: React.FC = () => {
         return () => {
             window.removeEventListener('hashchange', loadData);
         };
-    }, []); // Empty dependency array is correct to set up the listener only once.
+    }, []); // The empty dependency array is correct to set up the listener only once on component mount.
 
     if (isLoading) {
         return <LoadingFallback />;
