@@ -245,7 +245,12 @@ const GeneratorPage: React.FC = () => {
             }, 500);
 
         } catch (apiError) {
-            setError(apiError instanceof Error ? apiError.message : "Could not save the gift exchange. Please try again.");
+            const errorMessage = apiError instanceof Error ? apiError.message : "Could not save the gift exchange. Please try again.";
+            if (errorMessage.includes('Failed to create')) {
+                 setError("Failed to save the gift exchange. This could be a temporary server issue. Please try again in a few moments.");
+            } else {
+                 setError(errorMessage);
+            }
             setIsLoading(false);
             trackEvent('generate_fail', { error: 'api_error', participants: validParticipants.length });
         }
