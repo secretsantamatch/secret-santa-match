@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import type { ExchangeData } from './types';
 
-// Lazy load components for better initial page load
+// CORRECTED PATHS: Removed './src/' and file extensions to fix build errors
 const GeneratorPage = lazy(() => import('./components/GeneratorPage'));
 const ResultsPage = lazy(() => import('./components/ResultsPage'));
 
@@ -26,19 +26,21 @@ const ErrorDisplay = ({ message }: { message: string }) => (
     </div>
 );
 
-// Helper function to fetch data with retries using exponential backoff.
+// DEFINITIVE FIX: Robust fetch function to handle the database race condition.
 const fetchWithRetry = async (url: string, retries = 4, initialDelay = 500): Promise<Response> => {
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);
             if (response.ok) return response; // Success!
             
+            // Only retry on 404, which is the expected error during the race condition
             if (response.status === 404 && i < retries - 1) {
                 const delay = initialDelay * Math.pow(2, i); // Exponential backoff
                 console.warn(`Attempt ${i + 1}: Not found, retrying in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-                return response; // Return the failing response on last attempt or other error
+                // Return the failing response on the last attempt or for other errors (e.g., 500)
+                return response;
             }
         } catch (error) {
             if (i < retries - 1) {
@@ -46,7 +48,7 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 500): Pro
                 console.warn(`Attempt ${i + 1}: Network error, retrying in ${delay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-                throw error; // Throw error on last attempt
+                throw error; // Throw the error on the last attempt
             }
         }
     }
@@ -73,6 +75,7 @@ const App: React.FC = () => {
 
             setIsLoading(true);
             try {
+                // DEFINITIVE FIX: Correctly parse exchangeId and participantId from the URL hash.
                 const [exchangeId, queryString] = hash.split('?');
                 
                 if (!exchangeId) {
@@ -104,13 +107,15 @@ const App: React.FC = () => {
             }
         };
 
+        // DEFINITIVE FIX: Load data on initial page visit AND listen for changes.
         loadData();
         window.addEventListener('hashchange', loadData);
 
+        // Cleanup the event listener when the component unmounts.
         return () => {
             window.removeEventListener('hashchange', loadData);
         };
-    }, []);
+    }, []); // Empty array ensures this setup runs only once.
 
     if (isLoading) {
         return <LoadingFallback />;
