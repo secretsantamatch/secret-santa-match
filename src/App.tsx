@@ -26,6 +26,46 @@ const ErrorDisplay = ({ message }: { message: string }) => (
     </div>
 );
 
+/**
+ * DEFINITIVE FIX: A robust, multi-layered resiliency strategy. This client-side fetcher
+ * works in tandem with server-side retries to create a "defense-in-depth" against
+ * both database replication delays (404s) and serverless cold starts (5xx errors).
+ */
+const fetchWithRetry = async (url: string, retries = 5, initialDelay = 400, backoff = 2): Promise<Response> => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url);
+            // If response is OK (200-299), we're done.
+            if (response.ok) return response;
+
+            // If it's a server error (5xx) or a not found error (404), we should retry.
+            if ((response.status >= 500 || response.status === 404) && i < retries - 1) {
+                const delay = initialDelay * Math.pow(backoff, i);
+                console.warn(`Attempt ${i + 1} failed with status ${response.status}. Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue; // Go to the next iteration
+            }
+            
+            // For any other non-ok status, or if we've run out of retries, return the failed response.
+            return response;
+
+        } catch (error) {
+            // This catches network errors (e.g., DNS, no connection)
+            if (i < retries - 1) {
+                const delay = initialDelay * Math.pow(backoff, i);
+                console.warn(`Attempt ${i + 1} failed with a network error. Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                console.error('Failed to fetch after multiple retries due to network error.');
+                throw error; // Re-throw the error after the last attempt
+            }
+        }
+    }
+    // This line should be unreachable, but as a fallback, throw an error.
+    throw new Error('Failed to fetch after multiple retries.');
+};
+
+
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
     const [participantId, setParticipantId] = useState<string | null>(null);
@@ -52,9 +92,8 @@ const App: React.FC = () => {
         setError(null);
 
         try {
-            // DEFINITIVE FIX: Replaced complex client-side retry logic with a simple fetch.
-            // The retry logic is now handled robustly on the server-side in the get-exchange function.
-            const exchangeRes = await fetch(`/.netlify/functions/get-exchange?id=${exchangeId}`);
+            // DEFINITIVE FIX: Use the new, robust fetchWithRetry function.
+            const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
             if (!exchangeRes.ok) {
                 throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
             }
