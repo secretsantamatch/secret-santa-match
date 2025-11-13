@@ -7,7 +7,7 @@ interface WishlistEditorModalProps {
   participant: Participant;
   exchangeId: string;
   onClose: () => void;
-  onSave: (updatedParticipant: Participant) => void;
+  onSave: (updatedParticipant: Participant) => void; // For optimistic UI update
 }
 
 const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, exchangeId, onClose, onSave }) => {
@@ -26,9 +26,10 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
     };
 
     const handleSave = async () => {
+        trackEvent('wishlist_save_attempt');
         setIsSaving(true);
         setError(null);
-        trackEvent('wishlist_save_attempt');
+        
         try {
             const response = await fetch('/.netlify/functions/update-wishlist', {
                 method: 'POST',
@@ -39,12 +40,16 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     wishlistData: wishlist,
                 }),
             });
+
             if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || 'Failed to save wishlist.');
+                throw new Error('Failed to save wishlist. Please try again.');
             }
+            
+            // Optimistically update the UI
             onSave({ ...participant, ...wishlist });
+            trackEvent('wishlist_save_success');
             onClose();
+
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred.');
             trackEvent('wishlist_save_fail', { error: err instanceof Error ? err.message : 'unknown' });
@@ -57,11 +62,15 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col" onClick={e => e.stopPropagation()}>
                 <header className="p-6 flex justify-between items-center border-b">
-                    <h2 className="text-2xl font-bold text-slate-800 font-serif">Edit My Wishlist</h2>
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-800 font-serif">Edit My Wishlist</h2>
+                        <p className="text-sm text-slate-500 mt-1">Your Santa will see these updates automatically!</p>
+                    </div>
                     <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
                 </header>
                 
-                <main className="p-6 space-y-4">
+                <main className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                    {error && <p className="text-red-600 bg-red-100 p-3 rounded-md text-sm">{error}</p>}
                     <div>
                         <label className="block text-sm font-medium text-slate-600 mb-1">Interests & Hobbies</label>
                         <input
@@ -93,7 +102,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Specific Links (Optional)</label>
+                        <label className="block text-sm font-medium text-slate-600 mb-1">Wishlist Links (for affiliates)</label>
                         <textarea
                             placeholder="Paste one link per line"
                             value={wishlist.links}
@@ -102,7 +111,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                             rows={2}
                         />
                     </div>
-                    <div>
+                     <div>
                         <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget</label>
                         <input
                             type="text"
@@ -112,7 +121,6 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                             className="w-full p-2 border border-slate-300 rounded-md"
                         />
                     </div>
-                    {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
                 </main>
 
                 <footer className="p-4 bg-slate-50 border-t flex justify-end gap-3">
@@ -122,7 +130,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                         disabled={isSaving}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50"
                     >
-                        {isSaving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                        {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
                         {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </footer>

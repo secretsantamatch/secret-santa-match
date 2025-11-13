@@ -16,14 +16,14 @@ import ShareTool from './ShareTool';
 import FeaturedResources from './FeaturedResources';
 import { generateMatches } from '../services/matchService';
 import { trackEvent } from '../services/analyticsService';
-import { Users, ScrollText, Palette, Shuffle, X, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Users, ScrollText, Palette, Shuffle, AlertTriangle, ArrowRight } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import { getRandomPersona } from '../services/personaService';
 import AdBanner from './AdBanner';
 
 interface GeneratorPageProps {
   onComplete: (data: ExchangeData) => void;
-  // FIX: Added optional initialData prop to support editing an existing game.
+  // FIX: Add optional `initialData` prop to support editing.
   initialData?: ExchangeData;
 }
 
@@ -60,10 +60,10 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     // PWA & Cookie State
     const [showCookieBanner, setShowCookieBanner] = useState(false);
 
-    // Initial data population effect
     useEffect(() => {
-        // FIX: Populate state from initialData if it exists (for edit mode).
+        // FIX: Populate state from `initialData` if it exists (edit mode), otherwise set defaults for a new game.
         if (initialData) {
+            // Populate state from initialData if we are in "edit mode"
             setParticipants(initialData.p);
             setExclusions(initialData.exclusions);
             setAssignments(initialData.assignments);
@@ -81,6 +81,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             setIntroText(initialData.introText);
             setWishlistLabelText(initialData.wishlistLabelText);
         } else {
+            // Default state for creating a new exchange
             setParticipants([
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
@@ -156,6 +157,9 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         setIsLoading(true);
         setLoadingMessage(getRandomPersona());
 
+        // Simulate a short delay for a better user experience
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         try {
             setLoadingMessage('Generating matches...');
             const result = generateMatches(validParticipants, exclusions, assignments);
@@ -164,7 +168,8 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             }
             const finalMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
             
-            const exchangePayload = {
+            const exchangePayload: ExchangeData = {
+                id: initialData?.id || crypto.randomUUID(), // Reuse ID if editing
                 p: validParticipants,
                 matches: finalMatches,
                 exclusions,
@@ -174,37 +179,14 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 customBackground, textColor, useTextOutline, outlineColor, outlineSize,
                 fontSizeSetting: fontSize, fontTheme, lineSpacing,
                 greetingText, introText, wishlistLabelText,
+                backgroundOptions, // This will be stripped before compression
             };
             
-            setLoadingMessage('Creating your game...');
-            
-            const response = await fetch('/.netlify/functions/create-exchange', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(exchangePayload),
-            });
-
-            if (!response.ok) {
-                let errorMessage = `Failed to create the exchange (Status: ${response.status}).`;
-                try {
-                    const errorBody = await response.json();
-                    if (errorBody && errorBody.error) {
-                        errorMessage = errorBody.error;
-                    }
-                } catch (e) {
-                    errorMessage = "The server returned an unexpected error. Please try again.";
-                }
-                throw new Error(errorMessage);
-            }
-
-            const { id } = await response.json();
             trackEvent('generate_success', { participants: validParticipants.length });
-            
-            const fullDataForState: ExchangeData = { ...exchangePayload, id, backgroundOptions, views: {} };
-            onComplete(fullDataForState);
+            onComplete(exchangePayload);
 
-        } catch (apiError) {
-            const message = apiError instanceof Error ? apiError.message : "An unknown error occurred.";
+        } catch (matchError) {
+            const message = matchError instanceof Error ? matchError.message : "An unknown error occurred.";
             setError(message);
             setActiveStep(2); // Go to rules step on creation error
             setIsLoading(false);
@@ -257,15 +239,15 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                         <img src="/logo_256.png" alt="Secret Santa Match Logo" className="h-20 w-20" />
                     </div>
                     <h1 className="text-4xl md:text-5xl font-extrabold text-red-700 font-serif">
-                        Free Secret Santa Generator
+                        {initialData ? 'Edit Your Gift Exchange' : 'Free Secret Santa Generator'}
                     </h1>
                     <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">
-                        The easiest way to organize a gift exchange. No emails or sign-ups required!
+                        {initialData ? 'Update participants, rules, and styles for your event.' : 'The easiest way to organize a gift exchange. No emails or sign-ups required!'}
                     </p>
                 </div>
 
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
-                <div className="max-w-5xl mx-auto px-4 md:px-8"><HowItWorks /><VideoTutorial /></div>
+                {!initialData && <div className="max-w-5xl mx-auto px-4 md:px-8"><HowItWorks /><VideoTutorial /></div>}
                 
                 <div ref={generatorRef} className="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
                      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
@@ -312,20 +294,22 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                             </button>
                         ) : (
                              <button onClick={() => handleSubmit()} className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto">
-                                <Shuffle /> Generate Matches!
+                                <Shuffle /> {initialData ? 'Update & Regenerate Matches' : 'Generate Matches!'}
                             </button>
                         )}
                     </div>
                 </div>
 
-                <div className="max-w-5xl mx-auto px-4 md:px-8">
-                    <WhyChooseUs />
-                    <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="2345678901" data-ad-format="auto" data-full-width-responsive="true" />
-                    <SocialProof />
-                    <ShareTool />
-                    <FaqSection />
-                    <FeaturedResources />
-                </div>
+                {!initialData && (
+                    <div className="max-w-5xl mx-auto px-4 md:px-8">
+                        <WhyChooseUs />
+                        <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="2345678901" data-ad-format="auto" data-full-width-responsive="true" />
+                        <SocialProof />
+                        <ShareTool />
+                        <FaqSection />
+                        <FeaturedResources />
+                    </div>
+                )}
             </main>
             <Footer />
             {showBulkAdd && <BulkAddModal onConfirm={handleBulkAdd} onClose={() => setShowBulkAdd(false)} />}

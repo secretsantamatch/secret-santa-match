@@ -10,13 +10,14 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Download, Share2, Edit, Gift, Users, Shuffle, Loader2, Copy, Check } from 'lucide-react';
+// FIX: Import `Pencil` icon for the edit button.
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Pencil } from 'lucide-react';
 
 interface ResultsPageProps {
     data: ExchangeData;
     currentParticipantId: string | null;
     onDataUpdated: (newData: ExchangeData) => void;
-    // FIX: Added optional onEditRequest prop to allow organizer to edit the game.
+    // FIX: Add optional `onEditRequest` prop for the edit functionality.
     onEditRequest?: () => void;
 }
 
@@ -29,35 +30,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const [isShuffling, setIsShuffling] = useState(false);
     const [shortOrganizerLink, setShortOrganizerLink] = useState('');
     const [organizerLinkCopied, setOrganizerLinkCopied] = useState(false);
+    const [liveReceiver, setLiveReceiver] = useState<Participant | null>(null);
 
 
     const isOrganizer = !currentParticipantId;
-
-    useEffect(() => {
-        trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
-
-        if (isOrganizer) {
-            const getFullOrganizerLink = (): string => `${window.location.origin}/generator.html#${data.id}`;
-            const fetchShortLink = async () => {
-                try {
-                    const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(getFullOrganizerLink())}`);
-                    if (res.ok) {
-                        const shortUrl = await res.text();
-                        setShortOrganizerLink(shortUrl && !shortUrl.toLowerCase().includes('error') ? shortUrl : getFullOrganizerLink());
-                    } else { setShortOrganizerLink(getFullOrganizerLink()); }
-                } catch (e) { setShortOrganizerLink(getFullOrganizerLink()); }
-            };
-            fetchShortLink();
-        } else if (currentParticipantId && !data.views?.[currentParticipantId]) {
-            // Fire-and-forget view tracking
-            fetch('/.netlify/functions/track-view', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ exchangeId: data.id, participantId: currentParticipantId }),
-            }).catch(err => console.error("Failed to track view:", err));
-        }
-
-    }, [isOrganizer, data.id, currentParticipantId, data.views]);
 
     const { p: participants, matches: matchIds, exclusions, assignments } = data;
 
@@ -74,12 +50,53 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         currentParticipant ? matches.find(m => m.giver.id === currentParticipant.id) : null,
     [matches, currentParticipant]);
 
+    // This effect fetches the most up-to-date wishlist for the receiver.
+    useEffect(() => {
+        if (currentMatch?.receiver) {
+            // Set initial state from URL data
+            setLiveReceiver(currentMatch.receiver);
+
+            // Fetch latest version from blob store
+            fetch(`/.netlify/functions/get-wishlist?exchangeId=${data.id}&participantId=${currentMatch.receiver.id}`)
+                .then(res => {
+                    if (res.ok) return res.json();
+                    return null;
+                })
+                .then(wishlistData => {
+                    if (wishlistData) {
+                        setLiveReceiver(prev => prev ? { ...prev, ...wishlistData } : null);
+                    }
+                })
+                .catch(err => console.error("Failed to fetch live wishlist", err));
+        }
+    }, [currentMatch, data.id]);
+
+
+    useEffect(() => {
+        trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+
+        if (isOrganizer) {
+            const getFullOrganizerLink = (): string => window.location.href.split('?')[0];
+            const fetchShortLink = async () => {
+                const fullLink = getFullOrganizerLink();
+                try {
+                    const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullLink)}`);
+                    if (res.ok) {
+                        const shortUrl = await res.text();
+                        setShortOrganizerLink(shortUrl && !shortUrl.toLowerCase().includes('error') ? shortUrl : fullLink);
+                    } else { setShortOrganizerLink(fullLink); }
+                } catch (e) { setShortOrganizerLink(fullLink); }
+            };
+            fetchShortLink();
+        }
+    }, [isOrganizer, data]);
+
     const handleReveal = () => { setIsNameRevealed(true); trackEvent('reveal_name'); };
     
-    const handleSaveWishlist = (updatedParticipant: Participant) => {
+    // This is now an optimistic update. The real save happens in the modal via fetch.
+    const handleWishlistUpdate = (updatedParticipant: Participant) => {
         const updatedData = { ...data, p: data.p.map(p => p.id === updatedParticipant.id ? updatedParticipant : p) };
         onDataUpdated(updatedData);
-        trackEvent('wishlist_save_success');
     };
 
     const openShareModal = (view: 'links' | 'print') => {
@@ -93,19 +110,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         setIsShuffling(true);
         trackEvent('shuffle_again_confirmed');
         try {
+            await new Promise(resolve => setTimeout(resolve, 300));
             const result = generateMatches(participants, exclusions || [], assignments || []);
             if (!result.matches) throw new Error(result.error || "Failed to generate new matches.");
             
             const newRawMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
-            const response = await fetch('/.netlify/functions/update-matches', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ exchangeId: data.id, matches: newRawMatches }),
-            });
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || 'Failed to save new matches.');
-            }
             onDataUpdated({ ...data, matches: newRawMatches });
             trackEvent('shuffle_again_success');
         } catch (error) {
@@ -127,8 +136,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     };
 
     if (!isOrganizer && !currentMatch) {
-        // This case should be handled by the main App component's error state,
-        // but as a fallback, we can show a minimal error here.
         return (
             <div className="text-center p-8">
                 <h2 className="text-xl font-bold text-red-600">Error</h2>
@@ -137,15 +144,18 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         );
     }
     
+    // Create a new match object with the potentially updated receiver data for rendering
+    const displayMatch = currentMatch && liveReceiver ? { ...currentMatch, receiver: liveReceiver } : currentMatch;
+
     return (
         <div className="bg-slate-50 min-h-screen">
             {isShareModalOpen && <ShareLinksModal exchangeData={data} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
-            {isWishlistModalOpen && currentParticipant && (
+            {isWishlistModalOpen && currentParticipant && data.id && (
                 <WishlistEditorModal 
-                    participant={currentParticipant} 
-                    exchangeId={data.id!}
+                    participant={currentParticipant}
+                    exchangeId={data.id} 
                     onClose={() => setIsWishlistModalOpen(false)}
-                    onSave={handleSaveWishlist}
+                    onSave={handleWishlistUpdate}
                 />
             )}
              <ConfirmationModal
@@ -169,10 +179,16 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                 <button onClick={() => openShareModal('links')} className="py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg">
                                     <Share2 size={20} /> Share & Download Hub
                                 </button>
-                                {/* FIX: Added Edit Game button for organizers. */}
+                                {/* FIX: Add Edit Game button for organizers */}
                                 {isOrganizer && onEditRequest && (
-                                    <button onClick={onEditRequest} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
-                                        <Edit size={20} /> Edit Game
+                                    <button
+                                        onClick={() => {
+                                            trackEvent('edit_game_click');
+                                            onEditRequest();
+                                        }}
+                                        className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Pencil size={20} /> Edit Game
                                     </button>
                                 )}
                                 <button onClick={() => { trackEvent('shuffle_again_click'); setIsShuffleModalOpen(true); }} disabled={isShuffling} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait">
@@ -197,14 +213,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                         <ResultsDisplay matches={matches} />
                     </div>
                 ) : (
-                    currentMatch && (
+                    displayMatch && (
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                                 <div className="w-full max-w-sm mx-auto">
-                                    <PrintableCard match={currentMatch} eventDetails={data.eventDetails} isNameRevealed={isNameRevealed} backgroundOptions={data.backgroundOptions} bgId={data.bgId} bgImg={data.customBackground} txtColor={data.textColor} outline={data.useTextOutline} outColor={data.outlineColor} outSize={data.outlineSize} fontSize={data.fontSizeSetting} font={data.fontTheme} line={data.lineSpacing} greet={data.greetingText} intro={data.introText} wish={data.wishlistLabelText}/>
+                                    <PrintableCard match={displayMatch} eventDetails={data.eventDetails} isNameRevealed={isNameRevealed} backgroundOptions={data.backgroundOptions} bgId={data.bgId} bgImg={data.customBackground} txtColor={data.textColor} outline={data.useTextOutline} outColor={data.outlineColor} outSize={data.outlineSize} fontSize={data.fontSizeSetting} font={data.fontTheme} line={data.lineSpacing} greet={data.greetingText} intro={data.introText} wish={data.wishlistLabelText}/>
                                 </div>
                                 <div className="text-center md:text-left">
-                                    <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {currentMatch.giver.name}!</h1>
+                                    <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
                                     <p className="text-lg text-slate-600 mt-2">You're a Secret Santa! Here is your private card with your match's details.</p>
                                     
                                     {!isNameRevealed && (
@@ -214,9 +230,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     )}
                                     {isNameRevealed && (
                                         <div className="mt-8 space-y-4">
-                                            <div className="bg-white rounded-lg p-6 border text-left"><h3 className="font-bold text-lg text-slate-700 flex items-center gap-2"><Users size={20}/>Your Person:</h3><p className="text-2xl font-bold text-red-600">{currentMatch.receiver.name}</p></div>
-                                            <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
-                                                <Edit size={18} /> Edit My Wishlist for My Santa
+                                            <div className="bg-white rounded-lg p-6 border text-left"><h3 className="font-bold text-lg text-slate-700">Your Person:</h3><p className="text-2xl font-bold text-red-600">{displayMatch.receiver.name}</p></div>
+                                            <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
+                                                Edit My Wishlist for My Santa
                                             </button>
                                         </div>
                                     )}
