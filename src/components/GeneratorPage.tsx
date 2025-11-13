@@ -21,7 +21,7 @@ import CookieConsentBanner from './CookieConsentBanner';
 import { getRandomPersona } from '../services/personaService';
 import AdBanner from './AdBanner';
 
-// FIX: Add `initialData` prop to support editing existing exchanges.
+// FIX: Added optional initialData prop to support editing an existing exchange.
 interface GeneratorPageProps {
   onComplete: (data: ExchangeData) => void;
   initialData?: ExchangeData;
@@ -62,7 +62,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
 
     // Initial data population effect
     useEffect(() => {
-        // FIX: If `initialData` is provided, populate the form for editing. Otherwise, set up a new game.
+        // FIX: If initialData is provided, populate the form for editing.
         if (initialData) {
             setParticipants(initialData.p);
             setExclusions(initialData.exclusions || []);
@@ -176,16 +176,21 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 greetingText, introText, wishlistLabelText,
             };
             
-            setLoadingMessage('Creating your game...');
+            // FIX: Handle both create and update scenarios.
+            const isEditing = !!initialData;
+            setLoadingMessage(isEditing ? 'Updating your game...' : 'Creating your game...');
 
-            const response = await fetch('/.netlify/functions/create-exchange', {
+            const endpoint = isEditing ? '/.netlify/functions/update-exchange' : '/.netlify/functions/create-exchange';
+            const payload = isEditing ? { ...exchangePayload, id: initialData.id } : exchangePayload;
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(exchangePayload),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
-                let errorMessage = `Failed to create the exchange (Status: ${response.status}).`;
+                let errorMessage = `Failed to ${isEditing ? 'update' : 'create'} the exchange (Status: ${response.status}).`;
                 try {
                     const errorBody = await response.json();
                     if (errorBody && errorBody.error) {
@@ -197,8 +202,8 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 throw new Error(errorMessage);
             }
             
-            const { id } = await response.json();
-            trackEvent('generate_success', { participants: validParticipants.length });
+            const { id } = isEditing ? { id: initialData.id! } : await response.json();
+            trackEvent(isEditing ? 'edit_success' : 'generate_success', { participants: validParticipants.length });
             
             const fullDataForState: ExchangeData = { ...exchangePayload, id, backgroundOptions };
             onComplete(fullDataForState);
@@ -208,7 +213,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             setError(message);
             setActiveStep(2); // Go to rules step on creation error
             setIsLoading(false);
-            trackEvent('generate_fail', { error: message });
+            trackEvent(isEditing ? 'edit_fail' : 'generate_fail', { error: message });
         }
     };
     
@@ -312,7 +317,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                             </button>
                         ) : (
                              <button onClick={() => handleSubmit()} className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto">
-                                <Shuffle /> Generate Matches!
+                                <Shuffle /> {initialData ? 'Update & Finalize' : 'Generate Matches!'}
                             </button>
                         )}
                     </div>
