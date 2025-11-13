@@ -29,7 +29,6 @@ export async function handler(event: any, context: any) {
         const clientData: Omit<ExchangeData, 'backgroundOptions' | 'id'> = JSON.parse(event.body);
         
         const p = (Array.isArray(clientData.p) ? clientData.p : [])
-            // FIX: Corrected the type predicate to `p is Participant` and ensured the filter returns a boolean with `!!p.name`
             .filter((p): p is Participant => p && typeof p === 'object' && !!p.name)
             .map((p) => ({
                 id: String(p.id ?? uuidv4()),
@@ -46,11 +45,11 @@ export async function handler(event: any, context: any) {
             .map(m => ({ g: String(m.g), r: String(m.r) }));
 
         const exclusions = (Array.isArray(clientData.exclusions) ? clientData.exclusions : [])
-            .filter(ex => ex && typeof ex.p1 === 'string' && typeof ex.p2 === 'string')
+            .filter(ex => ex && typeof ex.p1 === 'string' && typeof ex.p2 === 'string' && ex.p1 && ex.p2)
             .map(ex => ({ p1: String(ex.p1), p2: String(ex.p2) }));
 
         const assignments = (Array.isArray(clientData.assignments) ? clientData.assignments : [])
-            .filter(as => as && typeof as.giverId === 'string' && typeof as.receiverId === 'string')
+            .filter(as => as && typeof as.giverId === 'string' && typeof as.receiverId === 'string' && as.giverId && as.receiverId)
             .map(as => ({ giverId: String(as.giverId), receiverId: String(as.receiverId) }));
 
         const finalData: Omit<ExchangeData, 'id' | 'backgroundOptions'> = {
