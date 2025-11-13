@@ -55,28 +55,16 @@ const App: React.FC = () => {
     const [participantId, setParticipantId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    // FIX: Added isEditing state to handle switching between results and edit views.
-    const [isEditing, setIsEditing] = useState(false);
 
-    // This function is now memoized and depends on `exchangeData`
-    // to prevent refetching data that's already in state.
     const loadDataFromHash = useCallback(async () => {
         const hash = window.location.hash.slice(1);
         const [exchangeId, queryString] = hash.split('?');
 
-        // Reset editing state if we navigate away or to a new exchange.
-        if (!exchangeData || exchangeId !== exchangeData.id) {
-            setIsEditing(false);
-        }
-
-        // **THE FIX**: If the component already has data matching the hash, do not refetch.
-        // This is crucial for the transition from the generator to the results page.
         if (exchangeData && exchangeId === exchangeData.id) {
             setIsLoading(false);
             return;
         }
 
-        // If there's no hash, we are on the generator page.
         if (!exchangeId) {
             setExchangeData(null);
             setParticipantId(null);
@@ -114,7 +102,6 @@ const App: React.FC = () => {
     }, [exchangeData]);
 
     useEffect(() => {
-        // This effect sets up the hash-based routing on initial load and for any subsequent hash changes.
         window.addEventListener('hashchange', loadDataFromHash);
         loadDataFromHash(); // Initial load
 
@@ -123,27 +110,11 @@ const App: React.FC = () => {
         };
     }, [loadDataFromHash]);
 
-    // This callback receives the newly created data directly from the GeneratorPage,
-    // completely avoiding the race condition by not needing to re-fetch the data.
     const handleCreationComplete = (newData: ExchangeData) => {
         setIsLoading(true);
         setExchangeData(newData);
         setParticipantId(null); // The creator is always the organizer first.
-        
-        // Update the URL. This triggers the 'hashchange' listener, but `loadDataFromHash` will
-        // see that the data is already in state and will skip the fetch.
         window.location.hash = newData.id!;
-        
-        // A small delay ensures a smooth visual transition.
-        setTimeout(() => setIsLoading(false), 100);
-    };
-
-    // FIX: Added handler for when editing is complete.
-    const handleEditComplete = (updatedData: ExchangeData) => {
-        setIsLoading(true);
-        setExchangeData(updatedData);
-        setIsEditing(false);
-        // A small delay ensures a smooth visual transition back to the results page.
         setTimeout(() => setIsLoading(false), 100);
     };
 
@@ -155,31 +126,18 @@ const App: React.FC = () => {
         return <ErrorDisplay message={error} />;
     }
 
-    // If exchange data was successfully loaded, determine if we are viewing results or editing.
     if (exchangeData) {
-        if (isEditing) {
-            // FIX: Render the generator in "edit mode" with the existing data.
-            return (
-                <Suspense fallback={<LoadingFallback />}>
-                    <GeneratorPage onComplete={handleEditComplete} initialData={exchangeData} />
-                </Suspense>
-            );
-        }
-        // FIX: Pass required props `onEditRequest` and `onDataUpdated` to ResultsPage.
         return (
             <Suspense fallback={<LoadingFallback />}>
                 <ResultsPage 
                     data={exchangeData} 
                     currentParticipantId={participantId} 
-                    onEditRequest={() => setIsEditing(true)}
                     onDataUpdated={setExchangeData}
                 />
             </Suspense>
         );
     }
 
-    // Otherwise, show the main generator page for creating a new exchange.
-    // FIX: Pass the 'onComplete' prop instead of 'onExchangeCreated' to match the GeneratorPage component's props.
     return (
         <Suspense fallback={<LoadingFallback />}>
             <GeneratorPage onComplete={handleCreationComplete} />
