@@ -176,18 +176,19 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 greetingText, introText, wishlistLabelText,
             };
             
-            setLoadingMessage('Creating your game...');
+            setLoadingMessage(initialData ? 'Saving your changes...' : 'Creating your game...');
 
-            const endpoint = '/.netlify/functions/create-exchange';
+            const endpoint = initialData ? '/.netlify/functions/update-exchange' : '/.netlify/functions/create-exchange';
+            const payload = initialData ? { ...exchangePayload, id: initialData.id } : exchangePayload;
             
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(exchangePayload),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
-                let errorMessage = `Failed to create the exchange (Status: ${response.status}).`;
+                let errorMessage = `Failed to ${initialData ? 'update' : 'create'} the exchange (Status: ${response.status}).`;
                 try {
                     const errorBody = await response.json();
                     if (errorBody && errorBody.error) {
@@ -198,19 +199,29 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 }
                 throw new Error(errorMessage);
             }
-            
-            const { id } = await response.json();
-            trackEvent('generate_success', { participants: validParticipants.length });
-            
-            const fullDataForState: ExchangeData = { ...exchangePayload, id, backgroundOptions };
-            onComplete(fullDataForState);
+
+            if (initialData) {
+                trackEvent('edit_success', { participants: validParticipants.length });
+                const updatedDataForState: ExchangeData = { 
+                    ...initialData,
+                    ...exchangePayload,
+                    backgroundOptions,
+                };
+                onComplete(updatedDataForState);
+            } else {
+                const { id } = await response.json();
+                trackEvent('generate_success', { participants: validParticipants.length });
+                
+                const fullDataForState: ExchangeData = { ...exchangePayload, id, backgroundOptions, views: {} };
+                onComplete(fullDataForState);
+            }
 
         } catch (apiError) {
             const message = apiError instanceof Error ? apiError.message : "An unknown error occurred.";
             setError(message);
             setActiveStep(2); // Go to rules step on creation error
             setIsLoading(false);
-            trackEvent('generate_fail', { error: message });
+            trackEvent(initialData ? 'edit_fail' : 'generate_fail', { error: message });
         }
     };
     
@@ -259,15 +270,15 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                         <img src="/logo_256.png" alt="Secret Santa Match Logo" className="h-20 w-20" />
                     </div>
                     <h1 className="text-4xl md:text-5xl font-extrabold text-red-700 font-serif">
-                        Free Secret Santa Generator
+                        {initialData ? 'Edit Your Game' : 'Free Secret Santa Generator'}
                     </h1>
                     <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">
-                        The easiest way to organize a gift exchange. No emails or sign-ups required!
+                        {initialData ? 'Update participants, rules, and styles for your existing gift exchange.' : 'The easiest way to organize a gift exchange. No emails or sign-ups required!'}
                     </p>
                 </div>
 
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="YOUR_AD_SLOT_ID_1" data-ad-format="auto" data-full-width-responsive="true" />
-                <div className="max-w-5xl mx-auto px-4 md:px-8"><HowItWorks /><VideoTutorial /></div>
+                {!initialData && <div className="max-w-5xl mx-auto px-4 md:px-8"><HowItWorks /><VideoTutorial /></div>}
                 
                 <div ref={generatorRef} className="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
                      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
@@ -314,20 +325,22 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                             </button>
                         ) : (
                              <button onClick={() => handleSubmit()} className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto">
-                                <Shuffle /> Generate Matches!
+                                <Shuffle /> {initialData ? 'Save Changes & Rematch' : 'Generate Matches!'}
                             </button>
                         )}
                     </div>
                 </div>
 
-                <div className="max-w-5xl mx-auto px-4 md:px-8">
-                    <WhyChooseUs />
-                    <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="YOUR_AD_SLOT_ID_2" data-ad-format="auto" data-full-width-responsive="true" />
-                    <SocialProof />
-                    <ShareTool />
-                    <FaqSection />
-                    <FeaturedResources />
-                </div>
+                {!initialData && (
+                    <div className="max-w-5xl mx-auto px-4 md:px-8">
+                        <WhyChooseUs />
+                        <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="YOUR_AD_SLOT_ID_2" data-ad-format="auto" data-full-width-responsive="true" />
+                        <SocialProof />
+                        <ShareTool />
+                        <FaqSection />
+                        <FeaturedResources />
+                    </div>
+                )}
             </main>
             <Footer />
             {showBulkAdd && <BulkAddModal onConfirm={handleBulkAdd} onClose={() => setShowBulkAdd(false)} />}
