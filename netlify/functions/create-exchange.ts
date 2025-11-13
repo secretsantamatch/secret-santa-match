@@ -19,57 +19,59 @@ export async function handler(event: any, context: any) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Request body is missing.' }) };
         }
 
-        // DEFINITIVE FIX: Check payload size to prevent Firestore 1MB document limit crash.
-        if (event.body.length > 1024 * 1024) {
+        if (event.body.length > 1024 * 1024) { // 1MB limit
              return { 
-                statusCode: 413, // Payload Too Large
+                statusCode: 413,
                 body: JSON.stringify({ error: 'The submitted data is too large, likely due to a large custom background image. Please reduce the image size and try again.' }) 
             };
         }
 
         const clientData: Omit<ExchangeData, 'backgroundOptions' | 'id'> = JSON.parse(event.body);
         
-        // DEFINITIVE FIX: Harden new exchanges with an aggressive, multi-layered data scrub.
-        const finalData = {
-            p: (Array.isArray(clientData.p) ? clientData.p : [])
-                .filter(p => p && typeof p === 'object') // Filter out null/invalid entries
-                .map((p: Partial<Participant>) => ({
-                    id: p.id ?? uuidv4(),
-                    name: p.name ?? '',
-                    interests: p.interests ?? '',
-                    likes: p.likes ?? '',
-                    dislikes: p.dislikes ?? '',
-                    links: p.links ?? '',
-                    budget: p.budget ?? '',
-                })),
-            matches: (Array.isArray(clientData.matches) ? clientData.matches : [])
-                .filter(m => m && m.g && m.r), // SCRUB corrupted match objects
-            exclusions: (Array.isArray(clientData.exclusions) ? clientData.exclusions : [])
-                .filter(ex => ex && typeof ex === 'object') // Filter out null/invalid entries
-                .map((ex: Partial<Exclusion>) => ({
-                    p1: ex.p1 ?? '',
-                    p2: ex.p2 ?? ''
-                })),
-            assignments: (Array.isArray(clientData.assignments) ? clientData.assignments : [])
-                .filter(as => as && typeof as === 'object') // Filter out null/invalid entries
-                .map((as: Partial<Assignment>) => ({
-                    giverId: as.giverId ?? '',
-                    receiverId: as.receiverId ?? ''
-                })),
-            eventDetails: clientData.eventDetails ?? '',
-            bgId: clientData.bgId ?? 'gift-border',
-            customBackground: clientData.customBackground ?? null,
-            textColor: clientData.textColor ?? '#FFFFFF',
-            useTextOutline: clientData.useTextOutline ?? false,
-            outlineColor: clientData.outlineColor ?? '#000000',
-            outlineSize: clientData.outlineSize ?? 'normal',
-            fontSizeSetting: clientData.fontSizeSetting ?? 'normal',
-            fontTheme: clientData.fontTheme ?? 'classic',
-            lineSpacing: typeof clientData.lineSpacing === 'number' ? clientData.lineSpacing : 1.2,
-            greetingText: clientData.greetingText ?? "Hello, {secret_santa}!",
-            introText: clientData.introText ?? "You are the Secret Santa for...",
-            wishlistLabelText: clientData.wishlistLabelText ?? "Gift Ideas & Notes:",
-            views: {}, // Always initialize an empty views object
+        const p = (Array.isArray(clientData.p) ? clientData.p : [])
+            // FIX: Corrected the type predicate to `p is Participant` and ensured the filter returns a boolean with `!!p.name`
+            .filter((p): p is Participant => p && typeof p === 'object' && !!p.name)
+            .map((p) => ({
+                id: String(p.id ?? uuidv4()),
+                name: String(p.name ?? ''),
+                interests: String(p.interests ?? ''),
+                likes: String(p.likes ?? ''),
+                dislikes: String(p.dislikes ?? ''),
+                links: String(p.links ?? ''),
+                budget: String(p.budget ?? ''),
+            }));
+
+        const matches = (Array.isArray(clientData.matches) ? clientData.matches : [])
+            .filter(m => m && typeof m.g === 'string' && typeof m.r === 'string' && m.g && m.r)
+            .map(m => ({ g: String(m.g), r: String(m.r) }));
+
+        const exclusions = (Array.isArray(clientData.exclusions) ? clientData.exclusions : [])
+            .filter(ex => ex && typeof ex.p1 === 'string' && typeof ex.p2 === 'string')
+            .map(ex => ({ p1: String(ex.p1), p2: String(ex.p2) }));
+
+        const assignments = (Array.isArray(clientData.assignments) ? clientData.assignments : [])
+            .filter(as => as && typeof as.giverId === 'string' && typeof as.receiverId === 'string')
+            .map(as => ({ giverId: String(as.giverId), receiverId: String(as.receiverId) }));
+
+        const finalData: Omit<ExchangeData, 'id' | 'backgroundOptions'> = {
+            p,
+            matches,
+            exclusions,
+            assignments,
+            eventDetails: String(clientData.eventDetails ?? ''),
+            bgId: String(clientData.bgId ?? 'gift-border'),
+            customBackground: typeof clientData.customBackground === 'string' ? clientData.customBackground : null,
+            textColor: String(clientData.textColor ?? '#FFFFFF'),
+            useTextOutline: Boolean(clientData.useTextOutline ?? false),
+            outlineColor: String(clientData.outlineColor ?? '#000000'),
+            outlineSize: ['thin', 'normal', 'thick'].includes(clientData.outlineSize!) ? clientData.outlineSize! : 'normal',
+            fontSizeSetting: ['normal', 'large', 'extra-large'].includes(clientData.fontSizeSetting!) ? clientData.fontSizeSetting! : 'normal',
+            fontTheme: ['classic', 'elegant', 'modern', 'whimsical'].includes(clientData.fontTheme!) ? clientData.fontTheme! : 'classic',
+            lineSpacing: typeof clientData.lineSpacing === 'number' && !isNaN(clientData.lineSpacing) ? clientData.lineSpacing : 1.2,
+            greetingText: String(clientData.greetingText ?? "Hello, {secret_santa}!"),
+            introText: String(clientData.introText ?? "You are the Secret Santa for..."),
+            wishlistLabelText: String(clientData.wishlistLabelText ?? "Gift Ideas & Notes:"),
+            views: {},
         };
 
         const db = admin.firestore();
