@@ -199,7 +199,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 customBackground, textColor, useTextOutline, outlineColor, outlineSize,
                 fontSizeSetting: fontSize, fontTheme, lineSpacing,
                 greetingText, introText, wishlistLabelText,
-                views: isEditMode && initialData ? initialData.views : {},
+                views: (isEditMode && initialData?.views) || {},
             };
             
             setLoadingMessage(isEditMode ? 'Saving...' : 'Creating your game...');
