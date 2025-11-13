@@ -13,6 +13,9 @@ export async function handler(event: any, context: any) {
     }
     
     try {
+        if (!event.body) {
+            return { statusCode: 400, body: JSON.stringify({ error: 'Request body is missing.' }) };
+        }
         const { exchangeId, data: clientData }: UpdatePayload = JSON.parse(event.body);
 
         if (!exchangeId || !clientData) {
@@ -32,27 +35,33 @@ export async function handler(event: any, context: any) {
         // Merge client data over existing data to preserve fields not sent by the client
         const mergedData = { ...existingData, ...clientData };
 
-        // DEFINITIVE FIX: Sanitize the *merged* data to ensure it's a complete and valid object.
-        // This handles any fields missing from older documents OR incoming payloads, fixing the root cause of the crash.
+        // DEFINITIVE FIX: Aggressively sanitize the *merged* data. This scrubs invalid entries
+        // from within arrays (the root cause of the crash) and provides defaults for all fields.
         const finalData = {
-            p: (Array.isArray(mergedData.p) ? mergedData.p : []).map((p: Partial<Participant>) => ({
-                id: p.id ?? randomUUID(),
-                name: p.name ?? '',
-                interests: p.interests ?? '',
-                likes: p.likes ?? '',
-                dislikes: p.dislikes ?? '',
-                links: p.links ?? '',
-                budget: p.budget ?? '',
-            })),
-            matches: Array.isArray(mergedData.matches) ? mergedData.matches : [],
-            exclusions: (Array.isArray(mergedData.exclusions) ? mergedData.exclusions : []).map((ex: Partial<Exclusion>) => ({
-                p1: ex.p1 ?? '',
-                p2: ex.p2 ?? ''
-            })),
-            assignments: (Array.isArray(mergedData.assignments) ? mergedData.assignments : []).map((as: Partial<Assignment>) => ({
-                giverId: as.giverId ?? '',
-                receiverId: as.receiverId ?? ''
-            })),
+            p: (Array.isArray(mergedData.p) ? mergedData.p : [])
+                .filter(Boolean) // SCRUB null/undefined entries from the array
+                .map((p: Partial<Participant>) => ({
+                    id: p.id ?? randomUUID(),
+                    name: p.name ?? '',
+                    interests: p.interests ?? '',
+                    likes: p.likes ?? '',
+                    dislikes: p.dislikes ?? '',
+                    links: p.links ?? '',
+                    budget: p.budget ?? '',
+                })),
+            matches: Array.isArray(mergedData.matches) ? mergedData.matches.filter(Boolean) : [],
+            exclusions: (Array.isArray(mergedData.exclusions) ? mergedData.exclusions : [])
+                .filter(Boolean) // SCRUB null/undefined entries
+                .map((ex: Partial<Exclusion>) => ({
+                    p1: ex.p1 ?? '',
+                    p2: ex.p2 ?? ''
+                })),
+            assignments: (Array.isArray(mergedData.assignments) ? mergedData.assignments : [])
+                .filter(Boolean) // SCRUB null/undefined entries
+                .map((as: Partial<Assignment>) => ({
+                    giverId: as.giverId ?? '',
+                    receiverId: as.receiverId ?? ''
+                })),
             eventDetails: mergedData.eventDetails ?? '',
             bgId: mergedData.bgId ?? 'gift-border',
             customBackground: mergedData.customBackground ?? null,
@@ -69,7 +78,7 @@ export async function handler(event: any, context: any) {
             views: (typeof mergedData.views === 'object' && mergedData.views !== null && !Array.isArray(mergedData.views)) ? mergedData.views : {},
         };
 
-        // Use `set` with the fully merged and sanitized data to guarantee consistency.
+        // Use `set` with the fully sanitized data to guarantee consistency.
         await exchangeRef.set(finalData);
 
         return {
@@ -77,7 +86,7 @@ export async function handler(event: any, context: any) {
             body: JSON.stringify({ message: 'Exchange updated successfully.', id: exchangeId }),
         };
     } catch (error) {
-        console.error('Error updating exchange:', error);
+        console.error('CRITICAL Error in update-exchange:', error);
         const errorMessage = error instanceof Error ? error.message : 'A server error occurred during update.';
         return {
             statusCode: 500,
