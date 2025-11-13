@@ -20,20 +20,19 @@ export async function handler(event: any, context: any) {
         }
 
         // DEFINITIVE FIX: Check payload size to prevent Firestore 1MB document limit crash.
-        // The limit is 1,048,576 bytes. We check against 1MB to be safe.
         if (event.body.length > 1024 * 1024) {
              return { 
                 statusCode: 413, // Payload Too Large
-                body: JSON.stringify({ error: 'The submitted data is too large, likely due to a large custom background image. Please reduce the image size (under 3MB) and try again.' }) 
+                body: JSON.stringify({ error: 'The submitted data is too large, likely due to a large custom background image. Please reduce the image size and try again.' }) 
             };
         }
 
         const clientData: Omit<ExchangeData, 'backgroundOptions' | 'id'> = JSON.parse(event.body);
         
-        // Harden new exchanges against any possible malformed client data
+        // DEFINITIVE FIX: Harden new exchanges with an aggressive, multi-layered data scrub.
         const finalData = {
             p: (Array.isArray(clientData.p) ? clientData.p : [])
-                .filter(Boolean)
+                .filter(p => p && typeof p === 'object') // Filter out null/invalid entries
                 .map((p: Partial<Participant>) => ({
                     id: p.id ?? uuidv4(),
                     name: p.name ?? '',
@@ -46,13 +45,13 @@ export async function handler(event: any, context: any) {
             matches: (Array.isArray(clientData.matches) ? clientData.matches : [])
                 .filter(m => m && m.g && m.r), // SCRUB corrupted match objects
             exclusions: (Array.isArray(clientData.exclusions) ? clientData.exclusions : [])
-                .filter(Boolean)
+                .filter(ex => ex && typeof ex === 'object') // Filter out null/invalid entries
                 .map((ex: Partial<Exclusion>) => ({
                     p1: ex.p1 ?? '',
                     p2: ex.p2 ?? ''
                 })),
             assignments: (Array.isArray(clientData.assignments) ? clientData.assignments : [])
-                .filter(Boolean)
+                .filter(as => as && typeof as === 'object') // Filter out null/invalid entries
                 .map((as: Partial<Assignment>) => ({
                     giverId: as.giverId ?? '',
                     receiverId: as.receiverId ?? ''
@@ -66,11 +65,11 @@ export async function handler(event: any, context: any) {
             outlineSize: clientData.outlineSize ?? 'normal',
             fontSizeSetting: clientData.fontSizeSetting ?? 'normal',
             fontTheme: clientData.fontTheme ?? 'classic',
-            lineSpacing: clientData.lineSpacing ?? 1.2,
+            lineSpacing: typeof clientData.lineSpacing === 'number' ? clientData.lineSpacing : 1.2,
             greetingText: clientData.greetingText ?? "Hello, {secret_santa}!",
             introText: clientData.introText ?? "You are the Secret Santa for...",
             wishlistLabelText: clientData.wishlistLabelText ?? "Gift Ideas & Notes:",
-            views: {}, // Always initialize views
+            views: {}, // Always initialize an empty views object
         };
 
         const db = admin.firestore();
