@@ -23,9 +23,11 @@ import AdBanner from './AdBanner';
 
 interface GeneratorPageProps {
   onComplete: (data: ExchangeData) => void;
+  // FIX: Added optional initialData prop to support editing an existing game.
+  initialData?: ExchangeData;
 }
 
-const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete }) => {
+const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }) => {
     // Core State
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [exclusions, setExclusions] = useState<Exclusion[]>([]);
@@ -60,15 +62,35 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete }) => {
 
     // Initial data population effect
     useEffect(() => {
-        setParticipants([
-            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-        ]);
-        setEventDetails('Gift exchange on Dec 25th!');
-        setGreetingText("Happy Holidays, {secret_santa}!");
-        setIntroText("You are the Secret Santa for...");
-        setWishlistLabelText("Gift Ideas & Wishlist");
+        // FIX: Populate state from initialData if it exists (for edit mode).
+        if (initialData) {
+            setParticipants(initialData.p);
+            setExclusions(initialData.exclusions);
+            setAssignments(initialData.assignments);
+            setEventDetails(initialData.eventDetails);
+            setSelectedBackgroundId(initialData.bgId);
+            setCustomBackground(initialData.customBackground);
+            setTextColor(initialData.textColor);
+            setUseTextOutline(initialData.useTextOutline);
+            setOutlineColor(initialData.outlineColor);
+            setOutlineSize(initialData.outlineSize);
+            setFontSize(initialData.fontSizeSetting);
+            setFontTheme(initialData.fontTheme);
+            setLineSpacing(initialData.lineSpacing);
+            setGreetingText(initialData.greetingText);
+            setIntroText(initialData.introText);
+            setWishlistLabelText(initialData.wishlistLabelText);
+        } else {
+            setParticipants([
+                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+            ]);
+            setEventDetails('Gift exchange on Dec 25th!');
+            setGreetingText("Happy Holidays, {secret_santa}!");
+            setIntroText("You are the Secret Santa for...");
+            setWishlistLabelText("Gift Ideas & Wishlist");
+        }
 
         const consent = localStorage.getItem('cookie_consent');
         if (consent === null) setShowCookieBanner(true);
@@ -79,7 +101,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete }) => {
         fetch('/templates.json')
             .then(res => res.json()).then(data => setBackgroundOptions(data))
             .catch(err => console.error("Failed to load templates.json", err));
-    }, []);
+    }, [initialData]);
 
      const handleBulkAdd = (names: string) => {
         const newNames = names.split('\n').map(name => name.trim()).filter(Boolean);
