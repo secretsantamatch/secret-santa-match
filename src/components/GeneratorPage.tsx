@@ -21,13 +21,11 @@ import CookieConsentBanner from './CookieConsentBanner';
 import { getRandomPersona } from '../services/personaService';
 import AdBanner from './AdBanner';
 
-// FIX: Add `initialData` to props to support editing an existing exchange.
 interface GeneratorPageProps {
   onComplete: (data: ExchangeData) => void;
-  initialData?: ExchangeData;
 }
 
-const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }) => {
+const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete }) => {
     // Core State
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [exclusions, setExclusions] = useState<Exclusion[]>([]);
@@ -62,35 +60,15 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
 
     // Initial data population effect
     useEffect(() => {
-        // FIX: If `initialData` is provided, populate the state for editing. Otherwise, set defaults for a new game.
-        if (initialData) {
-            setParticipants(initialData.p);
-            setExclusions(initialData.exclusions);
-            setAssignments(initialData.assignments || []);
-            setEventDetails(initialData.eventDetails);
-            setSelectedBackgroundId(initialData.bgId);
-            setCustomBackground(initialData.customBackground);
-            setTextColor(initialData.textColor);
-            setUseTextOutline(initialData.useTextOutline);
-            setOutlineColor(initialData.outlineColor);
-            setOutlineSize(initialData.outlineSize);
-            setFontSize(initialData.fontSizeSetting);
-            setFontTheme(initialData.fontTheme);
-            setLineSpacing(initialData.lineSpacing);
-            setGreetingText(initialData.greetingText);
-            setIntroText(initialData.introText);
-            setWishlistLabelText(initialData.wishlistLabelText);
-        } else {
-            setParticipants([
-                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-            ]);
-            setEventDetails('Gift exchange on Dec 25th!');
-            setGreetingText("Happy Holidays, {secret_santa}!");
-            setIntroText("You are the Secret Santa for...");
-            setWishlistLabelText("Gift Ideas & Wishlist");
-        }
+        setParticipants([
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+        ]);
+        setEventDetails('Gift exchange on Dec 25th!');
+        setGreetingText("Happy Holidays, {secret_santa}!");
+        setIntroText("You are the Secret Santa for...");
+        setWishlistLabelText("Gift Ideas & Wishlist");
 
         const consent = localStorage.getItem('cookie_consent');
         if (consent === null) setShowCookieBanner(true);
@@ -101,7 +79,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         fetch('/templates.json')
             .then(res => res.json()).then(data => setBackgroundOptions(data))
             .catch(err => console.error("Failed to load templates.json", err));
-    }, [initialData]);
+    }, []);
 
      const handleBulkAdd = (names: string) => {
         const newNames = names.split('\n').map(name => name.trim()).filter(Boolean);
@@ -150,41 +128,6 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         if (validParticipants.length < 3) {
             setError("You need at least three participants.");
             setActiveStep(1);
-            return;
-        }
-
-        // FIX: If in edit mode, regenerate matches and pass data up to parent, skipping the API call.
-        if (initialData) {
-            const result = generateMatches(validParticipants, exclusions, assignments);
-            if (!result.matches) {
-                setError(result.error || 'Failed to generate new matches. Check your rules.');
-                setActiveStep(2);
-                return;
-            }
-            const finalMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
-
-            const updatedData: ExchangeData = {
-                ...initialData,
-                p: validParticipants,
-                matches: finalMatches,
-                exclusions,
-                assignments,
-                eventDetails,
-                bgId: selectedBackgroundId,
-                customBackground,
-                textColor,
-                useTextOutline,
-                outlineColor,
-                outlineSize,
-                fontSizeSetting: fontSize,
-                fontTheme,
-                lineSpacing,
-                greetingText,
-                introText,
-                wishlistLabelText,
-                backgroundOptions, // This is client-side only
-            };
-            onComplete(updatedData);
             return;
         }
         
@@ -299,7 +242,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                     </p>
                 </div>
 
-                <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="YOUR_AD_SLOT_ID_1" data-ad-format="auto" data-full-width-responsive="true" />
+                <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
                 <div className="max-w-5xl mx-auto px-4 md:px-8"><HowItWorks /><VideoTutorial /></div>
                 
                 <div ref={generatorRef} className="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
@@ -347,7 +290,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                             </button>
                         ) : (
                              <button onClick={() => handleSubmit()} className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto">
-                                <Shuffle /> {initialData ? 'Update & Rematch' : 'Generate Matches!'}
+                                <Shuffle /> Generate Matches!
                             </button>
                         )}
                     </div>
@@ -355,7 +298,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
 
                 <div className="max-w-5xl mx-auto px-4 md:px-8">
                     <WhyChooseUs />
-                    <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="YOUR_AD_SLOT_ID_2" data-ad-format="auto" data-full-width-responsive="true" />
+                    <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="2345678901" data-ad-format="auto" data-full-width-responsive="true" />
                     <SocialProof />
                     <ShareTool />
                     <FaqSection />
