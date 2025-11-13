@@ -23,6 +23,16 @@ export async function handler(event: any, context: any) {
         if (!event.body) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Request body is missing.' }) };
         }
+
+        // DEFINITIVE FIX: Check payload size to prevent Firestore 1MB document limit crash.
+        // The limit is 1,048,576 bytes. We check against 1MB to be safe.
+        if (event.body.length > 1024 * 1024) {
+             return { 
+                statusCode: 413, // Payload Too Large
+                body: JSON.stringify({ error: 'The submitted data is too large, likely due to a large custom background image. Please reduce the image size (under 3MB) and try again.' }) 
+            };
+        }
+        
         const { exchangeId, data: clientData }: UpdatePayload = JSON.parse(event.body);
 
         if (!exchangeId || !clientData) {
@@ -42,12 +52,10 @@ export async function handler(event: any, context: any) {
             ? existingData.views 
             : {};
             
-        // DEFINITIVE FIX: Aggressively sanitize the 'views' object to remove any non-string values.
-        // This prevents crashes when old exchanges have corrupted view data (e.g., numbers).
+        // Aggressively sanitize the 'views' object to remove any non-string values.
         const sanitizedViews: { [key: string]: string } = {};
         if (existingViews) {
             for (const key in existingViews) {
-                // Ensure the key is own property and the value is a string.
                 if (Object.prototype.hasOwnProperty.call(existingViews, key) && typeof existingViews[key] === 'string') {
                     sanitizedViews[key] = existingViews[key];
                 }

@@ -18,6 +18,16 @@ export async function handler(event: any, context: any) {
         if (!event.body) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Request body is missing.' }) };
         }
+
+        // DEFINITIVE FIX: Check payload size to prevent Firestore 1MB document limit crash.
+        // The limit is 1,048,576 bytes. We check against 1MB to be safe.
+        if (event.body.length > 1024 * 1024) {
+             return { 
+                statusCode: 413, // Payload Too Large
+                body: JSON.stringify({ error: 'The submitted data is too large, likely due to a large custom background image. Please reduce the image size (under 3MB) and try again.' }) 
+            };
+        }
+
         const clientData: Omit<ExchangeData, 'backgroundOptions' | 'id'> = JSON.parse(event.body);
         
         // Harden new exchanges against any possible malformed client data
