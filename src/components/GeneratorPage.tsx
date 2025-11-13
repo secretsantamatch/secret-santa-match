@@ -67,22 +67,24 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     // Initial data population effect
     useEffect(() => {
         if (isEditMode && initialData) {
-            setParticipants(initialData.p);
-            setExclusions(initialData.exclusions || []);
-            setAssignments(initialData.assignments || []);
-            setEventDetails(initialData.eventDetails || '');
-            setSelectedBackgroundId(initialData.bgId);
-            setCustomBackground(initialData.customBackground);
-            setTextColor(initialData.textColor);
-            setUseTextOutline(initialData.useTextOutline);
-            setOutlineColor(initialData.outlineColor);
-            setOutlineSize(initialData.outlineSize);
-            setFontSize(initialData.fontSizeSetting);
-            setFontTheme(initialData.fontTheme);
-            setLineSpacing(initialData.lineSpacing);
-            setGreetingText(initialData.greetingText);
-            setIntroText(initialData.introText);
-            setWishlistLabelText(initialData.wishlistLabelText);
+            // FIX: Provide robust fallbacks for ALL fields to prevent `undefined` state
+            // when loading older exchange data that may be missing newer properties.
+            setParticipants(initialData.p ?? []);
+            setExclusions(initialData.exclusions ?? []);
+            setAssignments(initialData.assignments ?? []);
+            setEventDetails(initialData.eventDetails ?? 'Gift exchange on Dec 25th!');
+            setSelectedBackgroundId(initialData.bgId ?? 'gift-border');
+            setCustomBackground(initialData.customBackground ?? null);
+            setTextColor(initialData.textColor ?? '#265343'); // Default for gift-border
+            setUseTextOutline(initialData.useTextOutline ?? false);
+            setOutlineColor(initialData.outlineColor ?? '#000000');
+            setOutlineSize(initialData.outlineSize ?? 'normal');
+            setFontSize(initialData.fontSizeSetting ?? 'normal');
+            setFontTheme(initialData.fontTheme ?? 'classic');
+            setLineSpacing(initialData.lineSpacing ?? 1.2);
+            setGreetingText(initialData.greetingText ?? "Happy Holidays, {secret_santa}!");
+            setIntroText(initialData.introText ?? "You are the Secret Santa for...");
+            setWishlistLabelText(initialData.wishlistLabelText ?? "Gift Ideas & Wishlist");
         } else {
             // Default state for new generator
              setParticipants([
