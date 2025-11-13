@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import type { ExchangeData } from './types';
 
 // Lazy load components for better initial page load
@@ -72,20 +72,31 @@ const App: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // DEFINITIVE FIX: Use a ref to hold a stable reference to the latest data.
+    // This solves the "stale closure" problem in the hashchange event listener.
+    const dataRef = useRef(exchangeData);
+    useEffect(() => {
+        dataRef.current = exchangeData;
+    }, [exchangeData]);
+
+    // The loadDataFromHash function no longer needs to depend on `exchangeData`
+    // because it will read from the stable `dataRef`. This makes the function stable.
     const loadDataFromHash = useCallback(async () => {
         const hash = window.location.hash.slice(1);
         const [exchangeId, queryString] = hash.split('?');
         
-        // This guard clause prevents a re-fetch if the data is already in state.
-        // It's crucial for both the creation flow and for preventing re-renders.
-        if (exchangeData && exchangeId === exchangeData.id) {
+        // Read from the ref to get the *current* state, not the state at the time the listener was created.
+        if (dataRef.current && exchangeId === dataRef.current.id) {
             setIsLoading(false);
             return;
         }
 
         if (!exchangeId) {
-            setExchangeData(null);
-            setParticipantId(null);
+             // Only reset state if there's truly no hash and we previously had data.
+            if (dataRef.current) {
+                setExchangeData(null);
+                setParticipantId(null);
+            }
             setIsLoading(false);
             return;
         }
@@ -117,8 +128,9 @@ const App: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [exchangeData]);
+    }, []); // Empty dependency array makes this function stable.
 
+    // This effect for adding the listener now only runs once on mount, which is more efficient.
     useEffect(() => {
         window.addEventListener('hashchange', loadDataFromHash);
         loadDataFromHash(); // Initial load
@@ -126,20 +138,20 @@ const App: React.FC = () => {
         return () => {
             window.removeEventListener('hashchange', loadDataFromHash);
         };
-    }, [loadDataFromHash]);
+    }, [loadDataFromHash]); // loadDataFromHash is now stable.
 
-    // DEFINITIVE FIX: This new useEffect synchronizes the state to the URL.
+    // This useEffect synchronizes the state to the URL.
     // It runs *after* the state has been updated, preventing the race condition.
     useEffect(() => {
         if (exchangeData && exchangeData.id && !window.location.hash.includes(exchangeData.id)) {
-            // This will trigger the 'hashchange' listener, but because the `exchangeData`
-            // state is already set, `loadDataFromHash` will hit its guard clause and exit early,
+            // This will trigger the 'hashchange' listener, but because the `dataRef`
+            // is up to date, `loadDataFromHash` will hit its guard clause and exit early,
             // completely avoiding the problematic network request.
             window.location.hash = exchangeData.id;
         }
     }, [exchangeData]);
 
-    // DEFINITIVE FIX: `handleCreationComplete` now only sets the state.
+    // `handleCreationComplete` now only sets the state.
     // The new useEffect above is responsible for updating the URL hash.
     // This completely eliminates the race condition.
     const handleCreationComplete = (newData: ExchangeData) => {
