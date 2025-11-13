@@ -15,10 +15,12 @@ import { Download, Share2, Edit, Gift, Users, Shuffle, Loader2, Copy, Check } fr
 interface ResultsPageProps {
     data: ExchangeData;
     currentParticipantId: string | null;
+    // FIX: Added onEditRequest to props to allow navigating to the edit view.
+    onEditRequest: () => void;
     onDataUpdated: (newData: ExchangeData) => void;
 }
 
-const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
+const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated, onEditRequest }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
@@ -167,6 +169,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                 <button onClick={() => openShareModal('links')} className="py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg">
                                     <Share2 size={20} /> Share & Download Hub
                                 </button>
+                                {/* FIX: Add Edit Game button for organizers */}
+                                <button onClick={() => { trackEvent('edit_game_click'); onEditRequest(); }} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <Edit size={20} /> Edit Game
+                                </button>
                                 <button onClick={() => { trackEvent('shuffle_again_click'); setIsShuffleModalOpen(true); }} disabled={isShuffling} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait">
                                     {isShuffling ? <Loader2 size={20} className="animate-spin" /> : <Shuffle size={20} />}
                                     {isShuffling ? 'Shuffling...' : 'Shuffle Again'}
@@ -185,7 +191,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                             </div>
                         </div>
 
-                        <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="YOUR_AD_SLOT_ID_3" data-ad-format="auto" data-full-width-responsive="true" />
+                        <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
                         <ResultsDisplay matches={matches} />
                     </div>
                 ) : (
@@ -214,7 +220,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     )}
                                 </div>
                             </div>
-                            <div className="mt-8"><AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="YOUR_AD_SLOT_ID_3" data-ad-format="auto" data-full-width-responsive="true" /></div>
+                            <div className="mt-8"><AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" /></div>
                         </>
                     )
                 )}
