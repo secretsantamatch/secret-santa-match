@@ -1,6 +1,13 @@
 import admin from './firebase-admin';
 import type { ExchangeData, Participant, Exclusion, Assignment } from '../../src/types';
-import { randomUUID } from 'crypto';
+
+// Self-contained UUID generator to avoid Node.js environment issues with crypto module.
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
 interface UpdatePayload {
     exchangeId: string;
@@ -31,17 +38,13 @@ export async function handler(event: any, context: any) {
         }
 
         const existingData = doc.data() as ExchangeData;
-
-        // Merge client data over existing data to preserve fields not sent by the client
         const mergedData = { ...existingData, ...clientData };
 
-        // DEFINITIVE FIX: Aggressively sanitize the *merged* data. This scrubs invalid entries
-        // from within arrays (the root cause of the crash) and provides defaults for all fields.
         const finalData = {
             p: (Array.isArray(mergedData.p) ? mergedData.p : [])
-                .filter(Boolean) // SCRUB null/undefined entries from the array
+                .filter(Boolean)
                 .map((p: Partial<Participant>) => ({
-                    id: p.id ?? randomUUID(),
+                    id: p.id ?? uuidv4(),
                     name: p.name ?? '',
                     interests: p.interests ?? '',
                     likes: p.likes ?? '',
@@ -50,15 +53,15 @@ export async function handler(event: any, context: any) {
                     budget: p.budget ?? '',
                 })),
             matches: (Array.isArray(mergedData.matches) ? mergedData.matches : [])
-                .filter(m => m && m.g && m.r), // SCRUB corrupted match objects
+                .filter(m => m && m.g && m.r),
             exclusions: (Array.isArray(mergedData.exclusions) ? mergedData.exclusions : [])
-                .filter(Boolean) // SCRUB null/undefined entries
+                .filter(Boolean)
                 .map((ex: Partial<Exclusion>) => ({
                     p1: ex.p1 ?? '',
                     p2: ex.p2 ?? ''
                 })),
             assignments: (Array.isArray(mergedData.assignments) ? mergedData.assignments : [])
-                .filter(Boolean) // SCRUB null/undefined entries
+                .filter(Boolean)
                 .map((as: Partial<Assignment>) => ({
                     giverId: as.giverId ?? '',
                     receiverId: as.receiverId ?? ''
@@ -79,7 +82,6 @@ export async function handler(event: any, context: any) {
             views: (typeof mergedData.views === 'object' && mergedData.views !== null && !Array.isArray(mergedData.views)) ? mergedData.views : {},
         };
 
-        // Use `set` with the fully sanitized data to guarantee consistency.
         await exchangeRef.set(finalData);
 
         return {

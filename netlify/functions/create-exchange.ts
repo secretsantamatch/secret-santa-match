@@ -1,7 +1,13 @@
 import admin from './firebase-admin';
 import type { ExchangeData, Participant, Exclusion, Assignment } from '../../src/types';
-import { randomUUID } from 'crypto';
 
+// Self-contained UUID generator to avoid Node.js environment issues with crypto module.
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
 export async function handler(event: any, context: any) {
     if (event.httpMethod !== 'POST') {
@@ -19,7 +25,7 @@ export async function handler(event: any, context: any) {
             p: (Array.isArray(clientData.p) ? clientData.p : [])
                 .filter(Boolean)
                 .map((p: Partial<Participant>) => ({
-                    id: p.id ?? randomUUID(),
+                    id: p.id ?? uuidv4(),
                     name: p.name ?? '',
                     interests: p.interests ?? '',
                     likes: p.likes ?? '',
