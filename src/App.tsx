@@ -26,32 +26,6 @@ const ErrorDisplay = ({ message }: { message: string }) => (
     </div>
 );
 
-const fetchWithRetry = async (url: string, retries = 5, initialDelay = 400): Promise<Response> => {
-    for (let i = 0; i < retries; i++) {
-        try {
-            const response = await fetch(url);
-            if (response.ok) return response;
-            // DEFINITIVE FIX: Retry on both 404 (Not Found) and 5xx (transient server errors)
-            if ((response.status === 404 || response.status >= 500) && i < retries - 1) {
-                const delay = initialDelay * Math.pow(2, i);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            } else {
-                return response; // Give up and return the failing response
-            }
-        } catch (error) {
-            // This catches network errors
-            if (i < retries - 1) {
-                const delay = initialDelay * Math.pow(2, i);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            } else {
-                throw error; // Give up and re-throw the network error
-            }
-        }
-    }
-    throw new Error('Failed to fetch after multiple retries.');
-};
-
-
 const App: React.FC = () => {
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
     const [participantId, setParticipantId] = useState<string | null>(null);
@@ -78,7 +52,9 @@ const App: React.FC = () => {
         setError(null);
 
         try {
-            const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
+            // DEFINITIVE FIX: Replaced complex client-side retry logic with a simple fetch.
+            // The retry logic is now handled robustly on the server-side in the get-exchange function.
+            const exchangeRes = await fetch(`/.netlify/functions/get-exchange?id=${exchangeId}`);
             if (!exchangeRes.ok) {
                 throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
             }
