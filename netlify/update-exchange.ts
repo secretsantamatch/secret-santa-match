@@ -1,9 +1,9 @@
 import admin from './firebase-admin';
-import type { ExchangeData } from '../../src/types';
+import type { ExchangeData, Participant, Exclusion, Assignment } from '../../src/types';
 
 interface UpdatePayload {
     exchangeId: string;
-    data: Omit<ExchangeData, 'backgroundOptions' | 'id'>;
+    data: Partial<Omit<ExchangeData, 'backgroundOptions' | 'id'>>;
 }
 
 export async function handler(event: any, context: any) {
@@ -21,9 +21,45 @@ export async function handler(event: any, context: any) {
         const db = admin.firestore();
         const exchangeRef = db.collection('exchanges').doc(exchangeId);
         
-        // Use `set` to completely overwrite the document with the new data.
-        // This is safer than `update` for this use case, as it ensures the entire state is in sync.
-        await exchangeRef.set(data);
+        // DEFINITIVE FIX: Sanitize the entire data object on the server before setting it in Firestore.
+        // This makes the API robust and prevents crashes from `undefined` values sent by any client, old or new.
+        const sanitizedData = {
+            p: (data.p || []).map((p: Partial<Participant>) => ({
+                id: p.id ?? crypto.randomUUID(),
+                name: p.name ?? '',
+                interests: p.interests ?? '',
+                likes: p.likes ?? '',
+                dislikes: p.dislikes ?? '',
+                links: p.links ?? '',
+                budget: p.budget ?? '',
+            })),
+            matches: data.matches ?? [],
+            exclusions: (data.exclusions || []).map((ex: Partial<Exclusion>) => ({
+                p1: ex.p1 ?? '',
+                p2: ex.p2 ?? ''
+            })),
+            assignments: (data.assignments || []).map((as: Partial<Assignment>) => ({
+                giverId: as.giverId ?? '',
+                receiverId: as.receiverId ?? ''
+            })),
+            eventDetails: data.eventDetails ?? '',
+            bgId: data.bgId ?? 'gift-border',
+            customBackground: data.customBackground ?? null,
+            textColor: data.textColor ?? '#FFFFFF',
+            useTextOutline: data.useTextOutline ?? false,
+            outlineColor: data.outlineColor ?? '#000000',
+            outlineSize: data.outlineSize ?? 'normal',
+            fontSizeSetting: data.fontSizeSetting ?? 'normal',
+            fontTheme: data.fontTheme ?? 'classic',
+            lineSpacing: data.lineSpacing ?? 1.2,
+            greetingText: data.greetingText ?? '',
+            introText: data.introText ?? '',
+            wishlistLabelText: data.wishlistLabelText ?? '',
+            views: data.views ?? {},
+        };
+
+        // Use `set` with the fully sanitized data to prevent any possible errors.
+        await exchangeRef.set(sanitizedData);
 
         return {
             statusCode: 200,
