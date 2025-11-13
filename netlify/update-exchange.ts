@@ -37,11 +37,17 @@ export async function handler(event: any, context: any) {
             return { statusCode: 404, body: JSON.stringify({ error: 'Exchange not found.' }) };
         }
 
-        const existingData = doc.data() as ExchangeData;
-        const mergedData = { ...existingData, ...clientData };
+        // DEFINITIVE FIX: Instead of merging, we use the client data as the source of truth
+        // and only preserve the necessary fields from the existing data (like 'views').
+        // This prevents corrupted old data from being carried over and crashing the function.
+        const existingData = doc.data();
+        const existingViews = (existingData && typeof existingData.views === 'object' && existingData.views !== null && !Array.isArray(existingData.views)) 
+            ? existingData.views 
+            : {};
 
+        // Perform the same robust sanitization as the create function.
         const finalData = {
-            p: (Array.isArray(mergedData.p) ? mergedData.p : [])
+            p: (Array.isArray(clientData.p) ? clientData.p : [])
                 .filter(Boolean)
                 .map((p: Partial<Participant>) => ({
                     id: p.id ?? uuidv4(),
@@ -52,34 +58,34 @@ export async function handler(event: any, context: any) {
                     links: p.links ?? '',
                     budget: p.budget ?? '',
                 })),
-            matches: (Array.isArray(mergedData.matches) ? mergedData.matches : [])
+            matches: (Array.isArray(clientData.matches) ? clientData.matches : [])
                 .filter(m => m && m.g && m.r),
-            exclusions: (Array.isArray(mergedData.exclusions) ? mergedData.exclusions : [])
+            exclusions: (Array.isArray(clientData.exclusions) ? clientData.exclusions : [])
                 .filter(Boolean)
                 .map((ex: Partial<Exclusion>) => ({
                     p1: ex.p1 ?? '',
                     p2: ex.p2 ?? ''
                 })),
-            assignments: (Array.isArray(mergedData.assignments) ? mergedData.assignments : [])
+            assignments: (Array.isArray(clientData.assignments) ? clientData.assignments : [])
                 .filter(Boolean)
                 .map((as: Partial<Assignment>) => ({
                     giverId: as.giverId ?? '',
                     receiverId: as.receiverId ?? ''
                 })),
-            eventDetails: mergedData.eventDetails ?? '',
-            bgId: mergedData.bgId ?? 'gift-border',
-            customBackground: mergedData.customBackground ?? null,
-            textColor: mergedData.textColor ?? '#FFFFFF',
-            useTextOutline: mergedData.useTextOutline ?? false,
-            outlineColor: mergedData.outlineColor ?? '#000000',
-            outlineSize: mergedData.outlineSize ?? 'normal',
-            fontSizeSetting: mergedData.fontSizeSetting ?? 'normal',
-            fontTheme: mergedData.fontTheme ?? 'classic',
-            lineSpacing: mergedData.lineSpacing ?? 1.2,
-            greetingText: mergedData.greetingText ?? "Hello, {secret_santa}!",
-            introText: mergedData.introText ?? "You are the Secret Santa for...",
-            wishlistLabelText: mergedData.wishlistLabelText ?? "Gift Ideas & Notes:",
-            views: (typeof mergedData.views === 'object' && mergedData.views !== null && !Array.isArray(mergedData.views)) ? mergedData.views : {},
+            eventDetails: clientData.eventDetails ?? '',
+            bgId: clientData.bgId ?? 'gift-border',
+            customBackground: clientData.customBackground ?? null,
+            textColor: clientData.textColor ?? '#FFFFFF',
+            useTextOutline: clientData.useTextOutline ?? false,
+            outlineColor: clientData.outlineColor ?? '#000000',
+            outlineSize: clientData.outlineSize ?? 'normal',
+            fontSizeSetting: clientData.fontSizeSetting ?? 'normal',
+            fontTheme: clientData.fontTheme ?? 'classic',
+            lineSpacing: clientData.lineSpacing ?? 1.2,
+            greetingText: clientData.greetingText ?? "Hello, {secret_santa}!",
+            introText: clientData.introText ?? "You are the Secret Santa for...",
+            wishlistLabelText: clientData.wishlistLabelText ?? "Gift Ideas & Notes:",
+            views: existingViews, // Preserve the existing views
         };
 
         await exchangeRef.set(finalData);
