@@ -24,7 +24,7 @@ export async function handler(event: any, context: any) {
         // DEFINITIVE FIX: Sanitize the entire data object on the server before setting it in Firestore.
         // This makes the API robust and prevents crashes from `undefined` values sent by any client, old or new.
         const sanitizedData = {
-            p: (data.p || []).map((p: Partial<Participant>) => ({
+            p: (Array.isArray(data.p) ? data.p : []).map((p: Partial<Participant>) => ({
                 id: p.id ?? crypto.randomUUID(),
                 name: p.name ?? '',
                 interests: p.interests ?? '',
@@ -33,12 +33,12 @@ export async function handler(event: any, context: any) {
                 links: p.links ?? '',
                 budget: p.budget ?? '',
             })),
-            matches: data.matches ?? [],
-            exclusions: (data.exclusions || []).map((ex: Partial<Exclusion>) => ({
+            matches: Array.isArray(data.matches) ? data.matches : [],
+            exclusions: (Array.isArray(data.exclusions) ? data.exclusions : []).map((ex: Partial<Exclusion>) => ({
                 p1: ex.p1 ?? '',
                 p2: ex.p2 ?? ''
             })),
-            assignments: (data.assignments || []).map((as: Partial<Assignment>) => ({
+            assignments: (Array.isArray(data.assignments) ? data.assignments : []).map((as: Partial<Assignment>) => ({
                 giverId: as.giverId ?? '',
                 receiverId: as.receiverId ?? ''
             })),
@@ -55,7 +55,7 @@ export async function handler(event: any, context: any) {
             greetingText: data.greetingText ?? '',
             introText: data.introText ?? '',
             wishlistLabelText: data.wishlistLabelText ?? '',
-            views: data.views ?? {},
+            views: (typeof data.views === 'object' && data.views !== null && !Array.isArray(data.views)) ? data.views : {},
         };
 
         // Use `set` with the fully sanitized data to prevent any possible errors.
