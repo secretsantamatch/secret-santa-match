@@ -26,23 +26,25 @@ const ErrorDisplay = ({ message }: { message: string }) => (
     </div>
 );
 
-const fetchWithRetry = async (url: string, retries = 4, initialDelay = 300): Promise<Response> => {
+const fetchWithRetry = async (url: string, retries = 5, initialDelay = 400): Promise<Response> => {
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);
             if (response.ok) return response;
-            if (response.status === 404 && i < retries - 1) {
+            // DEFINITIVE FIX: Retry on both 404 (Not Found) and 5xx (transient server errors)
+            if ((response.status === 404 || response.status >= 500) && i < retries - 1) {
                 const delay = initialDelay * Math.pow(2, i);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-                return response; 
+                return response; // Give up and return the failing response
             }
         } catch (error) {
+            // This catches network errors
             if (i < retries - 1) {
                 const delay = initialDelay * Math.pow(2, i);
                 await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-                throw error;
+                throw error; // Give up and re-throw the network error
             }
         }
     }
