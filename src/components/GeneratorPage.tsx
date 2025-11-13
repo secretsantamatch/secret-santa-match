@@ -191,8 +191,20 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 finalMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
             }
 
+            // PERMANENT FIX: Sanitize all participants to ensure no `undefined` values are ever sent to Firestore.
+            // This prevents server crashes when updating older exchanges that are missing newer data fields.
+            const sanitizedParticipants = validParticipants.map(p => ({
+                id: p.id,
+                name: p.name ?? '',
+                interests: p.interests ?? '',
+                likes: p.likes ?? '',
+                dislikes: p.dislikes ?? '',
+                links: p.links ?? '',
+                budget: p.budget ?? '',
+            }));
+
             const exchangePayload = {
-                p: validParticipants,
+                p: sanitizedParticipants, // Use the sanitized list
                 matches: finalMatches,
                 exclusions,
                 assignments,
