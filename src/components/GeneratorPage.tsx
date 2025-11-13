@@ -164,47 +164,45 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         setIsLoading(true);
         setLoadingMessage(isEditMode ? 'Saving changes...' : getRandomPersona());
 
-        let needsReshuffle = forceReshuffle;
-        if (isEditMode && initialData && !forceReshuffle) {
-            const initialPIds = new Set(initialData.p.map(p => p.id));
-            const currentPIds = new Set(validParticipants.map(p => p.id));
-            const participantsChanged = initialPIds.size !== currentPIds.size || ![...initialPIds].every(id => currentPIds.has(id));
-            const rulesChanged = JSON.stringify(initialData.exclusions) !== JSON.stringify(exclusions) || JSON.stringify(initialData.assignments) !== JSON.stringify(assignments);
-            
-            if (participantsChanged || rulesChanged) {
-                setIsLoading(false);
-                setIsShuffleConfirmOpen(true);
-                return; // Wait for user confirmation
-            }
-        }
-
-        let finalMatches = isEditMode && initialData ? initialData.matches : [];
-        if (!isEditMode || needsReshuffle) {
-            const result = generateMatches(validParticipants, exclusions, assignments);
-            if (!result.matches) {
-                setError(result.error);
-                setActiveStep(2);
-                setIsLoading(false);
-                trackEvent(isEditMode ? 'update_fail' : 'generate_fail', { error: result.error });
-                return;
-            }
-            finalMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
-        }
-
-        const exchangePayload = {
-            p: validParticipants,
-            matches: finalMatches,
-            exclusions,
-            assignments,
-            eventDetails,
-            bgId: selectedBackgroundId,
-            customBackground, textColor, useTextOutline, outlineColor, outlineSize,
-            fontSizeSetting: fontSize, fontTheme, lineSpacing,
-            greetingText, introText, wishlistLabelText,
-            views: isEditMode && initialData ? initialData.views : {},
-        };
-
         try {
+            let needsReshuffle = forceReshuffle;
+            if (isEditMode && initialData && !forceReshuffle) {
+                const initialPIds = new Set(initialData.p.map(p => p.id));
+                const currentPIds = new Set(validParticipants.map(p => p.id));
+                const participantsChanged = initialPIds.size !== currentPIds.size || ![...initialPIds].every(id => currentPIds.has(id));
+                const rulesChanged = JSON.stringify(initialData.exclusions) !== JSON.stringify(exclusions) || JSON.stringify(initialData.assignments) !== JSON.stringify(assignments);
+                
+                if (participantsChanged || rulesChanged) {
+                    setIsLoading(false);
+                    setIsShuffleConfirmOpen(true);
+                    return; // Wait for user confirmation
+                }
+            }
+
+            let finalMatches = isEditMode && initialData ? initialData.matches : [];
+            if (!isEditMode || needsReshuffle) {
+                setLoadingMessage('Generating matches...');
+                const result = generateMatches(validParticipants, exclusions, assignments);
+                if (!result.matches) {
+                    throw new Error(result.error || 'Failed to generate matches.');
+                }
+                finalMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
+            }
+
+            const exchangePayload = {
+                p: validParticipants,
+                matches: finalMatches,
+                exclusions,
+                assignments,
+                eventDetails,
+                bgId: selectedBackgroundId,
+                customBackground, textColor, useTextOutline, outlineColor, outlineSize,
+                fontSizeSetting: fontSize, fontTheme, lineSpacing,
+                greetingText, introText, wishlistLabelText,
+                views: isEditMode && initialData ? initialData.views : {},
+            };
+            
+            setLoadingMessage(isEditMode ? 'Saving...' : 'Creating your game...');
             const url = isEditMode ? '/.netlify/functions/update-exchange' : '/.netlify/functions/create-exchange';
             const body = isEditMode ? { exchangeId: initialData.id, data: exchangePayload } : exchangePayload;
 
@@ -215,8 +213,17 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             });
 
             if (!response.ok) {
-                const errorBody = await response.json();
-                throw new Error(errorBody.error || `Failed to ${isEditMode ? 'update' : 'create'} the exchange.`);
+                let errorMessage = `Failed to ${isEditMode ? 'update' : 'create'} the exchange (Status: ${response.status}).`;
+                try {
+                    const errorBody = await response.json();
+                    if (errorBody && errorBody.error) {
+                        errorMessage = errorBody.error;
+                    }
+                } catch (e) {
+                    console.error("The server returned a non-JSON error response. This is likely due to a server-side crash or a routing issue.");
+                    errorMessage = "The server returned an unexpected error. Please check your connection and try again. If the problem persists, the service may be temporarily unavailable.";
+                }
+                throw new Error(errorMessage);
             }
             
             const { id } = isEditMode ? { id: initialData.id } : await response.json();
@@ -226,9 +233,11 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             onComplete(fullDataForState);
 
         } catch (apiError) {
-            setError(apiError instanceof Error ? apiError.message : "An unknown server error occurred.");
+            const message = apiError instanceof Error ? apiError.message : "An unknown error occurred.";
+            setError(message);
+            setActiveStep(isEditMode ? activeStep : 2); // Go to rules step on creation error
             setIsLoading(false);
-            trackEvent(isEditMode ? 'update_fail' : 'generate_fail', { error: 'api_error' });
+            trackEvent(isEditMode ? 'update_fail' : 'generate_fail', { error: message });
         }
     };
     
