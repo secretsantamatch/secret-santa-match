@@ -1,12 +1,25 @@
 import admin from './firebase-admin';
-import type { ExchangeData, Participant, Exclusion, Assignment } from '../../src/types';
+import type { ExchangeData, Participant } from '../../src/types';
 
-// Self-contained UUID generator to avoid Node.js environment issues with crypto module.
+// Self-contained UUID generator to avoid Node.js environment issues.
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
+}
+
+// Recursively removes any keys with `undefined` values from an object.
+function removeUndefined(obj: any): any {
+    if (typeof obj !== 'object' || obj === null) return obj;
+    if (Array.isArray(obj)) return obj.map(removeUndefined).filter(v => v !== undefined);
+    
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+            acc[key] = removeUndefined(value);
+        }
+        return acc;
+    }, {} as { [key: string]: any });
 }
 
 interface UpdatePayload {
@@ -20,30 +33,17 @@ export async function handler(event: any, context: any) {
     }
     
     try {
-        if (!event.body) {
-            return { statusCode: 400, body: JSON.stringify({ error: 'Request body is missing.' }) };
-        }
-
-        if (event.body.length > 1024 * 1024) { // 1MB limit
-             return { 
-                statusCode: 413, 
-                body: JSON.stringify({ error: 'The submitted data is too large, likely due to a large custom background image. Please reduce the image size and try again.' }) 
-            };
-        }
+        if (!event.body) return { statusCode: 400, body: JSON.stringify({ error: 'Request body is missing.' }) };
+        if (event.body.length > 1024 * 1024) return { statusCode: 413, body: JSON.stringify({ error: 'The submitted data is too large. Please reduce the image size.' }) };
         
         const { exchangeId, data: clientData }: UpdatePayload = JSON.parse(event.body);
-
-        if (!exchangeId || !clientData) {
-            return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields.' }) };
-        }
+        if (!exchangeId || !clientData) return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields.' }) };
 
         const db = admin.firestore();
         const exchangeRef = db.collection('exchanges').doc(exchangeId);
         
         const doc = await exchangeRef.get();
-        if (!doc.exists) {
-            return { statusCode: 404, body: JSON.stringify({ error: 'Exchange not found.' }) };
-        }
+        if (!doc.exists) return { statusCode: 404, body: JSON.stringify({ error: 'Exchange not found.' }) };
 
         const existingData = doc.data() || {};
         
@@ -57,15 +57,15 @@ export async function handler(event: any, context: any) {
         }
 
         const p = (Array.isArray(clientData.p) ? clientData.p : [])
-            .filter((p): p is Participant => p && typeof p === 'object' && !!p.name)
+            .filter((p): p is Participant => p && typeof p === 'object' && typeof p.name === 'string' && !!p.name.trim())
             .map((p) => ({
-                id: String(p.id ?? uuidv4()),
-                name: String(p.name ?? ''),
-                interests: String(p.interests ?? ''),
-                likes: String(p.likes ?? ''),
-                dislikes: String(p.dislikes ?? ''),
-                links: String(p.links ?? ''),
-                budget: String(p.budget ?? ''),
+                id: String(p.id || uuidv4()),
+                name: String(p.name || ''),
+                interests: String(p.interests || ''),
+                likes: String(p.likes || ''),
+                dislikes: String(p.dislikes || ''),
+                links: String(p.links || ''),
+                budget: String(p.budget || ''),
             }));
 
         const matches = (Array.isArray(clientData.matches) ? clientData.matches : [])
@@ -80,28 +80,30 @@ export async function handler(event: any, context: any) {
             .filter(as => as && typeof as.giverId === 'string' && typeof as.receiverId === 'string' && as.giverId && as.receiverId)
             .map(as => ({ giverId: String(as.giverId), receiverId: String(as.receiverId) }));
 
-        const finalData: Omit<ExchangeData, 'id' | 'backgroundOptions'> = {
+        const finalData = {
             p,
             matches,
             exclusions,
             assignments,
-            eventDetails: String(clientData.eventDetails ?? ''),
-            bgId: String(clientData.bgId ?? 'gift-border'),
+            eventDetails: String(clientData.eventDetails || ''),
+            bgId: String(clientData.bgId || 'gift-border'),
             customBackground: typeof clientData.customBackground === 'string' ? clientData.customBackground : null,
-            textColor: String(clientData.textColor ?? '#FFFFFF'),
-            useTextOutline: Boolean(clientData.useTextOutline ?? false),
-            outlineColor: String(clientData.outlineColor ?? '#000000'),
+            textColor: String(clientData.textColor || '#FFFFFF'),
+            useTextOutline: Boolean(clientData.useTextOutline || false),
+            outlineColor: String(clientData.outlineColor || '#000000'),
             outlineSize: ['thin', 'normal', 'thick'].includes(clientData.outlineSize!) ? clientData.outlineSize! : 'normal',
             fontSizeSetting: ['normal', 'large', 'extra-large'].includes(clientData.fontSizeSetting!) ? clientData.fontSizeSetting! : 'normal',
             fontTheme: ['classic', 'elegant', 'modern', 'whimsical'].includes(clientData.fontTheme!) ? clientData.fontTheme! : 'classic',
             lineSpacing: typeof clientData.lineSpacing === 'number' && !isNaN(clientData.lineSpacing) ? clientData.lineSpacing : 1.2,
-            greetingText: String(clientData.greetingText ?? "Hello, {secret_santa}!"),
-            introText: String(clientData.introText ?? "You are the Secret Santa for..."),
-            wishlistLabelText: String(clientData.wishlistLabelText ?? "Gift Ideas & Notes:"),
+            greetingText: String(clientData.greetingText || "Hello, {secret_santa}!"),
+            introText: String(clientData.introText || "You are the Secret Santa for..."),
+            wishlistLabelText: String(clientData.wishlistLabelText || "Gift Ideas & Notes:"),
             views: sanitizedViews,
         };
         
-        await exchangeRef.set(finalData);
+        const cleanData = removeUndefined(finalData);
+        
+        await exchangeRef.set(cleanData);
 
         return {
             statusCode: 200,
