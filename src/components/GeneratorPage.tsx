@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { produce } from 'immer';
 import type { Participant, Exclusion, Assignment, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme, ExchangeData } from '../types';
 import ParticipantManager from './ParticipantManager';
+import RulesManager from './RulesManager'; // Import the new component
 import BulkAddModal from './BulkAddModal';
 import Options from './Options';
 import Header from './Header';
@@ -26,7 +27,7 @@ interface GeneratorPageProps {
   initialData?: ExchangeData;
 }
 
-const GeneratorPage = ({ onComplete, initialData }: GeneratorPageProps) => {
+const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }) => {
     const isEditMode = !!initialData;
     
     // Core State
@@ -316,7 +317,21 @@ const GeneratorPage = ({ onComplete, initialData }: GeneratorPageProps) => {
                         )}
 
                         <div className={activeStep === 1 ? 'block' : 'hidden'}><ParticipantManager participants={participants} setParticipants={setParticipants} onBulkAddClick={() => setShowBulkAdd(true)} onClearClick={handleClear} setError={setError} /></div>
-                        <div className={activeStep === 2 ? 'block' : 'hidden'}>{/* Rules UI */}</div>
+                        <div className={activeStep === 2 ? 'block' : 'hidden'}>
+                            <RulesManager
+                                participants={validParticipants}
+                                exclusions={exclusions}
+                                addExclusion={addExclusion}
+                                updateExclusion={updateExclusion}
+                                removeExclusion={removeExclusion}
+                                assignments={assignments}
+                                addAssignment={addAssignment}
+                                updateAssignment={updateAssignment}
+                                removeAssignment={removeAssignment}
+                                eventDetails={eventDetails}
+                                setEventDetails={setEventDetails}
+                            />
+                        </div>
                         <div className={activeStep === 3 ? 'block' : 'hidden'}><Options participants={validParticipants} eventDetails={eventDetails} selectedBackgroundId={selectedBackgroundId} setSelectedBackgroundId={setSelectedBackgroundId} customBackground={customBackground} setCustomBackground={setCustomBackground} backgroundOptions={backgroundOptions} textColor={textColor} setTextColor={setTextColor} useTextOutline={useTextOutline} setUseTextOutline={setUseTextOutline} outlineColor={outlineColor} setOutlineColor={setOutlineColor} outlineSize={outlineSize} setOutlineSize={setOutlineSize} fontSize={fontSize} setFontSize={setFontSize} fontTheme={fontTheme} setFontTheme={setFontTheme} lineSpacing={lineSpacing} setLineSpacing={setLineSpacing} greetingText={greetingText} setGreetingText={setGreetingText} introText={introText} setIntroText={setIntroText} wishlistLabelText={wishlistLabelText} setWishlistLabelText={setWishlistLabelText} /></div>
                     </div>
 
