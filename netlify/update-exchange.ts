@@ -49,7 +49,8 @@ export async function handler(event: any, context: any) {
                     links: p.links ?? '',
                     budget: p.budget ?? '',
                 })),
-            matches: Array.isArray(mergedData.matches) ? mergedData.matches.filter(Boolean) : [],
+            matches: (Array.isArray(mergedData.matches) ? mergedData.matches : [])
+                .filter(m => m && m.g && m.r), // SCRUB corrupted match objects
             exclusions: (Array.isArray(mergedData.exclusions) ? mergedData.exclusions : [])
                 .filter(Boolean) // SCRUB null/undefined entries
                 .map((ex: Partial<Exclusion>) => ({

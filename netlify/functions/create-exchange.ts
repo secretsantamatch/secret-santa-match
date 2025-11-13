@@ -27,7 +27,8 @@ export async function handler(event: any, context: any) {
                     links: p.links ?? '',
                     budget: p.budget ?? '',
                 })),
-            matches: Array.isArray(clientData.matches) ? clientData.matches.filter(Boolean) : [],
+            matches: (Array.isArray(clientData.matches) ? clientData.matches : [])
+                .filter(m => m && m.g && m.r), // SCRUB corrupted match objects
             exclusions: (Array.isArray(clientData.exclusions) ? clientData.exclusions : [])
                 .filter(Boolean)
                 .map((ex: Partial<Exclusion>) => ({
