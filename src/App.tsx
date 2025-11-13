@@ -1,9 +1,9 @@
 import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
-import type { ExchangeData } from './types';
+import type { ExchangeData } from './src/types';
 
 // Lazy load components for better initial page load
-const GeneratorPage = lazy(() => import('./components/GeneratorPage'));
-const ResultsPage = lazy(() => import('./components/ResultsPage'));
+const GeneratorPage = lazy(() => import('./src/components/GeneratorPage'));
+const ResultsPage = lazy(() => import('./src/components/ResultsPage'));
 
 const LoadingFallback = () => (
     <div className="flex items-center justify-center min-h-screen">
@@ -59,7 +59,7 @@ const App: React.FC = () => {
     const loadDataFromHash = useCallback(async () => {
         const hash = window.location.hash.slice(1);
         const [exchangeId, queryString] = hash.split('?');
-
+        
         if (exchangeData && exchangeId === exchangeData.id) {
             setIsLoading(false);
             return;
@@ -113,7 +113,7 @@ const App: React.FC = () => {
     const handleCreationComplete = (newData: ExchangeData) => {
         setIsLoading(true);
         setExchangeData(newData);
-        setParticipantId(null); // The creator is always the organizer first.
+        setParticipantId(null); 
         window.location.hash = newData.id!;
         setTimeout(() => setIsLoading(false), 100);
     };
