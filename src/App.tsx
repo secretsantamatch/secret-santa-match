@@ -1,9 +1,9 @@
 import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
-import type { ExchangeData } from './src/types';
+import type { ExchangeData } from './types';
 
 // Lazy load components for better initial page load
-const GeneratorPage = lazy(() => import('./src/components/GeneratorPage'));
-const ResultsPage = lazy(() => import('./src/components/ResultsPage'));
+const GeneratorPage = lazy(() => import('./components/GeneratorPage'));
+const ResultsPage = lazy(() => import('./components/ResultsPage'));
 
 const LoadingFallback = () => (
     <div className="flex items-center justify-center min-h-screen">
