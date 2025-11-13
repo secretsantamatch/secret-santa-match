@@ -37,13 +37,22 @@ export async function handler(event: any, context: any) {
             return { statusCode: 404, body: JSON.stringify({ error: 'Exchange not found.' }) };
         }
 
-        // DEFINITIVE FIX: Instead of merging, we use the client data as the source of truth
-        // and only preserve the necessary fields from the existing data (like 'views').
-        // This prevents corrupted old data from being carried over and crashing the function.
         const existingData = doc.data();
         const existingViews = (existingData && typeof existingData.views === 'object' && existingData.views !== null && !Array.isArray(existingData.views)) 
             ? existingData.views 
             : {};
+            
+        // DEFINITIVE FIX: Aggressively sanitize the 'views' object to remove any non-string values.
+        // This prevents crashes when old exchanges have corrupted view data (e.g., numbers).
+        const sanitizedViews: { [key: string]: string } = {};
+        if (existingViews) {
+            for (const key in existingViews) {
+                // Ensure the key is own property and the value is a string.
+                if (Object.prototype.hasOwnProperty.call(existingViews, key) && typeof existingViews[key] === 'string') {
+                    sanitizedViews[key] = existingViews[key];
+                }
+            }
+        }
 
         // Perform the same robust sanitization as the create function.
         const finalData = {
@@ -85,7 +94,7 @@ export async function handler(event: any, context: any) {
             greetingText: clientData.greetingText ?? "Hello, {secret_santa}!",
             introText: clientData.introText ?? "You are the Secret Santa for...",
             wishlistLabelText: clientData.wishlistLabelText ?? "Gift Ideas & Notes:",
-            views: existingViews, // Preserve the existing views
+            views: sanitizedViews, // Use the fully sanitized views object
         };
 
         await exchangeRef.set(finalData);
