@@ -133,7 +133,8 @@ const App: React.FC = () => {
     useEffect(() => {
         if (exchangeData && exchangeData.id && !window.location.hash.includes(exchangeData.id)) {
             // This will trigger the 'hashchange' listener, but because the `exchangeData`
-            // state is already set, `loadDataFromHash` will hit its guard clause and exit early.
+            // state is already set, `loadDataFromHash` will hit its guard clause and exit early,
+            // completely avoiding the problematic network request.
             window.location.hash = exchangeData.id;
         }
     }, [exchangeData]);
@@ -142,8 +143,11 @@ const App: React.FC = () => {
     // The new useEffect above is responsible for updating the URL hash.
     // This completely eliminates the race condition.
     const handleCreationComplete = (newData: ExchangeData) => {
+        setIsLoading(true);
         setExchangeData(newData);
         setParticipantId(null); // The creator is always the organizer first.
+        // A small delay ensures a smooth visual transition.
+        setTimeout(() => setIsLoading(false), 100);
     };
 
     if (isLoading) {
