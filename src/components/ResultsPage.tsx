@@ -12,11 +12,11 @@ import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
 import { Download, Share2, Edit, Gift, Users, Shuffle, Loader2, Copy, Check } from 'lucide-react';
 
-// FIX: Added onEditRequest to props to allow switching to edit mode.
 interface ResultsPageProps {
     data: ExchangeData;
     currentParticipantId: string | null;
     onDataUpdated: (newData: ExchangeData) => void;
+    // FIX: Added optional onEditRequest prop to allow organizers to go back to the generator.
     onEditRequest?: () => void;
 }
 
@@ -160,7 +160,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                 <button onClick={() => openShareModal('links')} className="py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg">
                                     <Share2 size={20} /> Share & Download Hub
                                 </button>
-                                {/* FIX: Add Edit button for organizer if callback is provided. */}
+                                {/* FIX: Added Edit Game button for organizers, which is displayed when onEditRequest is available. */}
                                 {onEditRequest && (
                                     <button onClick={onEditRequest} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
                                         <Edit size={20} /> Edit Game Details
