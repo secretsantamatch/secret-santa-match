@@ -1,5 +1,6 @@
 import admin from './firebase-admin';
 import type { ExchangeData, Participant, Exclusion, Assignment } from '../../src/types';
+import { randomUUID } from 'crypto';
 
 interface UpdatePayload {
     exchangeId: string;
@@ -35,7 +36,7 @@ export async function handler(event: any, context: any) {
         // This handles any fields missing from older documents OR incoming payloads, fixing the root cause of the crash.
         const finalData = {
             p: (Array.isArray(mergedData.p) ? mergedData.p : []).map((p: Partial<Participant>) => ({
-                id: p.id ?? crypto.randomUUID(),
+                id: p.id ?? randomUUID(),
                 name: p.name ?? '',
                 interests: p.interests ?? '',
                 likes: p.likes ?? '',
