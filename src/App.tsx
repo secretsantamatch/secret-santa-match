@@ -76,6 +76,8 @@ const App: React.FC = () => {
         const hash = window.location.hash.slice(1);
         const [exchangeId, queryString] = hash.split('?');
         
+        // This guard clause prevents a re-fetch if the data is already in state.
+        // It's crucial for both the creation flow and for preventing re-renders.
         if (exchangeData && exchangeId === exchangeData.id) {
             setIsLoading(false);
             return;
@@ -92,7 +94,6 @@ const App: React.FC = () => {
         setError(null);
 
         try {
-            // DEFINITIVE FIX: Use the new, robust fetchWithRetry function.
             const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
             if (!exchangeRes.ok) {
                 throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
@@ -127,12 +128,22 @@ const App: React.FC = () => {
         };
     }, [loadDataFromHash]);
 
+    // DEFINITIVE FIX: This new useEffect synchronizes the state to the URL.
+    // It runs *after* the state has been updated, preventing the race condition.
+    useEffect(() => {
+        if (exchangeData && exchangeData.id && !window.location.hash.includes(exchangeData.id)) {
+            // This will trigger the 'hashchange' listener, but because the `exchangeData`
+            // state is already set, `loadDataFromHash` will hit its guard clause and exit early.
+            window.location.hash = exchangeData.id;
+        }
+    }, [exchangeData]);
+
+    // DEFINITIVE FIX: `handleCreationComplete` now only sets the state.
+    // The new useEffect above is responsible for updating the URL hash.
+    // This completely eliminates the race condition.
     const handleCreationComplete = (newData: ExchangeData) => {
-        setIsLoading(true);
         setExchangeData(newData);
-        setParticipantId(null); 
-        window.location.hash = newData.id!;
-        setTimeout(() => setIsLoading(false), 100);
+        setParticipantId(null); // The creator is always the organizer first.
     };
 
     if (isLoading) {
