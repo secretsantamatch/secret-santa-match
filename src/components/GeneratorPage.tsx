@@ -23,7 +23,7 @@ import AdBanner from './AdBanner';
 
 interface GeneratorPageProps {
   onComplete: (data: ExchangeData) => void;
-  // FIX: Add optional `initialData` prop to support editing.
+  // FIX: Add optional initialData prop for editing existing exchanges.
   initialData?: ExchangeData;
 }
 
@@ -61,12 +61,12 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     const [showCookieBanner, setShowCookieBanner] = useState(false);
 
     useEffect(() => {
-        // FIX: Populate state from `initialData` if it exists (edit mode), otherwise set defaults for a new game.
+        // FIX: Handle both creating a new exchange and editing an existing one.
         if (initialData) {
-            // Populate state from initialData if we are in "edit mode"
+            // Populate state from initialData for editing
             setParticipants(initialData.p);
-            setExclusions(initialData.exclusions);
-            setAssignments(initialData.assignments);
+            setExclusions(initialData.exclusions || []);
+            setAssignments(initialData.assignments || []);
             setEventDetails(initialData.eventDetails);
             setSelectedBackgroundId(initialData.bgId);
             setCustomBackground(initialData.customBackground);
@@ -80,6 +80,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             setGreetingText(initialData.greetingText);
             setIntroText(initialData.introText);
             setWishlistLabelText(initialData.wishlistLabelText);
+            setActiveStep(1); // Ensure editor starts at the first step
         } else {
             // Default state for creating a new exchange
             setParticipants([
@@ -168,8 +169,8 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             }
             const finalMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
             
-            const exchangePayload: ExchangeData = {
-                id: initialData?.id || crypto.randomUUID(), // Reuse ID if editing
+            const exchangePayload: Omit<ExchangeData, 'backgroundOptions'> = {
+                id: initialData?.id || crypto.randomUUID(),
                 p: validParticipants,
                 matches: finalMatches,
                 exclusions,
@@ -179,18 +180,17 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 customBackground, textColor, useTextOutline, outlineColor, outlineSize,
                 fontSizeSetting: fontSize, fontTheme, lineSpacing,
                 greetingText, introText, wishlistLabelText,
-                backgroundOptions, // This will be stripped before compression
             };
             
-            trackEvent('generate_success', { participants: validParticipants.length });
-            onComplete(exchangePayload);
+            trackEvent('generate_success', { participants: validParticipants.length, is_edit: !!initialData });
+            onComplete({ ...exchangePayload, backgroundOptions });
 
         } catch (matchError) {
             const message = matchError instanceof Error ? matchError.message : "An unknown error occurred.";
             setError(message);
             setActiveStep(2); // Go to rules step on creation error
             setIsLoading(false);
-            trackEvent('generate_fail', { error: message });
+            trackEvent('generate_fail', { error: message, is_edit: !!initialData });
         }
     };
     
@@ -242,7 +242,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                         {initialData ? 'Edit Your Gift Exchange' : 'Free Secret Santa Generator'}
                     </h1>
                     <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">
-                        {initialData ? 'Update participants, rules, and styles for your event.' : 'The easiest way to organize a gift exchange. No emails or sign-ups required!'}
+                        {initialData ? 'Update participants, rules, or card styles below.' : 'The easiest way to organize a gift exchange. No emails or sign-ups required!'}
                     </p>
                 </div>
 
@@ -294,22 +294,20 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                             </button>
                         ) : (
                              <button onClick={() => handleSubmit()} className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto">
-                                <Shuffle /> {initialData ? 'Update & Regenerate Matches' : 'Generate Matches!'}
+                                <Shuffle /> {initialData ? 'Save Changes & Rematch' : 'Generate Matches!'}
                             </button>
                         )}
                     </div>
                 </div>
 
-                {!initialData && (
-                    <div className="max-w-5xl mx-auto px-4 md:px-8">
-                        <WhyChooseUs />
-                        <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="2345678901" data-ad-format="auto" data-full-width-responsive="true" />
-                        <SocialProof />
-                        <ShareTool />
-                        <FaqSection />
-                        <FeaturedResources />
-                    </div>
-                )}
+                {!initialData && <div className="max-w-5xl mx-auto px-4 md:px-8">
+                    <WhyChooseUs />
+                    <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="2345678901" data-ad-format="auto" data-full-width-responsive="true" />
+                    <SocialProof />
+                    <ShareTool />
+                    <FaqSection />
+                    <FeaturedResources />
+                </div>}
             </main>
             <Footer />
             {showBulkAdd && <BulkAddModal onConfirm={handleBulkAdd} onClose={() => setShowBulkAdd(false)} />}

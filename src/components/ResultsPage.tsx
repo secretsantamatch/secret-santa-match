@@ -10,14 +10,14 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-// FIX: Import `Pencil` icon for the edit button.
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Pencil } from 'lucide-react';
+// FIX: Import Edit icon
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Edit } from 'lucide-react';
 
 interface ResultsPageProps {
     data: ExchangeData;
     currentParticipantId: string | null;
     onDataUpdated: (newData: ExchangeData) => void;
-    // FIX: Add optional `onEditRequest` prop for the edit functionality.
+    // FIX: Add optional onEditRequest prop for the organizer to edit the game.
     onEditRequest?: () => void;
 }
 
@@ -180,15 +180,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     <Share2 size={20} /> Share & Download Hub
                                 </button>
                                 {/* FIX: Add Edit Game button for organizers */}
-                                {isOrganizer && onEditRequest && (
-                                    <button
-                                        onClick={() => {
-                                            trackEvent('edit_game_click');
-                                            onEditRequest();
-                                        }}
-                                        className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <Pencil size={20} /> Edit Game
+                                {onEditRequest && (
+                                    <button onClick={onEditRequest} className="py-3 px-6 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                                        <Edit size={20} /> Edit Game Details
                                     </button>
                                 )}
                                 <button onClick={() => { trackEvent('shuffle_again_click'); setIsShuffleModalOpen(true); }} disabled={isShuffling} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait">
