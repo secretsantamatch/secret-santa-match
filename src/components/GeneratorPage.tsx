@@ -191,7 +191,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 finalMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
             }
 
-            // PERMANENT FIX: Sanitize all participants to ensure no `undefined` values are ever sent to Firestore.
+            // DEFINITIVE FIX: Sanitize the entire payload to ensure no `undefined` values are ever sent to Firestore.
             // This prevents server crashes when updating older exchanges that are missing newer data fields.
             const sanitizedParticipants = validParticipants.map(p => ({
                 id: p.id,
@@ -203,11 +203,21 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 budget: p.budget ?? '',
             }));
 
+            const sanitizedExclusions = exclusions.map(ex => ({
+                p1: ex.p1 ?? '',
+                p2: ex.p2 ?? ''
+            }));
+            
+            const sanitizedAssignments = assignments.map(as => ({
+                giverId: as.giverId ?? '',
+                receiverId: as.receiverId ?? ''
+            }));
+
             const exchangePayload = {
-                p: sanitizedParticipants, // Use the sanitized list
+                p: sanitizedParticipants,
                 matches: finalMatches,
-                exclusions,
-                assignments,
+                exclusions: sanitizedExclusions,
+                assignments: sanitizedAssignments,
                 eventDetails,
                 bgId: selectedBackgroundId,
                 customBackground, textColor, useTextOutline, outlineColor, outlineSize,
