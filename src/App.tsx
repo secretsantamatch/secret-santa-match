@@ -1,8 +1,9 @@
-import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
-import type { ExchangeData } from './types';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import type { ExchangeData } from './src/types';
 
-const GeneratorPage = lazy(() => import('./components/GeneratorPage'));
-const ResultsPage = lazy(() => import('./components/ResultsPage'));
+// Lazy load components for better initial page load
+const GeneratorPage = lazy(() => import('./src/components/GeneratorPage'));
+const ResultsPage = lazy(() => import('./src/components/ResultsPage'));
 
 const LoadingFallback = () => (
     <div className="flex items-center justify-center min-h-screen">
@@ -50,106 +51,101 @@ const fetchWithRetry = async (url: string, retries = 4, initialDelay = 300): Pro
 
 
 const App: React.FC = () => {
+    const [view, setView] = useState<'loading' | 'error' | 'generator' | 'results' | 'edit'>('loading');
     const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
     const [participantId, setParticipantId] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // This function is now memoized and depends on `exchangeData`
-    // to prevent refetching data that's already in state.
-    const loadDataFromHash = useCallback(async () => {
-        const hash = window.location.hash.slice(1);
-        const [exchangeId, queryString] = hash.split('?');
-
-        // **THE FIX**: If the component already has data matching the hash, do not refetch.
-        // This is crucial for the transition from the generator to the results page.
-        if (exchangeData && exchangeId === exchangeData.id) {
-            setIsLoading(false);
-            return;
-        }
-
-        // If there's no hash, we are on the generator page.
-        if (!exchangeId) {
-            setExchangeData(null);
-            setParticipantId(null);
-            setIsLoading(false);
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
-            if (!exchangeRes.ok) {
-                throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
-            }
-            const exchangePayload = await exchangeRes.json();
-            
-            const templatesRes = await fetch('/templates.json');
-            if (!templatesRes.ok) throw new Error('Failed to load design templates.');
-            const backgroundOptions = await templatesRes.json();
-
-            const fullData: ExchangeData = { ...exchangePayload, backgroundOptions };
-            setExchangeData(fullData);
-
-            const params = new URLSearchParams(queryString || '');
-            setParticipantId(params.get('id'));
-
-        } catch (err) {
-            console.error("Error loading exchange data:", err);
-            setError(err instanceof Error ? err.message : "An unknown error occurred.");
-            setExchangeData(null);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [exchangeData]);
-
     useEffect(() => {
-        // This effect sets up the hash-based routing on initial load and for any subsequent hash changes.
-        window.addEventListener('hashchange', loadDataFromHash);
-        loadDataFromHash(); // Initial load
+        const handleHashChange = async () => {
+            const hash = window.location.hash.slice(1);
+            if (!hash) {
+                setView('generator');
+                setExchangeData(null);
+                setParticipantId(null);
+                return;
+            }
+
+            setView('loading');
+            setError(null);
+            
+            const [exchangeId, queryString] = hash.split('?');
+
+            try {
+                const exchangeRes = await fetchWithRetry(`/.netlify/functions/get-exchange?id=${exchangeId}`);
+                if (!exchangeRes.ok) {
+                    throw new Error(`Could not find the gift exchange. Please check the link or contact your organizer.`);
+                }
+                const exchangePayload = await exchangeRes.json();
+                
+                const templatesRes = await fetch('/templates.json');
+                if (!templatesRes.ok) throw new Error('Failed to load design templates.');
+                const backgroundOptions = await templatesRes.json();
+
+                const fullData: ExchangeData = { ...exchangePayload, backgroundOptions };
+                setExchangeData(fullData);
+
+                const params = new URLSearchParams(queryString || '');
+                setParticipantId(params.get('id'));
+                setView('results');
+
+            } catch (err) {
+                console.error("Error loading exchange data:", err);
+                setError(err instanceof Error ? err.message : "An unknown error occurred.");
+                setView('error');
+                setExchangeData(null);
+            }
+        };
+
+        window.addEventListener('hashchange', handleHashChange);
+        handleHashChange(); // Initial load
 
         return () => {
-            window.removeEventListener('hashchange', loadDataFromHash);
+            window.removeEventListener('hashchange', handleHashChange);
         };
-    }, [loadDataFromHash]);
+    }, []);
 
-    // **THE FIX**: This callback receives the newly created data directly from the GeneratorPage,
-    // completely avoiding the race condition by not needing to re-fetch the data.
-    const handleExchangeCreated = (newData: ExchangeData) => {
-        setIsLoading(true);
+    const handleComplete = (newData: ExchangeData) => {
         setExchangeData(newData);
-        setParticipantId(null); // The creator is always the organizer first.
+        setParticipantId(null); 
         
-        // Update the URL. This triggers the 'hashchange' listener, but `loadDataFromHash` will
-        // see that the data is already in state and will skip the fetch.
-        window.location.hash = newData.id!;
-        
-        // A small delay ensures a smooth visual transition.
-        setTimeout(() => setIsLoading(false), 100);
+        // If the view is 'edit', we just switch back to results. 
+        // If it's 'generator', we set the hash to trigger the results view.
+        if (view === 'edit') {
+            setView('results');
+        } else {
+            window.location.hash = newData.id!;
+        }
+    };
+    
+    const renderCurrentView = () => {
+        switch (view) {
+            case 'loading':
+                return <LoadingFallback />;
+            case 'error':
+                return <ErrorDisplay message={error!} />;
+            case 'results':
+                if (!exchangeData) return <LoadingFallback />;
+                return (
+                    <ResultsPage 
+                        data={exchangeData} 
+                        currentParticipantId={participantId} 
+                        onEditRequest={() => setView('edit')}
+                        onDataUpdated={setExchangeData}
+                    />
+                );
+            case 'edit':
+                if (!exchangeData) return <ErrorDisplay message="No exchange data to edit." />;
+                return <GeneratorPage onComplete={handleComplete} initialData={exchangeData} />;
+            case 'generator':
+            default:
+                return <GeneratorPage onComplete={handleComplete} />;
+        }
     };
 
-    if (isLoading) {
-        return <LoadingFallback />;
-    }
-    
-    if (error) {
-        return <ErrorDisplay message={error} />;
-    }
-
-    if (exchangeData) {
-        return (
-            <Suspense fallback={<LoadingFallback />}>
-                <ResultsPage data={exchangeData} currentParticipantId={participantId} />
-            </Suspense>
-        );
-    }
-
-    // Pass the callback to GeneratorPage.
     return (
         <Suspense fallback={<LoadingFallback />}>
-            <GeneratorPage onExchangeCreated={handleExchangeCreated} />
+            {renderCurrentView()}
         </Suspense>
     );
 };

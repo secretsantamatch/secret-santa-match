@@ -70,6 +70,7 @@ export interface ExchangeData {
   introText: string;
   wishlistLabelText: string;
   backgroundOptions: BackgroundOption[]; // Added client-side
+  views?: { [participantId: string]: string }; // Tracks first view timestamp for each participant
 }
 
 export interface Resource {
