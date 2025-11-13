@@ -12,15 +12,13 @@ import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
 import { Download, Share2, Edit, Gift, Users, Shuffle, Loader2, Copy, Check } from 'lucide-react';
 
-// FIX: Add `onEditRequest` to props to allow the organizer to go back to the edit view.
 interface ResultsPageProps {
     data: ExchangeData;
     currentParticipantId: string | null;
     onDataUpdated: (newData: ExchangeData) => void;
-    onEditRequest?: () => void;
 }
 
-const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated, onEditRequest }) => {
+const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
@@ -126,7 +124,16 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         });
     };
 
-    if (!isOrganizer && !currentMatch) { /* Error display */ }
+    if (!isOrganizer && !currentMatch) {
+        // This case should be handled by the main App component's error state,
+        // but as a fallback, we can show a minimal error here.
+        return (
+            <div className="text-center p-8">
+                <h2 className="text-xl font-bold text-red-600">Error</h2>
+                <p className="text-slate-600">Could not find your match in this gift exchange.</p>
+            </div>
+        );
+    }
     
     return (
         <div className="bg-slate-50 min-h-screen">
@@ -160,12 +167,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                 <button onClick={() => openShareModal('links')} className="py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg">
                                     <Share2 size={20} /> Share & Download Hub
                                 </button>
-                                {/* FIX: Add Edit Game button for the organizer if the onEditRequest prop is provided. */}
-                                {onEditRequest && (
-                                     <button onClick={onEditRequest} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
-                                        <Edit size={20} /> Edit Game Details
-                                    </button>
-                                )}
                                 <button onClick={() => { trackEvent('shuffle_again_click'); setIsShuffleModalOpen(true); }} disabled={isShuffling} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait">
                                     {isShuffling ? <Loader2 size={20} className="animate-spin" /> : <Shuffle size={20} />}
                                     {isShuffling ? 'Shuffling...' : 'Shuffle Again'}
