@@ -23,10 +23,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   const [expandedQr, setExpandedQr] = useState<string | null>(null);
   const [loadingPdf, setLoadingPdf] = useState<'cards' | 'master' | 'party' | 'all-links' | null>(null);
 
-  // FIX: Destructure 'id' as 'exchangeId' and handle optional 'views' property to prevent type errors.
   const { p: participants, matches: matchIds, views } = exchangeData;
-
-  // FIX: Re-compress the current data to get the correct hash for link generation.
   const compressedHash = useMemo(() => compressData(exchangeData), [exchangeData]);
 
   const matches: Match[] = useMemo(() => matchIds.map(m => ({
@@ -34,7 +31,6 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     receiver: participants.find(p => p.id === m.r)!,
   })).filter(m => m.giver && m.receiver), [matchIds, participants]);
 
-  // FIX: Use the compressedHash to build correct URLs.
   const getFullLink = (participantId: string): string => `${window.location.origin}/generator.html#${compressedHash}?id=${participantId}`;
   const getFullOrganizerLink = (): string => `${window.location.origin}/generator.html#${compressedHash}`;
 
@@ -152,9 +148,6 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
             <button onClick={() => handleDownload('master')} disabled={!!loadingPdf} className="flex items-center justify-center gap-2 p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-50">
                 {loadingPdf === 'master' ? <Loader2 className="animate-spin" /> : <FileText />} Download Master List (PDF)
             </button>
-             <button onClick={handleCopyAllLinks} disabled={!!loadingPdf} className="flex items-center justify-center gap-2 p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-50">
-                {loadingPdf === 'all-links' ? <Check /> : <Copy />} {loadingPdf === 'all-links' ? 'Copied All!' : 'Copy All Links to Clipboard'}
-            </button>
             <button onClick={() => handleDownload('party')} disabled={!!loadingPdf} className="flex items-center justify-center gap-2 p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-50">
                 {loadingPdf === 'party' ? <Loader2 className="animate-spin" /> : <PartyPopper />} Download Party Pack (Soon)
             </button>
@@ -195,11 +188,11 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
                     return (
                         <div key={giver.id} className={`p-4 rounded-xl border transition-all bg-${statusColor}-50 border-${statusColor}-200`}>
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <div className="grid grid-cols-[auto,1fr,auto] items-center gap-x-4 gap-y-2">
                                 <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-${statusColor}-200 text-${statusColor}-700`}>
                                     {isViewed ? <Eye size={18} /> : <EyeOff size={18} />}
                                 </div>
-                                <div className="flex-grow min-w-0">
+                                <div>
                                     <p className="font-bold text-slate-800">{giver.name}'s Link</p>
                                     <p className={`text-xs font-semibold text-${statusColor}-600`}>
                                         Status: {isViewed ? 'Viewed' : (hasBeenSent ? 'Sent' : 'Pending')}
@@ -214,6 +207,14 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                                     <button onClick={() => handleAction(giver, 'qr')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><QrCode size={16}/></button>
                                 </div>
                             </div>
+                            <div className="mt-2 pl-12">
+                                <input 
+                                    type="text"
+                                    readOnly
+                                    value={loadingShortLinks ? "Generating short link..." : getLinkForParticipant(giver)}
+                                    className="w-full p-1.5 border border-slate-300 rounded-md bg-white text-sm text-slate-600 truncate"
+                                />
+                            </div>
                             {expandedQr === giver.id && (
                                 <div className="mt-4 p-4 bg-white rounded-lg text-center border">
                                     <h4 className="font-bold mb-2">QR Code for {giver.name}</h4>
@@ -227,6 +228,11 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                     );
                 })}
             </div>
+             <div className="mt-6">
+                <button onClick={handleCopyAllLinks} disabled={!!loadingPdf} className="w-full flex items-center justify-center gap-2 p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-50">
+                    {loadingPdf === 'all-links' ? <Check /> : <Copy />} {loadingPdf === 'all-links' ? 'Copied!' : 'Copy All Links to Clipboard'}
+                </button>
+            </div>
         </section>
     </>
   );
@@ -234,10 +240,10 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-slate-50 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-        <header className="p-6 flex justify-between items-center border-b bg-white">
-          <div className="flex border-b">
-             <button onClick={() => setActiveTab('links')} className={`font-semibold py-3 px-4 -mb-px border-b-2 transition-colors ${activeTab === 'links' ? 'text-red-600 border-red-600' : 'text-slate-500 border-slate-200 hover:text-slate-800'}`}>Links</button>
-             <button onClick={() => setActiveTab('downloads')} className={`font-semibold py-3 px-4 -mb-px border-b-2 transition-colors ${activeTab === 'downloads' ? 'text-red-600 border-red-600' : 'text-slate-500 border-slate-200 hover:text-slate-800'}`}>Downloads</button>
+        <header className="p-4 flex justify-between items-center border-b bg-white">
+          <div className="flex border-b-2 border-transparent">
+             <button onClick={() => setActiveTab('links')} className={`font-bold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'links' ? 'bg-red-100 text-red-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>Links</button>
+             <button onClick={() => setActiveTab('downloads')} className={`font-bold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'downloads' ? 'bg-red-100 text-red-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>Downloads</button>
           </div>
           <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
         </header>
