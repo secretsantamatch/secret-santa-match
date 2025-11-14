@@ -139,17 +139,29 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   const organizerLink = !showFullLinks ? (shortLinks['organizer'] || getFullOrganizerLink()) : getFullOrganizerLink();
 
   const DownloadsSection = () => (
-    <section>
-        <h3 className="text-xl font-bold text-slate-700 mb-4">Downloads & Bulk Actions</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button onClick={() => handleDownload('cards')} disabled={!!loadingPdf} className="flex items-center justify-center gap-2 p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-50">
-                {loadingPdf === 'cards' ? <Loader2 className="animate-spin" /> : <Download />} Download All Cards (PDF)
+    <section className="flex flex-col h-full">
+        <h3 className="text-2xl font-bold text-slate-700 mb-6 text-center">Downloads & Bulk Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
+            <button 
+                onClick={() => handleDownload('cards')} 
+                disabled={!!loadingPdf} 
+                className="flex flex-col items-center justify-center gap-3 p-6 bg-emerald-100 hover:bg-emerald-200 rounded-2xl font-bold text-lg text-emerald-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md h-40">
+                {loadingPdf === 'cards' ? <Loader2 className="animate-spin h-8 w-8" /> : <Download className="h-8 w-8" />}
+                <span>Download All Cards (PDF)</span>
             </button>
-            <button onClick={() => handleDownload('master')} disabled={!!loadingPdf} className="flex items-center justify-center gap-2 p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-50">
-                {loadingPdf === 'master' ? <Loader2 className="animate-spin" /> : <FileText />} Download Master List (PDF)
+            <button 
+                onClick={() => handleDownload('master')} 
+                disabled={!!loadingPdf} 
+                className="flex flex-col items-center justify-center gap-3 p-6 bg-sky-100 hover:bg-sky-200 rounded-2xl font-bold text-lg text-sky-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md h-40">
+                {loadingPdf === 'master' ? <Loader2 className="animate-spin h-8 w-8" /> : <FileText className="h-8 w-8" />}
+                <span>Download Master List (PDF)</span>
             </button>
-            <button onClick={() => handleDownload('party')} disabled={!!loadingPdf} className="flex items-center justify-center gap-2 p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-50">
-                {loadingPdf === 'party' ? <Loader2 className="animate-spin" /> : <PartyPopper />} Download Party Pack (Soon)
+            <button 
+                onClick={() => handleDownload('party')} 
+                disabled={!!loadingPdf} 
+                className="flex flex-col items-center justify-center gap-3 p-6 bg-violet-100 hover:bg-violet-200 rounded-2xl font-bold text-lg text-violet-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md h-40 md:col-span-2">
+                {loadingPdf === 'party' ? <Loader2 className="animate-spin h-8 w-8" /> : <PartyPopper className="h-8 w-8" />}
+                <span>Download Party Pack <span className="text-sm font-normal">(Coming Soon)</span></span>
             </button>
         </div>
     </section>
@@ -195,7 +207,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                                 <div>
                                     <p className="font-bold text-slate-800">{giver.name}'s Link</p>
                                     <p className={`text-xs font-semibold text-${statusColor}-600`}>
-                                        Status: {isViewed ? 'Opened' : (hasBeenSent ? 'Sent, not yet opened' : 'Not yet sent')}
+                                        Status: {isViewed ? 'Opened' : 'Not yet sent'}
                                     </p>
                                 </div>
                                 <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
@@ -247,7 +259,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
           </div>
           <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
         </header>
-        <main className="p-6 overflow-y-auto space-y-8 min-h-[500px]">
+        <main className="p-6 overflow-y-auto min-h-[500px] flex flex-col gap-8">
             {activeTab === 'links' ? <LinksSection /> : <DownloadsSection />}
         </main>
         <footer className="p-4 bg-white border-t text-right">
