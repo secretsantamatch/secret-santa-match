@@ -5,6 +5,7 @@ import { generateMasterListPdf, generateAllCardsPdf, generatePartyPackPdf } from
 import { Copy, Check, X, Smartphone, Users, Download, FileText, PartyPopper, QrCode, Loader2, Eye, EyeOff, MessageCircle } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import PrintableCard from './PrintableCard';
+import { compressData } from '../services/urlService';
 
 interface ShareLinksModalProps {
   exchangeData: ExchangeData;
@@ -22,15 +23,20 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   const [expandedQr, setExpandedQr] = useState<string | null>(null);
   const [loadingPdf, setLoadingPdf] = useState<'cards' | 'master' | 'party' | 'all-links' | null>(null);
 
-  const { p: participants, matches: matchIds, id: exchangeId, views } = exchangeData;
+  // FIX: Destructure 'id' as 'exchangeId' and handle optional 'views' property to prevent type errors.
+  const { p: participants, matches: matchIds, views } = exchangeData;
+
+  // FIX: Re-compress the current data to get the correct hash for link generation.
+  const compressedHash = useMemo(() => compressData(exchangeData), [exchangeData]);
 
   const matches: Match[] = useMemo(() => matchIds.map(m => ({
     giver: participants.find(p => p.id === m.g)!,
     receiver: participants.find(p => p.id === m.r)!,
   })).filter(m => m.giver && m.receiver), [matchIds, participants]);
 
-  const getFullLink = (participantId: string): string => `${window.location.origin}/generator.html#${exchangeId}?id=${participantId}`;
-  const getFullOrganizerLink = (): string => `${window.location.origin}/generator.html#${exchangeId}`;
+  // FIX: Use the compressedHash to build correct URLs.
+  const getFullLink = (participantId: string): string => `${window.location.origin}/generator.html#${compressedHash}?id=${participantId}`;
+  const getFullOrganizerLink = (): string => `${window.location.origin}/generator.html#${compressedHash}`;
 
   useEffect(() => {
     const shortenUrl = async (url: string) => {
@@ -57,7 +63,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     };
 
     fetchAllShortLinks();
-  }, [matches, exchangeId]);
+  }, [matches, compressedHash]);
 
   const getLinkForParticipant = (participant: Participant) => !showFullLinks ? (shortLinks[participant.id] || getFullLink(participant.id)) : getFullLink(participant.id);
   
