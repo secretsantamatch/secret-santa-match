@@ -4,9 +4,12 @@ import html2canvas from 'html2canvas';
 import type { ExchangeData } from '../types';
 
 // Augment jsPDF with the autoTable method
-interface jsPDFWithAutoTable extends jsPDF {
+// FIX: Changed from an interface to a type intersection. This correctly combines
+// the jsPDF class type with the additional autoTable method, resolving
+// multiple errors where methods on the original jsPDF object were not found.
+type jsPDFWithAutoTable = jsPDF & {
   autoTable: (options: any) => jsPDF;
-}
+};
 
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
