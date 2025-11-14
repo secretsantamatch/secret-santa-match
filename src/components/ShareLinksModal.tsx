@@ -24,7 +24,10 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
   const [loadingPdf, setLoadingPdf] = useState<'cards' | 'master' | 'party' | 'all-links' | null>(null);
 
   const { p: participants, matches: matchIds, views } = exchangeData;
-  const compressedHash = useMemo(() => compressData(exchangeData), [exchangeData]);
+  const compressedHash = useMemo(() => {
+      const { backgroundOptions, ...dataToCompress } = exchangeData;
+      return compressData(dataToCompress);
+  }, [exchangeData]);
 
   const matches: Match[] = useMemo(() => matchIds.map(m => ({
     giver: participants.find(p => p.id === m.g)!,
@@ -94,10 +97,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
       const message = `Hi ${participant.name}, here's your private link for our Secret Santa game! 🎁\n${link}`;
       const smsUrl = `sms:?&body=${encodeURIComponent(message)}`;
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-      // FIX: Use the same tracking logic for whatsapp as for text
-      if (type === 'whatsapp') {
-          trackEvent('share_link', { type: 'whatsapp', participant_name: participant.name });
-      }
+      
       window.open(type === 'text' ? smsUrl : whatsappUrl, '_blank');
       setSentLinks(prev => new Set(prev).add(participant.id));
       trackEvent('share_link', { type, participant_name: participant.name });
@@ -149,7 +149,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
             <button 
                 onClick={() => handleDownload('cards')} 
                 disabled={!!loadingPdf} 
-                className="flex flex-col items-center justify-center gap-2 p-6 bg-emerald-100 hover:bg-emerald-200 rounded-2xl font-bold text-lg text-emerald-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-40">
+                className="flex flex-col items-center justify-center gap-2 p-6 bg-emerald-100 hover:bg-emerald-200 rounded-2xl font-bold text-lg text-emerald-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-[170px]">
                 {loadingPdf === 'cards' ? <Loader2 className="animate-spin h-8 w-8" /> : <Download className="h-8 w-8" />}
                 <span>Download All Cards (PDF)</span>
                 <span className="text-sm font-normal text-emerald-700/80 mt-1">For your guests. Download and print a card for each person.</span>
@@ -157,7 +157,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
             <button 
                 onClick={() => handleDownload('master')} 
                 disabled={!!loadingPdf} 
-                className="flex flex-col items-center justify-center gap-2 p-6 bg-sky-100 hover:bg-sky-200 rounded-2xl font-bold text-lg text-sky-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-40">
+                className="flex flex-col items-center justify-center gap-2 p-6 bg-sky-100 hover:bg-sky-200 rounded-2xl font-bold text-lg text-sky-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-[170px]">
                 {loadingPdf === 'master' ? <Loader2 className="animate-spin h-8 w-8" /> : <FileText className="h-8 w-8" />}
                 <span>Download Master List (PDF)</span>
                 <span className="text-sm font-normal text-sky-700/80 mt-1">For the organizer. A list of all matches & wishlists.</span>
@@ -165,7 +165,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
             <button 
                 onClick={() => handleDownload('party')} 
                 disabled={!!loadingPdf} 
-                className="flex flex-col items-center justify-center gap-2 p-6 bg-violet-100 hover:bg-violet-200 rounded-2xl font-bold text-lg text-violet-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-40 md:col-span-2">
+                className="flex flex-col items-center justify-center gap-2 p-6 bg-violet-100 hover:bg-violet-200 rounded-2xl font-bold text-lg text-violet-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-[170px] md:col-span-2">
                 {loadingPdf === 'party' ? <Loader2 className="animate-spin h-8 w-8" /> : <PartyPopper className="h-8 w-8" />}
                 <span>Download Party Pack <span className="text-sm font-normal">(Coming Soon)</span></span>
                 <span className="text-sm font-normal text-violet-700/80 mt-1">Fun games and extras for your in-person party.</span>
@@ -214,7 +214,8 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                 {matches.map(({ giver }) => {
                     const isViewed = !!views?.[giver.id];
                     const hasBeenSent = sentLinks.has(giver.id);
-                    const statusColor = isViewed ? 'emerald' : (hasBeenSent ? 'sky' : 'yellow');
+                    const statusColor = isViewed ? 'emerald' : (hasBeenSent ? 'sky' : 'slate');
+                    const statusText = isViewed ? 'Opened' : 'Not yet sent';
 
                     return (
                         <div key={giver.id} className={`p-4 rounded-xl border transition-all bg-white`}>
@@ -225,16 +226,16 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                                 <div>
                                     <p className="font-bold text-slate-800">{giver.name}'s Link</p>
                                     <p className={`text-xs font-semibold text-${statusColor}-600`}>
-                                        Status: {isViewed ? 'Opened' : 'Not yet sent'}
+                                        Status: {statusText}
                                     </p>
                                 </div>
                                 <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
-                                    <button onClick={() => handleCopy(getLinkForParticipant(giver), giver.id)} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600">
+                                    <button title="Copy Link" onClick={() => handleCopy(getLinkForParticipant(giver), giver.id)} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600">
                                         {copiedStates[giver.id] ? <Check size={16} className="text-green-600"/> : <Copy size={16}/>}
                                     </button>
-                                    <button onClick={() => handleAction(giver, 'text')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><Smartphone size={16}/></button>
-                                    <button onClick={() => handleAction(giver, 'whatsapp')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><MessageCircle size={16}/></button>
-                                    <button onClick={() => handleAction(giver, 'qr')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><QrCode size={16}/></button>
+                                    <button title="Send via Text" onClick={() => handleAction(giver, 'text')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><Smartphone size={16}/></button>
+                                    <button title="Send via WhatsApp" onClick={() => handleAction(giver, 'whatsapp')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><MessageCircle size={16}/></button>
+                                    <button title="Show QR Code" onClick={() => handleAction(giver, 'qr')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><QrCode size={16}/></button>
                                 </div>
                             </div>
                             <div className="mt-2 pl-12">
@@ -269,31 +270,33 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-slate-50 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] border-4 border-slate-200" onClick={e => e.stopPropagation()}>
+      <div className="bg-slate-50 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] border-4 border-white" onClick={e => e.stopPropagation()}>
         <header className="p-4 flex justify-between items-center border-b bg-white">
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center">
-            <button
-              onClick={() => setActiveTab('links')}
-              className={`font-extrabold text-lg py-2 px-5 rounded-lg transition-colors ${
-                activeTab === 'links'
-                  ? 'bg-white text-emerald-800 shadow'
-                  : 'text-slate-500 hover:bg-slate-200'
-              }`}
-            >
-              Links
-            </button>
-            <button
-              onClick={() => setActiveTab('downloads')}
-              className={`font-extrabold text-lg py-2 px-5 rounded-lg transition-colors ${
-                activeTab === 'downloads'
-                  ? 'bg-white text-sky-800 shadow'
-                  : 'text-slate-500 hover:bg-slate-200'
-              }`}
-            >
-              Downloads
-            </button>
-          </div>
-          <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
+            <div className="relative bg-slate-100 p-1 rounded-full flex items-center w-[250px]">
+                <div
+                    className="absolute h-[calc(100%-8px)] w-[calc(50%-4px)] bg-white rounded-full shadow-md transition-transform duration-300 ease-in-out"
+                    style={{
+                        transform: activeTab === 'downloads' ? 'translateX(calc(100% + 4px))' : 'translateX(4px)'
+                    }}
+                ></div>
+                <button
+                    onClick={() => setActiveTab('links')}
+                    className={`relative z-10 flex-1 font-extrabold text-lg py-2 text-center transition-colors ${
+                        activeTab === 'links' ? 'text-emerald-800' : 'text-slate-500'
+                    }`}
+                >
+                    Links
+                </button>
+                <button
+                    onClick={() => setActiveTab('downloads')}
+                    className={`relative z-10 flex-1 font-extrabold text-lg py-2 text-center transition-colors ${
+                        activeTab === 'downloads' ? 'text-sky-800' : 'text-slate-500'
+                    }`}
+                >
+                    Downloads
+                </button>
+            </div>
+            <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
         </header>
         <main className="p-6 overflow-y-auto min-h-[500px] flex flex-col gap-8">
             {activeTab === 'links' ? <LinksSection /> : <DownloadsSection />}
@@ -304,7 +307,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
       </div>
       <div style={{ position: 'absolute', left: '-9999px', top: 0, zIndex: -1 }}>
         {matches.map(match => (
-            <div key={match.giver.id} id={`card-for-pdf-${match.giver.id}`} className="w-[4in] h-[6in]">
+            <div key={match.giver.id} id={`card-for-pdf-${match.giver.id}`} className="w-[8.5in] h-[11in] p-[0.5in] box-border flex items-center justify-center">
                  <PrintableCard 
                     match={match} 
                     eventDetails={exchangeData.eventDetails} 
