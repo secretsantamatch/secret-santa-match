@@ -70,28 +70,37 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const receiverName = isNameRevealed ? receiver.name : '????????';
   const formattedGreeting = greet.replace('{secret_santa}', giver.name);
 
-  // Auto-sizing logic
-  const giverNameLength = giver.name.length;
+  // Auto-sizing logic for adaptive text
+  const greetingLength = formattedGreeting.length;
+  const introLength = intro.length;
   const receiverNameLength = receiverName.length;
   const wishlistContent = [receiver.interests, receiver.likes, receiver.dislikes, receiver.budget].join(' ');
   const wishlistLength = wishlistContent.length;
 
   const getHeaderFontSize = () => {
-    let baseClass = 'text-lg';
-    if (fontSize === 'large') baseClass = 'text-xl';
-    if (fontSize === 'extra-large') baseClass = 'text-2xl';
-    if (giverNameLength > 20) return 'text-base';
-    if (giverNameLength > 15) return 'text-lg';
-    return baseClass;
+    const maxLength = Math.max(greetingLength, introLength);
+    // More aggressive scaling for header text
+    if (maxLength > 40) return 'text-xs';  // 12px
+    if (maxLength > 30) return 'text-sm';  // 14px
+    if (maxLength > 22) return 'text-base'; // 16px
+    
+    if (fontSize === 'extra-large') return 'text-xl';
+    if (fontSize === 'large') return 'text-lg';
+    return 'text-lg'; // 18px
   };
   
   const getReceiverNameFontSize = () => {
-    let baseClass = 'text-5xl';
-    if (fontSize === 'large') baseClass = 'text-6xl';
-    if (fontSize === 'extra-large') baseClass = 'text-7xl';
-    if (receiverNameLength > 15) return 'text-4xl';
-    if (receiverNameLength > 10) return 'text-5xl';
-    return baseClass;
+    // Aggressive scaling to prevent wrapping of long names
+    if (receiverNameLength > 25) return 'text-2xl'; 
+    if (receiverNameLength > 20) return 'text-3xl'; 
+    if (receiverNameLength > 15) return 'text-4xl'; 
+    if (receiverNameLength > 10) return 'text-5xl'; 
+    
+    // Default for short names
+    let baseSize = 'text-6xl';
+    if(fontSize === 'large') baseSize = 'text-7xl';
+    if(fontSize === 'extra-large') baseSize = 'text-7xl';
+    return baseSize;
   };
   
   const getWishlistFontSize = () => {
@@ -130,16 +139,16 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       >
         {/* Header */}
         <header 
-          className={`break-words ${getHeaderFontSize()}`}
+          className={getHeaderFontSize()}
           style={{ lineHeight: line }}
         >
-          <p className="font-bold">{formattedGreeting}</p>
-          <p className="mt-1">{intro}</p>
+          <p className="font-bold whitespace-nowrap">{formattedGreeting}</p>
+          <p className="mt-1 whitespace-nowrap">{intro}</p>
         </header>
 
         {/* Receiver Name */}
         <main style={{ lineHeight: 1.1 }}>
-          <h2 className={`font-bold ${fontFamilies.classic} ${getReceiverNameFontSize()}`}>
+          <h2 className={`font-bold whitespace-nowrap ${fontFamilies.classic} ${getReceiverNameFontSize()}`}>
             {receiverName}
           </h2>
         </main>
