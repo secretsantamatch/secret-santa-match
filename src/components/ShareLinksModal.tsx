@@ -94,6 +94,10 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
       const message = `Hi ${participant.name}, here's your private link for our Secret Santa game! 🎁\n${link}`;
       const smsUrl = `sms:?&body=${encodeURIComponent(message)}`;
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+      // FIX: Use the same tracking logic for whatsapp as for text
+      if (type === 'whatsapp') {
+          trackEvent('share_link', { type: 'whatsapp', participant_name: participant.name });
+      }
       window.open(type === 'text' ? smsUrl : whatsappUrl, '_blank');
       setSentLinks(prev => new Set(prev).add(participant.id));
       trackEvent('share_link', { type, participant_name: participant.name });
@@ -148,7 +152,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                 className="flex flex-col items-center justify-center gap-2 p-6 bg-emerald-100 hover:bg-emerald-200 rounded-2xl font-bold text-lg text-emerald-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-40">
                 {loadingPdf === 'cards' ? <Loader2 className="animate-spin h-8 w-8" /> : <Download className="h-8 w-8" />}
                 <span>Download All Cards (PDF)</span>
-                <span className="text-sm font-normal text-emerald-700/80 mt-1">Download and print a card for each person.</span>
+                <span className="text-sm font-normal text-emerald-700/80 mt-1">For your guests. Download and print a card for each person.</span>
             </button>
             <button 
                 onClick={() => handleDownload('master')} 
@@ -164,7 +168,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                 className="flex flex-col items-center justify-center gap-2 p-6 bg-violet-100 hover:bg-violet-200 rounded-2xl font-bold text-lg text-violet-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-40 md:col-span-2">
                 {loadingPdf === 'party' ? <Loader2 className="animate-spin h-8 w-8" /> : <PartyPopper className="h-8 w-8" />}
                 <span>Download Party Pack <span className="text-sm font-normal">(Coming Soon)</span></span>
-                <span className="text-sm font-normal text-violet-700/80 mt-1">Fun games and extras for your party.</span>
+                <span className="text-sm font-normal text-violet-700/80 mt-1">Fun games and extras for your in-person party.</span>
             </button>
         </div>
     </section>
@@ -267,9 +271,27 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-slate-50 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] border-4 border-slate-200" onClick={e => e.stopPropagation()}>
         <header className="p-4 flex justify-between items-center border-b bg-white">
-          <div className="flex border-b-2 border-transparent">
-             <button onClick={() => setActiveTab('links')} className={`font-extrabold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'links' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}>Links</button>
-             <button onClick={() => setActiveTab('downloads')} className={`font-extrabold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'downloads' ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}>Downloads</button>
+          <div className="bg-slate-100 p-1 rounded-xl flex items-center">
+            <button
+              onClick={() => setActiveTab('links')}
+              className={`font-extrabold text-lg py-2 px-5 rounded-lg transition-colors ${
+                activeTab === 'links'
+                  ? 'bg-white text-emerald-800 shadow'
+                  : 'text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              Links
+            </button>
+            <button
+              onClick={() => setActiveTab('downloads')}
+              className={`font-extrabold text-lg py-2 px-5 rounded-lg transition-colors ${
+                activeTab === 'downloads'
+                  ? 'bg-white text-sky-800 shadow'
+                  : 'text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              Downloads
+            </button>
           </div>
           <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
         </header>
