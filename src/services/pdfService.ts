@@ -177,8 +177,7 @@ export const generatePartyPackPdf = async (): Promise<void> => {
         pdf.setFontSize(9);
         pdf.setFont('helvetica', 'italic');
         pdf.setTextColor(150);
-        pdf.text(`Secret Santa Party Pack | Page ${pageNumber} of ${totalPages}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 10, { align: 'center' });
-        pdf.text('From SecretSantaMatch.com', PAGE_WIDTH / 2, PAGE_HEIGHT - 6, { align: 'center' });
+        pdf.text(`SecretSantaMatch.com Party Pack | Page ${pageNumber} of ${totalPages}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 8, { align: 'center' });
     };
 
     // --- PAGE 1: TITLE PAGE ---
@@ -191,8 +190,8 @@ export const generatePartyPackPdf = async (): Promise<void> => {
     pdf.rect(MARGIN / 2, MARGIN / 2, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - MARGIN);
     pdf.setTextColor('#FFFFFF');
     pdf.setFont('times', 'bold');
-    pdf.setFontSize(40);
-    pdf.text('Secret Santa', PAGE_WIDTH / 2, PAGE_HEIGHT / 2 - 20, { align: 'center' });
+    pdf.setFontSize(32);
+    pdf.text('SecretSantaMatch.com', PAGE_WIDTH / 2, PAGE_HEIGHT / 2 - 20, { align: 'center' });
     pdf.setFontSize(60);
     pdf.text('Party Pack', PAGE_WIDTH / 2, PAGE_HEIGHT / 2 + 10, { align: 'center' });
     pdf.setFont('helvetica', 'normal');
@@ -383,9 +382,24 @@ export const generatePartyPackPdf = async (): Promise<void> => {
         pdf.setFont('helvetica', 'normal');
         pdf.text("Awarded to:", PAGE_WIDTH / 2, PAGE_HEIGHT / 2 + 30, { align: 'center' });
         pdf.setDrawColor(0);
-        pdf.line(MARGIN + 30, PAGE_HEIGHT / 2 + 40, PAGE_WIDTH - MARGIN - 30, PAGE_HEIGHT / 2 + 40);
+        pdf.setLineWidth(0.2);
+        pdf.line(MARGIN + 30, PAGE_HEIGHT / 2 + 45, PAGE_WIDTH - MARGIN - 30, PAGE_HEIGHT / 2 + 45);
 
-        pdf.text("Presented by the Organizer", PAGE_WIDTH / 2, PAGE_HEIGHT - MARGIN - 20, { align: 'center' });
+        const presentedByText = "Presented by:";
+        const textWidth = pdf.getTextDimensions(presentedByText).w;
+        const startXText = MARGIN + 30;
+        const yPos = PAGE_HEIGHT - MARGIN - 25;
+        const startXLine = startXText + textWidth + 3; // 3mm gap
+        const endXLine = PAGE_WIDTH - MARGIN - 30;
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(12);
+        pdf.setTextColor(0,0,0);
+        
+        pdf.text(presentedByText, startXText, yPos);
+        pdf.setDrawColor(0);
+        pdf.setLineWidth(0.2);
+        pdf.line(startXLine, yPos, endXLine, yPos);
     });
     
     // Add footers to all pages
