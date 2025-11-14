@@ -229,7 +229,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                                         {copiedStates[giver.id] ? <Check size={16} className="text-green-600"/> : <Copy size={16}/>}
                                     </button>
                                     <button onClick={() => handleAction(giver, 'text')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><Smartphone size={16}/></button>
-                                    <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hi ${giver.name}, here's your private link for our Secret Santa game! 🎁\n${getLinkForParticipant(giver)}`)}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><MessageCircle size={16}/></a>
+                                    <button onClick={() => handleAction(giver, 'whatsapp')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><MessageCircle size={16}/></button>
                                     <button onClick={() => handleAction(giver, 'qr')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><QrCode size={16}/></button>
                                 </div>
                             </div>
@@ -265,11 +265,11 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-slate-50 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+      <div className="bg-slate-50 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] border-4 border-slate-200" onClick={e => e.stopPropagation()}>
         <header className="p-4 flex justify-between items-center border-b bg-white">
           <div className="flex border-b-2 border-transparent">
-             <button onClick={() => setActiveTab('links')} className={`font-bold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'links' ? 'bg-emerald-100 text-emerald-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>Links</button>
-             <button onClick={() => setActiveTab('downloads')} className={`font-bold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'downloads' ? 'bg-sky-100 text-sky-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>Downloads</button>
+             <button onClick={() => setActiveTab('links')} className={`font-extrabold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'links' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}>Links</button>
+             <button onClick={() => setActiveTab('downloads')} className={`font-extrabold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'downloads' ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}>Downloads</button>
           </div>
           <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
         </header>
