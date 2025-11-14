@@ -99,23 +99,25 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         className="absolute inset-0 flex flex-col items-center text-center p-[8%]"
         style={{ fontFamily: fontFamilies[font] }}
       >
-        {/* Header Text */}
-        <div className="w-full flex-shrink-0" style={{ lineHeight: line }}>
-            <h2 
-                className="font-bold"
-                style={{ ...commonTextStyle, fontSize: baseSizes.header }}
-            >
-                {formattedGreeting}
-            </h2>
-            <p style={{ ...commonTextStyle, fontSize: `calc(${baseSizes.header} * 0.85)` }}>
-                {intro}
-            </p>
-        </div>
+        {/* Main Content (grows to fill space and centers its content vertically) */}
+        <div className="w-full flex-grow flex flex-col justify-center items-center">
+            
+            {/* Header Text (Greeting/Intro) */}
+            <div className="w-full" style={{ lineHeight: line }}>
+                <h2 
+                    className="font-bold"
+                    style={{ ...commonTextStyle, fontSize: baseSizes.header }}
+                >
+                    {formattedGreeting}
+                </h2>
+                <p style={{ ...commonTextStyle, fontSize: `calc(${baseSizes.header} * 0.85)` }}>
+                    {intro}
+                </p>
+            </div>
 
-        {/* Main Content (grows) */}
-        <div className="w-full flex-grow flex flex-col justify-center items-center py-1" style={{minHeight: '50px'}}>
+            {/* Receiver Name */}
             <h1 
-                className="font-bold"
+                className="font-bold my-1"
                 style={{ 
                     ...commonTextStyle, 
                     fontFamily: fontFamilies.classic, 
@@ -126,30 +128,36 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 {receiverName}
             </h1>
             
+            {/* Wishlist and Event Details */}
             {isNameRevealed && (
-              <div className="w-full text-left self-center mt-4" style={{ lineHeight: 1.3 }}>
-                  <h3 className="font-bold text-center" style={{...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
-                  <ul className="list-none space-y-0 p-0 m-0" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist }}>
-                      {renderWishlistItem('Interests', receiver.interests)}
-                      {renderWishlistItem('Likes', receiver.likes)}
-                      {renderWishlistItem('Dislikes', receiver.dislikes)}
-                      {renderWishlistItem('Budget', receiver.budget)}
-                  </ul>
+              <div className="w-full self-center mt-2">
+                  <div className="text-center">
+                      <h3 className="font-bold" style={{...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
+                      <ul className="list-none space-y-0 p-0 m-0 inline-block text-left" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
+                          {renderWishlistItem('Interests', receiver.interests)}
+                          {renderWishlistItem('Likes', receiver.likes)}
+                          {renderWishlistItem('Dislikes', receiver.dislikes)}
+                          {renderWishlistItem('Budget', receiver.budget)}
+                      </ul>
+                  </div>
                   
                   {hasLinks && showLinks && (
-                      <div className="mt-2">
-                          <h4 className="font-bold text-center" style={{...commonTextStyle, fontSize: `calc(${baseSizes.header} * 0.9)`}}>Wishlist Links:</h4>
+                      <div className="mt-2 text-center">
+                          <h4 className="font-bold" style={{...commonTextStyle, fontSize: `calc(${baseSizes.header} * 0.9)`}}>Wishlist Links:</h4>
                           <div className="space-y-1 mt-1">{receiver.links.map((link, index) => (link.trim() ? <LinkPreview key={index} url={link} isForPdf={isForPdf} /> : null))}</div>
                       </div>
                   )}
+                  
+                  {eventDetails && <p className="opacity-90 mt-4" style={{...commonTextStyle, fontSize: baseSizes.event }}>{eventDetails}</p>}
               </div>
             )}
         </div>
         
-        {/* Footer Text */}
+        {/* Footer */}
         <div className="w-full flex-shrink-0">
-            {eventDetails && isNameRevealed && <p className="opacity-90 mb-2" style={{...commonTextStyle, fontSize: baseSizes.event }}>{eventDetails}</p>}
-            <p className="text-xs opacity-70" style={{ color: txtColor, textShadow }}>SecretSantaMatch.com</p>
+            {(bgId === 'custom' || !backgroundUrl) && 
+                <p className="text-xs opacity-70" style={{ color: txtColor, textShadow }}>SecretSantaMatch.com</p>
+            }
         </div>
       </div>
     </div>
