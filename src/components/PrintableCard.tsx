@@ -23,31 +23,44 @@ interface PrintableCardProps {
   showLinks?: boolean;
 }
 
-// A single, unified set of scaling functions that return pixel-based font sizes
-const getHeaderFontSize = (len: number): string => {
-    if (len > 45) return '11px';
-    if (len > 35) return '13px';
-    if (len > 28) return '15px';
-    return '17px';
-};
-
-const getReceiverNameFontSize = (len: number): string => {
-    if (len > 28) return '28px';
-    if (len > 24) return '34px';
-    if (len > 20) return '42px';
-    if (len > 16) return '50px';
-    if (len > 13) return '60px';
-    if (len > 10) return '72px';
-    return '80px';
-};
-
+// More aggressive scaling for wishlist text
 const getWishlistFontSize = (len: number): string => {
+    if (len > 250) return '8px';
     if (len > 200) return '9px';
     if (len > 150) return '10px';
     if (len > 120) return '11px';
     if (len > 90) return '12px';
     return '14px';
 };
+
+// SVG Text component to handle automatic scaling for single lines of text
+const ScalableText: React.FC<{
+    text: string;
+    fontFamily: string;
+    color: string;
+    textShadow: string;
+    fontWeight?: string;
+    initialFontSize: string;
+}> = ({ text, fontFamily, color, textShadow, fontWeight = 'normal', initialFontSize }) => (
+    <svg 
+        viewBox="0 0 1000 120" 
+        width="100%" 
+        preserveAspectRatio="xMidYMid meet"
+        style={{ fontFamily, fontWeight, overflow: 'visible' }}
+    >
+        <text
+            x="50%"
+            y="50%"
+            dominantBaseline="middle"
+            textAnchor="middle"
+            lengthAdjust="spacingAndGlyphs"
+            textLength="990"
+            style={{ fill: color, textShadow, fontSize: initialFontSize }}
+        >
+            {text}
+        </text>
+    </svg>
+);
 
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
@@ -73,7 +86,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const { giver, receiver } = match;
 
   const backgroundUrl = bgImg || backgroundOptions.find(opt => opt.id === bgId)?.imageUrl || '';
-  const showWatermark = bgId === 'custom' || bgId === 'plain-white'; // Also show for plain white
 
   const fontFamilies: Record<FontTheme, string> = {
     classic: "'Playfair Display', serif",
@@ -97,10 +109,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const receiverName = isNameRevealed ? receiver.name : '????????';
   const formattedGreeting = greet.replace('{secret_santa}', giver.name);
 
-  // Character lengths for dynamic scaling
-  const greetingLength = formattedGreeting.length;
-  const introLength = intro.length;
-  const receiverNameLength = receiverName.length;
   const wishlistContent = [receiver.interests, receiver.likes, receiver.dislikes, receiver.budget].join(' ');
   const wishlistLength = wishlistContent.length;
 
@@ -117,33 +125,38 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div 
-        className="absolute inset-0 flex flex-col items-center text-center justify-evenly p-[12%]"
-        style={{ color: txtColor, textShadow, fontFamily: fontFamilies[font] }}
+        className="absolute inset-0 flex flex-col items-center text-center justify-evenly p-[10%]"
+        style={{ color: txtColor, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
-        <div>
-          <header 
-            className="whitespace-nowrap"
-            style={{ 
-                lineHeight: line,
-                fontSize: getHeaderFontSize(Math.max(greetingLength, introLength)),
-            }}
-          >
-            <p className="font-bold">{formattedGreeting}</p>
-            <p className="mt-1">{intro}</p>
-          </header>
+        <div className="w-full" style={{ lineHeight: line }}>
+            <ScalableText
+                text={formattedGreeting}
+                fontFamily={fontFamilies[font]}
+                color={txtColor}
+                textShadow={textShadow}
+                fontWeight="bold"
+                initialFontSize="32px"
+            />
+            <ScalableText
+                text={intro}
+                fontFamily={fontFamilies[font]}
+                color={txtColor}
+                textShadow={textShadow}
+                initialFontSize="32px"
+            />
         </div>
 
         {/* Receiver Name */}
-        <div>
-            <main style={{ lineHeight: 1.1 }}>
-            <h2 
-                className={`font-bold whitespace-nowrap ${fontFamilies.classic}`}
-                style={{ fontSize: getReceiverNameFontSize(receiverNameLength) }}
-            >
-                {receiverName}
-            </h2>
-            </main>
+        <div className="w-full" style={{ lineHeight: 1.1 }}>
+            <ScalableText
+                text={receiverName}
+                fontFamily={fontFamilies.classic}
+                color={txtColor}
+                textShadow={textShadow}
+                fontWeight="bold"
+                initialFontSize="100px"
+            />
         </div>
 
         {/* Wishlist */}
@@ -157,7 +170,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 }}
             >
                 <h3 className="font-bold text-lg mb-1" style={{fontSize: '1.2em'}}>{wish}</h3>
-                <ul className="list-none text-left inline-block space-y-0.5 max-w-full">
+                <ul className="list-none text-left block w-full space-y-px max-w-full">
                     {renderWishlistItem('Interests', receiver.interests)}
                     {renderWishlistItem('Likes', receiver.likes)}
                     {renderWishlistItem('Dislikes', receiver.dislikes)}
