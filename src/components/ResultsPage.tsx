@@ -10,18 +10,15 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-// FIX: Import Edit icon
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Edit } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check } from 'lucide-react';
 
 interface ResultsPageProps {
     data: ExchangeData;
     currentParticipantId: string | null;
-    onDataUpdated: (newData: ExchangeData) => void;
-    // FIX: Add optional onEditRequest prop for the organizer to edit the game.
-    onEditRequest?: () => void;
+    onDataUpdated: (newMatches: { g: string; r: string }[]) => void;
 }
 
-const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated, onEditRequest }) => {
+const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
@@ -95,8 +92,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     
     // This is now an optimistic update. The real save happens in the modal via fetch.
     const handleWishlistUpdate = (updatedParticipant: Participant) => {
-        const updatedData = { ...data, p: data.p.map(p => p.id === updatedParticipant.id ? updatedParticipant : p) };
-        onDataUpdated(updatedData);
+        // This is tricky because we can't directly update the parent's full state here.
+        // For now, we'll update the liveReceiver state for an immediate UI change.
+        if (liveReceiver && liveReceiver.id === updatedParticipant.id) {
+            setLiveReceiver(updatedParticipant);
+        } else if (currentParticipant && currentParticipant.id === updatedParticipant.id) {
+            // If the user is editing their OWN wishlist for their Santa
+            // there's no UI to update on this screen, but the data is saved.
+        }
     };
 
     const openShareModal = (view: 'links' | 'print') => {
@@ -115,7 +118,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             if (!result.matches) throw new Error(result.error || "Failed to generate new matches.");
             
             const newRawMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
-            onDataUpdated({ ...data, matches: newRawMatches });
+            onDataUpdated(newRawMatches);
             trackEvent('shuffle_again_success');
         } catch (error) {
             console.error("Shuffle Error:", error);
@@ -179,12 +182,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                 <button onClick={() => openShareModal('links')} className="py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg">
                                     <Share2 size={20} /> Share & Download Hub
                                 </button>
-                                {/* FIX: Add Edit Game button for organizers */}
-                                {onEditRequest && (
-                                    <button onClick={onEditRequest} className="py-3 px-6 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
-                                        <Edit size={20} /> Edit Game Details
-                                    </button>
-                                )}
                                 <button onClick={() => { trackEvent('shuffle_again_click'); setIsShuffleModalOpen(true); }} disabled={isShuffling} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait">
                                     {isShuffling ? <Loader2 size={20} className="animate-spin" /> : <Shuffle size={20} />}
                                     {isShuffling ? 'Shuffling...' : 'Shuffle Again'}

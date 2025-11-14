@@ -81,18 +81,30 @@ const App: React.FC = () => {
         };
     }, [loadDataFromHash]);
 
-    const handleDataUpdate = (newData: ExchangeData) => {
-        const compressed = compressData(newData);
+    const handleDataUpdate = (newMatches: { g: string; r: string }[]) => {
+        if (!exchangeData) return;
+
+        const newData: ExchangeData = {
+            ...exchangeData,
+            matches: newMatches
+        };
+
         setExchangeData(newData);
         
-        // Update URL without participant ID for the master link
-        const newUrl = `${window.location.pathname}#${compressed}`;
-        // Use replaceState to avoid creating unnecessary history entries for shuffles/edits
-        window.history.replaceState(null, '', newUrl);
+        const { backgroundOptions, ...dataToCompress } = newData;
+        const compressed = compressData(dataToCompress);
+
+        // Keep any query params intact (like participant ID)
+        const queryString = window.location.hash.split('?')[1];
+        const newHash = queryString ? `${compressed}?${queryString}` : compressed;
+        
+        // Use replaceState to avoid adding to browser history on every shuffle
+        window.history.replaceState(null, '', `#${newHash}`);
     };
     
     const handleCreationComplete = (newData: ExchangeData) => {
-        const compressed = compressData(newData);
+        const { backgroundOptions, ...dataToCompress } = newData;
+        const compressed = compressData(dataToCompress);
         if (compressed) {
             // Set the state and then update the URL hash, which will trigger the hashchange listener
             // to render the ResultsPage.
