@@ -13,7 +13,7 @@ export interface Participant {
   interests: string;
   likes: string;
   dislikes: string;
-  links: string;
+  links: string[];
   budget: string;
 }
 
@@ -51,7 +51,7 @@ export interface BackgroundOption {
 }
 
 export interface ExchangeData {
-  id?: string; // For Firebase document ID
+  id?: string; // Only used client-side for hash, not a DB id
   p: Participant[];
   matches: { g: string; r: string }[];
   exclusions: Exclusion[];
@@ -69,8 +69,8 @@ export interface ExchangeData {
   greetingText: string;
   introText: string;
   wishlistLabelText: string;
-  backgroundOptions: BackgroundOption[]; // Added client-side
-  views?: { [participantId: string]: string }; // Tracks first view timestamp for each participant
+  backgroundOptions: BackgroundOption[]; // Loaded client-side, not stored in URL
+  views?: Record<string, any>; // FIX: Added optional 'views' property for tracking link views.
 }
 
 export interface Resource {
