@@ -326,6 +326,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
                     intro={exchangeData.introText} 
                     wish={exchangeData.wishlistLabelText}
                     isForPdf={true}
+                    showLinks={false}
                  />
             </div>
         ))}
