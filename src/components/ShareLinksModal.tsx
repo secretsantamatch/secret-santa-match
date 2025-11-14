@@ -168,7 +168,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
             </div>
         </section>
 
-        <section>
+        <section className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-slate-700 flex items-center gap-2"><Users /> Participant Links</h3>
                 <div className="flex items-center gap-2">
@@ -187,15 +187,15 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                     const statusColor = isViewed ? 'emerald' : (hasBeenSent ? 'sky' : 'yellow');
 
                     return (
-                        <div key={giver.id} className={`p-4 rounded-xl border transition-all bg-${statusColor}-50 border-${statusColor}-200`}>
+                        <div key={giver.id} className={`p-4 rounded-xl border transition-all bg-white`}>
                             <div className="grid grid-cols-[auto,1fr,auto] items-center gap-x-4 gap-y-2">
-                                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-${statusColor}-200 text-${statusColor}-700`}>
+                                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-${statusColor}-100 text-${statusColor}-700`}>
                                     {isViewed ? <Eye size={18} /> : <EyeOff size={18} />}
                                 </div>
                                 <div>
                                     <p className="font-bold text-slate-800">{giver.name}'s Link</p>
                                     <p className={`text-xs font-semibold text-${statusColor}-600`}>
-                                        Status: {isViewed ? 'Viewed' : (hasBeenSent ? 'Sent' : 'Pending')}
+                                        Status: {isViewed ? 'Opened' : (hasBeenSent ? 'Sent, not yet opened' : 'Not yet sent')}
                                     </p>
                                 </div>
                                 <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
@@ -212,7 +212,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                                     type="text"
                                     readOnly
                                     value={loadingShortLinks ? "Generating short link..." : getLinkForParticipant(giver)}
-                                    className="w-full p-1.5 border border-slate-300 rounded-md bg-white text-sm text-slate-600 truncate"
+                                    className="w-full p-1.5 border border-slate-300 rounded-md bg-slate-50 text-sm text-slate-600 truncate"
                                 />
                             </div>
                             {expandedQr === giver.id && (
@@ -247,7 +247,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
           </div>
           <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
         </header>
-        <main className="p-6 overflow-y-auto space-y-8">
+        <main className="p-6 overflow-y-auto space-y-8 min-h-[500px]">
             {activeTab === 'links' ? <LinksSection /> : <DownloadsSection />}
         </main>
         <footer className="p-4 bg-white border-t text-right">
