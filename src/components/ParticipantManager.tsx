@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Participant } from '../types';
+import { Lightbulb } from 'lucide-react';
 
 interface ParticipantManagerProps {
     participants: Participant[];
@@ -67,6 +68,20 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
             updatedParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' });
         }
         
+        setParticipants(updatedParticipants);
+    };
+
+    const handleLinkChange = (id: string, index: number, value: string) => {
+        const updatedParticipants = participants.map(p => {
+            if (p.id === id) {
+                const links = p.links.split('\n');
+                while (links.length < 5) links.push('');
+                links[index] = value;
+                const newLinksString = links.slice(0, 5).join('\n');
+                return { ...p, links: newLinksString };
+            }
+            return p;
+        });
         setParticipants(updatedParticipants);
     };
     
@@ -153,15 +168,22 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                 <CharacterCounter value={participant.dislikes} fieldName="dislikes" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">Wishlist Links (Optional)</label>
-                                <textarea
-                                    placeholder="Paste one link per line"
-                                    value={participant.links}
-                                    onChange={(e) => handleParticipantChange(participant.id, 'links', e.target.value)}
-                                    className="w-full p-2 border border-slate-300 rounded-md text-sm"
-                                    rows={2}
-                                />
-                                <CharacterCounter value={participant.links} fieldName="links" />
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Top 5 Wishlist Links (Optional)</label>
+                                <div className="space-y-2">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <input
+                                            key={i}
+                                            type="text"
+                                            placeholder={`Link #${i + 1} (e.g., Amazon, Etsy)`}
+                                            value={(participant.links.split('\n')[i] || '')}
+                                            onChange={(e) => handleLinkChange(participant.id, i, e.target.value)}
+                                            className="w-full p-2 border border-slate-300 rounded-md text-sm"
+                                        />
+                                    ))}
+                                </div>
+                                <div className="text-xs text-slate-400 mt-1">
+                                    <span>Paste one link per box.</span>
+                                </div>
                             </div>
                              <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget</label>
@@ -177,7 +199,14 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                     )}
                 </div>
             ))}
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="mt-6 p-4 bg-sky-50 text-sky-900 rounded-lg border border-sky-200 flex items-start gap-4">
+                <Lightbulb className="w-8 h-8 flex-shrink-0 text-sky-500 mt-1" />
+                <div>
+                    <h4 className="font-bold">Pro Tip: Let them update their own wishlists!</h4>
+                    <p className="text-sm mt-1">After you generate matches, each person can use their private link to update their gift ideas and wishlists at any time. No more chasing people for updates!</p>
+                </div>
+            </div>
+            <div className="flex flex-wrap gap-4 pt-6">
                 <button onClick={addParticipant} className="py-2 px-4 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-semibold rounded-lg transition-colors shadow">Add Person</button>
                 <button onClick={onBulkAddClick} className="py-2 px-4 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg transition-colors">Bulk Add from List</button>
                 <button onClick={onClearClick} className="py-2 px-4 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg transition-colors">Clear</button>

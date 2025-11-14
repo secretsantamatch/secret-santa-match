@@ -25,6 +25,14 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         setWishlist(prev => ({ ...prev, [field]: value }));
     };
 
+    const handleLinkChange = (index: number, value: string) => {
+        const links = wishlist.links.split('\n');
+        while (links.length < 5) links.push('');
+        links[index] = value;
+        const newLinksString = links.slice(0, 5).join('\n');
+        setWishlist(prev => ({ ...prev, links: newLinksString }));
+    };
+
     const handleSave = async () => {
         trackEvent('wishlist_save_attempt');
         setIsSaving(true);
@@ -102,14 +110,22 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Wishlist Links (for affiliates)</label>
-                        <textarea
-                            placeholder="Paste one link per line"
-                            value={wishlist.links}
-                            onChange={(e) => handleChange('links', e.target.value)}
-                            className="w-full p-2 border border-slate-300 rounded-md"
-                            rows={2}
-                        />
+                        <label className="block text-sm font-medium text-slate-600 mb-1">Top 5 Wishlist Links (for affiliates)</label>
+                        <div className="space-y-2">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <input
+                                    key={i}
+                                    type="text"
+                                    placeholder={`Link #${i + 1} (e.g., Amazon, Etsy)`}
+                                    value={(wishlist.links.split('\n')[i] || '')}
+                                    onChange={(e) => handleLinkChange(i, e.target.value)}
+                                    className="w-full p-2 border border-slate-300 rounded-md"
+                                />
+                            ))}
+                        </div>
+                         <div className="text-xs text-slate-400 mt-1">
+                            <span>Paste one link per box. Your Santa will see these.</span>
+                        </div>
                     </div>
                      <div>
                         <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget</label>
