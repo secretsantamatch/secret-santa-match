@@ -1,7 +1,5 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-// FIX: Imported HookData type to resolve a TypeScript build error.
-import type { HookData } from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import type { ExchangeData } from '../types';
 
@@ -127,8 +125,9 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
                     fillColor: '#f8fafc',
                 },
             },
-            // FIX: Explicitly typed the 'data' parameter to prevent 'implicit any' error.
-            didDrawPage: (data: HookData) => {
+            // FIX: Reverted HookData import and typed 'data' as 'any' to resolve build error.
+            // The installed version of jspdf-autotable does not export this type.
+            didDrawPage: (data: any) => {
                 // This space is for content on new pages, footer is added at the end.
             }
         });
