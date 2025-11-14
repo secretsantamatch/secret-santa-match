@@ -165,9 +165,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 isOpen={isShuffleModalOpen}
                 onClose={() => setIsShuffleModalOpen(false)}
                 onConfirm={executeShuffle}
-                title="Are you sure you want to shuffle again?"
+                title="Are you sure you want to shuffle?"
                 message="This will generate a new set of matches for everyone. Any links you've already shared will show the new results."
-                confirmText="Yes, Shuffle Again"
+                confirmText="Yes, Shuffle"
                 cancelText="Cancel"
             />
             <Header />
@@ -184,7 +184,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                 </button>
                                 <button onClick={() => { trackEvent('shuffle_again_click'); setIsShuffleModalOpen(true); }} disabled={isShuffling} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait">
                                     {isShuffling ? <Loader2 size={20} className="animate-spin" /> : <Shuffle size={20} />}
-                                    {isShuffling ? 'Shuffling...' : 'Shuffle Again'}
+                                    {isShuffling ? 'Shuffling...' : 'Shuffle'}
                                 </button>
                             </div>
                         </div>
@@ -192,7 +192,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                         <div className="bg-amber-50 p-6 rounded-2xl border-2 border-dashed border-amber-300 text-center">
                              <h2 className="text-2xl font-bold text-amber-900">Your Organizer Master Link</h2>
                             <p className="text-amber-800 mt-2 mb-4 text-base">
-                                <strong className="text-red-700 font-extrabold">Important:</strong> Save this link! It's the only way to get back to this page.
+                                <strong className="text-red-700 font-extrabold">Important:</strong> Save this link! It's the only way to get back to this page. If you lose it, you will have to start over.
                             </p>
                             <div className="max-w-md mx-auto flex items-center gap-2">
                                 <input type="text" readOnly value={shortOrganizerLink || 'Generating link...'} className="w-full p-2 border border-amber-300 rounded-md bg-white text-sm truncate" />
