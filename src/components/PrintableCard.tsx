@@ -118,7 +118,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div
-        className="absolute inset-0 flex flex-col items-center justify-start pt-12 sm:pt-20 px-4 sm:px-12 md:px-16 pb-12 sm:pb-16 text-center overflow-y-auto"
+        className="absolute inset-0 flex flex-col items-center justify-center py-12 sm:py-16 px-4 sm:px-12 md:px-16 text-center overflow-y-auto"
         style={{ color: txtColor, textShadow, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
