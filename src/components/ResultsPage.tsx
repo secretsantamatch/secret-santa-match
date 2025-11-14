@@ -190,8 +190,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                         </div>
 
                         <div className="bg-amber-50 p-6 rounded-2xl border-2 border-dashed border-amber-300 text-center">
-                             <h2 className="text-xl font-bold text-amber-900">Your Organizer Master Link</h2>
-                            <p className="text-amber-800 mt-1 mb-4 text-sm"><strong>Important:</strong> Save this link! It's the only way to get back to this page.</p>
+                             <h2 className="text-2xl font-bold text-amber-900">Your Organizer Master Link</h2>
+                            <p className="text-amber-800 mt-2 mb-4 text-base">
+                                <strong className="text-red-700 font-extrabold">Important:</strong> Save this link! It's the only way to get back to this page.
+                            </p>
                             <div className="max-w-md mx-auto flex items-center gap-2">
                                 <input type="text" readOnly value={shortOrganizerLink || 'Generating link...'} className="w-full p-2 border border-amber-300 rounded-md bg-white text-sm truncate" />
                                 <button onClick={handleCopyOrganizerLink} disabled={!shortOrganizerLink} className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-md transition-colors flex-shrink-0 disabled:opacity-50">
