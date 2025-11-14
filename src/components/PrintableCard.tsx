@@ -118,7 +118,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div
-        className="absolute inset-0 flex flex-col items-center justify-center py-12 sm:py-16 px-4 sm:px-12 md:px-16 text-center overflow-y-auto"
+        className="absolute inset-0 flex flex-col items-center justify-evenly py-12 sm:py-16 px-4 sm:px-12 md:px-16 text-center"
         style={{ color: txtColor, textShadow, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
@@ -131,7 +131,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         </header>
 
         {/* Receiver Name */}
-        <main className="my-2" style={{ lineHeight: 1.1 }}>
+        <main style={{ lineHeight: 1.1 }}>
           <h2 className={`font-bold ${fontFamilies.classic} ${getReceiverNameFontSize()}`}>
             {receiverName}
           </h2>
