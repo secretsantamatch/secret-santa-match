@@ -11,12 +11,6 @@ type jsPDFWithAutoTable = jsPDF & {
   autoTable: (options: any) => jsPDF;
 };
 
-const A4_WIDTH_MM = 210;
-const A4_HEIGHT_MM = 297;
-const CARD_WIDTH_IN = 4;
-const CARD_HEIGHT_IN = 6;
-const IN_TO_MM = 25.4;
-
 const addPageWatermark = (pdf: jsPDF) => {
     const pageCount = (pdf.internal as any).getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
@@ -33,7 +27,12 @@ const addPageWatermark = (pdf: jsPDF) => {
 };
 
 export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<void> => {
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    // Updated PDF to be US Letter (11x8.5 inches) in landscape orientation.
+    const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'in',
+        format: 'letter'
+    });
     const cardElements = document.querySelectorAll<HTMLDivElement>('.printable-card-container');
 
     if (cardElements.length === 0) {
@@ -55,16 +54,21 @@ export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<v
         
         const imgData = canvas.toDataURL('image/png');
         
-        const cardWidthMM = CARD_WIDTH_IN * IN_TO_MM;
-        const cardHeightMM = CARD_HEIGHT_IN * IN_TO_MM;
+        const PAGE_WIDTH_IN = 11;
+        const PAGE_HEIGHT_IN = 8.5;
 
-        const x = (A4_WIDTH_MM - cardWidthMM) / 2;
-        const y = (A4_HEIGHT_MM - cardHeightMM) / 2;
+        // The card's aspect ratio is maintained. Fit it to the page height to maximize size.
+        const cardHeight = PAGE_HEIGHT_IN;
+        const cardWidth = cardHeight * (canvas.width / canvas.height); // Use actual canvas aspect ratio
 
-        pdf.addImage(imgData, 'PNG', x, y, cardWidthMM, cardHeightMM);
+        // Center the card image on the page
+        const x = (PAGE_WIDTH_IN - cardWidth) / 2;
+        const y = (PAGE_HEIGHT_IN - cardHeight) / 2;
+
+        pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
     }
     
-    addPageWatermark(pdf);
+    // Watermark and page number removed per user request.
     pdf.save('Secret_Santa_Cards.pdf');
 };
 
