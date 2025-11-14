@@ -174,10 +174,14 @@ export const generatePartyPackPdf = async (): Promise<void> => {
 
     // Helper to add a consistent footer
     const addFooter = (pageNumber: number, totalPages: number) => {
+        // FIX: Pages with full-page borders (Title, Awards) need a higher footer to prevent overlap.
+        const isBorderedPage = [1, 7, 8, 9].includes(pageNumber);
+        const yPos = isBorderedPage ? PAGE_HEIGHT - 12 : PAGE_HEIGHT - 8;
+
         pdf.setFontSize(9);
         pdf.setFont('helvetica', 'italic');
         pdf.setTextColor(150);
-        pdf.text(`SecretSantaMatch.com Party Pack | Page ${pageNumber} of ${totalPages}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 8, { align: 'center' });
+        pdf.text(`SecretSantaMatch.com Party Pack | Page ${pageNumber} of ${totalPages}`, PAGE_WIDTH / 2, yPos, { align: 'center' });
     };
 
     // --- PAGE 1: TITLE PAGE ---
