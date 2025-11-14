@@ -23,6 +23,33 @@ interface PrintableCardProps {
   showLinks?: boolean;
 }
 
+// A single, unified set of scaling functions that return pixel-based font sizes
+const getHeaderFontSize = (len: number): string => {
+    if (len > 45) return '11px';
+    if (len > 35) return '13px';
+    if (len > 28) return '15px';
+    return '17px';
+};
+
+const getReceiverNameFontSize = (len: number): string => {
+    if (len > 28) return '28px';
+    if (len > 24) return '34px';
+    if (len > 20) return '42px';
+    if (len > 16) return '50px';
+    if (len > 13) return '60px';
+    if (len > 10) return '72px';
+    return '80px';
+};
+
+const getWishlistFontSize = (len: number): string => {
+    if (len > 200) return '9px';
+    if (len > 150) return '10px';
+    if (len > 120) return '11px';
+    if (len > 90) return '12px';
+    return '14px';
+};
+
+
 const PrintableCard: React.FC<PrintableCardProps> = ({
   match,
   eventDetails,
@@ -46,7 +73,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const { giver, receiver } = match;
 
   const backgroundUrl = bgImg || backgroundOptions.find(opt => opt.id === bgId)?.imageUrl || '';
-  const showWatermark = bgId === 'custom';
+  const showWatermark = bgId === 'custom' || bgId === 'plain-white'; // Also show for plain white
 
   const fontFamilies: Record<FontTheme, string> = {
     classic: "'Playfair Display', serif",
@@ -70,63 +97,12 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const receiverName = isNameRevealed ? receiver.name : '????????';
   const formattedGreeting = greet.replace('{secret_santa}', giver.name);
 
-  // Auto-sizing logic for adaptive text
+  // Character lengths for dynamic scaling
   const greetingLength = formattedGreeting.length;
   const introLength = intro.length;
   const receiverNameLength = receiverName.length;
   const wishlistContent = [receiver.interests, receiver.likes, receiver.dislikes, receiver.budget].join(' ');
   const wishlistLength = wishlistContent.length;
-
-  // --- FONT SIZING FOR LIVE PREVIEW (TAILWIND) ---
-  const getHeaderFontSize = () => {
-    const maxLength = Math.max(greetingLength, introLength);
-    if (maxLength > 45) return 'text-[0.6rem]';
-    if (maxLength > 38) return 'text-[0.7rem]';
-    if (maxLength > 30) return 'text-xs';
-    if (maxLength > 22) return 'text-sm';
-    return fontSize === 'normal' ? 'text-sm' : 'text-base';
-  };
-  
-  const getReceiverNameFontSize = () => {
-    if (receiverNameLength > 28) return 'text-xl';
-    if (receiverNameLength > 22) return 'text-2xl';
-    if (receiverNameLength > 18) return 'text-3xl';
-    if (receiverNameLength > 14) return 'text-4xl';
-    if (receiverNameLength > 10) return 'text-5xl';
-    if (receiverNameLength > 8) return 'text-6xl';
-    if (fontSize === 'large') return 'text-7xl';
-    if (fontSize === 'extra-large') return 'text-8xl';
-    return 'text-6xl';
-  };
-  
-  const getWishlistFontSize = () => {
-    if (wishlistLength > 200) return 'text-[8px]';
-    if (wishlistLength > 150) return 'text-[9px]';
-    if (wishlistLength > 120) return 'text-[10px]';
-    if (wishlistLength > 90) return 'text-xs';
-    if (wishlistLength > 60) return 'text-sm';
-    return fontSize === 'normal' ? 'text-sm' : 'text-base';
-  };
-  
-  // --- FONT SIZING FOR PDF (INLINE STYLES) ---
-  const getGreetingPdfFontSize = (len: number) => {
-    if (len > 45) return '16px';
-    if (len > 30) return '18px';
-    return '22px';
-  };
-  
-  const getReceiverNamePdfFontSize = (len: number) => {
-    if (len > 25) return '40px';
-    if (len > 20) return '50px';
-    if (len > 15) return '60px';
-    return '72px';
-  };
-
-  const getWishlistPdfFontSize = (len: number) => {
-    if (len > 200) return '12px';
-    if (len > 120) return '14px';
-    return '16px';
-  };
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
     if (!value || value.trim() === '') return null;
@@ -135,27 +111,22 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   
   const hasLinks = Array.isArray(receiver.links) && receiver.links.some(link => link && link.trim() !== '');
 
-  // Conditional styles and classes for PDF vs. Live Preview
-  const containerClasses = `absolute inset-0 flex flex-col items-center text-center ${!isForPdf ? 'justify-evenly' : ''} py-12 px-12`;
-
-  const headerStyle = isForPdf ? { flexGrow: 1, display: 'flex', alignItems: 'flex-end', paddingBottom: '0.5rem' } : {};
-  const receiverNameContainerStyle = isForPdf ? { flexGrow: 1.2, display: 'flex', alignItems: 'center' } : {};
-  const wishlistContainerStyle = isForPdf ? { flexGrow: 1.5, display: 'flex', alignItems: 'flex-start', width: '90%' } : {};
-
   return (
     <div 
-        className={`printable-card-container w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-lg relative bg-cover bg-center ${isForPdf ? '' : 'transition-all duration-300'}`} 
+        className={`printable-card-container w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-lg relative bg-cover bg-center transition-all duration-300`} 
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
-      <div className={containerClasses} style={{ color: txtColor, textShadow, fontFamily: fontFamilies[font] }}>
-        
+      <div 
+        className="absolute inset-0 flex flex-col items-center text-center justify-evenly p-[12%]"
+        style={{ color: txtColor, textShadow, fontFamily: fontFamilies[font] }}
+      >
         {/* Header */}
-        <div style={headerStyle}>
+        <div>
           <header 
-            className={!isForPdf ? getHeaderFontSize() : 'whitespace-nowrap'}
+            className="whitespace-nowrap"
             style={{ 
                 lineHeight: line,
-                fontSize: isForPdf ? getGreetingPdfFontSize(Math.max(greetingLength, introLength)) : undefined,
+                fontSize: getHeaderFontSize(Math.max(greetingLength, introLength)),
             }}
           >
             <p className="font-bold">{formattedGreeting}</p>
@@ -164,11 +135,11 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         </div>
 
         {/* Receiver Name */}
-        <div style={receiverNameContainerStyle}>
+        <div>
             <main style={{ lineHeight: 1.1 }}>
             <h2 
-                className={`font-bold whitespace-nowrap ${fontFamilies.classic} ${!isForPdf ? getReceiverNameFontSize() : ''}`}
-                style={{ fontSize: isForPdf ? getReceiverNamePdfFontSize(receiverNameLength) : undefined }}
+                className={`font-bold whitespace-nowrap ${fontFamilies.classic}`}
+                style={{ fontSize: getReceiverNameFontSize(receiverNameLength) }}
             >
                 {receiverName}
             </h2>
@@ -176,17 +147,17 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         </div>
 
         {/* Wishlist */}
-        <div style={wishlistContainerStyle}>
+        <div className="w-full">
             {isNameRevealed && (
             <div 
-                className={`w-full space-y-1 ${!isForPdf ? getWishlistFontSize() : ''}`}
+                className="w-full"
                 style={{ 
                     lineHeight: line,
-                    fontSize: isForPdf ? getWishlistPdfFontSize(wishlistLength) : undefined
+                    fontSize: getWishlistFontSize(wishlistLength)
                 }}
             >
-                <h3 className="font-bold text-lg mb-1" style={{ fontSize: isForPdf ? '24px' : undefined }}>{wish}</h3>
-                <ul className="list-none text-left inline-block space-y-1 max-w-full">
+                <h3 className="font-bold text-lg mb-1" style={{fontSize: '1.2em'}}>{wish}</h3>
+                <ul className="list-none text-left inline-block space-y-0.5 max-w-full">
                     {renderWishlistItem('Interests', receiver.interests)}
                     {renderWishlistItem('Likes', receiver.likes)}
                     {renderWishlistItem('Dislikes', receiver.dislikes)}
@@ -195,18 +166,18 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 
                 {hasLinks && showLinks && (
                     <div className="mt-2 text-left max-w-full inline-block">
-                        <h4 className="font-bold text-center">Wishlist Links:</h4>
+                        <h4 className="font-bold text-center" style={{fontSize: '1.1em'}}>Wishlist Links:</h4>
                         <div className="space-y-2 mt-1">{receiver.links.map((link, index) => (link.trim() ? <LinkPreview key={index} url={link} isForPdf={isForPdf} /> : null))}</div>
                     </div>
                 )}
 
-                {eventDetails && <p className="text-sm opacity-90 break-words mt-4" style={{fontSize: isForPdf ? '14px' : undefined}}>{eventDetails}</p>}
+                {eventDetails && <p className="opacity-90 break-words mt-4" style={{fontSize: '0.9em'}}>{eventDetails}</p>}
             </div>
             )}
         </div>
         
         <div className="absolute bottom-4 left-0 right-0 px-4 text-center">
-             {showWatermark && <p className="text-xs opacity-70">SecretSantaMatch.com</p>}
+             <p className="text-xs opacity-70" style={{ color: txtColor, textShadow }}>SecretSantaMatch.com</p>
         </div>
       </div>
     </div>
