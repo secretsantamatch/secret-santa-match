@@ -23,27 +23,6 @@ interface PrintableCardProps {
   showLinks?: boolean;
 }
 
-// A component to render text that auto-shrinks to fit a single line.
-const ScalableText: React.FC<{ text: string, style: React.CSSProperties }> = ({ text, style }) => {
-  return (
-    <svg width="100%" height="100%" viewBox="0 0 1000 100" preserveAspectRatio="xMidYMid meet">
-      <text
-        x="50%"
-        y="50%"
-        dominantBaseline="central"
-        textAnchor="middle"
-        style={style}
-        // This is the magic part: it tells the SVG to shrink the text to fit if it's too long.
-        textLength="1000"
-        lengthAdjust="spacingAndGlyphs"
-      >
-        {text}
-      </text>
-    </svg>
-  );
-};
-
-
 const PrintableCard: React.FC<PrintableCardProps> = ({
   match,
   eventDetails,
@@ -80,6 +59,26 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const receiverName = isNameRevealed ? receiver.name : '????????';
   const formattedGreeting = greet.replace('{secret_santa}', giver.name);
 
+  // --- FONT SCALING LOGIC ---
+  const baseFontSizeMap: Record<FontSizeSetting, { header: number, name: number, wishlist: number, event: number }> = {
+    'normal': { header: 3, name: 10, wishlist: 2.2, event: 2 },
+    'large': { header: 3.4, name: 11, wishlist: 2.4, event: 2.2 },
+    'extra-large': { header: 3.8, name: 12, wishlist: 2.6, event: 2.4 },
+  };
+  const baseSizes = baseFontSizeMap[fontSize];
+
+  // Function to calculate scaled font size to prevent overflow
+  const getScaledFontSize = (baseVmin: number, text: string, maxLengthThreshold: number) => {
+    const scaleFactor = text.length > maxLengthThreshold ? maxLengthThreshold / text.length : 1;
+    const finalSize = baseVmin * Math.max(scaleFactor, 0.5); // Don't let it get too small
+    return `${finalSize}vmin`;
+  };
+
+  const headerFontSize = getScaledFontSize(baseSizes.header, formattedGreeting, 25);
+  const introFontSize = getScaledFontSize(baseSizes.header * 0.8, intro, 35);
+  const nameFontSize = getScaledFontSize(baseSizes.name, receiverName, 15);
+  // --- END FONT SCALING ---
+
   const renderWishlistItem = (label: string, value: string | undefined) => {
     if (!value || value.trim() === '') return null;
     return <li className="break-words"><strong className="font-semibold">{label}:</strong> <span>{value}</span></li>;
@@ -87,45 +86,32 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   
   const hasLinks = Array.isArray(receiver.links) && receiver.links.some(link => link && link.trim() !== '');
 
-  const baseFontSizeMap: Record<FontSizeSetting, { header: string, name: string, wishlist: string, event: string }> = {
-    'normal': { header: '3vmin', name: '11vmin', wishlist: '2.4vmin', event: '2vmin' },
-    'large': { header: '3.4vmin', name: '12vmin', wishlist: '2.6vmin', event: '2.2vmin' },
-    'extra-large': { header: '3.8vmin', name: '13vmin', wishlist: '2.8vmin', event: '2.4vmin' },
-  };
-  const baseSizes = baseFontSizeMap[fontSize];
-
-  const commonTextStyle = { fill: txtColor, textShadow };
-
   return (
     <div 
         className={`w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-lg relative bg-cover bg-center transition-all duration-300`} 
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div 
-        className="absolute inset-0 flex flex-col items-center text-center p-[8%] gap-y-2"
+        className="absolute inset-0 flex flex-col items-center justify-evenly text-center p-[8%]"
         style={{ color: txtColor, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
-        <div className="w-full flex-[1.5] flex flex-col justify-center" style={{ lineHeight: line }}>
-            <div className="h-[45%] w-full">
-                <ScalableText text={formattedGreeting} style={{ ...commonTextStyle, fontFamily: fontFamilies[font], fontSize: '70px', fontWeight: 'bold' }}/>
-            </div>
-             <div className="h-[40%] w-full">
-                <ScalableText text={intro} style={{ ...commonTextStyle, fontFamily: fontFamilies[font], fontSize: '50px' }}/>
-            </div>
+        <div style={{ lineHeight: line }}>
+            <p style={{ fontSize: headerFontSize, textShadow, whiteSpace: 'nowrap' }} className="font-bold">{formattedGreeting}</p>
+            <p style={{ fontSize: introFontSize, textShadow, whiteSpace: 'nowrap' }}>{intro}</p>
         </div>
 
         {/* Receiver Name */}
-        <div className="w-full flex-[2] flex items-center justify-center">
-             <ScalableText text={receiverName} style={{ ...commonTextStyle, fontFamily: fontFamilies.classic, fontSize: '100px', fontWeight: 'bold' }}/>
+        <div style={{ fontFamily: fontFamilies.classic, fontWeight: 'bold' }}>
+             <p style={{ fontSize: nameFontSize, textShadow, whiteSpace: 'nowrap' }}>{receiverName}</p>
         </div>
 
-        {/* Wishlist */}
-        <div className="w-full max-h-[45%] flex-[4] flex flex-col justify-start overflow-hidden text-left" style={{ lineHeight: 1.3 }}>
+        {/* Wishlist & Details - This container allows internal scrolling if content overflows */}
+        <div className="w-full text-left self-center min-h-0" style={{ lineHeight: 1.4 }}>
             {isNameRevealed && (
-            <div className="w-full h-full overflow-y-auto">
-                <h3 className="font-bold text-center" style={{fontSize: baseSizes.header, textShadow }}>{wish}</h3>
-                <ul className="list-none space-y-0.5 mt-1" style={{ fontSize: baseSizes.wishlist, textShadow }}>
+            <div className="overflow-y-auto max-h-full px-2">
+                <h3 className="font-bold text-center" style={{fontSize: `${baseSizes.header}vmin`, textShadow, marginBottom: '0.25em' }}>{wish}</h3>
+                <ul className="list-none space-y-0" style={{ fontSize: `${baseSizes.wishlist}vmin`, textShadow }}>
                     {renderWishlistItem('Interests', receiver.interests)}
                     {renderWishlistItem('Likes', receiver.likes)}
                     {renderWishlistItem('Dislikes', receiver.dislikes)}
@@ -134,12 +120,12 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 
                 {hasLinks && showLinks && (
                     <div className="mt-2">
-                        <h4 className="font-bold text-center" style={{fontSize: baseSizes.header, textShadow}}>Wishlist Links:</h4>
+                        <h4 className="font-bold text-center" style={{fontSize: `${baseSizes.header}vmin`, textShadow}}>Wishlist Links:</h4>
                         <div className="space-y-1 mt-1">{receiver.links.map((link, index) => (link.trim() ? <LinkPreview key={index} url={link} isForPdf={isForPdf} /> : null))}</div>
                     </div>
                 )}
 
-                {eventDetails && <p className="text-center opacity-90 break-words mt-2" style={{fontSize: baseSizes.event, textShadow }}>{eventDetails}</p>}
+                {eventDetails && <p className="text-center opacity-90 break-words mt-2" style={{fontSize: `${baseSizes.event}vmin`, textShadow }}>{eventDetails}</p>}
             </div>
             )}
         </div>
