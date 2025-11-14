@@ -80,38 +80,41 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const getHeaderFontSize = () => {
     const maxLength = Math.max(greetingLength, introLength);
     // More aggressive scaling for header text
-    if (maxLength > 40) return 'text-xs';  // 12px
-    if (maxLength > 30) return 'text-sm';  // 14px
-    if (maxLength > 22) return 'text-base'; // 16px
+    if (maxLength > 45) return 'text-[10px]';
+    if (maxLength > 38) return 'text-xs';
+    if (maxLength > 30) return 'text-sm';
+    if (maxLength > 22) return 'text-base';
     
-    if (fontSize === 'extra-large') return 'text-xl';
+    if (fontSize === 'extra-large') return 'text-lg';
     if (fontSize === 'large') return 'text-lg';
-    return 'text-lg'; // 18px
+    return 'text-base';
   };
   
   const getReceiverNameFontSize = () => {
-    // Aggressive scaling to prevent wrapping of long names
-    if (receiverNameLength > 25) return 'text-2xl'; 
-    if (receiverNameLength > 20) return 'text-3xl'; 
-    if (receiverNameLength > 15) return 'text-4xl'; 
-    if (receiverNameLength > 10) return 'text-5xl'; 
+    // More aggressive scaling to prevent wrapping of long names
+    if (receiverNameLength > 28) return 'text-lg';
+    if (receiverNameLength > 22) return 'text-xl';
+    if (receiverNameLength > 18) return 'text-2xl';
+    if (receiverNameLength > 14) return 'text-3xl';
+    if (receiverNameLength > 10) return 'text-4xl';
+    if (receiverNameLength > 8) return 'text-5xl';
     
-    // Default for short names
     let baseSize = 'text-6xl';
-    if(fontSize === 'large') baseSize = 'text-7xl';
-    if(fontSize === 'extra-large') baseSize = 'text-7xl';
+    if (fontSize === 'large') baseSize = 'text-6xl';
+    if (fontSize === 'extra-large') baseSize = 'text-7xl';
     return baseSize;
   };
   
   const getWishlistFontSize = () => {
     // This function provides more granular control over font size based on content length
     // to prevent awkward wrapping.
-    if (wishlistLength > 140) return 'text-[9px]';
-    if (wishlistLength > 110) return 'text-[10px]';
-    if (wishlistLength > 80) return 'text-[11px]';
+    if (wishlistLength > 150) return 'text-[8px]';
+    if (wishlistLength > 120) return 'text-[9px]';
+    if (wishlistLength > 90) return 'text-[10px]';
+    if (wishlistLength > 60) return 'text-[11px]';
 
     // Base sizes from user settings
-    if (fontSize === 'extra-large') return 'text-base'; // 16px
+    if (fontSize === 'extra-large') return 'text-sm'; // 14px
     if (fontSize === 'large') return 'text-sm'; // 14px
     return 'text-xs'; // 12px
   };
@@ -156,11 +159,11 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         {/* Wishlist */}
         {isNameRevealed && (
           <div 
-            className={`space-y-1 ${getWishlistFontSize()}`}
+            className={`w-full space-y-1 ${getWishlistFontSize()}`}
             style={{ lineHeight: line }}
           >
             <h3 className="font-bold text-lg mb-1">{wish}</h3>
-            <ul className="list-none text-left inline-block space-y-0">
+            <ul className="list-none text-left inline-block space-y-0 max-w-full">
               {renderWishlistItem('Interests', receiver.interests)}
               {renderWishlistItem('Likes', receiver.likes)}
               {renderWishlistItem('Dislikes', receiver.dislikes)}
@@ -168,7 +171,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             </ul>
             
             {hasLinks && showLinks && (
-                <div className="mt-2 text-left">
+                <div className="mt-2 text-left max-w-full inline-block">
                     <h4 className="font-bold text-center">Wishlist Links:</h4>
                     <div className="space-y-2 mt-1">
                         {receiver.links.map((link, index) => (
