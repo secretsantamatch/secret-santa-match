@@ -130,7 +130,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             
             {/* Wishlist and Event Details */}
             {isNameRevealed && (
-              <div className="w-full self-center mt-2">
+              <div className="w-full self-center mt-4">
                   <div className="text-center">
                       <h3 className="font-bold" style={{...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
                       <ul className="list-none space-y-0 p-0 m-0 inline-block text-left" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
