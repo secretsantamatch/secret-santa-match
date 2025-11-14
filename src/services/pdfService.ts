@@ -27,9 +27,9 @@ const addPageWatermark = (pdf: jsPDF) => {
 };
 
 export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<void> => {
-    // Updated PDF to be US Letter (11x8.5 inches) in landscape orientation.
+    // Create a US Letter (8.5x11 inches) PDF in portrait orientation.
     const pdf = new jsPDF({
-        orientation: 'landscape',
+        orientation: 'portrait',
         unit: 'in',
         format: 'letter'
     });
@@ -54,13 +54,28 @@ export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<v
         
         const imgData = canvas.toDataURL('image/png');
         
-        const PAGE_WIDTH_IN = 11;
-        const PAGE_HEIGHT_IN = 8.5;
+        const PAGE_WIDTH_IN = 8.5;
+        const PAGE_HEIGHT_IN = 11;
+        const MARGIN = 0.5; // 0.5 inch margin on each side
 
-        // The card's aspect ratio is maintained. Fit it to the page height to maximize size.
-        const cardHeight = PAGE_HEIGHT_IN;
-        const cardWidth = cardHeight * (canvas.width / canvas.height); // Use actual canvas aspect ratio
+        const availableWidth = PAGE_WIDTH_IN - (MARGIN * 2);
+        const availableHeight = PAGE_HEIGHT_IN - (MARGIN * 2);
 
+        const cardAspectRatio = canvas.width / canvas.height;
+        
+        let cardWidth, cardHeight;
+
+        // Determine scaling to fit within available space while maintaining aspect ratio
+        if ((availableWidth / availableHeight) > cardAspectRatio) {
+            // Fit to height
+            cardHeight = availableHeight;
+            cardWidth = availableHeight * cardAspectRatio;
+        } else {
+            // Fit to width
+            cardWidth = availableWidth;
+            cardHeight = availableWidth / cardAspectRatio;
+        }
+        
         // Center the card image on the page
         const x = (PAGE_WIDTH_IN - cardWidth) / 2;
         const y = (PAGE_HEIGHT_IN - cardHeight) / 2;
@@ -68,7 +83,7 @@ export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<v
         pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
     }
     
-    // Watermark and page number removed per user request.
+    // Watermark and page number are intentionally removed per user request.
     pdf.save('Secret_Santa_Cards.pdf');
 };
 
