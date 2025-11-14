@@ -13,6 +13,28 @@ interface ShareLinksModalProps {
   initialView?: string | null;
 }
 
+// FIX: Added image preloader function
+const preloadImages = (urls: string[]): Promise<void[]> => {
+    const promises = urls.map(url => {
+        return new Promise<void>((resolve) => {
+            if (!url) { // Handle empty URLs (e.g., plain white theme)
+                resolve();
+                return;
+            }
+            const img = new Image();
+            img.src = url;
+            img.onload = () => resolve();
+            img.onerror = () => {
+                // Resolve even on error to not block PDF generation entirely.
+                console.warn(`Could not preload image: ${url}`);
+                resolve(); 
+            };
+        });
+    });
+    return Promise.all(promises);
+};
+
+
 export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose, initialView }) => {
   const [activeTab, setActiveTab] = useState(initialView === 'print' ? 'downloads' : 'links');
   const [showFullLinks, setShowFullLinks] = useState(false);
@@ -33,6 +55,20 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
     giver: participants.find(p => p.id === m.g)!,
     receiver: participants.find(p => p.id === m.r)!,
   })).filter(m => m.giver && m.receiver), [matchIds, participants]);
+  
+  // FIX: Memoize the list of image URLs to preload
+  const imageUrlsToPreload = useMemo(() => {
+    const urls = new Set<string>();
+    const bgOption = exchangeData.backgroundOptions.find(opt => opt.id === exchangeData.bgId);
+    
+    if (exchangeData.bgId === 'custom' && exchangeData.customBackground) {
+        urls.add(exchangeData.customBackground);
+    } else if (bgOption?.imageUrl) {
+        urls.add(bgOption.imageUrl);
+    }
+    return Array.from(urls);
+  }, [exchangeData.bgId, exchangeData.customBackground, exchangeData.backgroundOptions]);
+
 
   const getFullLink = (participantId: string): string => `${window.location.origin}/generator.html#${compressedHash}?id=${participantId}`;
   const getFullOrganizerLink = (): string => `${window.location.origin}/generator.html#${compressedHash}`;
@@ -128,13 +164,16 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
   const handleDownload = async (type: 'cards' | 'master' | 'party') => {
     setLoadingPdf(type);
     try {
-        if (type === 'cards') await generateAllCardsPdf(exchangeData);
+        if (type === 'cards') {
+            await preloadImages(imageUrlsToPreload); // FIX: Wait for images to load
+            await generateAllCardsPdf(exchangeData);
+        }
         if (type === 'master') generateMasterListPdf(exchangeData);
         if (type === 'party') await generatePartyPackPdf();
         trackEvent('download_pdf', { type });
     } catch (error) {
         console.error(`Error generating ${type} PDF:`, error);
-        alert(`Sorry, there was an error generating the ${type} PDF. Please try again.`);
+        alert(`Sorry, there was an error generating the cards PDF. Please try again.`);
     } finally {
         setTimeout(() => setLoadingPdf(null), 1000);
     }
@@ -307,7 +346,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
       </div>
       <div style={{ position: 'absolute', left: '-9999px', top: 0, zIndex: -1 }}>
         {matches.map(match => (
-            <div key={match.giver.id} id={`card-for-pdf-${match.giver.id}`} className="w-[8.5in] h-[11in] p-[0.5in] box-border flex items-center justify-center">
+            <div key={match.giver.id} id={`card-for-pdf-${match.giver.id}`} className="printable-card-container w-[500px]">
                  <PrintableCard 
                     match={match} 
                     eventDetails={exchangeData.eventDetails} 
