@@ -91,14 +91,13 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
     
     const startY = exchangeData.eventDetails ? pdf.getTextDimensions(exchangeData.eventDetails).h + 35 : 30;
 
-    const head = [['Giver', 'Receiver', "Receiver's Wishlist & Details"]];
+    const head = [['Giver', 'Receiver', 'Budget', "Receiver's Wishlist & Details"]];
     
     const body = matches.map(match => {
         const { giver, receiver } = match;
         
         const formatReceiverDetails = (rec: Participant): string => {
             const details = [];
-            if (rec.budget?.trim()) details.push(`Budget: ${rec.budget}`);
             if (rec.interests?.trim()) details.push(`Interests: ${rec.interests}`);
             if (rec.likes?.trim()) details.push(`Likes: ${rec.likes}`);
             if (rec.dislikes?.trim()) details.push(`Dislikes: ${rec.dislikes}`);
@@ -114,6 +113,7 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
         return [
             giver.name,
             receiver.name,
+            receiver.budget || 'N/A',
             formatReceiverDetails(receiver)
         ];
     });
@@ -131,7 +131,8 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
         columnStyles: {
             0: { cellWidth: 40 },
             1: { cellWidth: 40 },
-            2: { cellWidth: 'auto' },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 'auto' },
         },
         didDrawPage: (data: any) => {
             // Footer is added at the end by addPageWatermark

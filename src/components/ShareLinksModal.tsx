@@ -145,23 +145,26 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
             <button 
                 onClick={() => handleDownload('cards')} 
                 disabled={!!loadingPdf} 
-                className="flex flex-col items-center justify-center gap-3 p-6 bg-emerald-100 hover:bg-emerald-200 rounded-2xl font-bold text-lg text-emerald-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md h-40">
+                className="flex flex-col items-center justify-center gap-2 p-6 bg-emerald-100 hover:bg-emerald-200 rounded-2xl font-bold text-lg text-emerald-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-40">
                 {loadingPdf === 'cards' ? <Loader2 className="animate-spin h-8 w-8" /> : <Download className="h-8 w-8" />}
                 <span>Download All Cards (PDF)</span>
+                <span className="text-sm font-normal text-emerald-700/80 mt-1">Download and print a card for each person.</span>
             </button>
             <button 
                 onClick={() => handleDownload('master')} 
                 disabled={!!loadingPdf} 
-                className="flex flex-col items-center justify-center gap-3 p-6 bg-sky-100 hover:bg-sky-200 rounded-2xl font-bold text-lg text-sky-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md h-40">
+                className="flex flex-col items-center justify-center gap-2 p-6 bg-sky-100 hover:bg-sky-200 rounded-2xl font-bold text-lg text-sky-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-40">
                 {loadingPdf === 'master' ? <Loader2 className="animate-spin h-8 w-8" /> : <FileText className="h-8 w-8" />}
                 <span>Download Master List (PDF)</span>
+                <span className="text-sm font-normal text-sky-700/80 mt-1">For the organizer. A list of all matches & wishlists.</span>
             </button>
             <button 
                 onClick={() => handleDownload('party')} 
                 disabled={!!loadingPdf} 
-                className="flex flex-col items-center justify-center gap-3 p-6 bg-violet-100 hover:bg-violet-200 rounded-2xl font-bold text-lg text-violet-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md h-40 md:col-span-2">
+                className="flex flex-col items-center justify-center gap-2 p-6 bg-violet-100 hover:bg-violet-200 rounded-2xl font-bold text-lg text-violet-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-40 md:col-span-2">
                 {loadingPdf === 'party' ? <Loader2 className="animate-spin h-8 w-8" /> : <PartyPopper className="h-8 w-8" />}
                 <span>Download Party Pack <span className="text-sm font-normal">(Coming Soon)</span></span>
+                <span className="text-sm font-normal text-violet-700/80 mt-1">Fun games and extras for your party.</span>
             </button>
         </div>
     </section>
