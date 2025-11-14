@@ -53,7 +53,7 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     }
 
     return (
-        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {/* Pre-defined Themes */}
             {backgroundOptions.map(option => (
                 <div

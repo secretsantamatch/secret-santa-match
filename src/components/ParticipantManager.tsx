@@ -174,7 +174,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                         <input
                                             key={i}
                                             type="text"
-                                            placeholder={`Link #${i + 1} (e.g., Amazon, Etsy)`}
+                                            placeholder={`e.g., https://www.amazon.com/wishlist/...`}
                                             value={(participant.links.split('\n')[i] || '')}
                                             onChange={(e) => handleLinkChange(participant.id, i, e.target.value)}
                                             className="w-full p-2 border border-slate-300 rounded-md text-sm"
@@ -182,7 +182,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     ))}
                                 </div>
                                 <div className="text-xs text-slate-400 mt-1">
-                                    <span>Paste one link per box.</span>
+                                    <span>Paste one full link (starting with https://) per box.</span>
                                 </div>
                             </div>
                              <div>
