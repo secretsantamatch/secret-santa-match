@@ -130,7 +130,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
     try {
         if (type === 'cards') await generateAllCardsPdf(exchangeData);
         if (type === 'master') generateMasterListPdf(exchangeData);
-        if (type === 'party') await generatePartyPackPdf(exchangeData);
+        if (type === 'party') await generatePartyPackPdf();
         trackEvent('download_pdf', { type });
     } catch (error) {
         console.error(`Error generating ${type} PDF:`, error);
@@ -167,7 +167,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                 disabled={!!loadingPdf} 
                 className="flex flex-col items-center justify-center gap-2 p-6 bg-violet-100 hover:bg-violet-200 rounded-2xl font-bold text-lg text-violet-800 disabled:opacity-50 transition-colors shadow-sm hover:shadow-md min-h-[170px] md:col-span-2">
                 {loadingPdf === 'party' ? <Loader2 className="animate-spin h-8 w-8" /> : <PartyPopper className="h-8 w-8" />}
-                <span>Download Party Pack <span className="text-sm font-normal">(Coming Soon)</span></span>
+                <span>Download Party Pack</span>
                 <span className="text-sm font-normal text-violet-700/80 mt-1">Fun games and extras for your in-person party.</span>
             </button>
         </div>
@@ -281,7 +281,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                 ></div>
                 <button
                     onClick={() => setActiveTab('links')}
-                    className={`relative z-10 flex-1 font-extrabold text-lg py-2 text-center transition-colors ${
+                    className={`relative z-10 flex flex-1 items-center justify-center font-extrabold text-lg py-2 transition-colors ${
                         activeTab === 'links' ? 'text-emerald-800' : 'text-slate-500'
                     }`}
                 >
@@ -289,7 +289,7 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                 </button>
                 <button
                     onClick={() => setActiveTab('downloads')}
-                    className={`relative z-10 flex-1 font-extrabold text-lg py-2 text-center transition-colors ${
+                    className={`relative z-10 flex flex-1 items-center justify-center font-extrabold text-lg py-2 transition-colors ${
                         activeTab === 'downloads' ? 'text-sky-800' : 'text-slate-500'
                     }`}
                 >

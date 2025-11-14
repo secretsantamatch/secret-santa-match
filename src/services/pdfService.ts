@@ -162,14 +162,218 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
     pdf.save('Secret_Santa_Master_List.pdf');
 };
 
-export const generatePartyPackPdf = async (exchangeData: ExchangeData): Promise<void> => {
-    const pdf = new jsPDF();
-    pdf.setFontSize(22);
-    pdf.text("Secret Santa Party Pack", 105, 20, { align: 'center' });
-    pdf.setFontSize(12);
-    pdf.text("Thank you for using SecretSantaMatch.com!", 105, 40, { align: 'center' });
-    pdf.text("More fun party pack features coming soon.", 105, 50, { align: 'center' });
+export const generatePartyPackPdf = async (): Promise<void> => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const PAGE_WIDTH = pdf.internal.pageSize.getWidth();
+    const PAGE_HEIGHT = pdf.internal.pageSize.getHeight();
+    const MARGIN = 15;
     
-    addPageWatermark(pdf);
+    const PRIMARY_RED = '#c62828';
+    const PRIMARY_GREEN = '#166534';
+    const GOLD_ACCENT = '#b49b69';
+
+    // Helper to add a consistent footer
+    const addFooter = (pageNumber: number, totalPages: number) => {
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'italic');
+        pdf.setTextColor(150);
+        pdf.text(`Secret Santa Party Pack | Page ${pageNumber} of ${totalPages}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 8, { align: 'center' });
+        pdf.text('From SecretSantaMatch.com', PAGE_WIDTH / 2, PAGE_HEIGHT - 4, { align: 'center' });
+    };
+
+    // --- PAGE 1: TITLE PAGE ---
+    pdf.deletePage(1); // Start with a fresh document
+    pdf.addPage();
+    pdf.setFillColor(PRIMARY_GREEN);
+    pdf.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, 'F');
+    pdf.setDrawColor(GOLD_ACCENT);
+    pdf.setLineWidth(1.5);
+    pdf.rect(MARGIN / 2, MARGIN / 2, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - MARGIN);
+    pdf.setTextColor('#FFFFFF');
+    pdf.setFont('times', 'bold');
+    pdf.setFontSize(40);
+    pdf.text('Secret Santa', PAGE_WIDTH / 2, PAGE_HEIGHT / 2 - 20, { align: 'center' });
+    pdf.setFontSize(60);
+    pdf.text('Party Pack', PAGE_WIDTH / 2, PAGE_HEIGHT / 2 + 10, { align: 'center' });
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(14);
+    pdf.text('Fun printables for your gift exchange!', PAGE_WIDTH / 2, PAGE_HEIGHT / 2 + 30, { align: 'center' });
+
+    // --- BINGO CARDS (6 UNIQUE CARDS, 2 PER PAGE) ---
+    const bingoPrompts = [
+        "Someone gets socks", "A gift is a mug", "Someone says 'I love it!'", "Gift is re-gifted", "Someone gets candy",
+        "Gift is handmade", "Wrapping paper is ripped, not torn", "Someone guesses their Santa", "A gift is a book",
+        "Someone gets a candle", "A gift is a gift card", "Someone says 'It's perfect!'", "Someone gets alcohol",
+        "A gift is an ornament", "A gift is an experience", "Someone is wearing a Santa hat", "A pet is involved in unwrapping",
+        "Someone takes a photo of their gift", "A gift is food-related", "Someone says 'Aww!'", "A gift is for the office",
+        "Someone asks 'Who had me?'", "A gift is a game", "Someone needs batteries (not included)"
+    ];
+    const shuffleArray = (arr: string[]) => arr.sort(() => Math.random() - 0.5);
+
+    for (let i = 0; i < 3; i++) {
+        pdf.addPage();
+        for (let j = 0; j < 2; j++) { // Two cards per page
+            const cardX = MARGIN;
+            const cardY = MARGIN + j * ((PAGE_HEIGHT - MARGIN * 2) / 2);
+            const cardWidth = PAGE_WIDTH - MARGIN * 2;
+            const cardHeight = (PAGE_HEIGHT - MARGIN * 2.5) / 2;
+            
+            pdf.setDrawColor(PRIMARY_RED);
+            pdf.setLineWidth(0.5);
+            pdf.rect(cardX, cardY, cardWidth, cardHeight);
+            pdf.setFont('times', 'bold');
+            pdf.setFontSize(24);
+            pdf.setTextColor(PRIMARY_RED);
+            pdf.text('SECRET SANTA BINGO', cardX + cardWidth / 2, cardY + 12, { align: 'center' });
+
+            const shuffledPrompts = shuffleArray([...bingoPrompts]);
+            const gridSize = 5;
+            const cellWidth = cardWidth / gridSize;
+            const cellHeight = (cardHeight - 20) / gridSize;
+
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    const x = cardX + col * cellWidth;
+                    const y = cardY + 20 + row * cellHeight;
+                    pdf.rect(x, y, cellWidth, cellHeight);
+                    
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setFontSize(8);
+                    pdf.setTextColor(0, 0, 0);
+
+                    let text = '';
+                    if (row === 2 && col === 2) {
+                        text = 'FREE SPACE\n(Gift Exchange Fun!)';
+                        pdf.setFont('helvetica', 'bold');
+                    } else {
+                        text = shuffledPrompts.pop() || '';
+                    }
+                    const textLines = pdf.splitTextToSize(text, cellWidth - 4);
+                    pdf.text(textLines, x + cellWidth / 2, y + cellHeight / 2, { align: 'center', baseline: 'middle' });
+                }
+            }
+        }
+    }
+
+    // --- GUESSING GAME PAGE ---
+    pdf.addPage();
+    pdf.setFont('times', 'bold');
+    pdf.setFontSize(28);
+    pdf.setTextColor(PRIMARY_RED);
+    pdf.text("Who's My Secret Santa?", PAGE_WIDTH / 2, MARGIN + 5, { align: 'center' });
+    pdf.setFontSize(12);
+    pdf.setTextColor(0,0,0);
+    pdf.text("Write down your guess before the big reveal!", PAGE_WIDTH / 2, MARGIN + 12, { align: 'center' });
+    
+    const cardRows = 3;
+    const cardCols = 2;
+    const guessCardWidth = (PAGE_WIDTH - MARGIN * 3) / cardCols;
+    const guessCardHeight = (PAGE_HEIGHT - MARGIN * 3 - 20) / cardRows;
+    pdf.setLineDashPattern([1, 1], 0);
+    for (let row = 0; row < cardRows; row++) {
+        for (let col = 0; col < cardCols; col++) {
+            const x = MARGIN + col * (guessCardWidth + MARGIN);
+            const y = MARGIN + 20 + row * (guessCardHeight + MARGIN);
+            pdf.setDrawColor(180);
+            pdf.rect(x, y, guessCardWidth, guessCardHeight);
+            
+            pdf.setFont('times', 'italic');
+            pdf.setFontSize(14);
+            pdf.setTextColor(PRIMARY_GREEN);
+            pdf.text("My Secret Santa Guess", x + guessCardWidth / 2, y + 10, { align: 'center' });
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(11);
+            pdf.setTextColor(0,0,0);
+            pdf.text("My Name:", x + 5, y + 25);
+            pdf.line(x + 25, y + 25, x + guessCardWidth - 5, y + 25);
+            pdf.text("I think my Santa is...", x + 5, y + 40);
+            pdf.line(x + 45, y + 40, x + guessCardWidth - 5, y + 40);
+        }
+    }
+    pdf.setLineDashPattern([], 0);
+
+    // --- GIFT TAGS PAGE ---
+    pdf.addPage();
+    pdf.setFont('times', 'bold');
+    pdf.setFontSize(28);
+    pdf.setTextColor(PRIMARY_GREEN);
+    pdf.text("Festive Gift Tags", PAGE_WIDTH / 2, MARGIN + 5, { align: 'center' });
+    pdf.setFontSize(12);
+    pdf.setTextColor(0,0,0);
+    pdf.text("Print on cardstock and cut out for best results.", PAGE_WIDTH / 2, MARGIN + 12, { align: 'center' });
+
+    const tagRows = 4;
+    const tagCols = 2;
+    const tagWidth = (PAGE_WIDTH - MARGIN * 3) / tagCols;
+    const tagHeight = (PAGE_HEIGHT - MARGIN * 3 - 20) / tagRows;
+    const tagDesigns = ["Merry Christmas!", "Happy Holidays!", "A Special Gift For You", "Do Not Open Until Dec 25th!"];
+    for (let row = 0; row < tagRows; row++) {
+        for (let col = 0; col < tagCols; col++) {
+             const x = MARGIN + col * (tagWidth + MARGIN);
+             const y = MARGIN + 20 + row * (tagHeight + MARGIN);
+             pdf.setDrawColor(180);
+             pdf.setFillColor(248, 250, 252);
+             pdf.roundedRect(x, y, tagWidth, tagHeight, 3, 3, 'FD');
+             
+             pdf.setFont('times', 'italic');
+             pdf.setFontSize(12);
+             pdf.setTextColor(PRIMARY_RED);
+             pdf.text(tagDesigns[(row*2+col)%tagDesigns.length], x + tagWidth / 2, y + 10, { align: 'center' });
+             
+             pdf.setFont('helvetica', 'normal');
+             pdf.setFontSize(11);
+             pdf.setTextColor(0,0,0);
+             pdf.text("To:", x + 8, y + 25);
+             pdf.line(x + 18, y + 25, x + tagWidth - 8, y + 25);
+             pdf.text("From: Your Secret Santa", x + 8, y + 35);
+        }
+    }
+    
+    // --- AWARD CERTIFICATES ---
+    const awards = [
+        { title: "The Funniest Gift", subtitle: "For the gift that brought the most laughter" },
+        { title: "The Most Creative Gift", subtitle: "For the most unique and imaginative present" },
+        { title: "The Best Wrapping Award", subtitle: "For the gift that was almost too pretty to open" },
+    ];
+
+    awards.forEach(award => {
+        pdf.addPage();
+        pdf.setDrawColor(GOLD_ACCENT);
+        pdf.setLineWidth(1.5);
+        pdf.rect(MARGIN / 2, MARGIN / 2, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - MARGIN);
+        pdf.setDrawColor(PRIMARY_RED);
+        pdf.setLineWidth(0.5);
+        pdf.rect(MARGIN / 2 + 2, MARGIN / 2 + 2, PAGE_WIDTH - MARGIN - 4, PAGE_HEIGHT - MARGIN - 4);
+        
+        pdf.setFont('times', 'bold');
+        pdf.setFontSize(22);
+        pdf.setTextColor(PRIMARY_GREEN);
+        pdf.text("Secret Santa Superlative", PAGE_WIDTH / 2, MARGIN + 20, { align: 'center' });
+
+        pdf.setFontSize(40);
+        pdf.setTextColor(PRIMARY_RED);
+        pdf.text(award.title, PAGE_WIDTH / 2, PAGE_HEIGHT / 2 - 20, { align: 'center' });
+
+        pdf.setFont('times', 'italic');
+        pdf.setFontSize(16);
+        pdf.setTextColor(0,0,0);
+        pdf.text(award.subtitle, PAGE_WIDTH / 2, PAGE_HEIGHT / 2 - 5, { align: 'center' });
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.text("Awarded to:", PAGE_WIDTH / 2, PAGE_HEIGHT / 2 + 30, { align: 'center' });
+        pdf.setDrawColor(0);
+        pdf.line(MARGIN + 30, PAGE_HEIGHT / 2 + 40, PAGE_WIDTH - MARGIN - 30, PAGE_HEIGHT / 2 + 40);
+
+        pdf.text("Presented by the Organizer", PAGE_WIDTH / 2, PAGE_HEIGHT - MARGIN - 20, { align: 'center' });
+    });
+    
+    // Add footers to all pages
+    const totalPages = pdf.internal.pages.length - 1;
+    for(let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        addFooter(i, totalPages);
+    }
+    
     pdf.save('Secret_Santa_Party_Pack.pdf');
 };
