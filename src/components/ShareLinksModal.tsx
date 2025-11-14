@@ -192,6 +192,17 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
                 </div>
             </div>
             
+            <div className="hidden md:grid grid-cols-[auto,1fr,auto] items-center gap-x-4 px-4 pb-2 text-xs text-slate-500 font-semibold">
+                <div />
+                <div />
+                <div className="flex items-center gap-1.5 ml-auto text-center">
+                    <div className="w-8">Copy</div>
+                    <div className="w-8">Text</div>
+                    <div className="w-8">Chat</div>
+                    <div className="w-8">QR</div>
+                </div>
+            </div>
+
             <div className="space-y-3">
                 {matches.map(({ giver }) => {
                     const isViewed = !!views?.[giver.id];
