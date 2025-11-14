@@ -208,32 +208,53 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                     </div>
                 ) : (
                     displayMatch && (
-                        <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                                <div className="w-full max-w-sm mx-auto">
-                                    <PrintableCard match={displayMatch} eventDetails={data.eventDetails} isNameRevealed={isNameRevealed} backgroundOptions={data.backgroundOptions} bgId={data.bgId} bgImg={data.customBackground} txtColor={data.textColor} outline={data.useTextOutline} outColor={data.outlineColor} outSize={data.outlineSize} fontSize={data.fontSizeSetting} font={data.fontTheme} line={data.lineSpacing} greet={data.greetingText} intro={data.introText} wish={data.wishlistLabelText}/>
-                                </div>
-                                <div className="text-center md:text-left">
-                                    <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
-                                    <p className="text-lg text-slate-600 mt-2">You're a Secret Santa! Here is your private card with your match's details.</p>
-                                    
-                                    {!isNameRevealed && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                            <div className="w-full max-w-sm mx-auto">
+                                <PrintableCard 
+                                    match={displayMatch} 
+                                    eventDetails={data.eventDetails} 
+                                    isNameRevealed={isNameRevealed} 
+                                    backgroundOptions={data.backgroundOptions} 
+                                    bgId={data.bgId} 
+                                    bgImg={data.customBackground} 
+                                    txtColor={data.textColor} 
+                                    outline={data.useTextOutline} 
+                                    outColor={data.outlineColor} 
+                                    outSize={data.outlineSize} 
+                                    fontSize={data.fontSizeSetting} 
+                                    font={data.fontTheme} 
+                                    line={data.lineSpacing} 
+                                    greet={data.greetingText} 
+                                    intro={data.introText} 
+                                    wish={data.wishlistLabelText}
+                                />
+                            </div>
+                            <div className="text-center md:text-left">
+                                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
+                                <p className="text-lg text-slate-600 mt-2">You're a Secret Santa! Here is your private card with your match's details.</p>
+                                
+                                {!isNameRevealed ? (
+                                    <>
                                         <button onClick={handleReveal} className="mt-8 w-full md:w-auto py-4 px-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl rounded-lg transition-transform transform hover:scale-105 shadow-lg">
                                             Click to Reveal Your Person!
                                         </button>
-                                    )}
-                                    {isNameRevealed && (
-                                        <div className="mt-8 space-y-4">
-                                            <div className="bg-white rounded-lg p-6 border text-left"><h3 className="font-bold text-lg text-slate-700">Your Person:</h3><p className="text-2xl font-bold text-red-600">{displayMatch.receiver.name}</p></div>
-                                            <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
-                                                Edit My Wishlist for My Santa
-                                            </button>
+                                        <div className="mt-8">
+                                            <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
                                         </div>
-                                    )}
-                                </div>
+                                    </>
+                                ) : (
+                                    <div className="mt-8 space-y-4">
+                                        <div className="bg-white rounded-lg p-6 border text-left">
+                                            <h3 className="font-bold text-lg text-slate-700">Your Person:</h3>
+                                            <p className="text-2xl font-bold text-red-600">{displayMatch.receiver.name}</p>
+                                        </div>
+                                        <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
+                                            Edit My Wishlist for My Santa
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <div className="mt-8"><AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" /></div>
-                        </>
+                        </div>
                     )
                 )}
             </main>
