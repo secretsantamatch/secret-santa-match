@@ -23,7 +23,7 @@ import AdBanner from './AdBanner';
 
 interface GeneratorPageProps {
   onComplete: (data: ExchangeData) => void;
-  // FIX: Add optional initialData prop for editing existing exchanges.
+  // FIX: Added optional initialData prop to support editing an existing exchange.
   initialData?: ExchangeData;
 }
 
@@ -61,39 +61,6 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     const [showCookieBanner, setShowCookieBanner] = useState(false);
 
     useEffect(() => {
-        // FIX: Handle both creating a new exchange and editing an existing one.
-        if (initialData) {
-            // Populate state from initialData for editing
-            setParticipants(initialData.p);
-            setExclusions(initialData.exclusions || []);
-            setAssignments(initialData.assignments || []);
-            setEventDetails(initialData.eventDetails);
-            setSelectedBackgroundId(initialData.bgId);
-            setCustomBackground(initialData.customBackground);
-            setTextColor(initialData.textColor);
-            setUseTextOutline(initialData.useTextOutline);
-            setOutlineColor(initialData.outlineColor);
-            setOutlineSize(initialData.outlineSize);
-            setFontSize(initialData.fontSizeSetting);
-            setFontTheme(initialData.fontTheme);
-            setLineSpacing(initialData.lineSpacing);
-            setGreetingText(initialData.greetingText);
-            setIntroText(initialData.introText);
-            setWishlistLabelText(initialData.wishlistLabelText);
-            setActiveStep(1); // Ensure editor starts at the first step
-        } else {
-            // Default state for creating a new exchange
-            setParticipants([
-                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-            ]);
-            setEventDetails('Gift exchange on Dec 25th!');
-            setGreetingText("Happy Holidays, {secret_santa}!");
-            setIntroText("You are the Secret Santa for...");
-            setWishlistLabelText("Gift Ideas & Wishlist");
-        }
-
         const consent = localStorage.getItem('cookie_consent');
         if (consent === null) setShowCookieBanner(true);
         else if (consent === 'true') trackEvent('page_view', { page_title: 'Generator' });
@@ -103,6 +70,37 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         fetch('/templates.json')
             .then(res => res.json()).then(data => setBackgroundOptions(data))
             .catch(err => console.error("Failed to load templates.json", err));
+
+        if (initialData) {
+            // Populate state from initialData for editing
+            setParticipants(initialData.p.length > 0 ? initialData.p : [ { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' } ]);
+            setExclusions(initialData.exclusions || []);
+            setAssignments(initialData.assignments || []);
+            setEventDetails(initialData.eventDetails || 'Gift exchange on Dec 25th!');
+            setSelectedBackgroundId(initialData.bgId || 'gift-border');
+            setCustomBackground(initialData.customBackground || null);
+            setTextColor(initialData.textColor || '#265343');
+            setUseTextOutline(initialData.useTextOutline || false);
+            setOutlineColor(initialData.outlineColor || '#000000');
+            setOutlineSize(initialData.outlineSize || 'normal');
+            setFontSize(initialData.fontSizeSetting || 'normal');
+            setFontTheme(initialData.fontTheme || 'classic');
+            setLineSpacing(initialData.lineSpacing || 1.2);
+            setGreetingText(initialData.greetingText || "Happy Holidays, {secret_santa}!");
+            setIntroText(initialData.introText || "You are the Secret Santa for...");
+            setWishlistLabelText(initialData.wishlistLabelText || "Gift Ideas & Wishlist");
+        } else {
+            // Default state for new creation
+            setParticipants([
+                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
+                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
+                { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
+            ]);
+            setEventDetails('Gift exchange on Dec 25th!');
+            setGreetingText("Happy Holidays, {secret_santa}!");
+            setIntroText("You are the Secret Santa for...");
+            setWishlistLabelText("Gift Ideas & Wishlist");
+        }
     }, [initialData]);
 
      const handleBulkAdd = (names: string) => {
@@ -118,8 +116,8 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             else setError(null);
 
             if (uniqueNewNames.length > 0) {
-                const combined = [...currentNonEmpty, ...uniqueNewNames.map(name => ({ id: crypto.randomUUID(), name, interests: '', likes: '', dislikes: '', links: '', budget: '' }))];
-                setParticipants([...combined, { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' }]);
+                const combined = [...currentNonEmpty, ...uniqueNewNames.map(name => ({ id: crypto.randomUUID(), name, interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' }))];
+                setParticipants([...combined, { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' }]);
                 trackEvent('bulk_add', { count: uniqueNewNames.length });
             }
         }
@@ -128,9 +126,9 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
 
     const handleClear = () => {
         setParticipants([
-            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
-            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
+            { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
         ]);
         setExclusions([]);
         setAssignments([]);
@@ -182,7 +180,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 greetingText, introText, wishlistLabelText,
             };
             
-            trackEvent('generate_success', { participants: validParticipants.length, is_edit: !!initialData });
+            trackEvent('generate_success', { participants: validParticipants.length });
             onComplete({ ...exchangePayload, backgroundOptions });
 
         } catch (matchError) {
@@ -190,7 +188,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             setError(message);
             setActiveStep(2); // Go to rules step on creation error
             setIsLoading(false);
-            trackEvent('generate_fail', { error: message, is_edit: !!initialData });
+            trackEvent('generate_fail', { error: message });
         }
     };
     
@@ -242,12 +240,12 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                         {initialData ? 'Edit Your Gift Exchange' : 'Free Secret Santa Generator'}
                     </h1>
                     <p className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto">
-                        {initialData ? 'Update participants, rules, or card styles below.' : 'The easiest way to organize a gift exchange. No emails or sign-ups required!'}
+                        The easiest way to organize a gift exchange. No emails or sign-ups required!
                     </p>
                 </div>
 
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
-                {!initialData && <div className="max-w-5xl mx-auto px-4 md:px-8"><HowItWorks /><VideoTutorial /></div>}
+                <div className="max-w-5xl mx-auto px-4 md:px-8"><HowItWorks /><VideoTutorial /></div>
                 
                 <div ref={generatorRef} className="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
                      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
@@ -294,20 +292,20 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                             </button>
                         ) : (
                              <button onClick={() => handleSubmit()} className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 mx-auto">
-                                <Shuffle /> {initialData ? 'Save Changes & Rematch' : 'Generate Matches!'}
+                                <Shuffle /> {initialData ? 'Save Changes' : 'Generate Matches!'}
                             </button>
                         )}
                     </div>
                 </div>
 
-                {!initialData && <div className="max-w-5xl mx-auto px-4 md:px-8">
+                <div className="max-w-5xl mx-auto px-4 md:px-8">
                     <WhyChooseUs />
                     <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="2345678901" data-ad-format="auto" data-full-width-responsive="true" />
                     <SocialProof />
                     <ShareTool />
                     <FaqSection />
                     <FeaturedResources />
-                </div>}
+                </div>
             </main>
             <Footer />
             {showBulkAdd && <BulkAddModal onConfirm={handleBulkAdd} onClose={() => setShowBulkAdd(false)} />}

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Match, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
+import LinkPreview from './LinkPreview';
 
 interface PrintableCardProps {
   match: Match;
@@ -43,7 +44,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const { giver, receiver } = match;
 
   const backgroundUrl = bgImg || backgroundOptions.find(opt => opt.id === bgId)?.imageUrl || '';
-  const showWatermark = bgId === 'custom'; // Corrected logic: Only show watermark on custom uploads
+  const showWatermark = bgId === 'custom';
 
   const fontFamilies: Record<FontTheme, string> = {
     classic: "'Playfair Display', serif",
@@ -109,13 +110,15 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
     );
   };
   
+  const hasLinks = Array.isArray(receiver.links) && receiver.links.some(link => link && link.trim() !== '');
+
   return (
     <div 
         className={`printable-card-container w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-lg relative bg-cover bg-center ${isForPdf ? '' : 'transition-all duration-300'}`} 
         style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
       <div
-        className="absolute inset-0 flex flex-col items-center justify-start pt-20 px-16 pb-16 text-center"
+        className="absolute inset-0 flex flex-col items-center justify-start pt-12 sm:pt-20 px-4 sm:px-12 md:px-16 pb-12 sm:pb-16 text-center overflow-y-auto"
         style={{ color: txtColor, textShadow, fontFamily: fontFamilies[font] }}
       >
         {/* Header */}
@@ -128,7 +131,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         </header>
 
         {/* Receiver Name */}
-        <main className="mb-2" style={{ lineHeight: 1.1 }}>
+        <main className="my-2" style={{ lineHeight: 1.1 }}>
           <h2 className={`font-bold ${fontFamilies.classic} ${getReceiverNameFontSize()}`}>
             {receiverName}
           </h2>
@@ -137,7 +140,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
         {/* Wishlist */}
         {isNameRevealed && (
           <div 
-            className={`space-y-0 ${getWishlistFontSize()}`}
+            className={`space-y-1 ${getWishlistFontSize()}`}
             style={{ lineHeight: line }}
           >
             <h3 className="font-bold text-lg mb-1">{wish}</h3>
@@ -147,7 +150,19 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
               {renderWishlistItem('Dislikes', receiver.dislikes)}
               {renderWishlistItem('Budget', receiver.budget)}
             </ul>
-            {eventDetails && <p className="text-sm opacity-90 break-words mt-6">{eventDetails}</p>}
+            
+            {hasLinks && (
+                <div className="mt-2 text-left">
+                    <h4 className="font-bold text-center">Wishlist Links:</h4>
+                    <div className="space-y-2 mt-1">
+                        {receiver.links.map((link, index) => (
+                           link.trim() ? <LinkPreview key={index} url={link} isForPdf={isForPdf} /> : null
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {eventDetails && <p className="text-sm opacity-90 break-words mt-4">{eventDetails}</p>}
           </div>
         )}
         

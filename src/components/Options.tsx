@@ -54,8 +54,9 @@ const Options: React.FC<OptionsProps> = (props) => {
   }, [themeSearch, backgroundOptions]);
   
   const sampleMatch: Match = useMemo(() => {
-      const giver = participants[0] || { id: 'sample-giver', name: 'Alex', interests: 'Loves dark roast coffee', likes: 'Horror movies', dislikes: '', links: '', budget: '' };
-      const receiver = participants[1] || participants[0] || { id: 'sample-receiver', name: 'Taylor', interests: 'Enjoys hiking and board games', likes: 'Spicy food', dislikes: '', links: '', budget: '$25' };
+      // FIX: Changed `links: ''` to `links: []` to match the Participant type definition.
+      const giver = participants[0] || { id: 'sample-giver', name: 'Alex', interests: 'Loves dark roast coffee', likes: 'Horror movies', dislikes: '', links: [], budget: '' };
+      const receiver = participants[1] || participants[0] || { id: 'sample-receiver', name: 'Taylor', interests: 'Enjoys hiking and board games', likes: 'Spicy food', dislikes: '', links: [], budget: '$25' };
       return { giver, receiver };
   }, [participants]);
 

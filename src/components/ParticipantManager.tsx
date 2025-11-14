@@ -15,15 +15,13 @@ const WISHLIST_CHAR_LIMIT = 100;
 const CharacterCounter: React.FC<{ value: string, fieldName: string }> = ({ value, fieldName }) => {
     const length = value.length;
     const isOverLimit = length > WISHLIST_CHAR_LIMIT;
-    const isLinks = fieldName === 'links';
 
-    const linksHelperText = "e.g., Amazon wishlist, Pinterest board.";
     const defaultHelperText = "Separate with commas.";
 
     return (
         <div className="text-xs text-slate-400 mt-1">
             <div className="flex justify-between">
-                <span>{isLinks ? linksHelperText : defaultHelperText}</span>
+                <span>{defaultHelperText}</span>
                 <span className={isOverLimit ? 'text-red-500 font-bold' : ''}>
                     {length} / {WISHLIST_CHAR_LIMIT}
                 </span>
@@ -41,7 +39,7 @@ const CharacterCounter: React.FC<{ value: string, fieldName: string }> = ({ valu
 const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, onClearClick, setError }) => {
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-    const handleParticipantChange = (id: string, field: keyof Omit<Participant, 'id'>, value: string) => {
+    const handleParticipantChange = (id: string, field: keyof Omit<Participant, 'id' | 'links'>, value: string) => {
         if (field === 'name') {
             setError(null); // Clear previous errors
             const trimmedValue = value.trim().toLowerCase();
@@ -49,7 +47,6 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                 const isDuplicate = participants.some(p => p.id !== id && p.name.trim().toLowerCase() === trimmedValue);
                 if (isDuplicate) {
                     setError('Participant names must be unique.');
-                    // To avoid confusion, we'll still update the input visually but the error will prevent generation.
                 }
             }
         }
@@ -65,7 +62,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
         );
 
         if (isLastParticipant && isNameField && wasEmpty && isNowNotEmpty) {
-            updatedParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' });
+            updatedParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' });
         }
         
         setParticipants(updatedParticipants);
@@ -74,11 +71,9 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
     const handleLinkChange = (id: string, index: number, value: string) => {
         const updatedParticipants = participants.map(p => {
             if (p.id === id) {
-                const links = p.links.split('\n');
-                while (links.length < 5) links.push('');
-                links[index] = value;
-                const newLinksString = links.slice(0, 5).join('\n');
-                return { ...p, links: newLinksString };
+                const newLinks = [...p.links];
+                newLinks[index] = value;
+                return { ...p, links: newLinks };
             }
             return p;
         });
@@ -86,9 +81,8 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
     };
     
     const addParticipant = () => {
-        const newParticipant = { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' };
+        const newParticipant: Participant = { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' };
         setParticipants([...participants, newParticipant]);
-        // Expand details for new participant for better UX
         toggleDetails(newParticipant.id);
     };
 
@@ -170,12 +164,12 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Top 5 Wishlist Links (Optional)</label>
                                 <div className="space-y-2">
-                                    {Array.from({ length: 5 }).map((_, i) => (
+                                    {participant.links.map((link, i) => (
                                         <input
                                             key={i}
                                             type="text"
                                             placeholder={`e.g., https://www.amazon.com/wishlist/...`}
-                                            value={(participant.links.split('\n')[i] || '')}
+                                            value={link}
                                             onChange={(e) => handleLinkChange(participant.id, i, e.target.value)}
                                             className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                         />

@@ -203,7 +203,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                         </div>
 
                         <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
-                        <ResultsDisplay matches={matches} />
+                        {/* FIX: Pass the required `exchangeId` prop to ResultsDisplay. */}
+                        <ResultsDisplay matches={matches} exchangeId={data.id!} />
                     </div>
                 ) : (
                     displayMatch && (

@@ -15,22 +15,20 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         interests: participant.interests || '',
         likes: participant.likes || '',
         dislikes: participant.dislikes || '',
-        links: participant.links || '',
+        links: Array.isArray(participant.links) ? participant.links : Array(5).fill(''),
         budget: participant.budget || '',
     });
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleChange = (field: keyof typeof wishlist, value: string) => {
+    const handleChange = (field: keyof Omit<typeof wishlist, 'links'>, value: string) => {
         setWishlist(prev => ({ ...prev, [field]: value }));
     };
 
     const handleLinkChange = (index: number, value: string) => {
-        const links = wishlist.links.split('\n');
-        while (links.length < 5) links.push('');
-        links[index] = value;
-        const newLinksString = links.slice(0, 5).join('\n');
-        setWishlist(prev => ({ ...prev, links: newLinksString }));
+        const newLinks = [...wishlist.links];
+        newLinks[index] = value;
+        setWishlist(prev => ({ ...prev, links: newLinks }));
     };
 
     const handleSave = async () => {
@@ -112,19 +110,19 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     <div>
                         <label className="block text-sm font-medium text-slate-600 mb-1">Top 5 Wishlist Links (for affiliates)</label>
                         <div className="space-y-2">
-                            {Array.from({ length: 5 }).map((_, i) => (
+                            {wishlist.links.map((link, i) => (
                                 <input
                                     key={i}
                                     type="text"
-                                    placeholder={`Link #${i + 1} (e.g., Amazon, Etsy)`}
-                                    value={(wishlist.links.split('\n')[i] || '')}
+                                    placeholder={`e.g., https://www.amazon.com/wishlist/...`}
+                                    value={link}
                                     onChange={(e) => handleLinkChange(i, e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md"
                                 />
                             ))}
                         </div>
                          <div className="text-xs text-slate-400 mt-1">
-                            <span>Paste one link per box. Your Santa will see these.</span>
+                            <span>Paste one full link (starting with https://) per box.</span>
                         </div>
                     </div>
                      <div>
