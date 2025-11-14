@@ -177,8 +177,8 @@ export const generatePartyPackPdf = async (): Promise<void> => {
         pdf.setFontSize(9);
         pdf.setFont('helvetica', 'italic');
         pdf.setTextColor(150);
-        pdf.text(`Secret Santa Party Pack | Page ${pageNumber} of ${totalPages}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 8, { align: 'center' });
-        pdf.text('From SecretSantaMatch.com', PAGE_WIDTH / 2, PAGE_HEIGHT - 4, { align: 'center' });
+        pdf.text(`Secret Santa Party Pack | Page ${pageNumber} of ${totalPages}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 10, { align: 'center' });
+        pdf.text('From SecretSantaMatch.com', PAGE_WIDTH / 2, PAGE_HEIGHT - 6, { align: 'center' });
     };
 
     // --- PAGE 1: TITLE PAGE ---
@@ -267,13 +267,17 @@ export const generatePartyPackPdf = async (): Promise<void> => {
     
     const cardRows = 3;
     const cardCols = 2;
-    const guessCardWidth = (PAGE_WIDTH - MARGIN * 3) / cardCols;
-    const guessCardHeight = (PAGE_HEIGHT - MARGIN * 3 - 20) / cardRows;
+    const availableHeightGG = PAGE_HEIGHT - (MARGIN * 2) - 20; // Top header + page margins
+    const verticalSpacingGG = 10;
+    const totalVerticalSpacingGG = (cardRows - 1) * verticalSpacingGG;
+    const guessCardWidth = (PAGE_WIDTH - MARGIN * (cardCols + 1)) / cardCols;
+    const guessCardHeight = (availableHeightGG - totalVerticalSpacingGG) / cardRows;
+
     pdf.setLineDashPattern([1, 1], 0);
     for (let row = 0; row < cardRows; row++) {
         for (let col = 0; col < cardCols; col++) {
             const x = MARGIN + col * (guessCardWidth + MARGIN);
-            const y = MARGIN + 20 + row * (guessCardHeight + MARGIN);
+            const y = MARGIN + 20 + row * (guessCardHeight + verticalSpacingGG);
             pdf.setDrawColor(180);
             pdf.rect(x, y, guessCardWidth, guessCardHeight);
             
@@ -305,21 +309,37 @@ export const generatePartyPackPdf = async (): Promise<void> => {
 
     const tagRows = 4;
     const tagCols = 2;
-    const tagWidth = (PAGE_WIDTH - MARGIN * 3) / tagCols;
-    const tagHeight = (PAGE_HEIGHT - MARGIN * 3 - 20) / tagRows;
+    const availableHeightGT = PAGE_HEIGHT - (MARGIN * 2) - 20;
+    const verticalSpacingGT = 5;
+    const totalVerticalSpacingGT = (tagRows - 1) * verticalSpacingGT;
+    const tagWidth = (PAGE_WIDTH - MARGIN * (tagCols + 1)) / tagCols;
+    const tagHeight = (availableHeightGT - totalVerticalSpacingGT) / tagRows;
+    
     const tagDesigns = ["Merry Christmas!", "Happy Holidays!", "A Special Gift For You", "Do Not Open Until Dec 25th!"];
+    const tagColors = [
+        { bg: [254, 242, 242], text: [190, 18, 60] }, // Red
+        { bg: [236, 253, 245], text: [22, 101, 52] },  // Green
+        { bg: [239, 246, 255], text: [30, 64, 175] },  // Blue
+        { bg: [255, 251, 235], text: [180, 83, 9] }   // Amber
+    ];
+
     for (let row = 0; row < tagRows; row++) {
         for (let col = 0; col < tagCols; col++) {
+             const index = row * tagCols + col;
+             const colorTheme = tagColors[index % tagColors.length];
+             const designText = tagDesigns[index % tagDesigns.length];
+
              const x = MARGIN + col * (tagWidth + MARGIN);
-             const y = MARGIN + 20 + row * (tagHeight + MARGIN);
-             pdf.setDrawColor(180);
-             pdf.setFillColor(248, 250, 252);
+             const y = MARGIN + 20 + row * (tagHeight + verticalSpacingGT);
+
+             pdf.setDrawColor(200);
+             pdf.setFillColor(colorTheme.bg[0], colorTheme.bg[1], colorTheme.bg[2]);
              pdf.roundedRect(x, y, tagWidth, tagHeight, 3, 3, 'FD');
              
              pdf.setFont('times', 'italic');
              pdf.setFontSize(12);
-             pdf.setTextColor(PRIMARY_RED);
-             pdf.text(tagDesigns[(row*2+col)%tagDesigns.length], x + tagWidth / 2, y + 10, { align: 'center' });
+             pdf.setTextColor(colorTheme.text[0], colorTheme.text[1], colorTheme.text[2]);
+             pdf.text(designText, x + tagWidth / 2, y + 10, { align: 'center' });
              
              pdf.setFont('helvetica', 'normal');
              pdf.setFontSize(11);
