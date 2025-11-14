@@ -242,8 +242,8 @@ const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, onClose
       <div className="bg-slate-50 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
         <header className="p-4 flex justify-between items-center border-b bg-white">
           <div className="flex border-b-2 border-transparent">
-             <button onClick={() => setActiveTab('links')} className={`font-bold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'links' ? 'bg-red-100 text-red-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>Links</button>
-             <button onClick={() => setActiveTab('downloads')} className={`font-bold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'downloads' ? 'bg-red-100 text-red-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>Downloads</button>
+             <button onClick={() => setActiveTab('links')} className={`font-bold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'links' ? 'bg-emerald-100 text-emerald-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>Links</button>
+             <button onClick={() => setActiveTab('downloads')} className={`font-bold text-lg py-2 px-5 rounded-t-lg transition-colors ${activeTab === 'downloads' ? 'bg-sky-100 text-sky-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>Downloads</button>
           </div>
           <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
         </header>
