@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import type { ExchangeData } from '../types';
+import type { ExchangeData, Participant } from '../types';
 
 // Augment jsPDF with the autoTable method
 // FIX: Changed from an interface to a type intersection. This correctly combines
@@ -79,59 +79,63 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
     // Document Header
     pdf.setFontSize(22);
     pdf.setFont('helvetica', 'bold');
-    pdf.text("Secret Santa Master List", pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    pdf.text("Secret Santa - Master List", pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
 
     pdf.setFontSize(12);
     pdf.setFont('helvetica', 'normal');
-    const eventDetailsText = `Event Details: ${exchangeData.eventDetails || 'N/A'}`;
-    const splitDetails = pdf.splitTextToSize(eventDetailsText, pdf.internal.pageSize.getWidth() - 28);
-    pdf.text(splitDetails, 14, 30);
+    if (exchangeData.eventDetails) {
+        const eventDetailsText = `Event Details: ${exchangeData.eventDetails}`;
+        const splitDetails = pdf.splitTextToSize(eventDetailsText, pdf.internal.pageSize.getWidth() - 28);
+        pdf.text(splitDetails, 14, 30);
+    }
     
-    let finalY = pdf.getTextDimensions(splitDetails).h + 30;
+    const startY = exchangeData.eventDetails ? pdf.getTextDimensions(exchangeData.eventDetails).h + 35 : 30;
 
-    matches.forEach((match, index) => {
+    const head = [['Giver', 'Receiver', "Receiver's Wishlist & Details"]];
+    
+    const body = matches.map(match => {
         const { giver, receiver } = match;
-
-        const tableBody = [
-            ['Budget', receiver.budget],
-            ['Interests', receiver.interests],
-            ['Likes', receiver.likes],
-            ['Dislikes', receiver.dislikes]
-        ].filter(row => row[1] && row[1].trim() !== '') // Filter out rows with no data
-         .map(row => [row[0], pdf.splitTextToSize(row[1] as string, 135)]); // Wrap text
-
-        if (tableBody.length === 0) {
-            tableBody.push(['Details', 'No additional details provided.']);
-        }
         
-        pdf.autoTable({
-            startY: finalY + 8,
-            head: [[{
-                content: `${giver.name}  ->  ${receiver.name}`,
-                styles: {
-                    halign: 'center',
-                    fillColor: '#c62828', // Primary red
-                    textColor: 255,
-                    fontStyle: 'bold',
-                    fontSize: 12,
-                }
-            }]],
-            body: tableBody,
-            theme: 'grid',
-            columnStyles: {
-                0: {
-                    fontStyle: 'bold',
-                    cellWidth: 40,
-                    fillColor: '#f8fafc',
-                },
-            },
-            // FIX: Reverted HookData import and typed 'data' as 'any' to resolve build error.
-            // The installed version of jspdf-autotable does not export this type.
-            didDrawPage: (data: any) => {
-                // This space is for content on new pages, footer is added at the end.
+        const formatReceiverDetails = (rec: Participant): string => {
+            const details = [];
+            if (rec.budget?.trim()) details.push(`Budget: ${rec.budget}`);
+            if (rec.interests?.trim()) details.push(`Interests: ${rec.interests}`);
+            if (rec.likes?.trim()) details.push(`Likes: ${rec.likes}`);
+            if (rec.dislikes?.trim()) details.push(`Dislikes: ${rec.dislikes}`);
+            
+            const validLinks = rec.links?.filter(link => link?.trim()).join('\n');
+            if (validLinks) {
+                details.push(`Links:\n${validLinks}`);
             }
-        });
-        finalY = (pdf as any).lastAutoTable.finalY;
+    
+            return details.length > 0 ? details.join('\n') : 'No details provided.';
+        };
+
+        return [
+            giver.name,
+            receiver.name,
+            formatReceiverDetails(receiver)
+        ];
+    });
+
+    pdf.autoTable({
+        startY,
+        head,
+        body,
+        theme: 'grid',
+        headStyles: {
+            fillColor: '#c62828', // Primary red
+            textColor: 255,
+            fontStyle: 'bold',
+        },
+        columnStyles: {
+            0: { cellWidth: 40 },
+            1: { cellWidth: 40 },
+            2: { cellWidth: 'auto' },
+        },
+        didDrawPage: (data: any) => {
+            // Footer is added at the end by addPageWatermark
+        }
     });
 
     addPageWatermark(pdf);
