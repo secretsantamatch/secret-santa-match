@@ -218,6 +218,7 @@ const Options: React.FC<OptionsProps> = (props) => {
                     greet={displayGreetingText}
                     intro={displayIntroText}
                     wish={displayWishlistLabelText}
+                    showLinks={false}
                 />
             </div>
         </div>

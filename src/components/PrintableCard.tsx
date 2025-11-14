@@ -20,6 +20,7 @@ interface PrintableCardProps {
   intro: string;
   wish: string;
   isForPdf?: boolean;
+  showLinks?: boolean;
 }
 
 const PrintableCard: React.FC<PrintableCardProps> = ({
@@ -39,7 +40,8 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   greet,
   intro,
   wish,
-  isForPdf = false
+  isForPdf = false,
+  showLinks = true,
 }) => {
   const { giver, receiver } = match;
 
@@ -93,11 +95,16 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   };
   
   const getWishlistFontSize = () => {
-      let baseClass = 'text-xs';
-      if (fontSize === 'large') baseClass = 'text-sm';
-      if (fontSize === 'extra-large') baseClass = 'text-base';
-      if (wishlistLength > 100) return 'text-[10px]';
-      return baseClass;
+    // This function provides more granular control over font size based on content length
+    // to prevent awkward wrapping.
+    if (wishlistLength > 140) return 'text-[9px]';
+    if (wishlistLength > 110) return 'text-[10px]';
+    if (wishlistLength > 80) return 'text-[11px]';
+
+    // Base sizes from user settings
+    if (fontSize === 'extra-large') return 'text-base'; // 16px
+    if (fontSize === 'large') return 'text-sm'; // 14px
+    return 'text-xs'; // 12px
   };
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
@@ -144,14 +151,14 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             style={{ lineHeight: line }}
           >
             <h3 className="font-bold text-lg mb-1">{wish}</h3>
-            <ul className="list-none text-center space-y-0">
+            <ul className="list-none text-left inline-block space-y-0">
               {renderWishlistItem('Interests', receiver.interests)}
               {renderWishlistItem('Likes', receiver.likes)}
               {renderWishlistItem('Dislikes', receiver.dislikes)}
               {renderWishlistItem('Budget', receiver.budget)}
             </ul>
             
-            {hasLinks && (
+            {hasLinks && showLinks && (
                 <div className="mt-2 text-left">
                     <h4 className="font-bold text-center">Wishlist Links:</h4>
                     <div className="space-y-2 mt-1">
