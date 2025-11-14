@@ -71,9 +71,9 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const formattedGreeting = greet.replace('{secret_santa}', giver.name);
 
   const baseFontSizeMap: Record<FontSizeSetting, { header: string, name: string, wishlist: string, event: string }> = {
-    'normal':      { header: '1rem',      name: '2.8rem', wishlist: '0.75rem', event: '0.65rem' },
-    'large':       { header: '1.1rem',    name: '3.2rem', wishlist: '0.85rem', event: '0.75rem' },
-    'extra-large': { header: '1.2rem',    name: '3.6rem', wishlist: '0.95rem', event: '0.85rem' },
+    'normal':      { header: '1rem',      name: '2.5rem', wishlist: '0.75rem', event: '0.65rem' },
+    'large':       { header: '1.1rem',    name: '2.9rem', wishlist: '0.85rem', event: '0.75rem' },
+    'extra-large': { header: '1.2rem',    name: '3.3rem', wishlist: '0.95rem', event: '0.85rem' },
   };
   const baseSizes = baseFontSizeMap[fontSize];
 
@@ -122,7 +122,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     ...commonTextStyle, 
                     fontFamily: fontFamilies.classic, 
                     fontSize: baseSizes.name, 
-                    lineHeight: 1 
+                    lineHeight: 1.1 
                 }}
             >
                 {receiverName}
