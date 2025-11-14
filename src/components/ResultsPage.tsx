@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
-import ShareLinksModal from './ShareLinksModal';
+import { ShareLinksModal } from './ShareLinksModal';
 import WishlistEditorModal from './WishlistEditorModal';
 import ConfirmationModal from './ConfirmationModal';
 import Header from './Header';
