@@ -10,7 +10,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 
@@ -19,6 +19,37 @@ interface ResultsPageProps {
     currentParticipantId: string | null;
     onDataUpdated: (newMatches: { g: string; r: string }[]) => void;
 }
+
+const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label }) => {
+    if (!items || items.trim() === '') return null;
+
+    const affiliateTag = "secretsanmat-20"; // Your Amazon Affiliate Tag
+
+    const createAmazonLink = (searchTerm: string) => {
+        return `https://www.amazon.com/s?k=${encodeURIComponent(searchTerm)}&tag=${affiliateTag}`;
+    };
+
+    const linkedItems = items.split(',').map(item => item.trim()).filter(Boolean);
+
+    return (
+        <p><strong className="font-semibold text-slate-800">{label}:</strong>{' '}
+            {linkedItems.map((item, index) => (
+                <React.Fragment key={index}>
+                    <a
+                        href={createAmazonLink(item)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 hover:underline"
+                    >
+                        {item}
+                    </a>
+                    {index < linkedItems.length - 1 && ', '}
+                </React.Fragment>
+            ))}
+        </p>
+    );
+};
+
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
@@ -282,8 +313,18 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                         </button>
                                         
                                         {detailsVisible && (
-                                            <div className="space-y-6">
-                                                <div className="bg-white rounded-lg p-6 border text-left shadow-inner space-y-4">
+                                            <div className="bg-slate-100 rounded-2xl p-6 border text-left shadow-inner space-y-6">
+                                                <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 rounded-r-lg">
+                                                    <div className="flex">
+                                                        <div className="py-1"><Bookmark className="h-5 w-5 text-amber-500 mr-3" /></div>
+                                                        <div>
+                                                            <p className="font-bold">Save Your Link!</p>
+                                                            <p className="text-sm">Bookmark this page to easily come back and check your person's wishlist.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-white rounded-lg p-6 border text-left shadow-md space-y-4">
                                                     <div className="text-center border-b pb-4">
                                                         <h3 className="font-bold text-lg text-slate-700">Your Person is:</h3>
                                                         <p className="text-4xl font-bold text-red-600">{displayMatch.receiver.name}</p>
@@ -293,8 +334,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         <div>
                                                             <h4 className="font-bold text-slate-700 mb-2">Their Gift Ideas</h4>
                                                             <div className="space-y-1 text-slate-600 text-sm pl-2">
-                                                                {displayMatch.receiver.interests && <p><strong className="font-semibold text-slate-800">Interests:</strong> {displayMatch.receiver.interests}</p>}
-                                                                {displayMatch.receiver.likes && <p><strong className="font-semibold text-slate-800">Likes:</strong> {displayMatch.receiver.likes}</p>}
+                                                                <AmazonLinker items={displayMatch.receiver.interests} label="Interests" />
+                                                                <AmazonLinker items={displayMatch.receiver.likes} label="Likes" />
                                                                 {displayMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {displayMatch.receiver.dislikes}</p>}
                                                                 {displayMatch.receiver.budget && <p><strong className="font-semibold text-slate-800">Budget:</strong> {displayMatch.receiver.budget}</p>}
                                                             </div>
