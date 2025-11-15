@@ -101,12 +101,6 @@
             const { backgroundOptions, ...dataToCompress } = newData;
             updateUrlHash(dataToCompress);
         };
-
-        const handleFullDataUpdate = (newData: ExchangeData) => {
-            setExchangeData(newData); // Update the state optimistically
-            const { backgroundOptions, ...dataToCompress } = newData;
-            updateUrlHash(dataToCompress);
-        };
         
         const handleCreationComplete = (newData: ExchangeData) => {
             const { backgroundOptions, ...dataToCompress } = newData;
@@ -135,7 +129,6 @@
                         data={exchangeData} 
                         currentParticipantId={participantId} 
                         onDataUpdated={handleDataUpdate}
-                        onFullDataUpdate={handleFullDataUpdate}
                     />
                 </Suspense>
             );

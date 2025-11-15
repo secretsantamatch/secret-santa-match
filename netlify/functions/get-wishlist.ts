@@ -1,6 +1,6 @@
 // This function is disabled. The application has been reverted to a fully
-// client-side, URL-based system for data management. All wishlist data
-// is now read directly from the URL hash in the browser.
+// client-side, URL-based system for data management. All exchange data
+// is now decompressed directly from the URL hash in the browser.
 
 export async function handler(event: any, context: any) {
     return {

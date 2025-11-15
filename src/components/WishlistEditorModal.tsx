@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import type { Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
-import { Save, X } from 'lucide-react';
+import { Save, X, Loader2 } from 'lucide-react';
 
 interface WishlistEditorModalProps {
   participant: Participant;
+  exchangeId: string;
   onClose: () => void;
-  onSave: (updatedParticipant: Participant) => void;
+  onSaveSuccess: () => void;
 }
 
-const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, onClose, onSave }) => {
+const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, exchangeId, onClose, onSaveSuccess }) => {
     const [wishlist, setWishlist] = useState({
         interests: participant.interests || '',
         likes: participant.likes || '',
         dislikes: participant.dislikes || '',
-        links: Array.isArray(participant.links) ? participant.links : Array(5).fill(''),
+        links: Array.isArray(participant.links) && participant.links.length > 0 ? participant.links : Array(5).fill(''),
     });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
 
     const handleChange = (field: keyof Omit<typeof wishlist, 'links'>, value: string) => {
         setWishlist(prev => ({ ...prev, [field]: value }));
@@ -23,29 +27,52 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
 
     const handleLinkChange = (index: number, value: string) => {
         const newLinks = [...wishlist.links];
+        while (newLinks.length <= index) {
+            newLinks.push('');
+        }
         newLinks[index] = value;
         setWishlist(prev => ({ ...prev, links: newLinks }));
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         trackEvent('wishlist_save_attempt');
+        setIsLoading(true);
+        setError(null);
         
-        const updatedParticipant: Participant = {
-            ...participant,
-            interests: wishlist.interests,
-            likes: wishlist.likes,
-            dislikes: wishlist.dislikes,
-            links: wishlist.links.filter(link => link.trim() !== ''), // Clean up empty links
-        };
-        
-        // Pad the links array to always have 5 elements for data structure consistency
-        while (updatedParticipant.links.length < 5) {
-            updatedParticipant.links.push('');
-        }
+        try {
+            const payload = {
+                exchangeId,
+                participantId: participant.id,
+                wishlist: {
+                    interests: wishlist.interests,
+                    likes: wishlist.likes,
+                    dislikes: wishlist.dislikes,
+                    links: wishlist.links.filter(link => link && link.trim() !== ''),
+                }
+            };
 
-        onSave(updatedParticipant);
-        trackEvent('wishlist_save_success');
-        onClose();
+            const response = await fetch('/.netlify/functions/update-wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to save wishlist.');
+            }
+
+            trackEvent('wishlist_save_success');
+            onSaveSuccess();
+            onClose();
+
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unknown error occurred.';
+            setError(`Save failed: ${message}`);
+            trackEvent('wishlist_save_fail', { error: message });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -63,6 +90,12 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     <p className="text-center text-slate-600 text-base -mt-2">
                         Help your Secret Santa find you the perfect gift! Fill out the details below.
                     </p>
+                    
+                    {error && (
+                        <div className="p-3 bg-red-100 text-red-800 rounded-lg border border-red-200 text-sm">
+                            {error} Please try again.
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My Interests & Hobbies</label>
@@ -120,11 +153,12 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 <footer className="p-4 bg-slate-50 border-t flex justify-end gap-3">
                     <button onClick={onClose} className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg">Cancel</button>
                     <button 
-                        onClick={handleSave} 
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2"
+                        onClick={handleSave}
+                        disabled={isLoading}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-wait"
                     >
-                        <Save size={20} />
-                        Save Changes
+                        {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+                        {isLoading ? 'Saving...' : 'Save Changes'}
                     </button>
                 </footer>
             </div>

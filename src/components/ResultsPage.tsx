@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
@@ -18,8 +18,10 @@ interface ResultsPageProps {
     data: ExchangeData;
     currentParticipantId: string | null;
     onDataUpdated: (newMatches: { g: string; r: string }[]) => void;
-    onFullDataUpdate: (newData: ExchangeData) => void;
 }
+
+type LiveWishlists = Record<string, Partial<Omit<Participant, 'id' | 'name'>>>;
+
 
 const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label }) => {
     if (!items || items.trim() === '') return null;
@@ -52,7 +54,7 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
 };
 
 
-const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated, onFullDataUpdate }) => {
+const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
     const [detailsVisible, setDetailsVisible] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -63,10 +65,43 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const [shortOrganizerLink, setShortOrganizerLink] = useState('');
     const [organizerLinkCopied, setOrganizerLinkCopied] = useState(false);
     const [showCookieBanner, setShowCookieBanner] = useState(false);
+    const [liveWishlists, setLiveWishlists] = useState<LiveWishlists>({});
+    const [isWishlistLoading, setIsWishlistLoading] = useState(true);
 
     const isOrganizer = !currentParticipantId;
 
-    const { p: participants, matches: matchIds, exclusions, assignments } = data;
+    const { p: participantsFromUrl, matches: matchIds, exclusions, assignments, id: exchangeId } = data;
+    
+    const fetchWishlists = useCallback(async () => {
+        if (!exchangeId) {
+            setIsWishlistLoading(false);
+            return;
+        };
+        setIsWishlistLoading(true);
+        try {
+            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}`);
+            if (res.ok) {
+                const wishlistData = await res.json();
+                setLiveWishlists(wishlistData);
+            }
+        } catch (e) {
+            console.error("Failed to fetch wishlists", e);
+        } finally {
+            setIsWishlistLoading(false);
+        }
+    }, [exchangeId]);
+
+    useEffect(() => {
+        fetchWishlists();
+    }, [fetchWishlists]);
+    
+    const participants = useMemo(() => {
+        return participantsFromUrl.map(p => ({
+            ...p,
+            ...(liveWishlists[p.id] || {})
+        }));
+    }, [participantsFromUrl, liveWishlists]);
+
 
     const matches: Match[] = useMemo(() => matchIds.map(m => ({
         giver: participants.find(p => p.id === m.g)!,
@@ -103,7 +138,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             };
             fetchShortLink();
         }
-    }, [isOrganizer, currentParticipantId, data]);
+    }, [isOrganizer, currentParticipantId]);
     
     const handleCookieAccept = () => {
         localStorage.setItem('cookie_consent', 'true');
@@ -125,11 +160,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }, 2500); // Match animation duration from PrintableCard + buffer
     };
     
-    const handleWishlistUpdate = (updatedParticipant: Participant) => {
-        // Create a new data object with the updated participant
-        const updatedParticipants = data.p.map(p => p.id === updatedParticipant.id ? updatedParticipant : p);
-        const newData = { ...data, p: updatedParticipants };
-        onFullDataUpdate(newData);
+    const handleWishlistSaveSuccess = () => {
+        fetchWishlists(); // Re-fetch the live data
     };
 
     const openShareModal = (view: 'links' | 'print') => {
@@ -182,12 +214,13 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
     return (
         <div className="bg-slate-50 min-h-screen">
-            {isShareModalOpen && <ShareLinksModal exchangeData={data} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
-            {isWishlistModalOpen && currentParticipant && (
+            {isShareModalOpen && <ShareLinksModal exchangeData={{ ...data, p: participants }} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
+            {isWishlistModalOpen && currentParticipant && exchangeId && (
                 <WishlistEditorModal 
                     participant={currentParticipant}
+                    exchangeId={exchangeId}
                     onClose={() => setIsWishlistModalOpen(false)}
-                    onSave={handleWishlistUpdate}
+                    onSaveSuccess={handleWishlistSaveSuccess}
                 />
             )}
              <ConfirmationModal
@@ -232,7 +265,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                         </div>
 
                         <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
-                        {data.id && <ResultsDisplay matches={matches} exchangeId={data.id} />}
+                        {exchangeId && <ResultsDisplay matches={matches} exchangeId={exchangeId} liveWishlists={liveWishlists} />}
                     </div>
                 ) : (
                     currentMatch && (
