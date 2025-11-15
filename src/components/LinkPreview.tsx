@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Loader2 } from 'lucide-react';
+import { Link, Loader2, ShoppingCart } from 'lucide-react';
 
 interface LinkPreviewProps {
   url: string;
@@ -17,9 +17,12 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
   const [data, setData] = useState<PreviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const isAmazonLink = /amazon\.com/i.test(url);
 
   useEffect(() => {
-    if (!url || isForPdf) {
+    // Don't fetch if it's a PDF, there's no URL, or it's a special-cased Amazon link.
+    if (!url || isForPdf || isAmazonLink) {
         setLoading(false);
         return;
     };
@@ -51,7 +54,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
     };
 
     fetchData();
-  }, [url, isForPdf]);
+  }, [url, isForPdf, isAmazonLink]);
 
   // Simple link for PDFs
   if (isForPdf) {
@@ -62,7 +65,27 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
       );
   }
 
-  // Loading state
+  // Custom "Amazon-aware" card
+  if (isAmazonLink) {
+      return (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
+        >
+          <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-amber-400 rounded-md text-white">
+            <ShoppingCart size={20} />
+          </div>
+          <div className="overflow-hidden">
+            <p className="font-bold text-sm text-slate-800 m-0 group-hover:text-indigo-600">View on Amazon</p>
+            <p className="text-xs text-slate-500 truncate m-0 mt-1">{url}</p>
+          </div>
+        </a>
+      );
+  }
+
+  // Loading state (for non-Amazon links)
   if (loading) {
     return (
       <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-100 border text-sm text-slate-500">
@@ -72,7 +95,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
     );
   }
   
-  // Error state or no data at all -> show simple link
+  // Error state or no data -> show simple link
   if (error || !data?.title) {
     return (
         <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg bg-white border border-slate-200 text-sm text-slate-800 hover:bg-slate-50 transition-colors no-underline">
@@ -100,7 +123,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
       );
   }
 
-  // Data without image (e.g., Amazon) -> show text-only preview card
+  // Data without image -> show text-only preview card
   return (
     <a href={url} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group">
         <div className="overflow-hidden">
