@@ -239,7 +239,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     wish={data.wishlistLabelText}
                                 />
                             </div>
-                            <div className="text-center md:text-left pt-2 bg-red-50 p-6 rounded-2xl">
+                             <div className="text-center md:text-left bg-amber-50 p-6 rounded-2xl w-full max-w-md mx-auto md:mx-0 md:w-auto">
                                 <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
                                 
                                 {!isNameRevealed ? (
@@ -247,8 +247,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                         <p className="text-lg text-slate-600 mt-2">
                                             Welcome to your private reveal page!
                                         </p>
-                                        <p className="text-sm text-slate-600 mt-4">
-                                            <strong>Is this your name?</strong> If not, please contact your organizer.
+                                        <p className="text-sm font-semibold text-slate-600 mt-4">
+                                            Is this your name? If not, please contact your organizer.
                                         </p>
                                         <p className="text-base text-slate-500 mt-6">
                                             Click the button below to see who you're the Secret Santa for and view their wishlist.
