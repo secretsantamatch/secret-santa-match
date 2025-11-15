@@ -66,12 +66,12 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col" onClick={e => e.stopPropagation()}>
-                <header className="p-6 flex justify-between items-center border-b bg-green-100 rounded-t-2xl">
+                <header className="p-6 flex justify-between items-center border-b rounded-t-2xl" style={{ backgroundColor: '#15803d' }}>
                     <div>
-                        <h2 className="text-2xl font-bold text-green-800 font-serif">Edit My Wishlist</h2>
-                        <p className="text-sm text-green-700/80 mt-1">Your Santa will see these updates automatically!</p>
+                        <h2 className="text-2xl font-bold text-white font-serif">Edit My Wishlist</h2>
+                        <p className="text-sm text-white/80 mt-1">Your Santa will see these updates automatically!</p>
                     </div>
-                    <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
+                    <button onClick={onClose} className="p-2 text-white/70 hover:bg-white/20 rounded-full"><X size={24} /></button>
                 </header>
                 
                 <main className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
