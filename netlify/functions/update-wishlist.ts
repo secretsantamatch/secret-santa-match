@@ -17,15 +17,26 @@ export default async (req: Request, context: Context) => {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405 });
     }
 
+    let store;
+    try {
+        // Step 1: Attempt to connect to the database.
+        store = getStore('wishlists');
+    } catch (error) {
+        console.error('Critical Error: Failed to connect to the blob store.', error);
+        return new Response(JSON.stringify({ error: "Critical Error: Failed to connect to the database. Ensure Netlify Blob Storage is activated for this site." }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        });
+    }
+
     try {
         const { exchangeId, participantId, wishlist } = (await req.json()) as UpdatePayload;
 
         if (!exchangeId || !participantId || !wishlist) {
             return new Response(JSON.stringify({ error: 'Missing required fields.' }), { status: 400 });
         }
-
-        const store = getStore('wishlists');
         
+        // Step 2: Read, update, and write data.
         const allWishlists = await store.get(exchangeId, { type: 'json' }) || {};
 
         const updatedWishlists = {
@@ -41,15 +52,8 @@ export default async (req: Request, context: Context) => {
         });
 
     } catch (error) {
-        console.error('Error updating wishlist:', error);
-        // Provide a more specific error if blob storage is not enabled
-        if (error instanceof Error && (error.message.includes('No blob store') || error.message.includes('404'))) {
-             return new Response(JSON.stringify({ error: "Database feature not enabled. The site owner needs to enable 'Blob Storage' in the Netlify site settings." }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-            });
-        }
-        return new Response(JSON.stringify({ error: 'An internal server error occurred.' }), {
+        console.error('Error processing wishlist update:', error);
+        return new Response(JSON.stringify({ error: 'An internal server error occurred while processing the save request.' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         });
