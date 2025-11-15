@@ -10,7 +10,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 
 interface ResultsPageProps {
@@ -162,7 +162,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const displayMatch = currentMatch && liveReceiver ? { ...currentMatch, receiver: liveReceiver } : currentMatch;
 
     return (
-        <div className="bg-red-50 min-h-screen">
+        <div className="bg-white min-h-screen">
             {isShareModalOpen && <ShareLinksModal exchangeData={data} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
             {isWishlistModalOpen && currentParticipant && data.id && (
                 <WishlistEditorModal 
@@ -239,21 +239,23 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     wish={data.wishlistLabelText}
                                 />
                             </div>
-                            <div className="text-center md:text-left pt-2">
+                            <div className="text-center md:text-left pt-2 bg-red-50 p-6 rounded-2xl">
                                 <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
                                 
                                 {!isNameRevealed ? (
                                     <>
-                                        <p className="text-lg text-slate-600 mt-2 max-w-prose">
+                                        <p className="text-lg text-slate-600 mt-2">
                                             Welcome to your private reveal page!
-                                            <strong className="block mt-2 font-bold text-slate-800">Is this your name? If not, please contact your organizer.</strong>
                                         </p>
-                                        <p className="text-base text-slate-500 mt-4">
+                                        <p className="text-sm text-slate-600 mt-4">
+                                            <strong>Is this your name?</strong> If not, please contact your organizer.
+                                        </p>
+                                        <p className="text-base text-slate-500 mt-6">
                                             Click the button below to see who you're the Secret Santa for and view their wishlist.
                                             You can update your own wishlist on the next page!
                                         </p>
                                         <button onClick={handleReveal} className="mt-8 w-full md:w-auto py-4 px-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl rounded-lg transition-transform transform hover:scale-105 shadow-lg">
-                                            Scratch to Reveal Your Person!
+                                            Click to Continue
                                         </button>
                                         <div className="mt-8">
                                             <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
