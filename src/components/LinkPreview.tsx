@@ -75,9 +75,12 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
   // Fallback for errors or incomplete data (especially no image)
   if (error || !data || !data.image) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-800 hover:bg-red-100 transition-colors">
-        <Link className="h-4 w-4 flex-shrink-0" />
-        <span className="truncate font-semibold">{data?.title || url}</span>
+      <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 text-sm text-slate-800 hover:bg-slate-50 transition-colors no-underline">
+        <Link className="h-5 w-5 flex-shrink-0 text-slate-400 mt-0.5" />
+        <div className="overflow-hidden">
+            <p className="font-semibold truncate m-0">{data?.title || url}</p>
+            {data?.description && <p className="text-xs text-slate-500 m-0 mt-1 line-clamp-2">{data.description}</p>}
+        </div>
       </a>
     );
   }
