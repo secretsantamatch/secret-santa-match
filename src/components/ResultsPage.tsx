@@ -12,6 +12,7 @@ import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
 import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
+import LinkPreview from './LinkPreview';
 
 interface ResultsPageProps {
     data: ExchangeData;
@@ -160,9 +161,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     }
     
     const displayMatch = currentMatch && liveReceiver ? { ...currentMatch, receiver: liveReceiver } : currentMatch;
+    const hasLinks = displayMatch && Array.isArray(displayMatch.receiver.links) && displayMatch.receiver.links.some(link => link && link.trim() !== '');
 
     return (
-        <div className="bg-white min-h-screen">
+        <div className="bg-slate-50 min-h-screen">
             {isShareModalOpen && <ShareLinksModal exchangeData={data} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
             {isWishlistModalOpen && currentParticipant && data.id && (
                 <WishlistEditorModal 
@@ -237,6 +239,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     greet={data.greetingText} 
                                     intro={data.introText} 
                                     wish={data.wishlistLabelText}
+                                    showLinks={false}
                                 />
                             </div>
                              <div className="text-center md:text-left h-fit">
@@ -269,6 +272,18 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                             <h3 className="font-bold text-lg text-slate-700">Your Person is:</h3>
                                             <p className="text-4xl font-bold text-red-600">{displayMatch.receiver.name}</p>
                                         </div>
+
+                                        {hasLinks && (
+                                            <div className="mt-6 text-center md:text-left">
+                                                <h3 className="font-bold text-lg text-slate-700">Their Wishlist Links:</h3>
+                                                <div className="mt-2 grid grid-cols-1 gap-3">
+                                                    {displayMatch.receiver.links.map((link, index) => (
+                                                        link.trim() ? <LinkPreview key={index} url={link} /> : null
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <button onClick={() => setIsWishlistModalOpen(true)} className="mt-6 w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
                                             Edit My Wishlist for My Santa
                                         </button>

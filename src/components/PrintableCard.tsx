@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Match, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
 import LinkPreview from './LinkPreview';
 
@@ -44,7 +44,39 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   showLinks = true,
 }) => {
   const { giver, receiver } = match;
+  const [animatedName, setAnimatedName] = useState('??????????');
   const backgroundUrl = bgImg || backgroundOptions.find(opt => opt.id === bgId)?.imageUrl || '';
+
+  useEffect(() => {
+    if (isNameRevealed && !isForPdf) {
+      const finalName = receiver.name;
+      const scrambleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*?';
+      let iteration = 0;
+
+      const interval = setInterval(() => {
+        const newName = finalName
+          .split('')
+          .map((letter, index) => {
+            if (index < iteration) return finalName[index];
+            if (letter === ' ') return ' ';
+            return scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
+          })
+          .join('');
+
+        setAnimatedName(newName);
+
+        if (iteration >= finalName.length) {
+          clearInterval(interval);
+        }
+
+        iteration += finalName.length / 45; // Control reveal speed
+      }, 40); // Control flicker speed
+
+      return () => clearInterval(interval);
+    } else if (!isNameRevealed) {
+      setAnimatedName('??????????');
+    }
+  }, [isNameRevealed, receiver.name, isForPdf]);
 
   const fontFamilies: Record<FontTheme, string> = {
     classic: "'Playfair Display', serif",
@@ -115,32 +147,18 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             </div>
 
             {/* Receiver Name */}
-            {isNameRevealed ? (
-                <h1
-                    className="font-bold my-1 break-words"
-                    style={{
-                        ...commonTextStyle,
-                        fontFamily: fontFamilies.classic,
-                        fontSize: baseSizes.name,
-                        lineHeight: 1.1
-                    }}
-                >
-                    {receiver.name}
-                </h1>
-            ) : (
-                 <h1
-                    className="font-bold my-1"
-                    style={{
-                        ...commonTextStyle,
-                        fontFamily: fontFamilies.classic,
-                        fontSize: baseSizes.name,
-                        lineHeight: 1.1,
-                        letterSpacing: '0.2em'
-                    }}
-                >
-                    ??????????
-                </h1>
-            )}
+            <h1
+                className="font-bold my-1 break-words"
+                style={{
+                    ...commonTextStyle,
+                    fontFamily: fontFamilies.classic,
+                    fontSize: baseSizes.name,
+                    lineHeight: 1.1,
+                    letterSpacing: isNameRevealed ? 'normal' : '0.2em'
+                }}
+            >
+                {isForPdf ? (isNameRevealed ? receiver.name : '??????????') : animatedName}
+            </h1>
             
             {/* Wishlist and Event Details */}
             {isNameRevealed && (
