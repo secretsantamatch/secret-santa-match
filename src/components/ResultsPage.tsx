@@ -218,8 +218,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                     </div>
                 ) : (
                     displayMatch && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                            <div className="w-full max-w-sm mx-auto">
+                        <div className="flex flex-col md:flex-row gap-8 items-start justify-center">
+                            <div className="w-full max-w-sm mx-auto md:flex-shrink-0">
                                 <PrintableCard 
                                     match={displayMatch} 
                                     eventDetails={data.eventDetails} 
