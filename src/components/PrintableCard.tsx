@@ -44,24 +44,30 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   showLinks = true,
 }) => {
   const { giver, receiver } = match;
-  const [animatedName, setAnimatedName] = useState('??????????');
+  const [animatedName, setAnimatedName] = useState<React.ReactNode>('??????????');
   const backgroundUrl = bgImg || backgroundOptions.find(opt => opt.id === bgId)?.imageUrl || '';
 
   useEffect(() => {
     if (isNameRevealed && !isForPdf) {
       const finalName = receiver.name;
-      const scrambleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*?';
+      const scrambleChars = '🎁🎄🌟❄️🎅🎀';
+      const holidayColors = ['#c62828', '#166534', '#b49b69', '#243e5a'];
       let iteration = 0;
 
       const interval = setInterval(() => {
         const newName = finalName
           .split('')
           .map((letter, index) => {
-            if (index < iteration) return finalName[index];
-            if (letter === ' ') return ' ';
-            return scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
-          })
-          .join('');
+            if (index < iteration) {
+              return <span key={index}>{finalName[index]}</span>;
+            }
+            if (letter === ' ') {
+              return <span key={index}> </span>;
+            }
+            const randomChar = scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
+            const randomColor = holidayColors[Math.floor(Math.random() * holidayColors.length)];
+            return <span key={index} style={{ color: randomColor }}>{randomChar}</span>;
+          });
 
         setAnimatedName(newName);
 

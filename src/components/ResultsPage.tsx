@@ -239,24 +239,24 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     greet={data.greetingText} 
                                     intro={data.introText} 
                                     wish={data.wishlistLabelText}
-                                    showLinks={false}
+                                    showLinks={false} // Links are shown on the right now
                                 />
                             </div>
-                             <div className="text-center md:text-left h-fit">
+                             <div className="text-center md:text-left h-fit w-full max-w-md">
                                 {!isNameRevealed ? (
-                                    <div className="w-full max-w-md mx-auto p-6">
+                                    <div className="bg-amber-50 p-6 rounded-2xl h-fit">
                                         <h1 className="text-3xl md:text-4xl font-bold text-green-700 font-serif">Hi, {displayMatch.giver.name}!</h1>
                                         <p className="text-lg text-slate-600 mt-2">
                                             Welcome to your private reveal page!
                                         </p>
                                         <p className="text-sm text-slate-600 mt-4">
-                                            Is this your name? If not, please contact your organizer.
+                                            <strong>Is this your name?</strong> If not, please contact your organizer.
                                         </p>
                                         <p className="text-base text-slate-500 mt-6">
                                             Click the button below to see who you're the Secret Santa for and view their wishlist.
                                             You can update your own wishlist on the next page!
                                         </p>
-                                        <button onClick={handleReveal} className="mt-8 w-full md:w-auto py-4 px-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                                        <button onClick={handleReveal} className="mt-8 w-full py-4 px-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl rounded-lg transition-transform transform hover:scale-105 shadow-lg">
                                             Click to Continue
                                         </button>
                                         <div className="mt-8">
@@ -265,7 +265,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     </div>
                                 ) : (
                                     <div className="mt-4">
-                                         <p className="text-lg text-slate-600 mt-2">
+                                         <p className="text-lg text-slate-600">
                                             You are the Secret Santa for...
                                         </p>
                                         <div className="mt-4 bg-white rounded-lg p-6 border text-center md:text-left shadow-inner">
