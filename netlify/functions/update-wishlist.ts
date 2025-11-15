@@ -14,34 +14,28 @@ export default async (req: Request, context: Context) => {
         const { exchangeId, participantId, wishlistData } = body;
 
         if (!exchangeId || !participantId || !wishlistData) {
-            return new Response(JSON.stringify({ error: 'Missing required fields (exchangeId, participantId, or wishlistData)' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' },
-            });
+            return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
         }
         
         const { interests, likes, dislikes, links } = wishlistData;
-
-        // More robust validation for wishlist fields only
         if (
-            typeof interests !== 'string' ||
-            typeof likes !== 'string' ||
-            typeof dislikes !== 'string' ||
-            !Array.isArray(links) ||
-            !links.every(link => typeof link === 'string')
+            typeof interests !== 'string' || typeof likes !== 'string' || typeof dislikes !== 'string' ||
+            !Array.isArray(links) || !links.every(link => typeof link === 'string')
         ) {
-            return new Response(JSON.stringify({ error: 'Invalid wishlist data format. All fields must have the correct type.' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' },
-            });
+            return new Response(JSON.stringify({ error: 'Invalid wishlist data format.' }), { status: 400 });
         }
 
-        const store = getStore('wishlists');
-        const key = `${exchangeId}-${participantId}`;
-        
-        // Save a clean object with only wishlist data.
-        const cleanWishlistData = { interests, likes, dislikes, links };
-        await store.setJSON(key, cleanWishlistData);
+        const store = getStore('wishlists-v2');
+        const key = exchangeId;
+
+        // Fetch the existing wishlists object for the entire exchange
+        let allWishlists: Record<string, any> = await store.get(key, { type: 'json' }) || {};
+
+        // Update the data for the specific participant
+        allWishlists[participantId] = { interests, likes, dislikes, links };
+
+        // Save the entire updated object back to the blob
+        await store.setJSON(key, allWishlists);
 
         return new Response(JSON.stringify({ success: true, message: 'Wishlist updated' }), {
             status: 200,
@@ -50,9 +44,6 @@ export default async (req: Request, context: Context) => {
 
     } catch (error) {
         console.error('Error updating wishlist:', error);
-        return new Response(JSON.stringify({ error: 'An internal server error occurred while saving.' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
+        return new Response(JSON.stringify({ error: 'An internal server error occurred.' }), { status: 500 });
     }
 };
