@@ -67,7 +67,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col" onClick={e => e.stopPropagation()}>
-                <header className="p-6 flex justify-between items-center border-b">
+                <header className="p-6 flex justify-between items-center border-b bg-amber-100 rounded-t-2xl">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-800 font-serif">Edit My Wishlist</h2>
                         <p className="text-sm text-slate-500 mt-1">Your Santa will see these updates automatically!</p>
@@ -108,7 +108,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Top 5 Wishlist Links (for affiliates)</label>
+                        <label className="block text-sm font-medium text-slate-600 mb-1">Top 5 Wishlist Links</label>
                         <div className="space-y-2">
                             {wishlist.links.map((link, i) => (
                                 <input
@@ -142,7 +142,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     <button 
                         onClick={handleSave} 
                         disabled={isSaving}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50"
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50"
                     >
                         {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
                         {isSaving ? 'Saving...' : 'Save Changes'}
