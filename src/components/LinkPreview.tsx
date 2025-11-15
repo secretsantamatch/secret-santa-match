@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Loader2, AlertTriangle } from 'lucide-react';
+import { Link, Loader2 } from 'lucide-react';
 
 interface LinkPreviewProps {
   url: string;
   isForPdf?: boolean;
 }
 
-interface MicrolinkData {
+interface PreviewData {
   title: string;
   description: string;
-  image: {
-    url: string;
-  };
+  image: string | null;
   url: string;
 }
 
 const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
-  const [data, setData] = useState<MicrolinkData | null>(null);
+  const [data, setData] = useState<PreviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,21 +28,21 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
       setLoading(true);
       setError(null);
       try {
-        // FIX: Check for existence of import.meta.env before accessing it.
-        const apiKey = import.meta.env ? import.meta.env.VITE_MICROLINK_API_KEY : undefined;
-        const apiUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}`;
-        
-        const response = await fetch(apiKey ? `${apiUrl}&x-api-key=${apiKey}` : apiUrl);
+        const apiUrl = `/.netlify/functions/get-link-preview?url=${encodeURIComponent(url)}`;
+        const response = await fetch(apiUrl);
 
         if (!response.ok) {
           throw new Error('Could not fetch link preview.');
         }
+        
         const result = await response.json();
-        if (result.status === 'success') {
-          setData(result.data);
-        } else {
-          throw new Error('API returned an error.');
+        
+        if (result.error) {
+            throw new Error(result.error);
         }
+
+        setData(result);
+
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred.');
       } finally {
@@ -55,6 +53,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
     fetchData();
   }, [url, isForPdf]);
 
+  // Simple link for PDFs
   if (isForPdf) {
       return (
         <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline truncate block">
@@ -63,6 +62,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
       );
   }
 
+  // Loading state
   if (loading) {
     return (
       <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-100 border text-sm text-slate-500">
@@ -72,15 +72,17 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
     );
   }
 
-  if (error || !data) {
+  // Fallback for errors or incomplete data (especially no image)
+  if (error || !data || !data.image) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 rounded-lg bg-red-50 border text-sm text-red-700 hover:bg-red-100">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-800 hover:bg-red-100 transition-colors">
         <Link className="h-4 w-4 flex-shrink-0" />
-        <span className="truncate">{url}</span>
+        <span className="truncate font-semibold">{data?.title || url}</span>
       </a>
     );
   }
 
+  // Full preview component
   return (
     <a
       href={data.url}
@@ -88,9 +90,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
       rel="noopener noreferrer"
       className="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
     >
-      {data.image && (
-        <div className="w-16 h-12 flex-shrink-0 bg-cover bg-center rounded" style={{ backgroundImage: `url(${data.image.url})` }}></div>
-      )}
+      <div className="w-20 h-16 flex-shrink-0 bg-cover bg-center rounded" style={{ backgroundImage: `url(${data.image})` }}></div>
       <div className="overflow-hidden">
         <p className="font-bold text-sm text-slate-800 truncate m-0 group-hover:text-indigo-600">{data.title}</p>
         <p className="text-xs text-slate-500 truncate m-0">{data.description}</p>

@@ -6,8 +6,6 @@ interface ImportMetaEnv {
   readonly DEV: boolean;
   // readonly VITE_APP_TITLE: string
   // Add other env variables here...
-  // FIX: Added VITE_MICROLINK_API_KEY to environment variables type definition.
-  readonly VITE_MICROLINK_API_KEY?: string;
 }
 
 interface ImportMeta {
