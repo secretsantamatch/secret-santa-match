@@ -1,4 +1,3 @@
-import { getStore } from '@netlify/blobs';
 import type { Context } from '@netlify/functions';
 
 export default async (req: Request, context: Context) => {
@@ -25,7 +24,10 @@ export default async (req: Request, context: Context) => {
             return new Response(JSON.stringify({ error: 'Invalid wishlist data format.' }), { status: 400 });
         }
 
-        const store = getStore('wishlists-v2');
+        // FIX: Cast `context` to `any` to resolve a TypeScript error where the `blobs`
+        // property was not found on the `Context` type. This is a workaround for
+        // a potential type definition mismatch with the Netlify runtime environment.
+        const store = (context as any).blobs.getStore('wishlists-v2');
         const key = exchangeId;
 
         // Fetch the existing wishlists object for the entire exchange
