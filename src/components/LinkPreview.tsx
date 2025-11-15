@@ -8,7 +8,7 @@ interface LinkPreviewProps {
 
 interface PreviewData {
   title: string;
-  description: string;
+  description: string | null;
   image: string | null;
   url: string;
 }
@@ -71,33 +71,42 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
       </div>
     );
   }
-
-  // Fallback for errors or incomplete data (especially no image)
-  if (error || !data || !data.image) {
+  
+  // Error state or no data at all -> show simple link
+  if (error || !data?.title) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 text-sm text-slate-800 hover:bg-slate-50 transition-colors no-underline">
-        <Link className="h-5 w-5 flex-shrink-0 text-slate-400 mt-0.5" />
-        <div className="overflow-hidden">
-            <p className="font-semibold truncate m-0">{data?.title || url}</p>
-            {data?.description && <p className="text-xs text-slate-500 m-0 mt-1 line-clamp-2">{data.description}</p>}
-        </div>
-      </a>
+        <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg bg-white border border-slate-200 text-sm text-slate-800 hover:bg-slate-50 transition-colors no-underline">
+            <Link className="h-4 w-4 flex-shrink-0 text-slate-400" />
+            <span className="truncate">{url}</span>
+        </a>
     );
   }
+  
+  // Data with image -> show full preview
+  if (data.image) {
+      return (
+        <a
+          href={data.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
+        >
+          <div className="w-20 h-16 flex-shrink-0 bg-cover bg-center rounded" style={{ backgroundImage: `url(${data.image})` }}></div>
+          <div className="overflow-hidden">
+            <p className="font-bold text-sm text-slate-800 truncate m-0 group-hover:text-indigo-600">{data.title}</p>
+            {data.description && <p className="text-xs text-slate-500 truncate m-0 mt-1">{data.description}</p>}
+          </div>
+        </a>
+      );
+  }
 
-  // Full preview component
+  // Data without image (e.g., Amazon) -> show text-only preview card
   return (
-    <a
-      href={data.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
-    >
-      <div className="w-20 h-16 flex-shrink-0 bg-cover bg-center rounded" style={{ backgroundImage: `url(${data.image})` }}></div>
-      <div className="overflow-hidden">
-        <p className="font-bold text-sm text-slate-800 truncate m-0 group-hover:text-indigo-600">{data.title}</p>
-        <p className="text-xs text-slate-500 truncate m-0">{data.description}</p>
-      </div>
+    <a href={url} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group">
+        <div className="overflow-hidden">
+            <p className="font-semibold text-sm truncate m-0 text-slate-800 group-hover:text-indigo-600">{data.title}</p>
+            {data.description && <p className="text-xs text-slate-500 m-0 mt-1 line-clamp-2">{data.description}</p>}
+        </div>
     </a>
   );
 };

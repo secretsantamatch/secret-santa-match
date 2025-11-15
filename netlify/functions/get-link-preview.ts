@@ -1,11 +1,26 @@
 import type { Context } from '@netlify/functions';
 
-// Simple regex to find Open Graph meta tags. This avoids pulling in heavy parsing libraries.
+// Helper for OG tags
 const getOgTag = (html: string, property: string): string | null => {
-    const regex = new RegExp(`<meta property="og:${property}" content="(.*?)"`);
+    const regex = new RegExp(`<meta property="og:${property}" content="(.*?)"`, 'i');
     const match = html.match(regex);
     return match ? match[1] : null;
 };
+
+// Helper for standard title tag
+const getTitleTag = (html: string): string | null => {
+    const regex = new RegExp(`<title>(.*?)</title>`, 'i');
+    const match = html.match(regex);
+    return match ? match[1] : null;
+};
+
+// Helper for standard meta description tag
+const getMetaDescription = (html: string): string | null => {
+    const regex = new RegExp(`<meta name="description" content="(.*?)"`, 'i');
+    const match = html.match(regex);
+    return match ? match[1] : null;
+};
+
 
 export default async (req: Request, context: Context) => {
     const url = new URL(req.url);
@@ -29,17 +44,18 @@ export default async (req: Request, context: Context) => {
 
         const html = await response.text();
 
-        const title = getOgTag(html, 'title');
-        const description = getOgTag(html, 'description');
+        // Try OG tags first, then fall back to standard tags
+        const title = getOgTag(html, 'title') || getTitleTag(html);
+        const description = getOgTag(html, 'description') || getMetaDescription(html);
         const image = getOgTag(html, 'image');
 
-        if (!title && !image) {
-             throw new Error('Could not find Open Graph tags.');
+        if (!title) {
+             throw new Error('Could not find a title for the page.');
         }
 
         return new Response(JSON.stringify({
-            title: title || 'No Title',
-            description: description || 'No Description',
+            title: title.trim(),
+            description: description ? description.trim() : null,
             image: image || null,
             url: targetUrl,
         }), {
