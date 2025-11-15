@@ -26,16 +26,13 @@ export default async (req: Request, context: Context) => {
 
         const store = getStore('wishlists');
         
-        // Get the existing wishlists object, or create a new one
         const allWishlists = await store.get(exchangeId, { type: 'json' }) || {};
 
-        // Update the specific participant's wishlist
         const updatedWishlists = {
             ...allWishlists,
             [participantId]: wishlist,
         };
 
-        // Save the entire object back to the blob store
         await store.setJSON(exchangeId, updatedWishlists);
 
         return new Response(JSON.stringify({ success: true }), {
@@ -45,6 +42,13 @@ export default async (req: Request, context: Context) => {
 
     } catch (error) {
         console.error('Error updating wishlist:', error);
+        // Provide a more specific error if blob storage is not enabled
+        if (error instanceof Error && (error.message.includes('No blob store') || error.message.includes('404'))) {
+             return new Response(JSON.stringify({ error: "Database feature not enabled. The site owner needs to enable 'Blob Storage' in the Netlify site settings." }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            });
+        }
         return new Response(JSON.stringify({ error: 'An internal server error occurred.' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },

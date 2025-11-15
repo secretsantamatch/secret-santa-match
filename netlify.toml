@@ -1,13 +1,16 @@
 # This file provides explicit build instructions for Netlify.
-
 [build]
+  # The build command from your package.json
   command = "npm run build"
+  # The directory where your built site is placed
   publish = "dist"
 
+# This tells Netlify where to find your serverless functions
 [functions]
-  directory = "netlify/functions/"
+  directory = "netlify/functions"
 
-# This section enables and configures the Netlify Blobs store for wishlists.
+# This section configures the Netlify Blobs store named "wishlists".
+# Deploying a function that imports '@netlify/blobs' will activate this store.
 [blobs]
   store = "wishlists"
 
