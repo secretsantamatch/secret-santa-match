@@ -20,14 +20,13 @@ export default async (req: Request, context: Context) => {
             });
         }
         
-        const { interests, likes, dislikes, links, budget } = wishlistData;
+        const { interests, likes, dislikes, links } = wishlistData;
 
-        // More robust validation
+        // More robust validation for wishlist fields only
         if (
             typeof interests !== 'string' ||
             typeof likes !== 'string' ||
             typeof dislikes !== 'string' ||
-            typeof budget !== 'string' ||
             !Array.isArray(links) ||
             !links.every(link => typeof link === 'string')
         ) {
@@ -40,8 +39,8 @@ export default async (req: Request, context: Context) => {
         const store = getStore('wishlists');
         const key = `${exchangeId}-${participantId}`;
         
-        // Save a clean object to prevent any extra properties from being stored.
-        const cleanWishlistData = { interests, likes, dislikes, links, budget };
+        // Save a clean object with only wishlist data.
+        const cleanWishlistData = { interests, likes, dislikes, links };
         await store.setJSON(key, cleanWishlistData);
 
         return new Response(JSON.stringify({ success: true, message: 'Wishlist updated' }), {

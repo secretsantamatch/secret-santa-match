@@ -39,7 +39,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
             const payload = {
                 exchangeId,
                 participantId: participant.id,
-                wishlistData: { ...wishlist, budget: participant.budget || '' },
+                wishlistData: wishlist, // FIX: Only send wishlist data
             };
             
             const response = await fetch('/.netlify/functions/update-wishlist', {
