@@ -22,6 +22,7 @@ interface ResultsPageProps {
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
+    const [detailsVisible, setDetailsVisible] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
     const [isShuffleModalOpen, setIsShuffleModalOpen] = useState(false);
@@ -107,7 +108,13 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         setShowCookieBanner(false);
     };
 
-    const handleReveal = () => { setIsNameRevealed(true); trackEvent('reveal_name'); };
+    const handleReveal = () => {
+        setIsNameRevealed(true);
+        trackEvent('reveal_name');
+        setTimeout(() => {
+            setDetailsVisible(true);
+        }, 2500); // Match animation duration from PrintableCard + buffer
+    };
     
     const handleWishlistUpdate = (updatedParticipant: Participant) => {
         if (liveReceiver && liveReceiver.id === updatedParticipant.id) {
@@ -266,47 +273,53 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     </div>
                                 ) : (
                                     <div className="mt-4 space-y-6">
-                                        <p className="text-lg text-slate-600">You are the Secret Santa for...</p>
+                                        <p className="text-lg text-slate-600">
+                                            <span className="font-bold text-green-700">{displayMatch.giver.name}</span>, you are the Secret Santa for...
+                                        </p>
                                         
-                                        <div className="bg-white rounded-lg p-6 border text-left shadow-inner space-y-4">
-                                            <div className="text-center border-b pb-4">
-                                                <h3 className="font-bold text-lg text-slate-700">Your Person is:</h3>
-                                                <p className="text-4xl font-bold text-red-600">{displayMatch.receiver.name}</p>
-                                            </div>
-
-                                            {hasDetails && (
-                                                <div>
-                                                    <h4 className="font-bold text-slate-700 mb-2">Their Gift Ideas</h4>
-                                                    <div className="space-y-1 text-slate-600 text-sm pl-2">
-                                                        {displayMatch.receiver.interests && <p><strong className="font-semibold text-slate-800">Interests:</strong> {displayMatch.receiver.interests}</p>}
-                                                        {displayMatch.receiver.likes && <p><strong className="font-semibold text-slate-800">Likes:</strong> {displayMatch.receiver.likes}</p>}
-                                                        {displayMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {displayMatch.receiver.dislikes}</p>}
-                                                        {displayMatch.receiver.budget && <p><strong className="font-semibold text-slate-800">Budget:</strong> {displayMatch.receiver.budget}</p>}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {hasLinks && (
-                                                <div>
-                                                    <h4 className="font-bold text-slate-700 mb-3">Their Wishlist Links</h4>
-                                                    <div className="grid grid-cols-1 gap-3">
-                                                        {displayMatch.receiver.links.map((link, index) => (
-                                                            link.trim() ? <LinkPreview key={index} url={link} /> : null
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                        
-                                        {data.eventDetails && (
-                                            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                                                <p className="text-sm text-amber-800 text-center">{data.eventDetails}</p>
-                                            </div>
-                                        )}
-
                                         <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
                                             Edit My Wishlist for My Santa
                                         </button>
+                                        
+                                        {detailsVisible && (
+                                            <div className="space-y-6">
+                                                <div className="bg-white rounded-lg p-6 border text-left shadow-inner space-y-4">
+                                                    <div className="text-center border-b pb-4">
+                                                        <h3 className="font-bold text-lg text-slate-700">Your Person is:</h3>
+                                                        <p className="text-4xl font-bold text-red-600">{displayMatch.receiver.name}</p>
+                                                    </div>
+
+                                                    {hasDetails && (
+                                                        <div>
+                                                            <h4 className="font-bold text-slate-700 mb-2">Their Gift Ideas</h4>
+                                                            <div className="space-y-1 text-slate-600 text-sm pl-2">
+                                                                {displayMatch.receiver.interests && <p><strong className="font-semibold text-slate-800">Interests:</strong> {displayMatch.receiver.interests}</p>}
+                                                                {displayMatch.receiver.likes && <p><strong className="font-semibold text-slate-800">Likes:</strong> {displayMatch.receiver.likes}</p>}
+                                                                {displayMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {displayMatch.receiver.dislikes}</p>}
+                                                                {displayMatch.receiver.budget && <p><strong className="font-semibold text-slate-800">Budget:</strong> {displayMatch.receiver.budget}</p>}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {hasLinks && (
+                                                        <div>
+                                                            <h4 className="font-bold text-slate-700 mb-3">Their Wishlist Links</h4>
+                                                            <div className="grid grid-cols-1 gap-3">
+                                                                {displayMatch.receiver.links.map((link, index) => (
+                                                                    link.trim() ? <LinkPreview key={index} url={link} /> : null
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                
+                                                {data.eventDetails && (
+                                                    <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                                                        <p className="text-sm text-amber-800 text-center">{data.eventDetails}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
