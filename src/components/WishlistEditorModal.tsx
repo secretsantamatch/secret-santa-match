@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
 import type { Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
-import { Save, X, Loader2 } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 
 interface WishlistEditorModalProps {
   participant: Participant;
-  exchangeId: string;
   onClose: () => void;
-  onSave: (updatedParticipant: Participant) => void; // For optimistic UI update
+  onSave: (updatedParticipant: Participant) => void;
 }
 
-const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, exchangeId, onClose, onSave }) => {
+const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, onClose, onSave }) => {
     const [wishlist, setWishlist] = useState({
         interests: participant.interests || '',
         likes: participant.likes || '',
         dislikes: participant.dislikes || '',
         links: Array.isArray(participant.links) ? participant.links : Array(5).fill(''),
     });
-    const [isSaving, setIsSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     const handleChange = (field: keyof Omit<typeof wishlist, 'links'>, value: string) => {
         setWishlist(prev => ({ ...prev, [field]: value }));
@@ -30,48 +27,25 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         setWishlist(prev => ({ ...prev, links: newLinks }));
     };
 
-    const handleSave = async () => {
+    const handleSave = () => {
         trackEvent('wishlist_save_attempt');
-        setIsSaving(true);
-        setError(null);
         
-        try {
-            const payload = {
-                exchangeId,
-                participantId: participant.id,
-                wishlistData: wishlist, // FIX: Only send wishlist data
-            };
-            
-            const response = await fetch('/.netlify/functions/update-wishlist', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-
-            if (!response.ok) {
-                let errorMsg = 'Failed to save wishlist. Please try again.';
-                try {
-                    const errorData = await response.json();
-                    if (errorData && errorData.error) {
-                        errorMsg = `Save failed: ${errorData.error}`;
-                    }
-                } catch (e) {
-                    // Response was not JSON, use the default error message.
-                }
-                throw new Error(errorMsg);
-            }
-            
-            // Optimistically update the UI
-            onSave({ ...participant, ...wishlist });
-            trackEvent('wishlist_save_success');
-            onClose();
-
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-            trackEvent('wishlist_save_fail', { error: err instanceof Error ? err.message : 'unknown' });
-        } finally {
-            setIsSaving(false);
+        const updatedParticipant: Participant = {
+            ...participant,
+            interests: wishlist.interests,
+            likes: wishlist.likes,
+            dislikes: wishlist.dislikes,
+            links: wishlist.links.filter(link => link.trim() !== ''), // Clean up empty links
+        };
+        
+        // Pad the links array to always have 5 elements for data structure consistency
+        while (updatedParticipant.links.length < 5) {
+            updatedParticipant.links.push('');
         }
+
+        onSave(updatedParticipant);
+        trackEvent('wishlist_save_success');
+        onClose();
     };
 
     return (
@@ -90,8 +64,6 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                         Help your Secret Santa find you the perfect gift! Fill out the details below.
                     </p>
 
-                    {error && <div className="text-red-800 bg-red-100 p-4 rounded-lg text-sm border border-red-200">{error}</div>}
-                    
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My Interests & Hobbies</label>
                         <input
@@ -128,12 +100,12 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My 5 Wishlist Links</label>
                         <div className="space-y-2">
-                            {wishlist.links.map((link, i) => (
+                            {Array.from({ length: 5 }).map((_, i) => (
                                 <input
                                     key={i}
                                     type="text"
                                     placeholder={`e.g., https://www.amazon.com/wishlist/...`}
-                                    value={link}
+                                    value={wishlist.links[i] || ''}
                                     onChange={(e) => handleLinkChange(i, e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md"
                                 />
@@ -149,11 +121,10 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     <button onClick={onClose} className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg">Cancel</button>
                     <button 
                         onClick={handleSave} 
-                        disabled={isSaving}
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50"
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2"
                     >
-                        {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
-                        {isSaving ? 'Saving...' : 'Save Changes'}
+                        <Save size={20} />
+                        Save Changes
                     </button>
                 </footer>
             </div>

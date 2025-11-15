@@ -18,6 +18,7 @@ interface ResultsPageProps {
     data: ExchangeData;
     currentParticipantId: string | null;
     onDataUpdated: (newMatches: { g: string; r: string }[]) => void;
+    onFullDataUpdate: (newData: ExchangeData) => void;
 }
 
 const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label }) => {
@@ -51,7 +52,7 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
 };
 
 
-const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
+const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated, onFullDataUpdate }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
     const [detailsVisible, setDetailsVisible] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -61,7 +62,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const [isShuffling, setIsShuffling] = useState(false);
     const [shortOrganizerLink, setShortOrganizerLink] = useState('');
     const [organizerLinkCopied, setOrganizerLinkCopied] = useState(false);
-    const [liveReceiver, setLiveReceiver] = useState<Participant | null>(null);
     const [showCookieBanner, setShowCookieBanner] = useState(false);
 
     const isOrganizer = !currentParticipantId;
@@ -80,28 +80,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const currentMatch = useMemo(() =>
         currentParticipant ? matches.find(m => m.giver.id === currentParticipant.id) : null,
     [matches, currentParticipant]);
-
-    // This effect fetches the most up-to-date wishlist for the receiver.
-    useEffect(() => {
-        if (currentMatch?.receiver) {
-            // Set initial state from URL data
-            setLiveReceiver(currentMatch.receiver);
-
-            // Fetch latest version from blob store
-            fetch(`/.netlify/functions/get-wishlist?exchangeId=${data.id}&participantId=${currentMatch.receiver.id}`)
-                .then(res => {
-                    if (res.ok) return res.json();
-                    return null;
-                })
-                .then(wishlistData => {
-                    if (wishlistData) {
-                        setLiveReceiver(prev => prev ? { ...prev, ...wishlistData } : null);
-                    }
-                })
-                .catch(err => console.error("Failed to fetch live wishlist", err));
-        }
-    }, [currentMatch, data.id]);
-
 
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
@@ -148,9 +126,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     };
     
     const handleWishlistUpdate = (updatedParticipant: Participant) => {
-        if (liveReceiver && liveReceiver.id === updatedParticipant.id) {
-            setLiveReceiver(updatedParticipant);
-        }
+        // Create a new data object with the updated participant
+        const updatedParticipants = data.p.map(p => p.id === updatedParticipant.id ? updatedParticipant : p);
+        const newData = { ...data, p: updatedParticipants };
+        onFullDataUpdate(newData);
     };
 
     const openShareModal = (view: 'links' | 'print') => {
@@ -198,17 +177,15 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         );
     }
     
-    const displayMatch = currentMatch && liveReceiver ? { ...currentMatch, receiver: liveReceiver } : currentMatch;
-    const hasLinks = displayMatch && Array.isArray(displayMatch.receiver.links) && displayMatch.receiver.links.some(link => link && link.trim() !== '');
-    const hasDetails = displayMatch && (displayMatch.receiver.interests || displayMatch.receiver.likes || displayMatch.receiver.dislikes || displayMatch.receiver.budget);
+    const hasLinks = currentMatch && Array.isArray(currentMatch.receiver.links) && currentMatch.receiver.links.some(link => link && link.trim() !== '');
+    const hasDetails = currentMatch && (currentMatch.receiver.interests || currentMatch.receiver.likes || currentMatch.receiver.dislikes || currentMatch.receiver.budget);
 
     return (
         <div className="bg-slate-50 min-h-screen">
             {isShareModalOpen && <ShareLinksModal exchangeData={data} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
-            {isWishlistModalOpen && currentParticipant && data.id && (
+            {isWishlistModalOpen && currentParticipant && (
                 <WishlistEditorModal 
                     participant={currentParticipant}
-                    exchangeId={data.id} 
                     onClose={() => setIsWishlistModalOpen(false)}
                     onSave={handleWishlistUpdate}
                 />
@@ -258,11 +235,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                         {data.id && <ResultsDisplay matches={matches} exchangeId={data.id} />}
                     </div>
                 ) : (
-                    displayMatch && (
+                    currentMatch && (
                         <div className="flex flex-col md:flex-row gap-8 items-start justify-center">
                             <div className="w-full max-w-sm mx-auto md:flex-shrink-0">
                                 <PrintableCard 
-                                    match={displayMatch} 
+                                    match={currentMatch} 
                                     eventDetails={data.eventDetails} 
                                     isNameRevealed={isNameRevealed} 
                                     backgroundOptions={data.backgroundOptions} 
@@ -284,7 +261,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                              <div className="text-center md:text-left h-fit w-full max-w-md">
                                 {!isNameRevealed ? (
                                     <div className="p-6">
-                                        <h1 className="text-3xl md:text-4xl font-bold text-green-700 font-serif">Hi, {displayMatch.giver.name}!</h1>
+                                        <h1 className="text-3xl md:text-4xl font-bold text-green-700 font-serif">Hi, {currentMatch.giver.name}!</h1>
                                         <p className="text-lg text-slate-600 mt-2">
                                             Welcome to your private reveal page!
                                         </p>
@@ -305,7 +282,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                 ) : (
                                     <div className="mt-4 space-y-6">
                                         <p className="text-lg text-slate-600">
-                                            <span className="font-bold text-green-700">{displayMatch.giver.name}</span>, you are the Secret Santa for...
+                                            <span className="font-bold text-green-700">{currentMatch.giver.name}</span>, you are the Secret Santa for...
                                         </p>
                                         
                                         <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
@@ -327,17 +304,17 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                 <div className="bg-white rounded-lg p-6 border text-left shadow-md space-y-4">
                                                     <div className="text-center border-b pb-4">
                                                         <h3 className="font-bold text-lg text-slate-700">Your Person is:</h3>
-                                                        <p className="text-4xl font-bold text-red-600">{displayMatch.receiver.name}</p>
+                                                        <p className="text-4xl font-bold text-red-600">{currentMatch.receiver.name}</p>
                                                     </div>
 
                                                     {hasDetails && (
                                                         <div>
                                                             <h4 className="font-bold text-slate-700 mb-2">Their Gift Ideas</h4>
                                                             <div className="space-y-1 text-slate-600 text-sm pl-2">
-                                                                <AmazonLinker items={displayMatch.receiver.interests} label="Interests" />
-                                                                <AmazonLinker items={displayMatch.receiver.likes} label="Likes" />
-                                                                {displayMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {displayMatch.receiver.dislikes}</p>}
-                                                                {displayMatch.receiver.budget && <p><strong className="font-semibold text-slate-800">Budget:</strong> {displayMatch.receiver.budget}</p>}
+                                                                <AmazonLinker items={currentMatch.receiver.interests} label="Interests" />
+                                                                <AmazonLinker items={currentMatch.receiver.likes} label="Likes" />
+                                                                {currentMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {currentMatch.receiver.dislikes}</p>}
+                                                                {currentMatch.receiver.budget && <p><strong className="font-semibold text-slate-800">Budget:</strong> {currentMatch.receiver.budget}</p>}
                                                             </div>
                                                         </div>
                                                     )}
@@ -346,7 +323,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         <div>
                                                             <h4 className="font-bold text-slate-700 mb-3">Their Wishlist Links</h4>
                                                             <div className="grid grid-cols-1 gap-3">
-                                                                {displayMatch.receiver.links.map((link, index) => (
+                                                                {currentMatch.receiver.links.map((link, index) => (
                                                                     link.trim() ? <LinkPreview key={index} url={link} /> : null
                                                                 ))}
                                                             </div>
