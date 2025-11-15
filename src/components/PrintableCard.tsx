@@ -50,34 +50,29 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   useEffect(() => {
     if (isNameRevealed && !isForPdf) {
       const finalName = receiver.name;
-      const scrambleChars = '🎁🎄🌟❄️🎅🎀';
-      const holidayColors = ['#c62828', '#166534', '#b49b69', '#243e5a'];
-      const animationDuration = 1000; // 1 second total
-      const flickerSpeed = 50; // 50ms interval for flicker
+      
+      // Start countdown
+      setAnimatedName('3');
+      
+      const timeout1 = setTimeout(() => {
+        setAnimatedName('2');
+      }, 800);
 
-      const interval = setInterval(() => {
-        const scrambledName = finalName
-          .split('')
-          .map((letter, index) => {
-            if (letter === ' ') {
-              return <span key={index}> </span>;
-            }
-            const randomChar = scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
-            const randomColor = holidayColors[Math.floor(Math.random() * holidayColors.length)];
-            return <span key={index} style={{ color: randomColor }}>{randomChar}</span>;
-          });
-        setAnimatedName(scrambledName);
-      }, flickerSpeed);
-
-      const revealTimeout = setTimeout(() => {
-        clearInterval(interval);
+      const timeout2 = setTimeout(() => {
+        setAnimatedName('1');
+      }, 1600);
+      
+      const timeout3 = setTimeout(() => {
         setAnimatedName(finalName);
-      }, animationDuration);
+      }, 2400);
 
+      // Cleanup function
       return () => {
-        clearInterval(interval);
-        clearTimeout(revealTimeout);
+        clearTimeout(timeout1);
+        clearTimeout(timeout2);
+        clearTimeout(timeout3);
       };
+
     } else if (!isNameRevealed) {
       setAnimatedName('??????????');
     }
