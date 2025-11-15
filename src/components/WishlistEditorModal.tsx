@@ -67,7 +67,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col" onClick={e => e.stopPropagation()}>
-                <header className="p-6 flex justify-between items-center border-b bg-amber-100 rounded-t-2xl">
+                <header className="p-6 flex justify-between items-center border-b bg-emerald-100 rounded-t-2xl">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-800 font-serif">Edit My Wishlist</h2>
                         <p className="text-sm text-slate-500 mt-1">Your Santa will see these updates automatically!</p>
@@ -78,7 +78,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 <main className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
                     {error && <p className="text-red-600 bg-red-100 p-3 rounded-md text-sm">{error}</p>}
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Interests & Hobbies</label>
+                        <label className="block text-sm font-medium text-slate-600 mb-1">My Interests & Hobbies</label>
                         <input
                             type="text"
                             placeholder="e.g., coffee, gardening, sci-fi books"
@@ -88,7 +88,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Likes</label>
+                        <label className="block text-sm font-medium text-slate-600 mb-1">My Likes</label>
                         <input
                             type="text"
                             placeholder="e.g., dark roast coffee, fuzzy socks"
@@ -98,7 +98,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Dislikes & No-Go's</label>
+                        <label className="block text-sm font-medium text-slate-600 mb-1">My Dislikes & No-Go's</label>
                         <textarea
                             placeholder="e.g., dislikes horror movies, allergic to wool..."
                             value={wishlist.dislikes}
@@ -124,16 +124,6 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                          <div className="text-xs text-slate-400 mt-1">
                             <span>Paste one full link (starting with https://) per box.</span>
                         </div>
-                    </div>
-                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget</label>
-                        <input
-                            type="text"
-                            placeholder="e.g., $25, £20, or up to 30"
-                            value={wishlist.budget}
-                            onChange={(e) => handleChange('budget', e.target.value)}
-                            className="w-full p-2 border border-slate-300 rounded-md"
-                        />
                     </div>
                 </main>
 
