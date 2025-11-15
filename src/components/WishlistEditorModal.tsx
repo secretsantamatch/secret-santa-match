@@ -36,18 +36,29 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         setError(null);
         
         try {
+            const payload = {
+                exchangeId,
+                participantId: participant.id,
+                wishlistData: { ...wishlist, budget: participant.budget || '' },
+            };
+            
             const response = await fetch('/.netlify/functions/update-wishlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    exchangeId,
-                    participantId: participant.id,
-                    wishlistData: { ...wishlist, budget: participant.budget },
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
-                throw new Error('Failed to save wishlist. Please try again.');
+                let errorMsg = 'Failed to save wishlist. Please try again.';
+                try {
+                    const errorData = await response.json();
+                    if (errorData && errorData.error) {
+                        errorMsg = `Save failed: ${errorData.error}`;
+                    }
+                } catch (e) {
+                    // Response was not JSON, use the default error message.
+                }
+                throw new Error(errorMsg);
             }
             
             // Optimistically update the UI
@@ -79,7 +90,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                         Help your Secret Santa find you the perfect gift! Fill out the details below.
                     </p>
 
-                    {error && <p className="text-red-600 bg-red-100 p-3 rounded-md text-sm">{error}</p>}
+                    {error && <div className="text-red-800 bg-red-100 p-4 rounded-lg text-sm border border-red-200">{error}</div>}
                     
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My Interests & Hobbies</label>
