@@ -11,6 +11,7 @@ import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
 import { Share2, Gift, Shuffle, Loader2, Copy, Check } from 'lucide-react';
+import CookieConsentBanner from './CookieConsentBanner';
 
 interface ResultsPageProps {
     data: ExchangeData;
@@ -28,7 +29,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const [shortOrganizerLink, setShortOrganizerLink] = useState('');
     const [organizerLinkCopied, setOrganizerLinkCopied] = useState(false);
     const [liveReceiver, setLiveReceiver] = useState<Participant | null>(null);
-
+    const [showCookieBanner, setShowCookieBanner] = useState(false);
 
     const isOrganizer = !currentParticipantId;
 
@@ -70,7 +71,12 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
 
     useEffect(() => {
-        trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+        const consent = localStorage.getItem('cookie_consent');
+        if (consent === null) {
+            setShowCookieBanner(true);
+        } else if (consent === 'true') {
+            trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+        }
 
         if (isOrganizer) {
             const getFullOrganizerLink = (): string => window.location.href.split('?')[0];
@@ -86,19 +92,25 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             };
             fetchShortLink();
         }
-    }, [isOrganizer, data]);
+    }, [isOrganizer, currentParticipantId, data]);
+    
+    const handleCookieAccept = () => {
+        localStorage.setItem('cookie_consent', 'true');
+        setShowCookieBanner(false);
+        trackEvent('cookie_consent_accept');
+        trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+    };
+
+    const handleCookieDecline = () => {
+        localStorage.setItem('cookie_consent', 'false');
+        setShowCookieBanner(false);
+    };
 
     const handleReveal = () => { setIsNameRevealed(true); trackEvent('reveal_name'); };
     
-    // This is now an optimistic update. The real save happens in the modal via fetch.
     const handleWishlistUpdate = (updatedParticipant: Participant) => {
-        // This is tricky because we can't directly update the parent's full state here.
-        // For now, we'll update the liveReceiver state for an immediate UI change.
         if (liveReceiver && liveReceiver.id === updatedParticipant.id) {
             setLiveReceiver(updatedParticipant);
-        } else if (currentParticipant && currentParticipant.id === updatedParticipant.id) {
-            // If the user is editing their OWN wishlist for their Santa
-            // there's no UI to update on this screen, but the data is saved.
         }
     };
 
@@ -147,11 +159,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         );
     }
     
-    // Create a new match object with the potentially updated receiver data for rendering
     const displayMatch = currentMatch && liveReceiver ? { ...currentMatch, receiver: liveReceiver } : currentMatch;
 
     return (
-        <div className="bg-slate-50 min-h-screen">
+        <div className="bg-red-50 min-h-screen">
             {isShareModalOpen && <ShareLinksModal exchangeData={data} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
             {isWishlistModalOpen && currentParticipant && data.id && (
                 <WishlistEditorModal 
@@ -203,12 +214,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                         </div>
 
                         <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
-                        {/* FIX: Pass the required `exchangeId` prop to ResultsDisplay. */}
-                        <ResultsDisplay matches={matches} exchangeId={data.id!} />
+                        {data.id && <ResultsDisplay matches={matches} exchangeId={data.id} />}
                     </div>
                 ) : (
                     displayMatch && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                             <div className="w-full max-w-sm mx-auto">
                                 <PrintableCard 
                                     match={displayMatch} 
@@ -229,14 +239,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     wish={data.wishlistLabelText}
                                 />
                             </div>
-                            <div className="text-center md:text-left">
+                            <div className="text-center md:text-left pt-2">
                                 <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
                                 
                                 {!isNameRevealed ? (
                                     <>
                                         <p className="text-lg text-slate-600 mt-2 max-w-prose">
                                             Welcome to your private reveal page!
-                                            <strong className="block mt-2">Is this your name? If not, please contact your organizer.</strong>
+                                            <strong className="block mt-2 font-bold text-slate-800">Is this your name? If not, please contact your organizer.</strong>
                                         </p>
                                         <p className="text-base text-slate-500 mt-4">
                                             Click the button below to see who you're the Secret Santa for and view their wishlist.
@@ -269,6 +279,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 )}
             </main>
             <Footer />
+            {showCookieBanner && <CookieConsentBanner onAccept={handleCookieAccept} onDecline={handleCookieDecline} />}
         </div>
     );
 };
