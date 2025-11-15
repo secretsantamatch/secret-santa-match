@@ -162,6 +162,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     
     const displayMatch = currentMatch && liveReceiver ? { ...currentMatch, receiver: liveReceiver } : currentMatch;
     const hasLinks = displayMatch && Array.isArray(displayMatch.receiver.links) && displayMatch.receiver.links.some(link => link && link.trim() !== '');
+    const hasDetails = displayMatch && (displayMatch.receiver.interests || displayMatch.receiver.likes || displayMatch.receiver.dislikes || displayMatch.receiver.budget);
 
     return (
         <div className="bg-slate-50 min-h-screen">
@@ -239,7 +240,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     greet={data.greetingText} 
                                     intro={data.introText} 
                                     wish={data.wishlistLabelText}
-                                    showLinks={false} // Links are shown on the right now
+                                    showLinks={false}
                                 />
                             </div>
                              <div className="text-center md:text-left h-fit w-full max-w-md">
@@ -264,27 +265,46 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="mt-4">
-                                         <p className="text-lg text-slate-600">
-                                            You are the Secret Santa for...
-                                        </p>
-                                        <div className="mt-4 bg-white rounded-lg p-6 border text-center md:text-left shadow-inner">
-                                            <h3 className="font-bold text-lg text-slate-700">Your Person is:</h3>
-                                            <p className="text-4xl font-bold text-red-600">{displayMatch.receiver.name}</p>
-                                        </div>
+                                    <div className="mt-4 space-y-6">
+                                        <p className="text-lg text-slate-600">You are the Secret Santa for...</p>
+                                        
+                                        <div className="bg-white rounded-lg p-6 border text-left shadow-inner space-y-4">
+                                            <div className="text-center border-b pb-4">
+                                                <h3 className="font-bold text-lg text-slate-700">Your Person is:</h3>
+                                                <p className="text-4xl font-bold text-red-600">{displayMatch.receiver.name}</p>
+                                            </div>
 
-                                        {hasLinks && (
-                                            <div className="mt-6 text-center md:text-left">
-                                                <h3 className="font-bold text-lg text-slate-700">Their Wishlist Links:</h3>
-                                                <div className="mt-2 grid grid-cols-1 gap-3">
-                                                    {displayMatch.receiver.links.map((link, index) => (
-                                                        link.trim() ? <LinkPreview key={index} url={link} /> : null
-                                                    ))}
+                                            {hasDetails && (
+                                                <div>
+                                                    <h4 className="font-bold text-slate-700 mb-2">Their Gift Ideas</h4>
+                                                    <div className="space-y-1 text-slate-600 text-sm pl-2">
+                                                        {displayMatch.receiver.interests && <p><strong className="font-semibold text-slate-800">Interests:</strong> {displayMatch.receiver.interests}</p>}
+                                                        {displayMatch.receiver.likes && <p><strong className="font-semibold text-slate-800">Likes:</strong> {displayMatch.receiver.likes}</p>}
+                                                        {displayMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {displayMatch.receiver.dislikes}</p>}
+                                                        {displayMatch.receiver.budget && <p><strong className="font-semibold text-slate-800">Budget:</strong> {displayMatch.receiver.budget}</p>}
+                                                    </div>
                                                 </div>
+                                            )}
+
+                                            {hasLinks && (
+                                                <div>
+                                                    <h4 className="font-bold text-slate-700 mb-3">Their Wishlist Links</h4>
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        {displayMatch.receiver.links.map((link, index) => (
+                                                            link.trim() ? <LinkPreview key={index} url={link} /> : null
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        {data.eventDetails && (
+                                            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                                                <p className="text-sm text-amber-800 text-center">{data.eventDetails}</p>
                                             </div>
                                         )}
 
-                                        <button onClick={() => setIsWishlistModalOpen(true)} className="mt-6 w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
+                                        <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
                                             Edit My Wishlist for My Santa
                                         </button>
                                     </div>
