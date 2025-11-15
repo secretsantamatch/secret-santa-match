@@ -52,15 +52,13 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       const finalName = receiver.name;
       const scrambleChars = '🎁🎄🌟❄️🎅🎀';
       const holidayColors = ['#c62828', '#166534', '#b49b69', '#243e5a'];
-      let iteration = 0;
+      const animationDuration = 1000; // 1 second total
+      const flickerSpeed = 50; // 50ms interval for flicker
 
       const interval = setInterval(() => {
-        const newName = finalName
+        const scrambledName = finalName
           .split('')
           .map((letter, index) => {
-            if (index < iteration) {
-              return <span key={index}>{finalName[index]}</span>;
-            }
             if (letter === ' ') {
               return <span key={index}> </span>;
             }
@@ -68,17 +66,18 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             const randomColor = holidayColors[Math.floor(Math.random() * holidayColors.length)];
             return <span key={index} style={{ color: randomColor }}>{randomChar}</span>;
           });
+        setAnimatedName(scrambledName);
+      }, flickerSpeed);
 
-        setAnimatedName(newName);
+      const revealTimeout = setTimeout(() => {
+        clearInterval(interval);
+        setAnimatedName(finalName);
+      }, animationDuration);
 
-        if (iteration >= finalName.length) {
-          clearInterval(interval);
-        }
-
-        iteration += finalName.length / 45; // Control reveal speed
-      }, 40); // Control flicker speed
-
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(revealTimeout);
+      };
     } else if (!isNameRevealed) {
       setAnimatedName('??????????');
     }
