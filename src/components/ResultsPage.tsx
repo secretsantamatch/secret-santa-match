@@ -239,11 +239,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     wish={data.wishlistLabelText}
                                 />
                             </div>
-                             <div className="text-center md:text-left bg-amber-50 p-6 rounded-2xl max-w-md mx-auto md:mx-0">
-                                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
-                                
+                             <div className="text-center md:text-left">
                                 {!isNameRevealed ? (
-                                    <>
+                                    <div className="bg-amber-50 p-6 rounded-2xl">
+                                        <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
                                         <p className="text-lg text-slate-600 mt-2">
                                             Welcome to your private reveal page!
                                         </p>
@@ -260,7 +259,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                         <div className="mt-8">
                                             <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
                                         </div>
-                                    </>
+                                    </div>
                                 ) : (
                                     <div className="mt-4">
                                          <p className="text-lg text-slate-600 mt-2">

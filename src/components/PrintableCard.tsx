@@ -67,7 +67,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       `
     : 'none';
   
-  const receiverName = isNameRevealed ? receiver.name : '????????';
   const formattedGreeting = greet.replace('{secret_santa}', giver.name);
 
   const baseFontSizeMap: Record<FontSizeSetting, { header: string, name: string, wishlist: string, event: string }> = {
@@ -116,17 +115,21 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             </div>
 
             {/* Receiver Name */}
-            <h1 
-                className="font-bold my-1"
-                style={{ 
-                    ...commonTextStyle, 
-                    fontFamily: fontFamilies.classic, 
-                    fontSize: baseSizes.name, 
-                    lineHeight: 1.1 
-                }}
-            >
-                {receiverName}
-            </h1>
+            {isNameRevealed ? (
+                <h1
+                    className="font-bold my-1 break-words"
+                    style={{
+                        ...commonTextStyle,
+                        fontFamily: fontFamilies.classic,
+                        fontSize: baseSizes.name,
+                        lineHeight: 1.1
+                    }}
+                >
+                    {receiver.name}
+                </h1>
+            ) : (
+                <div className="w-4/5 bg-slate-900 rounded-sm" style={{ height: baseSizes.name, margin: '0.25rem 0' }}></div>
+            )}
             
             {/* Wishlist and Event Details */}
             {isNameRevealed && (
