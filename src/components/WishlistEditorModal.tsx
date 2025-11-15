@@ -16,7 +16,6 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         likes: participant.likes || '',
         dislikes: participant.dislikes || '',
         links: Array.isArray(participant.links) ? participant.links : Array(5).fill(''),
-        budget: participant.budget || '',
     });
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -43,7 +42,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 body: JSON.stringify({
                     exchangeId,
                     participantId: participant.id,
-                    wishlistData: wishlist,
+                    wishlistData: { ...wishlist, budget: participant.budget },
                 }),
             });
 
@@ -67,18 +66,23 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col" onClick={e => e.stopPropagation()}>
-                <header className="p-6 flex justify-between items-center border-b bg-emerald-100 rounded-t-2xl">
+                <header className="p-6 flex justify-between items-center border-b bg-green-100 rounded-t-2xl">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-800 font-serif">Edit My Wishlist</h2>
-                        <p className="text-sm text-slate-500 mt-1">Your Santa will see these updates automatically!</p>
+                        <h2 className="text-2xl font-bold text-green-800 font-serif">Edit My Wishlist</h2>
+                        <p className="text-sm text-green-700/80 mt-1">Your Santa will see these updates automatically!</p>
                     </div>
                     <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"><X size={24} /></button>
                 </header>
                 
-                <main className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                <main className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                    <p className="text-center text-slate-600 text-base -mt-2">
+                        Help your Secret Santa find you the perfect gift! Fill out the details below.
+                    </p>
+
                     {error && <p className="text-red-600 bg-red-100 p-3 rounded-md text-sm">{error}</p>}
+                    
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">My Interests & Hobbies</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">My Interests & Hobbies</label>
                         <input
                             type="text"
                             placeholder="e.g., coffee, gardening, sci-fi books"
@@ -86,9 +90,10 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                             onChange={(e) => handleChange('interests', e.target.value)}
                             className="w-full p-2 border border-slate-300 rounded-md"
                         />
+                        <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">My Likes</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">My Likes</label>
                         <input
                             type="text"
                             placeholder="e.g., dark roast coffee, fuzzy socks"
@@ -96,9 +101,10 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                             onChange={(e) => handleChange('likes', e.target.value)}
                             className="w-full p-2 border border-slate-300 rounded-md"
                         />
+                         <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">My Dislikes & No-Go's</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">My Dislikes & No-Go's</label>
                         <textarea
                             placeholder="e.g., dislikes horror movies, allergic to wool..."
                             value={wishlist.dislikes}
@@ -106,9 +112,10 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                             className="w-full p-2 border border-slate-300 rounded-md"
                             rows={2}
                         />
+                         <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Top 5 Wishlist Links</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">My 5 Wishlist Links</label>
                         <div className="space-y-2">
                             {wishlist.links.map((link, i) => (
                                 <input
@@ -121,7 +128,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                                 />
                             ))}
                         </div>
-                         <div className="text-xs text-slate-400 mt-1">
+                         <div className="text-xs text-slate-500 mt-1">
                             <span>Paste one full link (starting with https://) per box.</span>
                         </div>
                     </div>
