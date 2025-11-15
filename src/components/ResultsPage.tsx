@@ -241,7 +241,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                             </div>
                              <div className="text-center md:text-left">
                                 {!isNameRevealed ? (
-                                    <div className="bg-amber-50 p-6 rounded-2xl">
+                                    <div className="bg-amber-50 p-6 rounded-2xl w-fit mx-auto md:mx-0">
                                         <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
                                         <p className="text-lg text-slate-600 mt-2">
                                             Welcome to your private reveal page!

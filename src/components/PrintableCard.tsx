@@ -128,7 +128,18 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                     {receiver.name}
                 </h1>
             ) : (
-                <div className="w-4/5 bg-slate-900 rounded-sm" style={{ height: baseSizes.name, margin: '0.25rem 0' }}></div>
+                 <h1
+                    className="font-bold my-1"
+                    style={{
+                        ...commonTextStyle,
+                        fontFamily: fontFamilies.classic,
+                        fontSize: baseSizes.name,
+                        lineHeight: 1.1,
+                        letterSpacing: '0.2em'
+                    }}
+                >
+                    ??????????
+                </h1>
             )}
             
             {/* Wishlist and Event Details */}
