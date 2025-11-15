@@ -239,7 +239,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     wish={data.wishlistLabelText}
                                 />
                             </div>
-                             <div className="text-center md:text-left bg-amber-50 p-6 rounded-2xl w-full max-w-md mx-auto md:mx-0 md:w-auto">
+                             <div className="text-center md:text-left bg-amber-50 p-6 rounded-2xl max-w-md mx-auto md:mx-0">
                                 <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Hi, {displayMatch.giver.name}!</h1>
                                 
                                 {!isNameRevealed ? (
