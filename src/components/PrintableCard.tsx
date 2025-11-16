@@ -122,7 +122,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const commonTextStyle: React.CSSProperties = { 
       color: txtColor, 
       textShadow,
-      overflowWrap: 'break-word',
       wordBreak: 'break-all',
   };
 
@@ -169,11 +168,11 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             
             {/* Wishlist and Event Details */}
             {showWishlistDetails && (
-              <div className="w-full flex flex-col items-center mt-4">
+              <div className="w-full mt-4">
                 <h3 className="font-bold" style={{ ...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
                 
-                {/* This wrapper creates a stable column that is centered by the parent flex container. */}
-                <div style={{ maxWidth: '90%' }}>
+                {/* DEFINITIVE FIX: This wrapper creates a stable centered column that the text block cannot escape. */}
+                <div className="max-w-[90%] mx-auto">
                     <ul className="list-none space-y-0 p-0 m-0 text-left" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
                         {renderWishlistItem('Interests', receiver.interests)}
                         {renderWishlistItem('Likes', receiver.likes)}
@@ -183,7 +182,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 </div>
                 
                 {hasLinks && showLinks && (
-                    <div className="mt-2 text-center" style={{ maxWidth: '90%', width: '100%' }}>
+                    <div className="mt-2 text-center max-w-[90%] mx-auto w-full">
                         <h4 className="font-bold" style={{...commonTextStyle, fontSize: `calc(${baseSizes.header} * 0.9)`}}>Wishlist Links:</h4>
                         <div className="space-y-1 mt-1">{receiver.links.map((link, index) => (link.trim() ? <LinkPreview key={index} url={link} isForPdf={isForPdf} /> : null))}</div>
                     </div>
