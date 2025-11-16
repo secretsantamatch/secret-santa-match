@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
 import { generateMasterListPdf, generateAllCardsPdf, generatePartyPackPdf } from '../services/pdfService';
-import { Copy, Check, X, Smartphone, Users, Download, FileText, PartyPopper, QrCode, Loader2, Eye, EyeOff, MessageCircle } from 'lucide-react';
+import { Copy, Check, X, Smartphone, Users, Download, FileText, PartyPopper, QrCode, Loader2, Link, MessageCircle } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import PrintableCard from './PrintableCard';
 import { compressData } from '../services/urlService';
@@ -45,7 +45,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
   const [expandedQr, setExpandedQr] = useState<string | null>(null);
   const [loadingPdf, setLoadingPdf] = useState<'cards' | 'master' | 'party' | 'all-links' | null>(null);
 
-  const { p: participants, matches: matchIds, views } = exchangeData;
+  const { p: participants, matches: matchIds } = exchangeData;
   const compressedHash = useMemo(() => {
       const { backgroundOptions, ...dataToCompress } = exchangeData;
       return compressData(dataToCompress);
@@ -215,12 +215,12 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
 
   const LinksSection = () => (
     <>
-        <section className="bg-red-50 p-4 rounded-xl border-2 border-dashed border-red-200">
-            <h3 className="text-lg font-bold text-red-800 text-center">Your Organizer Master Link</h3>
-            <p className="text-sm text-red-700 text-center mt-1 mb-3">Save this! It's the only way for you to get back to this page.</p>
+        <section className="bg-emerald-50 p-4 rounded-xl border-2 border-dashed border-emerald-200">
+            <h3 className="text-lg font-bold text-emerald-800 text-center">Your Organizer Master Link</h3>
+            <p className="text-sm text-emerald-700 text-center mt-1 mb-3">Save this! It's the only way for you to get back to this page.</p>
             <div className="flex items-center gap-2">
-                <input type="text" readOnly value={organizerLink} className="w-full p-2 border border-red-200 rounded-md bg-white text-sm" />
-                <button onClick={() => handleCopy(organizerLink, 'organizer')} className="bg-red-600 hover:bg-red-700 text-white font-semibold p-2 rounded-md transition-colors flex-shrink-0">
+                <input type="text" readOnly value={organizerLink} className="w-full p-2 border border-emerald-200 rounded-md bg-white text-sm" />
+                <button onClick={() => handleCopy(organizerLink, 'organizer')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold p-2 rounded-md transition-colors flex-shrink-0">
                     {copiedStates['organizer'] ? <Check size={20} /> : <Copy size={20} />}
                 </button>
             </div>
@@ -251,16 +251,15 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
 
             <div className="space-y-3">
                 {matches.map(({ giver }) => {
-                    const isViewed = !!views?.[giver.id];
                     const hasBeenSent = sentLinks.has(giver.id);
-                    const statusColor = isViewed ? 'emerald' : (hasBeenSent ? 'sky' : 'slate');
-                    const statusText = isViewed ? 'Opened' : 'Not yet sent';
+                    const statusColor = hasBeenSent ? 'emerald' : 'slate';
+                    const statusText = hasBeenSent ? 'Sent' : 'Not yet sent';
 
                     return (
                         <div key={giver.id} className={`p-4 rounded-xl border transition-all bg-white`}>
                             <div className="grid grid-cols-[auto,1fr,auto] items-center gap-x-4 gap-y-2">
                                 <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-${statusColor}-100 text-${statusColor}-700`}>
-                                    {isViewed ? <Eye size={18} /> : <EyeOff size={18} />}
+                                    {hasBeenSent ? <Check size={18} /> : <Link size={18} />}
                                 </div>
                                 <div>
                                     <p className="font-bold text-slate-800">{giver.name}'s Link</p>
