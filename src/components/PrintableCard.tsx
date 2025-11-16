@@ -45,10 +45,12 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 }) => {
   const { giver, receiver } = match;
   const [animatedName, setAnimatedName] = useState<React.ReactNode>('??????????');
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const backgroundUrl = bgImg || backgroundOptions.find(opt => opt.id === bgId)?.imageUrl || '';
 
   useEffect(() => {
     if (isNameRevealed && !isForPdf) {
+      setIsAnimationComplete(false); // Reset on new reveal
       const finalName = receiver.name;
       
       // Start countdown
@@ -64,6 +66,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       
       const timeout3 = setTimeout(() => {
         setAnimatedName(finalName);
+        setIsAnimationComplete(true);
       }, 2400);
 
       // Cleanup function
@@ -75,6 +78,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
     } else if (!isNameRevealed) {
       setAnimatedName('??????????');
+      setIsAnimationComplete(false); // Reset when hiding
     }
   }, [isNameRevealed, receiver.name, isForPdf]);
 
@@ -121,6 +125,8 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       wordWrap: 'break-word'
   };
 
+  const showWishlistDetails = (isForPdf && isNameRevealed) || isAnimationComplete;
+
   return (
     <div 
         className="w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-lg relative bg-white bg-cover bg-center transition-all duration-300" 
@@ -161,7 +167,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             </h1>
             
             {/* Wishlist and Event Details */}
-            {isNameRevealed && (
+            {showWishlistDetails && (
               <div className="w-full self-center mt-4">
                   <div className="text-center">
                       <h3 className="font-bold" style={{...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
