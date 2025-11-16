@@ -61,6 +61,32 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to save wishlist.');
             }
+            
+            // Analytics for link domains
+            if (payload.wishlist.links.length > 0) {
+                try {
+                    const domains = payload.wishlist.links
+                        .map(link => {
+                            if (!link || !link.startsWith('http')) return null;
+                            try {
+                                const hostname = new URL(link).hostname;
+                                return hostname.replace(/^www\./, ''); // remove www.
+                            } catch (e) {
+                                return null;
+                            }
+                        })
+                        .filter((domain): domain is string => domain !== null);
+
+                    if (domains.length > 0) {
+                        trackEvent('wishlist_domains_saved', {
+                            domains: [...new Set(domains)].join(', ') // get unique domains and format as string
+                        });
+                    }
+                } catch (analyticsError) {
+                    // Fail silently so it doesn't break the user experience
+                    console.error("Failed to track link domains:", analyticsError);
+                }
+            }
 
             trackEvent('wishlist_save_success');
             onSaveSuccess();
