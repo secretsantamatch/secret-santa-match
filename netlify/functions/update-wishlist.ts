@@ -1,4 +1,4 @@
-import { getStore } from '@netlify/blobs';
+import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 
 interface UpdatePayload {
@@ -13,22 +13,16 @@ interface UpdatePayload {
 }
 
 export default async (req: Request, context: Context) => {
-    // Standard CORS headers
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
     };
 
-    // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
-        return new Response(null, {
-            status: 204, // No Content
-            headers: corsHeaders,
-        });
+        return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    // Only allow POST requests for this endpoint
     if (req.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
             status: 405,
@@ -45,20 +39,17 @@ export default async (req: Request, context: Context) => {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
         }
-        
+
         const store = getStore('wishlists');
         
-        // Read the existing data for the entire exchange
-        const allWishlists = (await store.get(exchangeId, { type: 'json' })) || {};
+        // Get the existing wishlists object for this exchange, or create a new one
+        const allWishlists = await store.get(exchangeId, { type: 'json' }) || {};
 
-        // Update the data for the specific participant
-        const updatedWishlists = {
-            ...allWishlists,
-            [participantId]: wishlist,
-        };
+        // Update the specific participant's wishlist
+        allWishlists[participantId] = wishlist;
 
-        // Save the entire updated object back
-        await store.setJSON(exchangeId, updatedWishlists);
+        // Save the entire updated object back to the store
+        await store.setJSON(exchangeId, allWishlists);
 
         return new Response(JSON.stringify({ success: true }), {
             status: 200,
@@ -66,8 +57,8 @@ export default async (req: Request, context: Context) => {
         });
 
     } catch (error) {
-        console.error('Error updating wishlist:', error);
-        return new Response(JSON.stringify({ error: 'An internal server error occurred.' }), {
+        console.error('Update Wishlist Error:', error);
+        return new Response(JSON.stringify({ error: 'Failed to save wishlist data.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
