@@ -114,7 +114,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
     if (!value || value.trim() === '') return null;
-    return <li><strong className="font-semibold">{label}:</strong> <span>{value}</span></li>;
+    return <li><strong className="font-semibold">{label}:</strong> <span className="break-all">{value}</span></li>;
   };
   
   const hasLinks = Array.isArray(receiver.links) && receiver.links.some(link => link && link.trim() !== '');
@@ -122,7 +122,6 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const commonTextStyle: React.CSSProperties = { 
       color: txtColor, 
       textShadow,
-      wordBreak: 'break-all',
   };
 
   const showWishlistDetails = (isForPdf && isNameRevealed) || isAnimationComplete;
@@ -172,7 +171,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 <h3 className="font-bold" style={{ ...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
                 
                 {/* DEFINITIVE FIX: This wrapper creates a stable centered column that the text block cannot escape. */}
-                <div className="max-w-[90%] mx-auto">
+                <div className="max-w-[85%] mx-auto">
                     <ul className="list-none space-y-0 p-0 m-0 text-left" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
                         {renderWishlistItem('Interests', receiver.interests)}
                         {renderWishlistItem('Likes', receiver.likes)}
