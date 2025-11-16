@@ -77,9 +77,9 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     .filter((domain): domain is string => domain !== null);
 
                 trackEvent('wishlist_details_saved', {
-                    domains: domains.length > 0 ? [...new Set(domains)].join(', ') : 'none',
-                    likes: wishlist.likes.trim() || 'none',
-                    interests: wishlist.interests.trim() || 'none'
+                    link_domain: domains.length > 0 ? [...new Set(domains)].join(', ') : 'none',
+                    wishlist_likes: wishlist.likes.trim() || 'none',
+                    wishlist_interests: wishlist.interests.trim() || 'none'
                 });
 
             } catch (analyticsError) {
