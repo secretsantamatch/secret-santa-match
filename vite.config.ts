@@ -21,7 +21,8 @@ export default defineConfig({
         'advertise': resolve(__dirname, 'public/advertise.html'),
         'minimum-payment-calculator': resolve(__dirname, 'minimum-payment-calculator.html'),
         'holiday-budget-calculator': resolve(__dirname, 'holiday-budget-calculator.html'),
-       'terms-of-service': resolve(__dirname, 'terms-of-service.html')
+       'terms-of-service': resolve(__dirname, 'terms-of-service.html'),
+        'complete-secret-santa-comparison': resolve(__dirname, 'complete-secret-santa-comparison.html')
       }
     }
   },
