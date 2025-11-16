@@ -172,12 +172,14 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
               <div className="w-full self-center mt-4">
                   <div className="flex flex-col items-center">
                       <h3 className="font-bold" style={{...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
-                      <ul className="list-none space-y-0 p-0 m-0 text-left" style={{ display: 'inline-block', ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
-                          {renderWishlistItem('Interests', receiver.interests)}
-                          {renderWishlistItem('Likes', receiver.likes)}
-                          {renderWishlistItem('Dislikes', receiver.dislikes)}
-                          {renderWishlistItem('Budget', receiver.budget)}
-                      </ul>
+                      <div style={{ maxWidth: '90%' }}>
+                        <ul className="list-none space-y-0 p-0 m-0 text-left" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
+                            {renderWishlistItem('Interests', receiver.interests)}
+                            {renderWishlistItem('Likes', receiver.likes)}
+                            {renderWishlistItem('Dislikes', receiver.dislikes)}
+                            {renderWishlistItem('Budget', receiver.budget)}
+                        </ul>
+                      </div>
                   </div>
                   
                   {hasLinks && showLinks && (

@@ -3,7 +3,8 @@
 // This ensures that `import.meta.env` is correctly typed for the project.
 
 interface ImportMetaEnv {
-  readonly DEV: boolean;
+  // FIX: Removed `readonly` modifier from `DEV` property to align with Vite's client types and resolve declaration conflict.
+  DEV: boolean;
   // readonly VITE_APP_TITLE: string
   // Add other env variables here...
 }

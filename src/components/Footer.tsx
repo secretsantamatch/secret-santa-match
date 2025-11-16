@@ -63,6 +63,7 @@ const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) =>
                             <li><a href="/contact.html" className="text-slate-400 hover:text-white transition-colors">Contact Us</a></li>
                             <li><a href="/advertise.html" className="text-slate-400 hover:text-white transition-colors">Advertise</a></li>
                             <li><a href="/privacy-policy.html" className="text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                             <li><a href="/terms-of-service.html" className="text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
                         </ul>
                     </div>
                 </div>
