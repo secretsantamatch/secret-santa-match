@@ -53,6 +53,58 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
     );
 };
 
+const PetPromo = () => (
+    <div className="p-4 bg-gradient-to-r from-green-50 to-cyan-50 rounded-lg border border-green-200">
+        <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 bg-green-500 text-white rounded-full h-10 w-10 flex items-center justify-center mt-1">
+                <PawPrint />
+            </div>
+            <div>
+                <h4 className="font-bold text-green-800">For Their Furry Friend?</h4>
+                <p className="text-sm text-green-700 mb-2">We noticed they're a pet lover! Here are some great gift ideas for their companion.</p>
+                <div className="space-y-1">
+                    <a href="https://www.awin1.com/awclick.php?gid=561473&mid=118439&awinaffid=2612068&linkid=4305916&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-green-600 hover:underline block">
+                        Shop Zeal's Ethically Sourced Pet Food &rarr;
+                    </a>
+                    <a href="https://www.awin1.com/awclick.php?gid=518488&mid=33495&awinaffid=2612068&linkid=3923498&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-orange-600 hover:underline block">
+                        Shop SugarRush's Gourmet Dog Treats &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+const SpaPromo = () => (
+    <div className="p-4 bg-gradient-to-r from-violet-50 to-fuchsia-50 rounded-lg border border-violet-200">
+        <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-violet-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                <Sparkles />
+            </div>
+            <div>
+                <h4 className="font-bold text-violet-800">A Relaxing Gift Idea</h4>
+                <p className="text-sm text-violet-700">Help them unwind with a luxurious spa gift box from SugarRush.</p>
+                <a href="https://www.awin1.com/awclick.php?gid=518515&mid=33495&awinaffid=2612068&linkid=3923639&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-violet-600 hover:underline">Shop Spa & Relaxation Gifts &rarr;</a>
+            </div>
+        </div>
+    </div>
+);
+
+const CocktailPromo = () => (
+     <div className="p-4 bg-gradient-to-r from-blue-50 to-sky-50 rounded-lg border border-blue-200">
+        <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-blue-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                <Martini />
+            </div>
+            <div>
+                <h4 className="font-bold text-blue-800">For the Home Bartender</h4>
+                <p className="text-sm text-blue-700">Their wishlist suggests they enjoy a good drink! Check out cocktail mixer kits from SugarRush.</p>
+                <a href="https://www.awin1.com/awclick.php?gid=518472&mid=33495&awinaffid=2612068&linkid=3923542&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-blue-600 hover:underline">Shop Cocktail Gifts &rarr;</a>
+            </div>
+        </div>
+    </div>
+);
+
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
@@ -116,7 +168,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         currentParticipant ? matches.find(m => m.giver.id === currentParticipant.id) : null,
     [matches, currentParticipant]);
 
-    const smartPromoToShow = useMemo(() => {
+    const SmartPromoComponent = useMemo(() => {
         if (!currentMatch) return null;
     
         const combinedText = `${currentMatch.receiver.interests?.toLowerCase() || ''} ${currentMatch.receiver.likes?.toLowerCase() || ''}`;
@@ -127,18 +179,24 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             { id: 'cocktail', keywords: ['cocktail', 'drinks', 'wine', 'alcohol', 'bar', 'spirits'] }
         ];
     
-        let firstPromo: { id: string | null, index: number } = { id: null, index: Infinity };
+        let firstPromoId: string | null = null;
+        let firstPromoIndex = Infinity;
     
         for (const promo of promos) {
             for (const keyword of promo.keywords) {
                 const index = combinedText.indexOf(keyword);
-                if (index !== -1 && index < firstPromo.index) {
-                    firstPromo = { id: promo.id, index: index };
+                if (index !== -1 && index < firstPromoIndex) {
+                    firstPromoId = promo.id;
+                    firstPromoIndex = index;
                 }
             }
         }
         
-        return firstPromo.id;
+        if (firstPromoId === 'pet') return <PetPromo />;
+        if (firstPromoId === 'spa') return <SpaPromo />;
+        if (firstPromoId === 'cocktail') return <CocktailPromo />;
+        
+        return null;
     }, [currentMatch]);
 
 
@@ -369,7 +427,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     {hasDetails && (
                                                         <div>
                                                             <h4 className="font-bold text-slate-700 mb-2">Their Gift Ideas</h4>
-                                                            <div className="space-y-1 text-slate-600 text-sm pl-2">
+                                                            <div className="space-y-1 text-slate-600 text-sm pl-2 break-all">
                                                                 <AmazonLinker items={currentMatch.receiver.interests} label="Interests" />
                                                                 <AmazonLinker items={currentMatch.receiver.likes} label="Likes" />
                                                                 {currentMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {currentMatch.receiver.dislikes}</p>}
@@ -392,60 +450,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         </div>
                                                     </div>
 
-                                                    {/* Zeal & SugarRush Pet Promo (Conditional) */}
-                                                    {smartPromoToShow === 'pet' && (
-                                                        <div className="p-4 bg-gradient-to-r from-green-50 to-cyan-50 rounded-lg border border-green-200">
-                                                            <div className="flex items-start gap-4">
-                                                                <div className="flex-shrink-0 bg-green-500 text-white rounded-full h-10 w-10 flex items-center justify-center mt-1">
-                                                                    <PawPrint />
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="font-bold text-green-800">For Their Furry Friend?</h4>
-                                                                    <p className="text-sm text-green-700 mb-2">We noticed they're a pet lover! Here are some great gift ideas for their companion.</p>
-                                                                    <div className="space-y-1">
-                                                                        <a href="https://www.awin1.com/awclick.php?gid=561473&mid=118439&awinaffid=2612068&linkid=4305916&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-green-600 hover:underline block">
-                                                                            Shop Zeal's Ethically Sourced Pet Food &rarr;
-                                                                        </a>
-                                                                        <a href="https://www.awin1.com/awclick.php?gid=518488&mid=33495&awinaffid=2612068&linkid=3923498&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-orange-600 hover:underline block">
-                                                                            Shop SugarRush's Gourmet Dog Treats &rarr;
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {/* SugarRush Spa Promo (Conditional) */}
-                                                    {smartPromoToShow === 'spa' && (
-                                                        <div className="p-4 bg-gradient-to-r from-violet-50 to-fuchsia-50 rounded-lg border border-violet-200">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="flex-shrink-0 bg-violet-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
-                                                                    <Sparkles />
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="font-bold text-violet-800">A Relaxing Gift Idea</h4>
-                                                                    <p className="text-sm text-violet-700">Help them unwind with a luxurious spa gift box from SugarRush.</p>
-                                                                    <a href="https://www.awin1.com/awclick.php?gid=518515&mid=33495&awinaffid=2612068&linkid=3923639&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-violet-600 hover:underline">Shop Spa & Relaxation Gifts &rarr;</a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* SugarRush Cocktail Promo (Conditional) */}
-                                                    {smartPromoToShow === 'cocktail' && (
-                                                        <div className="p-4 bg-gradient-to-r from-blue-50 to-sky-50 rounded-lg border border-blue-200">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="flex-shrink-0 bg-blue-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
-                                                                    <Martini />
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="font-bold text-blue-800">For the Home Bartender</h4>
-                                                                    <p className="text-sm text-blue-700">Their wishlist suggests they enjoy a good drink! Check out cocktail mixer kits from SugarRush.</p>
-                                                                    <a href="https://www.awin1.com/awclick.php?gid=518472&mid=33495&awinaffid=2612068&linkid=3923542&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-blue-600 hover:underline">Shop Cocktail Gifts &rarr;</a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                    {SmartPromoComponent}
 
                                                     {hasLinks && (
                                                         <div>
