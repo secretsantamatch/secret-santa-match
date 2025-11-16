@@ -122,7 +122,8 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   const commonTextStyle: React.CSSProperties = { 
       color: txtColor, 
       textShadow,
-      wordWrap: 'break-word'
+      wordWrap: 'break-word',
+      overflowWrap: 'break-word',
   };
 
   const showWishlistDetails = (isForPdf && isNameRevealed) || isAnimationComplete;
