@@ -103,7 +103,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
 
   if (isForPdf) {
       return (
-        <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline truncate block">
+        <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer sponsored" className="text-blue-600 underline truncate block">
           {url}
         </a>
       );
@@ -114,7 +114,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
         <a
           href={affiliatedUrl}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener noreferrer sponsored"
           className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
         >
           <div className={`flex-shrink-0 h-10 w-10 flex items-center justify-center ${detectedRetailer.color} rounded-md text-white`}>
@@ -139,7 +139,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
   
   if (error || !data?.title) {
     return (
-        <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg bg-white border border-slate-200 text-sm text-slate-800 hover:bg-slate-50 transition-colors no-underline">
+        <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer sponsored" className="flex items-center gap-2 p-3 rounded-lg bg-white border border-slate-200 text-sm text-slate-800 hover:bg-slate-50 transition-colors no-underline">
             <Link className="h-4 w-4 flex-shrink-0 text-slate-400" />
             <span className="truncate">{url}</span>
         </a>
@@ -151,7 +151,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
         <a
           href={affiliatedUrl}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener noreferrer sponsored"
           className="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
         >
           <div className="w-20 h-16 flex-shrink-0 bg-cover bg-center rounded" style={{ backgroundImage: `url(${data.image})` }}></div>
@@ -164,7 +164,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
   }
 
   return (
-    <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group">
+    <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer sponsored" className="block p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group">
         <div className="overflow-hidden min-w-0">
             <p className="font-semibold text-sm truncate m-0 text-slate-800 group-hover:text-indigo-600">{data.title}</p>
             {data.description && <p className="text-xs text-slate-500 m-0 mt-1 line-clamp-2">{data.description}</p>}

@@ -10,7 +10,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 
@@ -41,7 +41,7 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
                     <a
                         href={createAmazonLink(item)}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="noopener noreferrer sponsored"
                         className="text-indigo-600 hover:underline"
                     >
                         {item}
@@ -122,6 +122,22 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         const interests = currentMatch.receiver.interests?.toLowerCase() || '';
         const likes = currentMatch.receiver.likes?.toLowerCase() || '';
         return petKeywords.some(keyword => interests.includes(keyword) || likes.includes(keyword));
+    }, [currentMatch]);
+
+    const showSpaPromo = useMemo(() => {
+        if (!currentMatch) return false;
+        const spaKeywords = ['spa', 'relax', 'bath', 'pamper', 'massage'];
+        const interests = currentMatch.receiver.interests?.toLowerCase() || '';
+        const likes = currentMatch.receiver.likes?.toLowerCase() || '';
+        return spaKeywords.some(keyword => interests.includes(keyword) || likes.includes(keyword));
+    }, [currentMatch]);
+    
+    const showCocktailPromo = useMemo(() => {
+        if (!currentMatch) return false;
+        const cocktailKeywords = ['cocktail', 'drinks', 'wine', 'alcohol', 'bar', 'spirits'];
+        const interests = currentMatch.receiver.interests?.toLowerCase() || '';
+        const likes = currentMatch.receiver.likes?.toLowerCase() || '';
+        return cocktailKeywords.some(keyword => interests.includes(keyword) || likes.includes(keyword));
     }, [currentMatch]);
 
     useEffect(() => {
@@ -363,33 +379,70 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     {/* SugarRush Affiliate Promo */}
                                                     <div className="p-4 bg-gradient-to-r from-pink-50 to-amber-50 rounded-lg border border-pink-200">
                                                         <div className="flex items-center gap-4">
-                                                            <div className="flex-shrink-0 bg-pink-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
-                                                                <Star />
-                                                            </div>
+                                                             <img src="/sugarrush-gift.webp" alt="A beautiful SugarRush gift box" className="w-16 h-16 rounded-md object-cover flex-shrink-0" />
                                                             <div>
                                                                 <h4 className="font-bold text-pink-800">Premium Gift Idea</h4>
                                                                 <p className="text-sm text-pink-700">Looking for a 'wow' gift? Consider a gourmet candy box from SugarRush!</p>
-                                                                <a href="#" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-pink-600 hover:underline">Shop SugarRush Gifts &rarr;</a>
+                                                                <a href="https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-pink-600 hover:underline">Shop SugarRush Gifts &rarr;</a>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    {/* Zeal Pet Promo (Conditional) */}
+                                                    {/* Zeal & SugarRush Pet Promo (Conditional) */}
                                                     {showPetPromo && (
                                                         <div className="p-4 bg-gradient-to-r from-green-50 to-cyan-50 rounded-lg border border-green-200">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="flex-shrink-0 bg-green-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                                                            <div className="flex items-start gap-4">
+                                                                <div className="flex-shrink-0 bg-green-500 text-white rounded-full h-10 w-10 flex items-center justify-center mt-1">
                                                                     <PawPrint />
                                                                 </div>
                                                                 <div>
                                                                     <h4 className="font-bold text-green-800">For Their Furry Friend?</h4>
-                                                                    <p className="text-sm text-green-700">We noticed they're a pet lover! Check out premium treats from Zeal.</p>
-                                                                    <a href="#" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-green-600 hover:underline">Shop Zeal Pet Gifts &rarr;</a>
+                                                                    <p className="text-sm text-green-700 mb-2">We noticed they're a pet lover! Here are some great gift ideas for their companion.</p>
+                                                                    <div className="space-y-1">
+                                                                        <a href="https://www.awin1.com/awclick.php?gid=561473&mid=118439&awinaffid=2612068&linkid=4305916&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-green-600 hover:underline block">
+                                                                            Shop Zeal's Ethically Sourced Pet Food &rarr;
+                                                                        </a>
+                                                                        <a href="https://www.awin1.com/awclick.php?gid=518488&mid=33495&awinaffid=2612068&linkid=3923498&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-orange-600 hover:underline block">
+                                                                            Shop SugarRush's Gourmet Dog Treats &rarr;
+                                                                        </a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     )}
                                                     
+                                                    {/* SugarRush Spa Promo (Conditional) */}
+                                                    {showSpaPromo && (
+                                                        <div className="p-4 bg-gradient-to-r from-violet-50 to-fuchsia-50 rounded-lg border border-violet-200">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="flex-shrink-0 bg-violet-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                                                                    <Sparkles />
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="font-bold text-violet-800">A Relaxing Gift Idea</h4>
+                                                                    <p className="text-sm text-violet-700">Help them unwind with a luxurious spa gift box from SugarRush.</p>
+                                                                    <a href="https://www.awin1.com/awclick.php?gid=518515&mid=33495&awinaffid=2612068&linkid=3923639&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-violet-600 hover:underline">Shop Spa & Relaxation Gifts &rarr;</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* SugarRush Cocktail Promo (Conditional) */}
+                                                    {showCocktailPromo && (
+                                                        <div className="p-4 bg-gradient-to-r from-blue-50 to-sky-50 rounded-lg border border-blue-200">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="flex-shrink-0 bg-blue-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                                                                    <Martini />
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="font-bold text-blue-800">For the Home Bartender</h4>
+                                                                    <p className="text-sm text-blue-700">Their wishlist suggests they enjoy a good drink! Check out cocktail mixer kits from SugarRush.</p>
+                                                                    <a href="https://www.awin1.com/awclick.php?gid=518472&mid=33495&awinaffid=2612068&linkid=3923542&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-blue-600 hover:underline">Shop Cocktail Gifts &rarr;</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
                                                     {hasLinks && (
                                                         <div>
                                                             <h4 className="font-bold text-slate-700 mb-3">Their Wishlist Links</h4>
@@ -421,7 +474,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         <div>
                                                             <h4 className="font-bold text-indigo-800">Manage Your Holiday Budget</h4>
                                                             <p className="text-sm text-indigo-700">Keep track of your holiday spending and credit score for free.</p>
-                                                            <a href="#" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:underline">Try Credit Karma &rarr;</a>
+                                                            <a href="https://www.awin1.com/awclick.php?gid=580820&mid=66532&awinaffid=2612068&linkid=4507342&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-indigo-600 hover:underline">Try Credit Karma &rarr;</a>
                                                         </div>
                                                     </div>
                                                 </div>
