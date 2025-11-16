@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
 import { generateMasterListPdf, generateAllCardsPdf, generatePartyPackPdf } from '../services/pdfService';
-import { Copy, Check, X, Smartphone, Users, Download, FileText, PartyPopper, QrCode, Loader2, Link, MessageCircle } from 'lucide-react';
+import { Copy, Check, X, Smartphone, Users, Download, FileText, PartyPopper, QrCode, Loader2, Link, MessageCircle, Search } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import PrintableCard from './PrintableCard';
 import { compressData } from '../services/urlService';
@@ -44,6 +44,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
   const [sentLinks, setSentLinks] = useState<Set<string>>(new Set());
   const [expandedQr, setExpandedQr] = useState<string | null>(null);
   const [loadingPdf, setLoadingPdf] = useState<'cards' | 'master' | 'party' | 'all-links' | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const { p: participants, matches: matchIds } = exchangeData;
   const compressedHash = useMemo(() => {
@@ -109,13 +110,6 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
       setTimeout(() => setCopiedStates(prev => ({ ...prev, [id]: false })), 2000);
       trackEvent('copy_link', { link_type: id });
     });
-  };
-
-  const handleCopyAllLinks = () => {
-      setLoadingPdf('all-links');
-      const allLinksText = matches.map(({ giver }) => `${giver.name}: ${getLinkForParticipant(giver)}`).join('\n');
-      handleCopy(allLinksText, 'all-links');
-      setTimeout(() => setLoadingPdf(null), 1000);
   };
 
   const handleShortenToggle = (checked: boolean) => {
@@ -213,7 +207,24 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
     </section>
   );
 
-  const LinksSection = () => (
+  const LinksSection = () => {
+    const filteredMatches = useMemo(() => {
+        if (!searchTerm) {
+            return matches;
+        }
+        return matches.filter(({ giver }) => 
+            giver.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [matches, searchTerm]);
+      
+    const handleCopyAllLinks = () => {
+      setLoadingPdf('all-links');
+      const allLinksText = filteredMatches.map(({ giver }) => `${giver.name}: ${getLinkForParticipant(giver)}`).join('\n');
+      handleCopy(allLinksText, 'all-links');
+      setTimeout(() => setLoadingPdf(null), 1000);
+    };
+
+    return (
     <>
         <section className="bg-emerald-50 p-4 rounded-xl border-2 border-dashed border-emerald-200">
             <h3 className="text-lg font-bold text-emerald-800 text-center">Your Organizer Master Link</h3>
@@ -237,6 +248,17 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
                     </div>
                 </div>
             </div>
+
+            <div className="relative mb-4">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20}/>
+                 <input 
+                    type="search"
+                    placeholder="Search for a participant..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="w-full p-2 pl-10 border border-slate-300 rounded-md"
+                 />
+            </div>
             
             <div className="hidden md:grid grid-cols-[auto,1fr,auto] items-center gap-x-4 px-4 pb-2 text-xs text-slate-500 font-semibold">
                 <div />
@@ -250,61 +272,69 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
             </div>
 
             <div className="space-y-3">
-                {matches.map(({ giver }) => {
-                    const hasBeenSent = sentLinks.has(giver.id);
-                    const statusColor = hasBeenSent ? 'emerald' : 'slate';
-                    const statusText = hasBeenSent ? 'Sent' : 'Not yet sent';
+                {filteredMatches.length > 0 ? (
+                    filteredMatches.map(({ giver }) => {
+                        const hasBeenSent = sentLinks.has(giver.id);
+                        const statusColor = hasBeenSent ? 'emerald' : 'slate';
+                        const statusText = hasBeenSent ? 'Sent' : 'Not yet sent';
 
-                    return (
-                        <div key={giver.id} className={`p-4 rounded-xl border transition-all bg-white`}>
-                            <div className="grid grid-cols-[auto,1fr,auto] items-center gap-x-4 gap-y-2">
-                                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-${statusColor}-100 text-${statusColor}-700`}>
-                                    {hasBeenSent ? <Check size={18} /> : <Link size={18} />}
-                                </div>
-                                <div>
-                                    <p className="font-bold text-slate-800">{giver.name}'s Link</p>
-                                    <p className={`text-xs font-semibold text-${statusColor}-600`}>
-                                        Status: {statusText}
-                                    </p>
-                                </div>
-                                <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
-                                    <button title="Copy Link" onClick={() => handleCopy(getLinkForParticipant(giver), giver.id)} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600">
-                                        {copiedStates[giver.id] ? <Check size={16} className="text-green-600"/> : <Copy size={16}/>}
-                                    </button>
-                                    <button title="Send via Text" onClick={() => handleAction(giver, 'text')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><Smartphone size={16}/></button>
-                                    <button title="Send via WhatsApp" onClick={() => handleAction(giver, 'whatsapp')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><MessageCircle size={16}/></button>
-                                    <button title="Show QR Code" onClick={() => handleAction(giver, 'qr')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><QrCode size={16}/></button>
-                                </div>
-                            </div>
-                            <div className="mt-2 pl-12">
-                                <input 
-                                    type="text"
-                                    readOnly
-                                    value={loadingShortLinks ? "Generating short link..." : getLinkForParticipant(giver)}
-                                    className="w-full p-1.5 border border-slate-300 rounded-md bg-slate-50 text-sm text-slate-600 truncate"
-                                />
-                            </div>
-                            {expandedQr === giver.id && (
-                                <div className="mt-4 p-4 bg-white rounded-lg text-center border">
-                                    <h4 className="font-bold mb-2">QR Code for {giver.name}</h4>
-                                    <div className="flex justify-center">
-                                      <QRCode id={`qr-code-svg-${giver.id}`} value={getLinkForParticipant(giver)} size={128} />
+                        return (
+                            <div key={giver.id} className={`p-4 rounded-xl border transition-all bg-white`}>
+                                <div className="grid grid-cols-[auto,1fr,auto] items-center gap-x-4 gap-y-2">
+                                    <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-${statusColor}-100 text-${statusColor}-700`}>
+                                        {hasBeenSent ? <Check size={18} /> : <Link size={18} />}
                                     </div>
-                                    <button onClick={() => downloadQrCode(giver)} className="mt-3 text-sm text-indigo-600 font-semibold hover:underline">Download QR Code</button>
+                                    <div>
+                                        <p className="font-bold text-slate-800">{giver.name}'s Link</p>
+                                        <p className={`text-xs font-semibold text-${statusColor}-600`}>
+                                            Status: {statusText}
+                                        </p>
+                                    </div>
+                                    <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
+                                        <button title="Copy Link" onClick={() => handleCopy(getLinkForParticipant(giver), giver.id)} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600">
+                                            {copiedStates[giver.id] ? <Check size={16} className="text-green-600"/> : <Copy size={16}/>}
+                                        </button>
+                                        <button title="Send via Text" onClick={() => handleAction(giver, 'text')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><Smartphone size={16}/></button>
+                                        <button title="Send via WhatsApp" onClick={() => handleAction(giver, 'whatsapp')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><MessageCircle size={16}/></button>
+                                        <button title="Show QR Code" onClick={() => handleAction(giver, 'qr')} className="p-2 bg-white hover:bg-slate-100 rounded-md border text-slate-600"><QrCode size={16}/></button>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
-                    );
-                })}
+                                <div className="mt-2 pl-12">
+                                    <input 
+                                        type="text"
+                                        readOnly
+                                        value={loadingShortLinks ? "Generating short link..." : getLinkForParticipant(giver)}
+                                        className="w-full p-1.5 border border-slate-300 rounded-md bg-slate-50 text-sm text-slate-600 truncate"
+                                    />
+                                </div>
+                                {expandedQr === giver.id && (
+                                    <div className="mt-4 p-4 bg-white rounded-lg text-center border">
+                                        <h4 className="font-bold mb-2">QR Code for {giver.name}</h4>
+                                        <div className="flex justify-center">
+                                          <QRCode id={`qr-code-svg-${giver.id}`} value={getLinkForParticipant(giver)} size={128} />
+                                        </div>
+                                        <button onClick={() => downloadQrCode(giver)} className="mt-3 text-sm text-indigo-600 font-semibold hover:underline">Download QR Code</button>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                ) : (
+                     <p className="text-center text-slate-500 py-4">No participants found.</p>
+                )}
             </div>
              <div className="mt-6">
-                <button onClick={handleCopyAllLinks} disabled={!!loadingPdf} className="w-full flex items-center justify-center gap-2 p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-50">
+                <button 
+                    onClick={handleCopyAllLinks} 
+                    disabled={!!loadingPdf || filteredMatches.length === 0} 
+                    className="w-full flex items-center justify-center gap-2 p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     {loadingPdf === 'all-links' ? <Check /> : <Copy />} {loadingPdf === 'all-links' ? 'Copied!' : 'Copy All Links to Clipboard'}
                 </button>
             </div>
         </section>
     </>
-  );
+    );
+  };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
