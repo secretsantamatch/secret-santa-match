@@ -124,7 +124,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       textShadow,
   };
 
-  const showWishlistDetails = (isForPdf && isNameRevealed) || isAnimationComplete;
+  const showWishlistDetails = (isForPdf && isNameRevealed) || isAnimationComplete || (isNameRevealed && isForPdf === false);
 
   return (
     <div 
@@ -170,14 +170,12 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
               <div className="w-full mt-4">
                 <h3 className="font-bold" style={{ ...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
                 
-                <div className="max-w-[70%] mx-auto">
-                    <ul className="list-none space-y-0 p-0 m-0 text-left" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
-                        {renderWishlistItem('Interests', receiver.interests)}
-                        {renderWishlistItem('Likes', receiver.likes)}
-                        {renderWishlistItem('Dislikes', receiver.dislikes)}
-                        {renderWishlistItem('Budget', receiver.budget)}
-                    </ul>
-                </div>
+                <ul className="list-none space-y-0 p-0 m-0 text-left max-w-[70%] mx-auto" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
+                    {renderWishlistItem('Interests', receiver.interests)}
+                    {renderWishlistItem('Likes', receiver.likes)}
+                    {renderWishlistItem('Dislikes', receiver.dislikes)}
+                    {renderWishlistItem('Budget', receiver.budget)}
+                </ul>
                 
                 {hasLinks && showLinks && (
                     <div className="mt-2 text-center max-w-[90%] mx-auto w-full">

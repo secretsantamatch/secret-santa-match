@@ -23,9 +23,10 @@ import AdBanner from './AdBanner';
 
 interface GeneratorPageProps {
   onComplete: (data: ExchangeData) => void;
-  // FIX: Added optional initialData prop to support editing an existing exchange.
   initialData?: ExchangeData;
 }
+
+const LOCAL_STORAGE_KEY = 'secretSantaGeneratorDraft';
 
 const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }) => {
     // Core State
@@ -71,6 +72,36 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             .then(res => res.json()).then(data => setBackgroundOptions(data))
             .catch(err => console.error("Failed to load templates.json", err));
 
+        let loadedFromDraft = false;
+        if (!initialData) {
+            try {
+                const savedDraft = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedDraft) {
+                    const draft = JSON.parse(savedDraft);
+                    setParticipants(draft.participants || [ { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' } ]);
+                    setExclusions(draft.exclusions || []);
+                    setAssignments(draft.assignments || []);
+                    setEventDetails(draft.eventDetails || 'Gift exchange on Dec 25th!');
+                    setSelectedBackgroundId(draft.selectedBackgroundId || 'gift-border');
+                    setCustomBackground(draft.customBackground || null);
+                    setTextColor(draft.textColor || '#265343');
+                    setUseTextOutline(draft.useTextOutline || false);
+                    setOutlineColor(draft.outlineColor || '#000000');
+                    setOutlineSize(draft.outlineSize || 'normal');
+                    setFontSize(draft.fontSize || 'normal');
+                    setFontTheme(draft.fontTheme || 'classic');
+                    setLineSpacing(draft.lineSpacing || 1.2);
+                    setGreetingText(draft.greetingText || "Happy Holidays, {secret_santa}!");
+                    setIntroText(draft.introText || "You are the Secret Santa for...");
+                    setWishlistLabelText(draft.wishlistLabelText || "Gift Ideas & Wishlist");
+                    loadedFromDraft = true;
+                }
+            } catch (e) {
+                console.error("Failed to load draft from localStorage", e);
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+            }
+        }
+
         if (initialData) {
             // Populate state from initialData for editing
             setParticipants(initialData.p.length > 0 ? initialData.p : [ { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' } ]);
@@ -89,7 +120,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             setGreetingText(initialData.greetingText || "Happy Holidays, {secret_santa}!");
             setIntroText(initialData.introText || "You are the Secret Santa for...");
             setWishlistLabelText(initialData.wishlistLabelText || "Gift Ideas & Wishlist");
-        } else {
+        } else if (!loadedFromDraft) {
             // Default state for new creation
             setParticipants([
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
@@ -102,6 +133,35 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             setWishlistLabelText("Gift Ideas & Wishlist");
         }
     }, [initialData]);
+
+    // Effect to save progress to local storage
+    useEffect(() => {
+        if (initialData) return; // Don't save over an active edit session
+
+        const handler = setTimeout(() => {
+            try {
+                const draftToSave = {
+                    participants, exclusions, assignments, eventDetails,
+                    selectedBackgroundId, customBackground, textColor,
+                    useTextOutline, outlineColor, outlineSize,
+                    fontSize, fontTheme, lineSpacing,
+                    greetingText, introText, wishlistLabelText
+                };
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(draftToSave));
+            } catch (e) {
+                console.error("Failed to save draft to localStorage", e);
+            }
+        }, 500); // Debounce save
+
+        return () => clearTimeout(handler);
+    }, [
+        participants, exclusions, assignments, eventDetails,
+        selectedBackgroundId, customBackground, textColor,
+        useTextOutline, outlineColor, outlineSize,
+        fontSize, fontTheme, lineSpacing,
+        greetingText, introText, wishlistLabelText,
+        initialData
+    ]);
 
      const handleBulkAdd = (names: string) => {
         const newNames = names.split('\n').map(name => name.trim()).filter(Boolean);
@@ -133,6 +193,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         setExclusions([]);
         setAssignments([]);
         setError(null);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
         trackEvent('click_clear_all');
     };
     
@@ -208,6 +269,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             
             trackEvent('generate_success', { participants: validParticipants.length });
             onComplete({ ...exchangePayload, backgroundOptions });
+            localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear draft on success
 
         } catch (matchError) {
             const message = matchError instanceof Error ? matchError.message : "An unknown error occurred.";
