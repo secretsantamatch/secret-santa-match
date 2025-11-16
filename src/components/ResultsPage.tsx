@@ -378,8 +378,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
                                                     {/* SugarRush Affiliate Promo */}
                                                     <div className="p-4 bg-gradient-to-r from-pink-50 to-amber-50 rounded-lg border border-pink-200">
-                                                        <div className="flex items-center gap-4">
-                                                             <img src="/sugarrush-gift.webp" alt="A beautiful SugarRush gift box" className="w-16 h-16 rounded-md object-cover flex-shrink-0" />
+                                                        <div className="flex items-start gap-4">
+                                                            <div className="flex-shrink-0 bg-pink-500 text-white rounded-full h-10 w-10 flex items-center justify-center mt-1">
+                                                                <Gift />
+                                                            </div>
                                                             <div>
                                                                 <h4 className="font-bold text-pink-800">Premium Gift Idea</h4>
                                                                 <p className="text-sm text-pink-700">Looking for a 'wow' gift? Consider a gourmet candy box from SugarRush!</p>
@@ -455,7 +457,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     )}
                                                     
                                                     <p className="text-xs text-slate-400 text-center pt-4 border-t border-slate-200 mt-4">
-                                                        Affiliate Disclosure: We may earn from qualifying purchases made through links on this site.
+                                                        Affiliate Disclosure: We may earn a commission from qualifying purchases or actions made through links on this site.
                                                     </p>
                                                 </div>
                                                 

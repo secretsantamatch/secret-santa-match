@@ -72,7 +72,7 @@ const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) =>
                     <div className="text-slate-500 order-2 sm:order-1 mt-4 sm:mt-0 text-center sm:text-left space-y-2">
                         <p>&copy; {currentYear} SecretSantaMatch.com. All Rights Reserved.</p>
                         <p className="text-xs">
-                            Affiliate Disclosure: We may earn a commission from qualifying purchases made through links on this site.
+                            Affiliate Disclosure: We may earn a commission from qualifying purchases or actions made through links on this site.
                             See our <a href="/privacy-policy.html" className="underline hover:text-white">Privacy Policy</a> for details.
                         </p>
                     </div>
