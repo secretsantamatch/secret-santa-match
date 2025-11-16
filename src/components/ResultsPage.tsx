@@ -10,7 +10,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 
@@ -115,6 +115,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const currentMatch = useMemo(() =>
         currentParticipant ? matches.find(m => m.giver.id === currentParticipant.id) : null,
     [matches, currentParticipant]);
+
+    const showPetPromo = useMemo(() => {
+        if (!currentMatch) return false;
+        const petKeywords = ['pet', 'dog', 'cat', 'puppy', 'kitten', 'animal'];
+        const interests = currentMatch.receiver.interests?.toLowerCase() || '';
+        const likes = currentMatch.receiver.likes?.toLowerCase() || '';
+        return petKeywords.some(keyword => interests.includes(keyword) || likes.includes(keyword));
+    }, [currentMatch]);
 
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
@@ -352,6 +360,36 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         </div>
                                                     )}
 
+                                                    {/* SugarRush Affiliate Promo */}
+                                                    <div className="p-4 bg-gradient-to-r from-pink-50 to-amber-50 rounded-lg border border-pink-200">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="flex-shrink-0 bg-pink-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                                                                <Star />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="font-bold text-pink-800">Premium Gift Idea</h4>
+                                                                <p className="text-sm text-pink-700">Looking for a 'wow' gift? Consider a gourmet candy box from SugarRush!</p>
+                                                                <a href="#" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-pink-600 hover:underline">Shop SugarRush Gifts &rarr;</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Zeal Pet Promo (Conditional) */}
+                                                    {showPetPromo && (
+                                                        <div className="p-4 bg-gradient-to-r from-green-50 to-cyan-50 rounded-lg border border-green-200">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="flex-shrink-0 bg-green-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                                                                    <PawPrint />
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="font-bold text-green-800">For Their Furry Friend?</h4>
+                                                                    <p className="text-sm text-green-700">We noticed they're a pet lover! Check out premium treats from Zeal.</p>
+                                                                    <a href="#" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-green-600 hover:underline">Shop Zeal Pet Gifts &rarr;</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
                                                     {hasLinks && (
                                                         <div>
                                                             <h4 className="font-bold text-slate-700 mb-3">Their Wishlist Links</h4>
@@ -373,6 +411,20 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         <p className="text-sm text-amber-800 text-center">{data.eventDetails}</p>
                                                     </div>
                                                 )}
+
+                                                {/* Credit Karma Promo */}
+                                                 <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="flex-shrink-0 bg-indigo-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                                                            <TrendingUp />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-indigo-800">Manage Your Holiday Budget</h4>
+                                                            <p className="text-sm text-indigo-700">Keep track of your holiday spending and credit score for free.</p>
+                                                            <a href="#" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:underline">Try Credit Karma &rarr;</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         )}
                                     </div>

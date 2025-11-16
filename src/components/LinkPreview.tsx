@@ -38,16 +38,35 @@ const RETAILERS: { domain: string; name: string; color: string }[] = [
     { domain: 'dicksportinggoods.com', name: 'Dick\'s Sporting Goods', color: 'bg-green-600' },
 ];
 
+const addAffiliateTagToUrl = (urlString: string): string => {
+    try {
+        const affiliateTag = "secretsanmat-20";
+        const url = new URL(urlString);
+        if (url.hostname.includes('amazon.')) {
+            // Do not modify short links
+            if (url.hostname.includes('amzn.to')) {
+                return urlString;
+            }
+            url.searchParams.set('tag', affiliateTag);
+            return url.toString();
+        }
+        return urlString;
+    } catch (e) {
+        // If URL is invalid, just return it as is
+        return urlString;
+    }
+};
+
 
 const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
   const [data, setData] = useState<PreviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  const affiliatedUrl = addAffiliateTagToUrl(url);
   const detectedRetailer = RETAILERS.find(r => url.toLowerCase().includes(r.domain));
 
   useEffect(() => {
-    // Don't fetch if it's a PDF, there's no URL, or it's a special-cased retailer link.
     if (!url || isForPdf || detectedRetailer) {
         setLoading(false);
         return;
@@ -82,20 +101,18 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
     fetchData();
   }, [url, isForPdf, detectedRetailer]);
 
-  // Simple link for PDFs
   if (isForPdf) {
       return (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline truncate block">
+        <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline truncate block">
           {url}
         </a>
       );
   }
 
-  // Custom "Retailer-aware" card
   if (detectedRetailer) {
       return (
         <a
-          href={url}
+          href={affiliatedUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
@@ -111,7 +128,6 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
       );
   }
 
-  // Loading state (for non-retailer links)
   if (loading) {
     return (
       <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-100 border text-sm text-slate-500">
@@ -121,21 +137,19 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
     );
   }
   
-  // Error state or no data -> show simple link
   if (error || !data?.title) {
     return (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg bg-white border border-slate-200 text-sm text-slate-800 hover:bg-slate-50 transition-colors no-underline">
+        <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg bg-white border border-slate-200 text-sm text-slate-800 hover:bg-slate-50 transition-colors no-underline">
             <Link className="h-4 w-4 flex-shrink-0 text-slate-400" />
             <span className="truncate">{url}</span>
         </a>
     );
   }
   
-  // Data with image -> show full preview
   if (data.image) {
       return (
         <a
-          href={data.url}
+          href={affiliatedUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
@@ -149,9 +163,8 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
       );
   }
 
-  // Data without image -> show text-only preview card
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group">
+    <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group">
         <div className="overflow-hidden min-w-0">
             <p className="font-semibold text-sm truncate m-0 text-slate-800 group-hover:text-indigo-600">{data.title}</p>
             {data.description && <p className="text-xs text-slate-500 m-0 mt-1 line-clamp-2">{data.description}</p>}
