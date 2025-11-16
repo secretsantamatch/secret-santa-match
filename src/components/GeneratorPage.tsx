@@ -165,6 +165,32 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             if (!result.matches) {
                 throw new Error(result.error || 'Failed to generate matches.');
             }
+            
+            // Track initial data on successful generation
+            try {
+                const allDomains = validParticipants.flatMap(p => p.links)
+                    .map(link => {
+                        if (!link || !link.startsWith('http')) return null;
+                        try {
+                            return new URL(link).hostname.replace(/^www\./, '');
+                        } catch (e) { return null; }
+                    })
+                    .filter((d): d is string => d !== null);
+
+                const allLikes = validParticipants.map(p => p.likes.trim()).filter(Boolean);
+                const allInterests = validParticipants.map(p => p.interests.trim()).filter(Boolean);
+                
+                trackEvent('exchange_generated', {
+                    participant_count: validParticipants.length,
+                    link_domain: allDomains.length > 0 ? [...new Set(allDomains)].join(', ') : 'none',
+                    wishlist_likes: allLikes.length > 0 ? allLikes.join(', ') : 'none',
+                    wishlist_interests: allInterests.length > 0 ? allInterests.join(', ') : 'none',
+                });
+            } catch (analyticsError) {
+                console.error("Failed to track initial group details:", analyticsError);
+            }
+
+
             const finalMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
             
             const exchangePayload: Omit<ExchangeData, 'backgroundOptions'> = {
