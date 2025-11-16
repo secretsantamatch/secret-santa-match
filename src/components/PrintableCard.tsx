@@ -150,7 +150,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       textShadow,
   };
 
-  const showWishlistDetails = (isForPdf && isNameRevealed) || isAnimationComplete || (isNameRevealed && isForPdf === false);
+  const showWishlistDetails = (isForPdf && isNameRevealed) || isAnimationComplete;
 
   return (
     <div 

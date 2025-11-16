@@ -139,9 +139,19 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
   
   if (error || !data?.title) {
     return (
-        <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer sponsored" className="flex items-center gap-2 p-3 rounded-lg bg-white border border-slate-200 text-sm text-slate-800 hover:bg-slate-50 transition-colors no-underline">
-            <Link className="h-4 w-4 flex-shrink-0 text-slate-400" />
-            <span className="truncate">{url}</span>
+        <a
+          href={affiliatedUrl}
+          target="_blank"
+          rel="noopener noreferrer sponsored"
+          className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
+        >
+          <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-slate-200 rounded-md text-slate-500">
+            <ShoppingCart size={20} />
+          </div>
+          <div className="overflow-hidden min-w-0">
+            <p className="font-bold text-sm text-slate-800 m-0 group-hover:text-indigo-600">Visit Link</p>
+            <p className="text-xs text-slate-500 truncate m-0 mt-1">{url}</p>
+          </div>
         </a>
     );
   }
