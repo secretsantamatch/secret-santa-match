@@ -364,7 +364,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     )}
                                                     
                                                     <p className="text-xs text-slate-400 text-center pt-4 border-t border-slate-200 mt-4">
-                                                        As an Amazon Associate and affiliate for other retailers, we may earn from qualifying purchases made through links on this page.
+                                                        Affiliate Disclosure: We may earn from qualifying purchases made through links on this site.
                                                     </p>
                                                 </div>
                                                 

@@ -37,7 +37,7 @@ const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) =>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
                     {/* Column 1: Brand */}
                     <div className="md:col-span-2">
-                        <a href="/generator.html" className="flex items-center gap-3 text-white font-bold text-xl mb-3">
+                        <a href="/" className="flex items-center gap-3 text-white font-bold text-xl mb-3">
                             <img src="/logo_256.png" alt="Secret Santa Match Logo" className="h-9 w-9" />
                             <span>SecretSantaMatch</span>
                         </a>
@@ -50,7 +50,7 @@ const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) =>
                         <h4 className="font-bold text-white mb-4 tracking-wider uppercase text-sm">Quick Links</h4>
                         <ul className="space-y-3 text-sm">
                             <li><a href="/generator.html" className="text-slate-400 hover:text-white transition-colors">Generator</a></li>
-                            <li><a href="/blog.html" className="text-slate-400 hover:text-white transition-colors">Holiday Blog</a></li>
+                            <li><a href="/" className="text-slate-400 hover:text-white transition-colors">Holiday Blog</a></li>
                             <li><a href="/holiday-budget-calculator.html" className="text-slate-400 hover:text-white transition-colors">Budget Calculator</a></li>
                             <li><a href="/minimum-payment-calculator.html" className="text-slate-400 hover:text-white transition-colors">Debt Calculator</a></li>
                         </ul>
@@ -72,7 +72,7 @@ const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) =>
                     <div className="text-slate-500 order-2 sm:order-1 mt-4 sm:mt-0 text-center sm:text-left space-y-2">
                         <p>&copy; {currentYear} SecretSantaMatch.com. All Rights Reserved.</p>
                         <p className="text-xs">
-                            Affiliate Disclosure: As an Amazon Associate, we may earn from qualifying purchases. 
+                            Affiliate Disclosure: We may earn a commission from qualifying purchases made through links on this site.
                             See our <a href="/privacy-policy.html" className="underline hover:text-white">Privacy Policy</a> for details.
                         </p>
                     </div>
