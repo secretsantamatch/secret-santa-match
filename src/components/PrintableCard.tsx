@@ -169,27 +169,27 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             
             {/* Wishlist and Event Details */}
             {showWishlistDetails && (
-              <div className="w-full self-center mt-4">
-                  <div className="flex flex-col items-center">
-                      <h3 className="font-bold" style={{...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
-                      <div style={{ maxWidth: '90%' }}>
-                        <ul className="list-none space-y-0 p-0 m-0 text-left" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
-                            {renderWishlistItem('Interests', receiver.interests)}
-                            {renderWishlistItem('Likes', receiver.likes)}
-                            {renderWishlistItem('Dislikes', receiver.dislikes)}
-                            {renderWishlistItem('Budget', receiver.budget)}
-                        </ul>
-                      </div>
-                  </div>
-                  
-                  {hasLinks && showLinks && (
-                      <div className="mt-2 text-center">
-                          <h4 className="font-bold" style={{...commonTextStyle, fontSize: `calc(${baseSizes.header} * 0.9)`}}>Wishlist Links:</h4>
-                          <div className="space-y-1 mt-1">{receiver.links.map((link, index) => (link.trim() ? <LinkPreview key={index} url={link} isForPdf={isForPdf} /> : null))}</div>
-                      </div>
-                  )}
-                  
-                  {eventDetails && <p className="opacity-90 mt-4" style={{...commonTextStyle, fontSize: baseSizes.event }}>{eventDetails}</p>}
+              <div className="w-full flex flex-col items-center mt-4">
+                <h3 className="font-bold" style={{ ...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
+                
+                {/* This wrapper creates a stable column that is centered by the parent flex container. */}
+                <div style={{ maxWidth: '90%' }}>
+                    <ul className="list-none space-y-0 p-0 m-0 text-left" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
+                        {renderWishlistItem('Interests', receiver.interests)}
+                        {renderWishlistItem('Likes', receiver.likes)}
+                        {renderWishlistItem('Dislikes', receiver.dislikes)}
+                        {renderWishlistItem('Budget', receiver.budget)}
+                    </ul>
+                </div>
+                
+                {hasLinks && showLinks && (
+                    <div className="mt-2 text-center" style={{ maxWidth: '90%', width: '100%' }}>
+                        <h4 className="font-bold" style={{...commonTextStyle, fontSize: `calc(${baseSizes.header} * 0.9)`}}>Wishlist Links:</h4>
+                        <div className="space-y-1 mt-1">{receiver.links.map((link, index) => (link.trim() ? <LinkPreview key={index} url={link} isForPdf={isForPdf} /> : null))}</div>
+                    </div>
+                )}
+                
+                {eventDetails && <p className="opacity-90 mt-4" style={{...commonTextStyle, fontSize: baseSizes.event }}>{eventDetails}</p>}
               </div>
             )}
         </div>
