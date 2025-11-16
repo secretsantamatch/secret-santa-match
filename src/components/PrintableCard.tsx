@@ -112,6 +112,32 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   };
   const baseSizes = baseFontSizeMap[fontSize];
 
+  const calculateNameFontSize = (name: string, baseSize: string): string => {
+    const baseSizeValue = parseFloat(baseSize);
+    const baseSizeUnit = baseSize.replace(String(baseSizeValue), '');
+
+    let scaleFactor = 1.0;
+    const len = name.length;
+    
+    if (len > 22) {
+        scaleFactor = 0.55;
+    } else if (len > 18) {
+        scaleFactor = 0.65;
+    } else if (len > 14) {
+        scaleFactor = 0.75;
+    } else if (len > 10) {
+        scaleFactor = 0.9;
+    }
+
+    const newSize = baseSizeValue * scaleFactor;
+    return `${newSize.toFixed(2)}${baseSizeUnit}`;
+  };
+
+  const animatedNameContent = isForPdf ? (isNameRevealed ? receiver.name : '??????????') : animatedName;
+  const dynamicNameSize = typeof animatedNameContent === 'string' 
+    ? calculateNameFontSize(animatedNameContent, baseSizes.name) 
+    : baseSizes.name;
+
   const renderWishlistItem = (label: string, value: string | undefined) => {
     if (!value || value.trim() === '') return null;
     return <li><strong className="font-semibold">{label}:</strong> <span style={{ wordBreak: 'break-all' }}>{value}</span></li>;
@@ -153,16 +179,16 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
             {/* Receiver Name */}
             <h1
-                className="font-bold my-1 break-words"
+                className="font-bold my-1 break-words break-all"
                 style={{
                     ...commonTextStyle,
                     fontFamily: fontFamilies.classic,
-                    fontSize: baseSizes.name,
+                    fontSize: dynamicNameSize,
                     lineHeight: 1.1,
                     letterSpacing: isNameRevealed ? 'normal' : '0.2em'
                 }}
             >
-                {isForPdf ? (isNameRevealed ? receiver.name : '??????????') : animatedName}
+                {animatedNameContent}
             </h1>
             
             {/* Wishlist and Event Details */}
