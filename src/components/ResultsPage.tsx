@@ -116,29 +116,31 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         currentParticipant ? matches.find(m => m.giver.id === currentParticipant.id) : null,
     [matches, currentParticipant]);
 
-    const showPetPromo = useMemo(() => {
-        if (!currentMatch) return false;
-        const petKeywords = ['pet', 'dog', 'cat', 'puppy', 'kitten', 'animal'];
-        const interests = currentMatch.receiver.interests?.toLowerCase() || '';
-        const likes = currentMatch.receiver.likes?.toLowerCase() || '';
-        return petKeywords.some(keyword => interests.includes(keyword) || likes.includes(keyword));
+    const smartPromoToShow = useMemo(() => {
+        if (!currentMatch) return null;
+    
+        const combinedText = `${currentMatch.receiver.interests?.toLowerCase() || ''} ${currentMatch.receiver.likes?.toLowerCase() || ''}`;
+    
+        const promos = [
+            { id: 'pet', keywords: ['pet', 'dog', 'cat', 'puppy', 'kitten', 'animal'] },
+            { id: 'spa', keywords: ['spa', 'relax', 'bath', 'pamper', 'massage'] },
+            { id: 'cocktail', keywords: ['cocktail', 'drinks', 'wine', 'alcohol', 'bar', 'spirits'] }
+        ];
+    
+        let firstPromo: { id: string | null, index: number } = { id: null, index: Infinity };
+    
+        for (const promo of promos) {
+            for (const keyword of promo.keywords) {
+                const index = combinedText.indexOf(keyword);
+                if (index !== -1 && index < firstPromo.index) {
+                    firstPromo = { id: promo.id, index: index };
+                }
+            }
+        }
+        
+        return firstPromo.id;
     }, [currentMatch]);
 
-    const showSpaPromo = useMemo(() => {
-        if (!currentMatch) return false;
-        const spaKeywords = ['spa', 'relax', 'bath', 'pamper', 'massage'];
-        const interests = currentMatch.receiver.interests?.toLowerCase() || '';
-        const likes = currentMatch.receiver.likes?.toLowerCase() || '';
-        return spaKeywords.some(keyword => interests.includes(keyword) || likes.includes(keyword));
-    }, [currentMatch]);
-    
-    const showCocktailPromo = useMemo(() => {
-        if (!currentMatch) return false;
-        const cocktailKeywords = ['cocktail', 'drinks', 'wine', 'alcohol', 'bar', 'spirits'];
-        const interests = currentMatch.receiver.interests?.toLowerCase() || '';
-        const likes = currentMatch.receiver.likes?.toLowerCase() || '';
-        return cocktailKeywords.some(keyword => interests.includes(keyword) || likes.includes(keyword));
-    }, [currentMatch]);
 
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
@@ -391,7 +393,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     </div>
 
                                                     {/* Zeal & SugarRush Pet Promo (Conditional) */}
-                                                    {showPetPromo && (
+                                                    {smartPromoToShow === 'pet' && (
                                                         <div className="p-4 bg-gradient-to-r from-green-50 to-cyan-50 rounded-lg border border-green-200">
                                                             <div className="flex items-start gap-4">
                                                                 <div className="flex-shrink-0 bg-green-500 text-white rounded-full h-10 w-10 flex items-center justify-center mt-1">
@@ -414,7 +416,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     )}
                                                     
                                                     {/* SugarRush Spa Promo (Conditional) */}
-                                                    {showSpaPromo && (
+                                                    {smartPromoToShow === 'spa' && (
                                                         <div className="p-4 bg-gradient-to-r from-violet-50 to-fuchsia-50 rounded-lg border border-violet-200">
                                                             <div className="flex items-center gap-4">
                                                                 <div className="flex-shrink-0 bg-violet-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
@@ -430,7 +432,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     )}
 
                                                     {/* SugarRush Cocktail Promo (Conditional) */}
-                                                    {showCocktailPromo && (
+                                                    {smartPromoToShow === 'cocktail' && (
                                                         <div className="p-4 bg-gradient-to-r from-blue-50 to-sky-50 rounded-lg border border-blue-200">
                                                             <div className="flex items-center gap-4">
                                                                 <div className="flex-shrink-0 bg-blue-500 text-white rounded-full h-10 w-10 flex items-center justify-center">

@@ -114,7 +114,7 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
     if (!value || value.trim() === '') return null;
-    return <li className="break-words"><strong className="font-semibold">{label}:</strong> <span>{value}</span></li>;
+    return <li><strong className="font-semibold">{label}:</strong> <span>{value}</span></li>;
   };
   
   const hasLinks = Array.isArray(receiver.links) && receiver.links.some(link => link && link.trim() !== '');
