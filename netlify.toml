@@ -16,3 +16,9 @@
   from = "/blog.html"
   to = "/index.html"
   status = 200
+
+# Explicitly set the Content-Type for ads.txt for Google AdSense verification.
+[[headers]]
+  for = "/ads.txt"
+  [headers.values]
+    Content-Type = "text/plain"
