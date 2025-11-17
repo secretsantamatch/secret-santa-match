@@ -1,13 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Match, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme } from '../types';
+import LinkPreview from './LinkPreview';
 
 interface PrintableCardProps {
-  match: Match | { giver: { name: string }, receiver: { name: string, interests: string, likes: string, dislikes: string, links: string, budget: string } };
+  match: Match;
   eventDetails: string;
   isNameRevealed: boolean;
-  onReveal?: () => void;
   backgroundOptions: BackgroundOption[];
-  // Style props are now individual
   bgId: string;
   bgImg: string | null;
   txtColor: string;
@@ -20,221 +19,207 @@ interface PrintableCardProps {
   greet: string;
   intro: string;
   wish: string;
+  isForPdf?: boolean;
+  showLinks?: boolean;
 }
 
-const PrintableCard: React.FC<PrintableCardProps> = ({ 
-  match, eventDetails, isNameRevealed, onReveal, backgroundOptions,
-  bgId, bgImg, txtColor, outline, outColor, outSize, fontSize, font, line, greet, intro, wish 
+const PrintableCard: React.FC<PrintableCardProps> = ({
+  match,
+  eventDetails,
+  isNameRevealed,
+  backgroundOptions,
+  bgId,
+  bgImg,
+  txtColor,
+  outline,
+  outColor,
+  outSize,
+  fontSize,
+  font,
+  line,
+  greet,
+  intro,
+  wish,
+  isForPdf = false,
+  showLinks = true,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const isDrawing = useRef(false);
-  const [isRevealing, setIsRevealing] = useState(false);
-
-  const fontFamilies: Record<string, string> = {
-    classic: '"Playfair Display", serif',
-    elegant: '"Cormorant Garamond", serif',
-    modern: '"Montserrat", sans-serif',
-    whimsical: '"Patrick Hand", cursive',
-  };
-
-  const fontSizes: Record<string, string> = {
-    normal: '1rem',
-    large: '1.15rem',
-    'extra-large': '1.3rem',
-  };
-
-  const outlineSizes: Record<string, string> = {
-    thin: '0.5px',
-    normal: '1px',
-    thick: '2px',
-  };
-
-  const dynamicStyles = {
-    '--base-font-size': fontSizes[fontSize] || '1rem',
-    '--line-spacing': line,
-    '--text-color': txtColor,
-    '--font-family': fontFamilies[font] || '"Playfair Display", serif',
-    textShadow: outline ? `${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `${outlineSizes[outSize]} ${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `-${outlineSizes[outSize]} -${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `${outlineSizes[outSize]} -${outlineSizes[outSize]} 0`} ${outColor}, ${outSize === 'thin' ? `0 0 ${outlineSizes[outSize]}` : `-${outlineSizes[outSize]} ${outlineSizes[outSize]} 0`} ${outColor}` : 'none',
-  } as React.CSSProperties;
-
-  const backgroundImageUrlRaw = bgImg || (bgId !== 'plain-white' && backgroundOptions.find(b => b.id === bgId)?.imageUrl);
-  
-  let backgroundImageUrl = backgroundImageUrlRaw;
-  if (backgroundImageUrl && !backgroundImageUrl.startsWith('http') && !backgroundImageUrl.startsWith('data:') && !backgroundImageUrl.startsWith('/')) {
-    backgroundImageUrl = `/${backgroundImageUrl}`;
-  }
-
-  // Combine interests, likes and dislikes for the printable card view
-  const combinedNotes = [
-    match.receiver.interests ? `Interests: ${match.receiver.interests}` : '',
-    match.receiver.likes ? `Likes: ${match.receiver.likes}` : '',
-    match.receiver.dislikes ? `Dislikes: ${match.receiver.dislikes}` : ''
-  ].filter(Boolean).join('\n');
-
+  const { giver, receiver } = match;
+  const [animatedName, setAnimatedName] = useState<React.ReactNode>('??????????');
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+  const backgroundUrl = bgImg || backgroundOptions.find(opt => opt.id === bgId)?.imageUrl || '';
 
   useEffect(() => {
-    if (isNameRevealed || !onReveal) return;
+    if (isNameRevealed && !isForPdf) {
+      setIsAnimationComplete(false); // Reset on new reveal
+      const finalName = receiver.name;
+      
+      // Start countdown
+      setAnimatedName('3');
+      
+      const timeout1 = setTimeout(() => {
+        setAnimatedName('2');
+      }, 800);
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
+      const timeout2 = setTimeout(() => {
+        setAnimatedName('1');
+      }, 1600);
+      
+      const timeout3 = setTimeout(() => {
+        setAnimatedName(finalName);
+        setIsAnimationComplete(true);
+      }, 2400);
 
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+      // Cleanup function
+      return () => {
+        clearTimeout(timeout1);
+        clearTimeout(timeout2);
+        clearTimeout(timeout3);
+      };
+
+    } else if (!isNameRevealed) {
+      setAnimatedName('??????????');
+      setIsAnimationComplete(false); // Reset when hiding
+    }
+  }, [isNameRevealed, receiver.name, isForPdf]);
+
+  const fontFamilies: Record<FontTheme, string> = {
+    classic: "'Playfair Display', serif",
+    modern: "'Montserrat', sans-serif",
+    elegant: "'Cormorant Garamond', serif",
+    whimsical: "'Patrick Hand', cursive",
+  };
+  
+  const outlineSizeMap: Record<OutlineSizeSetting, string> = { 'thin': '0.5px', 'normal': '1px', 'thick': '1.5px' };
+  const textShadow = outline
+    ? `
+        -${outlineSizeMap[outSize]} -${outlineSizeMap[outSize]} 0 ${outColor},
+         ${outlineSizeMap[outSize]} -${outlineSizeMap[outSize]} 0 ${outColor},
+        -${outlineSizeMap[outSize]}  ${outlineSizeMap[outSize]} 0 ${outColor},
+         ${outlineSizeMap[outSize]}  ${outlineSizeMap[outSize]} 0 ${outColor},
+        -${outlineSizeMap[outSize]} 0 0 ${outColor},
+         ${outlineSizeMap[outSize]} 0 0 ${outColor},
+        0 -${outlineSizeMap[outSize]} 0 ${outColor},
+        0  ${outlineSizeMap[outSize]} 0 ${outColor}
+      `
+    : 'none';
+  
+  const formattedGreeting = greet.replace('{secret_santa}', giver.name);
+
+  const baseFontSizeMap: Record<FontSizeSetting, { header: string, name: string, wishlist: string, event: string }> = {
+    'normal':      { header: '1rem',      name: '2.5rem', wishlist: '0.75rem', event: '0.65rem' },
+    'large':       { header: '1.1rem',    name: '2.9rem', wishlist: '0.85rem', event: '0.75rem' },
+    'extra-large': { header: '1.2rem',    name: '3.3rem', wishlist: '0.95rem', event: '0.85rem' },
+  };
+  const baseSizes = baseFontSizeMap[fontSize];
+
+  const calculateNameFontSize = (name: string, baseSize: string): string => {
+    const baseSizeValue = parseFloat(baseSize);
+    const baseSizeUnit = baseSize.replace(String(baseSizeValue), '');
+
+    let scaleFactor = 1.0;
+    const len = name.length;
     
-    // Create a silver-like gradient for the scratch-off surface
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#d1d5db');
-    gradient.addColorStop(0.5, '#9ca3af');
-    gradient.addColorStop(1, '#d1d5db');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Add text overlay
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.font = 'bold 20px "Montserrat", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('Scratch to Reveal!', canvas.width / 2, canvas.height / 2);
+    if (len > 22) {
+        scaleFactor = 0.55;
+    } else if (len > 18) {
+        scaleFactor = 0.65;
+    } else if (len > 14) {
+        scaleFactor = 0.75;
+    } else if (len > 10) {
+        scaleFactor = 0.9;
+    }
 
+    const newSize = baseSizeValue * scaleFactor;
+    return `${newSize.toFixed(2)}${baseSizeUnit}`;
+  };
 
-    const getCoordinates = (event: MouseEvent | TouchEvent) => {
-        const rect = canvas.getBoundingClientRect();
-        if (event instanceof MouseEvent) {
-            return { x: event.clientX - rect.left, y: event.clientY - rect.top };
-        } else if (event.touches[0]) {
-            return { x: event.touches[0].clientX - rect.left, y: event.touches[0].clientY - rect.top };
-        }
-        return null;
-    };
+  const animatedNameContent = isForPdf ? (isNameRevealed ? receiver.name : '??????????') : animatedName;
+  const dynamicNameSize = typeof animatedNameContent === 'string' 
+    ? calculateNameFontSize(animatedNameContent, baseSizes.name) 
+    : baseSizes.name;
 
-    const scratch = (e: MouseEvent | TouchEvent) => {
-        if (!isDrawing.current) return;
-        e.preventDefault();
-        const coords = getCoordinates(e);
-        if (coords) {
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.beginPath();
-            ctx.arc(coords.x, coords.y, 25, 0, Math.PI * 2, true);
-            ctx.fill();
-        }
-    };
+  const renderWishlistItem = (label: string, value: string | undefined) => {
+    if (!value || value.trim() === '') return null;
+    return <li><strong className="font-semibold">{label}:</strong> <span style={{ wordBreak: 'break-all' }}>{value}</span></li>;
+  };
+  
+  const hasLinks = Array.isArray(receiver.links) && receiver.links.some(link => link && link.trim() !== '');
 
-    const checkReveal = () => {
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const pixelData = imageData.data;
-        let transparentPixels = 0;
-        for (let i = 3; i < pixelData.length; i += 4) {
-            if (pixelData[i] === 0) {
-                transparentPixels++;
-            }
-        }
-        const revealedPercentage = (transparentPixels / (canvas.width * canvas.height));
-        
-        if (revealedPercentage > 0.6) {
-            setIsRevealing(true);
-            setTimeout(() => {
-                onReveal();
-            }, 300); // Animation delay
-        }
-    };
+  const commonTextStyle: React.CSSProperties = { 
+      color: txtColor, 
+      textShadow,
+  };
 
-    const startScratching = (e: MouseEvent | TouchEvent) => {
-        e.preventDefault();
-        isDrawing.current = true;
-        scratch(e);
-    };
-
-    const stopScratching = () => {
-        isDrawing.current = false;
-        checkReveal();
-    };
-
-    canvas.addEventListener('mousedown', startScratching);
-    canvas.addEventListener('touchstart', startScratching, { passive: false });
-    canvas.addEventListener('mousemove', scratch);
-    canvas.addEventListener('touchmove', scratch, { passive: false });
-    window.addEventListener('mouseup', stopScratching);
-    window.addEventListener('touchend', stopScratching);
-
-    return () => {
-        if (canvas) {
-            canvas.removeEventListener('mousedown', startScratching);
-            canvas.removeEventListener('touchstart', startScratching);
-            canvas.removeEventListener('mousemove', scratch);
-            canvas.removeEventListener('touchmove', scratch);
-        }
-        window.removeEventListener('mouseup', stopScratching);
-        window.removeEventListener('touchend', stopScratching);
-    };
-
-  }, [isNameRevealed, onReveal]);
+  const showWishlistDetails = (isForPdf && isNameRevealed) || isAnimationComplete;
 
   return (
     <div 
-        className="printable-card aspect-[3/4] w-full max-w-sm mx-auto rounded-2xl shadow-lg relative overflow-hidden bg-white flex flex-col items-center justify-center p-6" 
-        style={dynamicStyles}
+        className="w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-lg relative bg-white bg-cover bg-center transition-all duration-300" 
+        style={{ backgroundImage: `url(${backgroundUrl})` }}
     >
-      {backgroundImageUrl && (
-        <img 
-          src={backgroundImageUrl} 
-          alt="" 
-          className="absolute inset-0 w-full h-full object-cover" 
-          crossOrigin="anonymous" 
-          loading="lazy"
-          width="338"
-          height="450"
-        />
-      )}
-      <div className="relative z-10 text-center flex flex-col h-full w-full">
-        <div className="flex-grow flex flex-col items-center justify-center text-center">
-            <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)', lineHeight: 'var(--line-spacing)' }} className="opacity-90">
-                {greet.replace('{secret_santa}', match.giver.name)}
-            </p>
-            <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 1.1)', lineHeight: 'var(--line-spacing)' }} className="mt-1">
-                {intro.replace('{secret_santa}', match.giver.name)}
-            </p>
+      <div 
+        className="absolute inset-0 flex flex-col items-center text-center p-[8%]"
+        style={{ fontFamily: fontFamilies[font] }}
+      >
+        {/* Main Content (grows to fill space and centers its content vertically) */}
+        <div className="w-full flex-grow flex flex-col justify-center items-center">
             
-            <div className="my-4 w-full relative">
-                {isNameRevealed ? (
-                    <>
-                      <h2 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 2.25)' }} className="font-bold break-words">
-                          {match.receiver.name}
-                      </h2>
-                      
-                      {(combinedNotes || match.receiver.budget) && (
-                          <div className="mt-4 w-full text-center">
-                              <h3 style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)'}} className="font-bold tracking-widest uppercase opacity-70">
-                                  {wish}
-                              </h3>
-                              <div style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.9)' }} className="mt-1 opacity-90 break-words px-4 whitespace-pre-wrap">
-                                  {combinedNotes && <p>{combinedNotes}</p>}
-                                  {match.receiver.budget && <p className="mt-1">{`Budget: $${match.receiver.budget}`}</p>}
-                              </div>
-                          </div>
-                      )}
+            {/* Header Text (Greeting/Intro) */}
+            <div className="w-full" style={{ lineHeight: line }}>
+                <h2 
+                    className="font-bold"
+                    style={{ ...commonTextStyle, fontSize: baseSizes.header }}
+                >
+                    {formattedGreeting}
+                </h2>
+                <p style={{ ...commonTextStyle, fontSize: `calc(${baseSizes.header} * 0.85)` }}>
+                    {intro}
+                </p>
+            </div>
 
-                      {eventDetails && (
-                        <div className="w-full text-center px-4 mt-4">
-                          <p style={{ color: 'var(--text-color)', fontFamily: 'var(--font-family)', fontSize: 'calc(var(--base-font-size) * 0.8)' }} className="opacity-80 break-words">
-                            {eventDetails}
-                          </p>
-                        </div>
-                      )}
-                    </>
-                ) : (
-                    <div className="w-full aspect-[3/1] max-w-[80%] mx-auto relative cursor-pointer group">
-                         <div className="w-full h-full flex items-center justify-center rounded-xl bg-white/30 backdrop-blur-sm border border-white/50">
-                            {/* This is the content that will be revealed */}
-                         </div>
-                         <canvas 
-                            ref={canvasRef} 
-                            className={`absolute inset-0 w-full h-full rounded-xl transition-opacity duration-300 ${isRevealing ? 'opacity-0' : 'opacity-100'}`}
-                         ></canvas>
+            {/* Receiver Name */}
+            <h1
+                className="font-bold my-1 break-words break-all"
+                style={{
+                    ...commonTextStyle,
+                    fontFamily: fontFamilies.classic,
+                    fontSize: dynamicNameSize,
+                    lineHeight: 1.1,
+                    letterSpacing: isNameRevealed ? 'normal' : '0.2em'
+                }}
+            >
+                {animatedNameContent}
+            </h1>
+            
+            {/* Wishlist and Event Details */}
+            {showWishlistDetails && (
+              <div className="w-full mt-4">
+                <h3 className="font-bold" style={{ ...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
+                
+                <ul className="list-none space-y-0 p-0 m-0 text-left max-w-[70%] mx-auto" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
+                    {renderWishlistItem('Interests', receiver.interests)}
+                    {renderWishlistItem('Likes', receiver.likes)}
+                    {renderWishlistItem('Dislikes', receiver.dislikes)}
+                    {renderWishlistItem('Budget', receiver.budget)}
+                </ul>
+                
+                {hasLinks && showLinks && (
+                    <div className="mt-2 text-center max-w-[90%] mx-auto w-full">
+                        <h4 className="font-bold" style={{...commonTextStyle, fontSize: `calc(${baseSizes.header} * 0.9)`}}>Wishlist Links:</h4>
+                        <div className="space-y-1 mt-1">{receiver.links.map((link, index) => (link.trim() ? <LinkPreview key={index} url={link} isForPdf={isForPdf} /> : null))}</div>
                     </div>
                 )}
-            </div>
+                
+                {eventDetails && <p className="opacity-90 mt-4" style={{...commonTextStyle, fontSize: baseSizes.event }}>{eventDetails}</p>}
+              </div>
+            )}
+        </div>
+        
+        {/* Footer */}
+        <div className="w-full flex-shrink-0">
+            {(bgId === 'custom' || !backgroundUrl) && 
+                <p className="text-xs opacity-70" style={{ color: txtColor, textShadow }}>SecretSantaMatch.com</p>
+            }
         </div>
       </div>
     </div>

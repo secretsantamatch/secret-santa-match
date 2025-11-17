@@ -17,7 +17,7 @@ const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onAccept, onD
         <div className="text-center sm:text-left">
           <h2 id="cookie-consent-title" className="font-bold text-lg">We Value Your Privacy</h2>
           <p id="cookie-consent-description" className="text-sm text-slate-300">
-            We use cookies to enhance your experience, serve personalized ads, and analyze our traffic. By clicking "Accept", you consent to our use of cookies. Read our{' '}
+            We use cookies and similar technologies for analytics, advertising (with partners like Google), and to enable features like editable wishlists. This helps us run the site and improve your experience. Read our{' '}
             <a href="/privacy-policy.html" className="underline hover:text-white font-semibold">
               Privacy Policy
             </a>.

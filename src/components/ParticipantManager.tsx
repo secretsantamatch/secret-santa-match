@@ -1,17 +1,56 @@
 import React, { useState } from 'react';
 import type { Participant } from '../types';
+import { Lightbulb } from 'lucide-react';
 
 interface ParticipantManagerProps {
     participants: Participant[];
     setParticipants: (participants: Participant[]) => void;
     onBulkAddClick: () => void;
     onClearClick: () => void;
+    setError: (error: string | null) => void;
 }
 
-const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, onClearClick }) => {
+const WISHLIST_CHAR_LIMIT = 100;
+
+const CharacterCounter: React.FC<{ value: string, fieldName: string }> = ({ value, fieldName }) => {
+    const length = value.length;
+    const isOverLimit = length > WISHLIST_CHAR_LIMIT;
+
+    const defaultHelperText = "Separate with commas.";
+
+    return (
+        <div className="text-xs text-slate-400 mt-1">
+            <div className="flex justify-between">
+                <span>{defaultHelperText}</span>
+                <span className={isOverLimit ? 'text-red-500 font-bold' : ''}>
+                    {length} / {WISHLIST_CHAR_LIMIT}
+                </span>
+            </div>
+            {isOverLimit && (
+                <p className="text-red-500 font-semibold">
+                    Note: Long text may be cut off on printable cards.
+                </p>
+            )}
+        </div>
+    );
+};
+
+
+const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, setParticipants, onBulkAddClick, onClearClick, setError }) => {
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-    const handleParticipantChange = (id: string, field: keyof Omit<Participant, 'id'>, value: string) => {
+    const handleParticipantChange = (id: string, field: keyof Omit<Participant, 'id' | 'links'>, value: string) => {
+        if (field === 'name') {
+            setError(null); // Clear previous errors
+            const trimmedValue = value.trim().toLowerCase();
+            if (trimmedValue) { // Only check for duplicates if the name is not empty
+                const isDuplicate = participants.some(p => p.id !== id && p.name.trim().toLowerCase() === trimmedValue);
+                if (isDuplicate) {
+                    setError('Participant names must be unique.');
+                }
+            }
+        }
+        
         const participantIndex = participants.findIndex(p => p.id === id);
         const isLastParticipant = participantIndex === participants.length - 1;
         const isNameField = field === 'name';
@@ -23,16 +62,27 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
         );
 
         if (isLastParticipant && isNameField && wasEmpty && isNowNotEmpty) {
-            updatedParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' });
+            updatedParticipants.push({ id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' });
         }
         
         setParticipants(updatedParticipants);
     };
+
+    const handleLinkChange = (id: string, index: number, value: string) => {
+        const updatedParticipants = participants.map(p => {
+            if (p.id === id) {
+                const newLinks = [...p.links];
+                newLinks[index] = value;
+                return { ...p, links: newLinks };
+            }
+            return p;
+        });
+        setParticipants(updatedParticipants);
+    };
     
     const addParticipant = () => {
-        const newParticipant = { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: '', budget: '' };
+        const newParticipant: Participant = { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' };
         setParticipants([...participants, newParticipant]);
-        // Expand details for new participant for better UX
         toggleDetails(newParticipant.id);
     };
 
@@ -87,7 +137,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     onChange={(e) => handleParticipantChange(participant.id, 'interests', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                 />
-                                 <p className="text-xs text-slate-400 mt-1">Separate with commas for clickable gift ideas.</p>
+                                 <CharacterCounter value={participant.interests} fieldName="interests" />
                             </div>
                              <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Likes</label>
@@ -98,7 +148,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     onChange={(e) => handleParticipantChange(participant.id, 'likes', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                 />
-                                <p className="text-xs text-slate-400 mt-1">Separate with commas for more gift ideas.</p>
+                                <CharacterCounter value={participant.likes} fieldName="likes" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Dislikes & No-Go's</label>
@@ -109,23 +159,31 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
                                     rows={2}
                                 />
+                                <CharacterCounter value={participant.dislikes} fieldName="dislikes" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">Specific Links (Optional)</label>
-                                <textarea
-                                    placeholder="Paste one link per line"
-                                    value={participant.links}
-                                    onChange={(e) => handleParticipantChange(participant.id, 'links', e.target.value)}
-                                    className="w-full p-2 border border-slate-300 rounded-md text-sm"
-                                    rows={2}
-                                />
-                                <p className="text-xs text-slate-400 mt-1">Got a specific item in mind? Paste the full link here. Add one link per line.</p>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Top 5 Wishlist Links (Optional)</label>
+                                <div className="space-y-2">
+                                    {participant.links.map((link, i) => (
+                                        <input
+                                            key={i}
+                                            type="text"
+                                            placeholder={`e.g., https://www.amazon.com/wishlist/...`}
+                                            value={link}
+                                            onChange={(e) => handleLinkChange(participant.id, i, e.target.value)}
+                                            className="w-full p-2 border border-slate-300 rounded-md text-sm"
+                                        />
+                                    ))}
+                                </div>
+                                <div className="text-xs text-slate-400 mt-1">
+                                    <span>Paste one full link (starting with https://) per box.</span>
+                                </div>
                             </div>
                              <div>
-                                <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget ($)</label>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Spending Budget</label>
                                 <input
                                     type="text"
-                                    placeholder="e.g., 25"
+                                    placeholder="e.g., $25, £20, or up to 30"
                                     value={participant.budget}
                                     onChange={(e) => handleParticipantChange(participant.id, 'budget', e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md text-sm"
@@ -135,7 +193,14 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                     )}
                 </div>
             ))}
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="mt-6 p-4 bg-sky-50 text-sky-900 rounded-lg border border-sky-200 flex items-start gap-4">
+                <Lightbulb className="w-8 h-8 flex-shrink-0 text-sky-500 mt-1" />
+                <div>
+                    <h4 className="font-bold">Pro Tip: Let them update their own wishlists!</h4>
+                    <p className="text-sm mt-1">After you generate matches, each person can use their private link to update their gift ideas and wishlists at any time. No more chasing people for updates!</p>
+                </div>
+            </div>
+            <div className="flex flex-wrap gap-4 pt-6">
                 <button onClick={addParticipant} className="py-2 px-4 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white font-semibold rounded-lg transition-colors shadow">Add Person</button>
                 <button onClick={onBulkAddClick} className="py-2 px-4 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg transition-colors">Bulk Add from List</button>
                 <button onClick={onClearClick} className="py-2 px-4 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg transition-colors">Clear</button>

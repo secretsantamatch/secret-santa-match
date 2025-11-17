@@ -1,178 +1,144 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import GeneratorPage from './components/GeneratorPage';
-import CookieConsentBanner from './components/CookieConsentBanner';
-import { decodeData } from './services/urlService';
-import type { ExchangeData } from './types';
+    import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+    import type { ExchangeData } from './types';
+    import { compressData, decompressData } from './services/urlService';
 
-// Lazy load the ResultsPage component
-const ResultsPage = lazy(() => import('./components/ResultsPage'));
+    const GeneratorPage = lazy(() => import('./components/GeneratorPage'));
+    const ResultsPage = lazy(() => import('./components/ResultsPage'));
 
-const loadTrackingScripts = () => {
-  if ((window as any).trackingScriptsLoaded) {
-    return;
-  }
-  (window as any).trackingScriptsLoaded = true;
-
-  // Pinterest
-  const pScript = document.createElement('script');
-  pScript.type = 'text/javascript';
-  pScript.innerHTML = `
-    !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(
-    Array.prototype.slice.call(arguments))};var
-    n=window.pintrk;n.queue=[],n.version="3.0";var
-    t=document.createElement("script");t.async=!0,t.src="https://s.pinimg.com/ct/core.js";var
-    r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
-    pintrk('load', '2612962984250');
-    pintrk('page');
-    pintrk('track', 'pagevisit');
-  `;
-  document.head.appendChild(pScript);
-
-  const pNoscript = document.createElement('noscript');
-  const pImg = document.createElement('img');
-  pImg.height = 1;
-  pImg.width = 1;
-  pImg.style.display = 'none';
-  pImg.alt = '';
-  pImg.src = "https://ct.pinterest.com/v3/?tid=2612962984250&noscript=1";
-  pNoscript.appendChild(pImg);
-  document.body.insertBefore(pNoscript, document.body.firstChild);
-
-  // Google AdSense
-  const adScript = document.createElement('script');
-  adScript.async = true;
-  adScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3037944530219260";
-  adScript.crossOrigin = "anonymous";
-  document.head.appendChild(adScript);
-
-  // Google Analytics (GA4)
-  const gaScript = document.createElement('script');
-  gaScript.async = true;
-  gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6";
-  document.head.appendChild(gaScript);
-
-  const gaConfigScript = document.createElement('script');
-  gaConfigScript.innerHTML = `
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-HG140X6CQ6');
-  `;
-  document.head.appendChild(gaConfigScript);
-};
-
-const LoadingFallback = () => (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="text-center">
-        <svg className="animate-spin h-10 w-10 text-red-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p className="mt-4 text-slate-600 font-semibold">Loading your page...</p>
-      </div>
-    </div>
-  );
-
-
-const App: React.FC = () => {
-  const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
-  const [participantId, setParticipantId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showCookieBanner, setShowCookieBanner] = useState(false);
-
-  useEffect(() => {
-    const consent = localStorage.getItem('cookie_consent');
-    if (consent === 'accepted') {
-      loadTrackingScripts();
-    } else if (!consent) {
-      setShowCookieBanner(true);
-    }
-
-    const handleHashChange = () => {
-      try {
-        setError(null);
-        const hash = window.location.hash.slice(1);
-        const searchParams = new URLSearchParams(window.location.search);
-        
-        if (hash) {
-          const mainHash = hash.split('?')[0];
-          const decoded = decodeData(mainHash);
-          setExchangeData(decoded);
-          
-          // Set theme based on data from URL
-          if (decoded.pageTheme) {
-            document.documentElement.dataset.theme = decoded.pageTheme;
-          } else {
-            document.documentElement.dataset.theme = 'default';
-          }
-
-          // Check for participant ID in either hash or query string
-          const hashParams = new URLSearchParams(hash.split('?')[1] || '');
-          const id = searchParams.get('id') || hashParams.get('id');
-          setParticipantId(id);
-          
-        } else {
-          setExchangeData(null);
-          setParticipantId(null);
-          document.documentElement.dataset.theme = 'default'; // Reset to default theme
-        }
-      } catch (e) {
-        console.error(e);
-        setError("The link you followed seems to be broken or corrupted. Please check the link and try again.");
-        setExchangeData(null);
-      }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // Initial load
-
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, []);
-
-  const handleAcceptCookies = () => {
-    localStorage.setItem('cookie_consent', 'accepted');
-    setShowCookieBanner(false);
-    loadTrackingScripts();
-  };
-
-  const handleDeclineCookies = () => {
-    localStorage.setItem('cookie_consent', 'declined');
-    setShowCookieBanner(false);
-  };
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg border">
-          <h1 className="text-3xl font-bold text-red-600 mb-4 font-serif">Link Error</h1>
-          <p className="text-slate-700 text-lg">{error}</p>
-          <a href="/" onClick={(e) => { e.preventDefault(); window.location.href = window.location.pathname; }} className="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors">
-            Start a New Game
-          </a>
+    const LoadingFallback = () => (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+                <img src="/logo_256.png" alt="Loading" className="w-24 h-24 mx-auto animate-pulse" />
+                <p className="text-slate-500 mt-4">Loading your exchange...</p>
+            </div>
         </div>
-      </div>
     );
-  }
 
-  return (
-    <>
-      <Suspense fallback={<LoadingFallback />}>
-        {exchangeData ? (
-          <ResultsPage data={exchangeData} currentParticipantId={participantId} />
-        ) : (
-          <GeneratorPage />
-        )}
-      </Suspense>
-      {showCookieBanner && (
-        <CookieConsentBanner
-          onAccept={handleAcceptCookies}
-          onDecline={handleDeclineCookies}
-        />
-      )}
-    </>
-  );
-};
+    const ErrorDisplay = ({ message }: { message: string }) => (
+        <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="text-center bg-white p-8 rounded-2xl shadow-lg border max-w-lg">
+                <h2 className="text-2xl font-bold text-red-600">Oops! Something went wrong.</h2>
+                <p className="text-slate-600 mt-2">{message}</p>
+                <a href="/generator.html" className="mt-6 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">
+                    Start a New Game
+                </a>
+            </div>
+        </div>
+    );
 
-export default App;
+    const App: React.FC = () => {
+        const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
+        const [participantId, setParticipantId] = useState<string | null>(null);
+        const [isLoading, setIsLoading] = useState(true);
+        const [error, setError] = useState<string | null>(null);
+
+        const loadDataFromHash = useCallback(async () => {
+            setIsLoading(true);
+            setError(null);
+            
+            const hash = window.location.hash.slice(1);
+            const [compressedData, queryString] = hash.split('?');
+
+            if (!compressedData) {
+                setExchangeData(null);
+                setParticipantId(null);
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const decompressed = decompressData(compressedData);
+                if (!decompressed) {
+                    throw new Error("Could not read the gift exchange data from the link. It might be corrupted or incomplete.");
+                }
+
+                // Load templates and merge them into the data
+                const templatesRes = await fetch('/templates.json');
+                if (!templatesRes.ok) throw new Error('Failed to load design templates.');
+                const backgroundOptions = await templatesRes.json();
+                
+                const fullData: ExchangeData = { ...decompressed, backgroundOptions };
+                setExchangeData(fullData);
+
+                const params = new URLSearchParams(queryString || '');
+                setParticipantId(params.get('id'));
+
+            } catch (err) {
+                console.error("Error loading exchange data:", err);
+                setError(err instanceof Error ? err.message : "An unknown error occurred.");
+                setExchangeData(null);
+            } finally {
+                setIsLoading(false);
+            }
+        }, []);
+
+        useEffect(() => {
+            window.addEventListener('hashchange', loadDataFromHash);
+            loadDataFromHash(); 
+
+            return () => {
+                window.removeEventListener('hashchange', loadDataFromHash);
+            };
+        }, [loadDataFromHash]);
+
+        const updateUrlHash = (data: Omit<ExchangeData, 'backgroundOptions'>) => {
+            const compressed = compressData(data);
+            const queryString = window.location.hash.split('?')[1];
+            const newHash = queryString ? `${compressed}?${queryString}` : compressed;
+            window.history.replaceState(null, '', `#${newHash}`);
+        };
+
+        const handleDataUpdate = (newMatches: { g: string; r: string }[]) => {
+            if (!exchangeData) return;
+
+            const newData: ExchangeData = {
+                ...exchangeData,
+                matches: newMatches
+            };
+
+            setExchangeData(newData);
+            
+            const { backgroundOptions, ...dataToCompress } = newData;
+            updateUrlHash(dataToCompress);
+        };
+        
+        const handleCreationComplete = (newData: ExchangeData) => {
+            const { backgroundOptions, ...dataToCompress } = newData;
+            const compressed = compressData(dataToCompress);
+            if (compressed) {
+                setExchangeData(newData);
+                window.location.hash = compressed;
+            } else {
+                setError("There was an error creating your gift exchange link.");
+            }
+        };
+
+
+        if (isLoading) {
+            return <LoadingFallback />;
+        }
+        
+        if (error) {
+            return <ErrorDisplay message={error} />;
+        }
+
+        if (exchangeData) {
+            return (
+                <Suspense fallback={<LoadingFallback />}>
+                    <ResultsPage 
+                        data={exchangeData} 
+                        currentParticipantId={participantId} 
+                        onDataUpdated={handleDataUpdate}
+                    />
+                </Suspense>
+            );
+        }
+
+        return (
+            <Suspense fallback={<LoadingFallback />}>
+                <GeneratorPage onComplete={handleCreationComplete} />
+            </Suspense>
+        );
+    };
+
+    export default App;

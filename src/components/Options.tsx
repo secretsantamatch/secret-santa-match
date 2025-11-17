@@ -1,158 +1,229 @@
-import React, { useState } from 'react';
-import type { Participant, Exclusion, Assignment } from '../types';
+import React, { useState, useMemo } from 'react';
+import type { Participant, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme, Match } from '../types';
+import BackgroundSelector from './BackgroundSelector';
+import PrintableCard from './PrintableCard';
+import { Palette, Type, Droplet, Text, BoxSelect, Baseline, Info, Search } from 'lucide-react';
 
 interface OptionsProps {
-    participants: Participant[];
-    exclusions: Exclusion[];
-    setExclusions: (exclusions: Exclusion[]) => void;
-    assignments: Assignment[];
-    setAssignments: (assignments: Assignment[]) => void;
-    eventDetails: string;
-    setEventDetails: (details: string) => void;
+  participants: Participant[];
+  eventDetails: string;
+  
+  selectedBackgroundId: string;
+  setSelectedBackgroundId: (id: string) => void;
+  customBackground: string | null;
+  setCustomBackground: (url: string | null) => void;
+  backgroundOptions: BackgroundOption[];
+  
+  textColor: string;
+  setTextColor: (color: string) => void;
+  useTextOutline: boolean;
+  setUseTextOutline: (use: boolean) => void;
+  outlineColor: string;
+  setOutlineColor: (color: string) => void;
+  outlineSize: OutlineSizeSetting;
+  setOutlineSize: (size: OutlineSizeSetting) => void;
+  
+  fontSize: FontSizeSetting;
+  setFontSize: (size: FontSizeSetting) => void;
+  fontTheme: FontTheme;
+  setFontTheme: (theme: FontTheme) => void;
+  lineSpacing: number;
+  setLineSpacing: (spacing: number) => void;
+  
+  greetingText: string;
+  setGreetingText: (text: string) => void;
+  introText: string;
+  setIntroText: (text: string) => void;
+  wishlistLabelText: string;
+  setWishlistLabelText: (text: string) => void;
 }
 
-const Options: React.FC<OptionsProps> = ({
-    participants,
-    exclusions,
-    setExclusions,
-    assignments,
-    setAssignments,
-    eventDetails,
-    setEventDetails,
-}) => {
-    const [exclusionP1, setExclusionP1] = useState<string>('');
-    const [exclusionP2, setExclusionP2] = useState<string>('');
-    const [assignmentGiver, setAssignmentGiver] = useState<string>('');
-    const [assignmentReceiver, setAssignmentReceiver] = useState<string>('');
-    const [error, setError] = useState<string>('');
+const Options: React.FC<OptionsProps> = (props) => {
+  const { participants, eventDetails, ...styleProps } = props;
+  const { backgroundOptions, selectedBackgroundId, setSelectedBackgroundId } = styleProps;
+  const [themeSearch, setThemeSearch] = useState('');
+  const [hoveredBgId, setHoveredBgId] = useState<string | null>(null);
 
-    const getParticipantName = (id: string) => participants.find(p => p.id === id)?.name || 'Unknown';
+  const filteredThemes = useMemo(() => {
+    if (!themeSearch) return backgroundOptions;
+    const lowercasedFilter = themeSearch.toLowerCase();
+    return backgroundOptions.filter(opt => 
+        opt.name.toLowerCase().includes(lowercasedFilter) ||
+        opt.description?.toLowerCase().includes(lowercasedFilter)
+    );
+  }, [themeSearch, backgroundOptions]);
+  
+  const sampleMatch: Match = useMemo(() => {
+      // FIX: Changed `links: ''` to `links: []` to match the Participant type definition.
+      const giver = participants[0] || { id: 'sample-giver', name: 'Alex', interests: 'Loves dark roast coffee', likes: 'Horror movies', dislikes: '', links: [], budget: '' };
+      const receiver = participants[1] || participants[0] || { id: 'sample-receiver', name: 'Taylor', interests: 'Enjoys hiking and board games', likes: 'Spicy food', dislikes: '', links: [], budget: '$25' };
+      return { giver, receiver };
+  }, [participants]);
 
-    const handleAddExclusion = () => {
-        setError('');
-        if (!exclusionP1 || !exclusionP2) {
-            setError('Please select two participants for the exclusion.');
-            return;
-        }
-        if (exclusionP1 === exclusionP2) {
-            setError('A participant cannot be excluded from themselves.');
-            return;
-        }
-        const exists = exclusions.some(ex => 
-            (ex.p1 === exclusionP1 && ex.p2 === exclusionP2) ||
-            (ex.p1 === exclusionP2 && ex.p2 === exclusionP1)
-        );
-        if (!exists) {
-            setExclusions([...exclusions, { p1: exclusionP1, p2: exclusionP2 }]);
-        }
-        setExclusionP1('');
-        setExclusionP2('');
-    };
+  const displayBgId = hoveredBgId || selectedBackgroundId;
+  const displayBgImg = displayBgId === 'custom' ? styleProps.customBackground : null;
+  
+  const hoveredOption = backgroundOptions.find(opt => opt.id === hoveredBgId);
+  const selectedOption = backgroundOptions.find(opt => opt.id === selectedBackgroundId);
+  
+  const displayTextColor = hoveredOption?.defaultTextColor ?? styleProps.textColor;
+  const displayGreetingText = hoveredOption?.cardText?.greeting ?? styleProps.greetingText;
+  const displayIntroText = hoveredOption?.cardText?.intro ?? styleProps.introText;
+  const displayWishlistLabelText = hoveredOption?.cardText?.wishlistLabel ?? styleProps.wishlistLabelText;
+  const displayBgOption = hoveredOption || selectedOption;
 
-    const handleRemoveExclusion = (p1: string, p2: string) => {
-        setExclusions(exclusions.filter(ex => 
-            !((ex.p1 === p1 && ex.p2 === p2) || (ex.p1 === p2 && ex.p2 === p1))
-        ));
-    };
-    
-    const handleAddAssignment = () => {
-        setError('');
-        if (!assignmentGiver || !assignmentReceiver) {
-            setError('Please select a giver and a receiver for the assignment.');
-            return;
-        }
-        if (assignmentGiver === assignmentReceiver) {
-            setError('A participant cannot be assigned to themselves.');
-            return;
-        }
-        const giverExists = assignments.some(a => a.giverId === assignmentGiver);
-        const receiverExists = assignments.some(a => a.receiverId === assignmentReceiver);
-        
-        if (giverExists) {
-            setError(`${getParticipantName(assignmentGiver)} is already assigned as a giver.`);
-            return;
-        }
-        if (receiverExists) {
-             setError(`${getParticipantName(assignmentReceiver)} is already assigned as a receiver.`);
-            return;
-        }
-        
-        setAssignments([...assignments, { giverId: assignmentGiver, receiverId: assignmentReceiver }]);
-        setAssignmentGiver('');
-        setAssignmentReceiver('');
-    };
-    
-    const handleRemoveAssignment = (giverId: string) => {
-        setAssignments(assignments.filter(a => a.giverId !== giverId));
-    };
-
-    return (
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 lg:items-start">
+        {/* Left Column: Controls */}
         <div className="space-y-8">
-            {error && <p className="text-red-600 bg-red-50 p-3 rounded-md text-sm">{error}</p>}
+            <section onMouseLeave={() => setHoveredBgId(null)}>
+                <h3 className="text-xl font-bold text-slate-800 mb-4">1. Choose a Theme</h3>
+                <div className="relative mb-4">
+                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20}/>
+                     <input 
+                        type="text"
+                        placeholder="Search themes (e.g., 'village', 'festive')"
+                        value={themeSearch}
+                        onChange={e => setThemeSearch(e.target.value)}
+                        className="w-full p-2 pl-10 border border-slate-300 rounded-md"
+                     />
+                </div>
+                 <div className="max-h-96 overflow-y-auto pr-2">
+                    <BackgroundSelector
+                        selected={selectedBackgroundId}
+                        setSelectedBackgroundId={setSelectedBackgroundId}
+                        setHoveredBackgroundId={setHoveredBgId}
+                        customBackground={styleProps.customBackground}
+                        setCustomBackground={styleProps.setCustomBackground}
+                        backgroundOptions={filteredThemes}
+                        onTextColorChange={styleProps.setTextColor}
+                    />
+                </div>
+                <div className="flex items-start gap-2 text-slate-500 text-xs mt-3 bg-slate-50 p-2 rounded-md">
+                   <Info size={14} className="flex-shrink-0 mt-0.5" />
+                   <p>Hover to preview, click to select. Recommended image size for custom uploads: 3:4 ratio, under 3MB.</p>
+                </div>
+            </section>
             
-            <div>
-                <label htmlFor="event-details" className="block text-lg font-semibold text-slate-700 mb-2">Event Details</label>
-                <textarea
-                    id="event-details"
-                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                    placeholder="e.g., Gift exchange at the annual holiday party on Dec 20th. Budget: $25."
-                    value={eventDetails}
-                    onChange={(e) => setEventDetails(e.target.value)}
-                    rows={3}
+            <section>
+                <h3 className="text-xl font-bold text-slate-800 mb-4">2. Customize Text Style</h3>
+                <div className="space-y-4 bg-slate-50 p-4 rounded-lg border">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="flex items-center gap-2 font-semibold text-sm text-slate-600 mb-1">
+                                <Palette className="w-5 h-5" /> Text Color
+                            </label>
+                            <input type="color" value={styleProps.textColor} onChange={(e) => styleProps.setTextColor(e.target.value)} className="w-full h-10 p-1 border border-slate-300 rounded-md cursor-pointer bg-transparent"/>
+                        </div>
+                        <div>
+                            <label htmlFor="font-size" className="flex items-center gap-2 font-semibold text-sm text-slate-600 mb-1">
+                                <Text className="w-5 h-5" /> Font Size
+                            </label>
+                            <select id="font-size" value={styleProps.fontSize} onChange={(e) => styleProps.setFontSize(e.target.value as FontSizeSetting)} className="w-full p-2 border border-slate-300 rounded-md text-sm h-10">
+                                <option value="normal">Normal</option>
+                                <option value="large">Large</option>
+                                <option value="extra-large">Extra Large</option>
+                            </select>
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label htmlFor="font-theme" className="flex items-center gap-2 font-semibold text-sm text-slate-600 mb-1">
+                                <Type className="w-5 h-5" /> Font Style
+                            </label>
+                            <select id="font-theme" value={styleProps.fontTheme} onChange={(e) => styleProps.setFontTheme(e.target.value as FontTheme)} className="w-full p-2 border border-slate-300 rounded-md text-sm h-10">
+                                <option value="classic">Classic (Serif)</option>
+                                <option value="modern">Modern (Sans-Serif)</option>
+                                <option value="elegant">Elegant (Garamond)</option>
+                                <option value="whimsical">Whimsical (Handwritten)</option>
+                            </select>
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label htmlFor="line-spacing" className="flex items-center gap-2 font-semibold text-sm text-slate-600 mb-1">
+                                <Baseline className="w-5 h-5" /> Line Spacing
+                            </label>
+                            <div className="flex items-center gap-3">
+                                <input id="line-spacing" type="range" min="1" max="2" step="0.1" value={styleProps.lineSpacing} onChange={(e) => styleProps.setLineSpacing(parseFloat(e.target.value))} className="w-full" />
+                                <span className="text-sm font-mono w-10 text-right">{styleProps.lineSpacing.toFixed(1)}x</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-3 border-t">
+                        <div className="flex items-center gap-2">
+                            <input id="use-outline" type="checkbox" checked={styleProps.useTextOutline} onChange={(e) => styleProps.setUseTextOutline(e.target.checked)} className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"/>
+                            <label htmlFor="use-outline" className="font-semibold text-sm text-slate-600">Add text outline for better visibility</label>
+                        </div>
+                    </div>
+
+                    {styleProps.useTextOutline && (
+                        <div className="pt-3 border-t grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           <div>
+                             <label className="flex items-center gap-2 font-semibold text-sm text-slate-600 mb-1">
+                                 <Droplet className="w-5 h-5" /> Outline Color
+                            </label>
+                             <input type="color" value={styleProps.outlineColor} onChange={(e) => styleProps.setOutlineColor(e.target.value)} className="w-full h-10 p-1 border border-slate-300 rounded-md cursor-pointer bg-transparent"/>
+                           </div>
+                           <div>
+                               <label htmlFor="outline-size" className="flex items-center gap-2 font-semibold text-sm text-slate-600 mb-1">
+                                   <BoxSelect className="w-5 h-5" /> Outline Size
+                                </label>
+                               <select id="outline-size" value={styleProps.outlineSize} onChange={(e) => styleProps.setOutlineSize(e.target.value as OutlineSizeSetting)} className="w-full p-2 border border-slate-300 rounded-md text-sm h-10">
+                                   <option value="thin">Thin</option>
+                                   <option value="normal">Normal</option>
+                                   <option value="thick">Thick</option>
+                               </select>
+                           </div>
+                        </div>
+                    )}
+                </div>
+            </section>
+            
+            <section>
+                 <h3 className="text-xl font-bold text-slate-800 mb-4">3. Edit Card Text</h3>
+                 <div className="space-y-3 bg-slate-50 p-4 rounded-lg border">
+                    <p className="text-xs text-slate-500 flex items-center gap-2"><Info size={14}/>Use <code className="bg-slate-200 text-slate-700 px-1 rounded-sm">{`{secret_santa}`}</code> to insert the giver's name.</p>
+                    <div>
+                        <label className="text-sm font-semibold text-slate-600">Greeting</label>
+                        <input type="text" value={styleProps.greetingText} onChange={e => styleProps.setGreetingText(e.target.value)} className="w-full p-2 mt-1 border border-slate-300 rounded-md text-sm" />
+                    </div>
+                    <div>
+                        <label className="text-sm font-semibold text-slate-600">Introductory Line</label>
+                        <input type="text" value={styleProps.introText} onChange={e => styleProps.setIntroText(e.target.value)} className="w-full p-2 mt-1 border border-slate-300 rounded-md text-sm" />
+                    </div>
+                     <div>
+                        <label className="text-sm font-semibold text-slate-600">Wishlist Label</label>
+                        <input type="text" value={styleProps.wishlistLabelText} onChange={e => styleProps.setWishlistLabelText(e.target.value)} className="w-full p-2 mt-1 border border-slate-300 rounded-md text-sm" />
+                    </div>
+                 </div>
+            </section>
+        </div>
+
+        {/* Right Column: Live Preview */}
+        <div className="lg:sticky top-24">
+            <h3 className="text-xl font-bold text-slate-800 mb-4">4. Live Preview</h3>
+            <div className="w-full max-w-sm mx-auto">
+                 <PrintableCard
+                    match={sampleMatch}
+                    eventDetails={eventDetails}
+                    isNameRevealed={true}
+                    backgroundOptions={backgroundOptions}
+                    bgId={displayBgOption?.id ?? ''}
+                    bgImg={displayBgId === 'custom' ? styleProps.customBackground : (displayBgOption?.imageUrl ?? '')}
+                    txtColor={displayTextColor}
+                    outline={styleProps.useTextOutline}
+                    outColor={styleProps.outlineColor}
+                    outSize={styleProps.outlineSize}
+                    fontSize={styleProps.fontSize}
+                    font={styleProps.fontTheme}
+                    line={styleProps.lineSpacing}
+                    greet={displayGreetingText}
+                    intro={displayIntroText}
+                    wish={displayWishlistLabelText}
+                    showLinks={false}
                 />
             </div>
-
-            <div>
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">Exclusions (Optional)</h3>
-                <p className="text-slate-500 mb-4 text-sm">Prevent certain people from being matched together.</p>
-                <div className="flex flex-wrap items-center gap-2 mb-4 p-4 bg-slate-50 rounded-lg border">
-                    <select value={exclusionP1} onChange={e => setExclusionP1(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select first person for exclusion">
-                        <option value="">Select Person 1</option>
-                        {participants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <span className="font-semibold text-slate-500 flex-shrink-0">can't draw</span>
-                    <select value={exclusionP2} onChange={e => setExclusionP2(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select second person for exclusion">
-                         <option value="">Select Person 2</option>
-                         {participants.filter(p => p.id !== exclusionP1).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <button onClick={handleAddExclusion} className="p-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition flex-shrink-0" aria-label="Add exclusion rule">+</button>
-                </div>
-                <div className="space-y-2">
-                    {exclusions.map((ex, i) => (
-                        <div key={i} className="flex justify-between items-center bg-slate-100 p-2 rounded-md text-sm">
-                           <span><strong>{getParticipantName(ex.p1)}</strong> and <strong>{getParticipantName(ex.p2)}</strong> can't be matched.</span>
-                           <button onClick={() => handleRemoveExclusion(ex.p1, ex.p2)} className="text-red-500 hover:text-red-700 font-bold text-xl px-2" aria-label={`Remove exclusion between ${getParticipantName(ex.p1)} and ${getParticipantName(ex.p2)}`}>&times;</button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div>
-                 <h3 className="text-lg font-semibold text-slate-700 mb-2">Assignments (Optional)</h3>
-                <p className="text-slate-500 mb-4 text-sm">Force a specific person to be another's Secret Santa.</p>
-                <div className="flex flex-wrap items-center gap-2 mb-4 p-4 bg-slate-50 rounded-lg border">
-                    <select value={assignmentGiver} onChange={e => setAssignmentGiver(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select giver for assignment">
-                        <option value="">Select Giver</option>
-                        {participants.filter(p => !assignments.some(a => a.giverId === p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <span className="font-semibold text-slate-500 flex-shrink-0">must draw</span>
-                    <select value={assignmentReceiver} onChange={e => setAssignmentReceiver(e.target.value)} className="p-2 border rounded-md flex-1 min-w-[120px] bg-white" aria-label="Select receiver for assignment">
-                         <option value="">Select Receiver</option>
-                         {participants.filter(p => p.id !== assignmentGiver && !assignments.some(a => a.receiverId === p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <button onClick={handleAddAssignment} className="p-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition flex-shrink-0" aria-label="Add assignment rule">+</button>
-                </div>
-                <div className="space-y-2">
-                    {assignments.map((a, i) => (
-                        <div key={i} className="flex justify-between items-center bg-slate-100 p-2 rounded-md text-sm">
-                           <span><strong>{getParticipantName(a.giverId)}</strong> will be the Secret Santa for <strong>{getParticipantName(a.receiverId)}</strong>.</span>
-                           <button onClick={() => handleRemoveAssignment(a.giverId)} className="text-red-500 hover:text-red-700 font-bold text-xl px-2" aria-label={`Remove assignment for ${getParticipantName(a.giverId)}`}>&times;</button>
-                        </div>
-                    ))}
-                </div>
-            </div>
         </div>
-    );
+    </div>
+  );
 };
 
 export default Options;
