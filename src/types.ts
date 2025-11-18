@@ -111,7 +111,6 @@ export interface CalculatorResult {
     moneySavingTips: { label: string; amount: number; description: string; icon: React.FC<any>; }[];
 }
 
-
 // --- WHITE ELEPHANT TYPES ---
 
 export interface WEParticipant {
@@ -126,9 +125,15 @@ export interface WERules {
     noStealBack: boolean;
 }
 
+export interface WEEvent {
+    type: 'info' | 'steal' | 'open' | 'start' | 'end';
+    message: string;
+    timestamp: number;
+}
+
 export interface WEGame {
     gameId: string;
-    organizerKey: string; // Secret key for the organizer
+    organizerKey: string;
     participants: WEParticipant[];
     turnOrder: WEParticipant[];
     rules: WERules;
@@ -136,6 +141,6 @@ export interface WEGame {
     currentPlayerIndex: number;
     isStarted: boolean;
     isFinished: boolean;
-    history: string[];
+    history: string[]; // Keeping simple string array for backward compat/simple display
     createdAt: string;
 }
