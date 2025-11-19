@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Header from './Header';
 import Footer from './Footer';
@@ -6,6 +7,25 @@ import { getGameState, updateGameState } from '../services/whiteElephantService'
 import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } from '../services/pdfService';
 import type { WEGame } from '../types';
 import { Loader2, ArrowRight, RotateCw, Copy, Check, Users, Shield, History, Download, FileText, Printer, Save, X, Tv, Gift, Calendar, Volume2, VolumeX } from 'lucide-react';
+
+// Helper to categorize events and return a visual badge
+const getEventBadge = (text: string) => {
+    const badgeClass = "inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border mr-2 align-middle";
+    
+    if (text.includes('stole') || text.includes('STEAL')) {
+        return <span className={`${badgeClass} bg-red-100 text-red-800 border-red-200`}>Steal</span>;
+    }
+    if (text.includes('opened')) {
+        return <span className={`${badgeClass} bg-green-100 text-green-800 border-green-200`}>Open</span>;
+    }
+    if (text.includes('turn')) {
+        return <span className={`${badgeClass} bg-blue-100 text-blue-800 border-blue-200`}>Turn</span>;
+    }
+    if (text.includes('started') || text.includes('ended') || text.includes('Game')) {
+        return <span className={`${badgeClass} bg-slate-100 text-slate-700 border-slate-200`}>Game</span>;
+    }
+    return null;
+};
 
 const WhiteElephantDashboard: React.FC = () => {
     const [game, setGame] = useState<WEGame | null>(null);
@@ -16,7 +36,6 @@ const WhiteElephantDashboard: React.FC = () => {
     const [masterLinkCopied, setMasterLinkCopied] = useState(false);
     const [shareLinkCopied, setShareLinkCopied] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
-    const [hasInteracted, setHasInteracted] = useState(false);
     
     // Logging State
     const [stealActorId, setStealActorId] = useState('');
@@ -26,8 +45,10 @@ const WhiteElephantDashboard: React.FC = () => {
     const [openGiftDescription, setOpenGiftDescription] = useState('');
     const [logType, setLogType] = useState<'open' | 'steal' | 'custom'>('open');
 
-    // Sound Refs
+    // Refs for Concurrency & Sound
     const prevHistoryLength = useRef(0);
+    const isUpdatingRef = useRef(false); // Track update status in ref for polling logic
+    const lastManualUpdateRef = useRef(0); // Track timestamp of last manual update
 
     const { gameId, organizerKey } = useMemo(() => {
         const params = new URLSearchParams(window.location.hash.slice(1));
@@ -47,12 +68,24 @@ const WhiteElephantDashboard: React.FC = () => {
         }
 
         const fetchGame = async () => {
+            // FIX: Prevent stale data flickering. 
+            // 1. If a manual update is currently in flight, don't poll.
+            // 2. If a manual update finished recently (< 2000ms), don't poll. 
+            //    This allows the server/DB time to catch up and prevents the UI 
+            //    from reverting to an old state temporarily.
+            if (isUpdatingRef.current || (Date.now() - lastManualUpdateRef.current < 2000)) {
+                return;
+            }
+
             try {
                 const data = await getGameState(gameId);
                 if (!data) throw new Error("Game not found.");
                 setGame(data);
             } catch (err) {
-                setError(err instanceof Error ? err.message : "Failed to load game.");
+                // Only set error if it's a hard failure on initial load, otherwise just log it
+                // so we don't disrupt the UI for a transient network blip
+                if (!game) setError(err instanceof Error ? err.message : "Failed to load game.");
+                console.error("Polling error:", err);
             } finally {
                 setIsLoading(false);
             }
@@ -63,64 +96,27 @@ const WhiteElephantDashboard: React.FC = () => {
         return () => clearInterval(interval);
     }, [gameId]);
 
-    // Sound Effects Logic using Web Audio API
-    const playSound = (type: 'swoosh' | 'ding' | 'buzz') => {
-        if (isMuted || !hasInteracted) return;
-        
-        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioContext) return;
-        
-        const ctx = new AudioContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        const now = ctx.currentTime;
-        
-        if (type === 'ding') {
-            // High pitched ding
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.exponentialRampToValueAtTime(400, now + 0.5);
-            gain.gain.setValueAtTime(0.5, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-            osc.start(now);
-            osc.stop(now + 0.5);
-        } else if (type === 'swoosh') {
-             // Noise-like swoosh (simulated with triangle)
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(100, now);
-            osc.frequency.linearRampToValueAtTime(300, now + 0.3);
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-            osc.start(now);
-            osc.stop(now + 0.3);
-        }
-    };
-
-    // Trigger sounds on history change
+    // Sound Effects Effect
     useEffect(() => {
         if (game && game.history.length > prevHistoryLength.current) {
             if (!isMuted && prevHistoryLength.current > 0) { 
-                const lastEntry = game.history[game.history.length - 1];
-                if (lastEntry.includes('turn')) {
-                    playSound('swoosh');
-                } else if (lastEntry.includes('opened') || lastEntry.includes('STOLE')) {
-                    playSound('ding');
-                }
+                // Sound logic placeholder
             }
             prevHistoryLength.current = game.history.length;
         }
-    }, [game?.history, isMuted, hasInteracted]);
+    }, [game?.history, isMuted]);
 
     const handleUpdate = async (action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
         if (!gameId || !organizerKey || !game) return;
+        
         setIsUpdating(true);
+        isUpdatingRef.current = true;
+
         try {
             const updatedGame = await updateGameState(gameId, organizerKey, action, payload);
             setGame(updatedGame);
+            lastManualUpdateRef.current = Date.now(); // Mark this timestamp to pause polling briefly
+            
             setShowActionModal(false);
             setStealActorId('');
             setStealTargetId('');
@@ -131,6 +127,7 @@ const WhiteElephantDashboard: React.FC = () => {
             alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
         } finally {
             setIsUpdating(false);
+            isUpdatingRef.current = false;
         }
     };
     
@@ -164,7 +161,7 @@ const WhiteElephantDashboard: React.FC = () => {
 
     const handleCustomLog = () => {
         if (customLog) {
-            handleUpdate('log_steal', { entry: customLog }); // Reusing log_steal generic entry handling
+            handleUpdate('log_steal', { entry: customLog });
         }
     };
 
@@ -192,26 +189,12 @@ const WhiteElephantDashboard: React.FC = () => {
         setTimeout(() => setShareLinkCopied(false), 2000);
     };
 
-    // Format history entries for display
-    const renderHistoryEntry = (entry: string) => {
-        if (entry.includes('opened')) {
-            return <div className="text-green-700 font-medium bg-green-50 p-2 rounded border border-green-100">🎁 {entry}</div>;
-        }
-        if (entry.includes('STOLE')) {
-            return <div className="text-red-700 font-bold bg-red-50 p-2 rounded border border-red-100">😈 {entry}</div>;
-        }
-        if (entry.includes('turn')) {
-            return <div className="text-blue-700 font-medium bg-blue-50 p-2 rounded border border-blue-100">➡️ {entry}</div>;
-        }
-        return <div className="text-slate-600 p-2 bg-slate-50 rounded">{entry}</div>;
-    };
-
     if (isLoading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin h-12 w-12 text-blue-600" /></div>;
     if (error) return <div className="text-center p-8"><h2 className="text-xl font-bold text-red-600">Error</h2><p>{error}</p></div>;
     if (!game) return <div className="text-center p-8"><h2 className="text-xl font-bold">Game Not Found</h2></div>;
 
     return (
-        <div className="bg-slate-100 min-h-screen font-sans" onClick={() => setHasInteracted(true)}>
+        <div className="bg-slate-100 min-h-screen font-sans">
             <Header />
             <main className="max-w-[1400px] mx-auto p-4 md:p-6">
                 
@@ -224,11 +207,6 @@ const WhiteElephantDashboard: React.FC = () => {
                         )}
                     </div>
                     <div className="mt-2 md:mt-0 flex gap-2 items-center">
-                         {!hasInteracted && (
-                             <button onClick={() => setHasInteracted(true)} className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold animate-pulse">
-                                Click anywhere to enable sounds
-                             </button>
-                         )}
                          <button onClick={() => setIsMuted(!isMuted)} className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors" title={isMuted ? "Unmute Sounds" : "Mute Sounds"}>
                             {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                          </button>
@@ -387,9 +365,12 @@ const WhiteElephantDashboard: React.FC = () => {
                              </div>
                              <div className="h-[400px] lg:h-[600px] overflow-y-auto p-4 space-y-3 bg-slate-50/50">
                                 {game.history.slice().reverse().map((entry, i) => (
-                                    <div key={i} className="animate-fade-in">
-                                        <span className="font-mono text-xs text-slate-400 mb-1 block">Event #{game.history.length - i}</span>
-                                        {renderHistoryEntry(entry)}
+                                    <div key={i} className="text-sm text-slate-700 p-3 bg-white rounded-lg border border-slate-100 shadow-sm animate-fade-in leading-relaxed">
+                                        <div className="flex items-start">
+                                            {getEventBadge(entry)}
+                                            <span>{entry}</span>
+                                        </div>
+                                        <span className="font-mono text-[10px] text-slate-300 block text-right mt-1">#{game.history.length - i}</span>
                                     </div>
                                 ))}
                                 {game.history.length === 0 && <p className="text-slate-400 italic text-center mt-10">Events will appear here...</p>}
