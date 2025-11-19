@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { produce } from 'immer';
 import type { Participant, Exclusion, Assignment, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme, ExchangeData } from '../types';
@@ -63,8 +64,14 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
 
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
-        if (consent === null) setShowCookieBanner(true);
-        else if (consent === 'true') trackEvent('page_view', { page_title: 'Generator' });
+        if (consent === null) {
+            setShowCookieBanner(true);
+            // Opt-Out Model: Fire tracking immediately for new users
+            trackEvent('page_view', { page_title: 'Generator' });
+        }
+        else if (consent !== 'false') {
+             trackEvent('page_view', { page_title: 'Generator' });
+        }
         
         window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); });
 
