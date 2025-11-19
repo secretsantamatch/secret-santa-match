@@ -6,7 +6,7 @@ import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { createGame } from '../services/whiteElephantService';
 import type { WEParticipant, WERules, WETheme } from '../types';
-import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle } from 'lucide-react';
+import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle } from 'lucide-react';
 
 const WhiteElephantGeneratorPage: React.FC = () => {
     const [participants, setParticipants] = useState<WEParticipant[]>([
@@ -23,7 +23,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
     const handleParticipantChange = (id: string, name: string) => {
         setValidationError(null);
         
-        // Check for duplicates immediately
         const nameTrimmed = name.trim().toLowerCase();
         if (nameTrimmed && participants.some(p => p.id !== id && p.name.trim().toLowerCase() === nameTrimmed)) {
             setValidationError(`"${name}" is already on the list.`);
@@ -57,7 +56,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                 setError("You need at least two participants.");
                 return;
             }
-            // Final duplicate check before proceeding
+            
             const names = validParticipants.map(p => p.name.trim().toLowerCase());
             const uniqueNames = new Set(names);
             if (names.length !== uniqueNames.size) {
@@ -84,7 +83,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
             const gameData = await createGame(validParticipants, rules, theme);
             if (gameData && gameData.gameId && gameData.organizerKey) {
                 trackEvent('we_generate_success', { gameId: gameData.gameId });
-                // Redirect to the Organizer's Control Room
                 window.location.href = `/white-elephant-generator.html#gameId=${gameData.gameId}&organizerKey=${gameData.organizerKey}`;
             } else {
                 throw new Error('Failed to create game. Invalid data returned from server.');
@@ -113,6 +111,13 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         )
     }
 
+    const themeOptions = [
+        { val: 'classic', label: 'Classic', desc: 'Anything Goes', color: 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100' },
+        { val: 'funny', label: 'Funny & Weird', desc: 'Gag Gifts Encouraged', color: 'bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100' },
+        { val: 'useful', label: 'Genuinely Useful', desc: 'Things people want', color: 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100' },
+        { val: 'regift', label: 'Regift / Eco', desc: 'Re-home items', color: 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100' }
+    ];
+
     return (
         <>
             <Header />
@@ -131,7 +136,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                 
                 <div ref={generatorRef} className="max-w-4xl mx-auto -mt-10 px-4 relative z-10">
                      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-                        {/* Progress Bar */}
                         <div className="flex border-b bg-slate-50">
                             {steps.map(step => (
                                 <button 
@@ -176,7 +180,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                                 value={p.name}
                                                 onChange={e => handleParticipantChange(p.id, e.target.value)}
                                                 placeholder={`Player Name`}
-                                                className="flex-1 p-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none text-lg"
+                                                className={`flex-1 p-3 border-2 rounded-xl focus:ring-2 transition-all outline-none text-lg ${validationError && p.name && participants.filter(px => px.name.toLowerCase() === p.name.toLowerCase()).length > 1 ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-200'}`}
                                                 autoFocus={i === participants.length - 1 && i > 2}
                                             />
                                             <button 
@@ -206,61 +210,57 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-8">
-                                    {/* Theme Selection */}
                                     <div className="space-y-4">
                                         <label className="block font-bold text-slate-700 text-lg">Gift Theme</label>
                                         <div className="grid grid-cols-1 gap-3">
-                                            {[
-                                                { val: 'classic', label: 'Classic (Anything Goes)', desc: 'The standard game. No specific theme.' },
-                                                { val: 'funny', label: 'Funny & Weird', desc: 'Gag gifts and hilarity encouraged.' },
-                                                { val: 'useful', label: 'Genuinely Useful', desc: 'Things people actually want to keep.' },
-                                                { val: 'regift', label: 'Regift / Eco-Friendly', desc: 'Re-home items you already own.' }
-                                            ].map((opt) => (
+                                            {themeOptions.map((opt) => (
                                                 <button
                                                     key={opt.val}
                                                     onClick={() => setTheme(opt.val as WETheme)}
-                                                    className={`text-left p-4 rounded-xl border-2 transition-all ${theme === opt.val ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'border-slate-200 hover:border-blue-300'}`}
+                                                    className={`text-left p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${theme === opt.val ? `${opt.color} ring-2 ring-offset-1 ring-blue-300` : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}
                                                 >
-                                                    <div className="font-bold text-slate-800">{opt.label}</div>
-                                                    <div className="text-sm text-slate-500">{opt.desc}</div>
+                                                    <div>
+                                                        <div className="font-bold">{opt.label}</div>
+                                                        <div className="text-sm opacity-80">{opt.desc}</div>
+                                                    </div>
+                                                    {theme === opt.val && <CheckCircle size={24} />}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* Steal Rules */}
                                     <div className="space-y-6">
                                         <div>
                                             <label className="block font-bold text-slate-700 text-lg mb-2">Steal Limit (Per Gift)</label>
                                             <p className="text-sm text-slate-500 mb-3">How many times can a single gift be stolen before it's "frozen"?</p>
-                                            <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
                                                 <input 
                                                     type="range" 
                                                     min="0" max="5" 
                                                     value={rules.stealLimit} 
                                                     onChange={e => setRules(r => ({ ...r, stealLimit: parseInt(e.target.value) }))}
-                                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                                                    className="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                                 />
-                                                <span className="font-bold text-2xl text-blue-600 w-12 text-center">
-                                                    {rules.stealLimit === 0 ? '∞' : rules.stealLimit}
-                                                </span>
+                                                <div className="flex flex-col items-center w-20">
+                                                    <span className="font-bold text-3xl text-blue-600">
+                                                        {rules.stealLimit === 0 ? '∞' : rules.stealLimit}
+                                                    </span>
+                                                    <span className="text-xs text-slate-500 font-bold uppercase">
+                                                        {rules.stealLimit === 0 ? 'Unlimited' : 'Steals'}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-slate-400 mt-1 text-right">{rules.stealLimit === 0 ? 'Unlimited Steals' : `${rules.stealLimit} steals max`}</p>
                                         </div>
 
-                                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => setRules(r => ({ ...r, noStealBack: !r.noStealBack }))}>
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <label htmlFor="noStealBack" className="font-bold text-slate-700 cursor-pointer">No Immediate "Steal Back"</label>
-                                                    <p className="text-sm text-slate-500">Prevents two players from swapping the same gift back and forth endlessly.</p>
+                                                    <label className="font-bold text-slate-700 cursor-pointer">No Immediate "Steal Back"</label>
+                                                    <p className="text-sm text-slate-500">Prevents swapping the same gift back and forth.</p>
                                                 </div>
-                                                <input 
-                                                    type="checkbox" 
-                                                    id="noStealBack" 
-                                                    checked={rules.noStealBack} 
-                                                    onChange={e => setRules(r => ({ ...r, noStealBack: e.target.checked }))} 
-                                                    className="w-6 h-6 text-blue-600 rounded focus:ring-blue-500 border-gray-300 cursor-pointer" 
-                                                />
+                                                <div className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${rules.noStealBack ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300'}`}>
+                                                    {rules.noStealBack && <CheckCircle size={16} className="text-white" />}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -270,29 +270,26 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                             {/* STEP 3: READY */}
                             <div className={activeStep === 3 ? 'block animate-fade-in' : 'hidden'}>
                                 <div className="text-center py-10">
-                                    <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-                                        <PartyPopper size={48} />
-                                    </div>
-                                    <h2 className="text-3xl font-bold text-slate-800 mb-4">Ready to Party!</h2>
-                                    <p className="text-lg text-slate-600 max-w-md mx-auto mb-8">
-                                        We'll generate a random turn order and create a <strong>Live Game Dashboard</strong> for you to manage the event.
-                                    </p>
-                                    
-                                    <div className="bg-blue-50 p-6 rounded-xl border border-blue-200 max-w-lg mx-auto text-left">
-                                        <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2"><Gift size={18}/> What you'll get:</h4>
-                                        <ul className="list-disc list-inside space-y-2 text-blue-700 text-sm">
-                                            <li>Randomized turn order list</li>
-                                            <li>Private Organizer Control Room</li>
-                                            <li>Shareable "Game Day" link for participants</li>
-                                            <li>Free printable turn numbers & rules</li>
-                                        </ul>
+                                    <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-8 rounded-3xl text-white shadow-xl max-w-xl mx-auto transform hover:scale-105 transition-transform">
+                                        <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <PartyPopper size={40} className="text-white" />
+                                        </div>
+                                        <h2 className="text-3xl font-bold mb-2">Ready to Party!</h2>
+                                        <p className="text-blue-50 mb-6">
+                                            We've shuffled the names and set up your control room.
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-4 text-left bg-white/10 rounded-xl p-4 text-sm">
+                                             <div className="flex items-center gap-2"><CheckCircle size={16}/> Random Order</div>
+                                             <div className="flex items-center gap-2"><CheckCircle size={16}/> Live Dashboard</div>
+                                             <div className="flex items-center gap-2"><CheckCircle size={16}/> Mobile Friendly</div>
+                                             <div className="flex items-center gap-2"><CheckCircle size={16}/> Free Printables</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                         </div>
 
-                        {/* Footer Navigation */}
                         <div className="p-6 bg-slate-50 border-t flex justify-between items-center">
                             {activeStep > 1 ? (
                                 <button onClick={() => setActiveStep(activeStep - 1)} className="text-slate-500 font-bold hover:text-slate-800 px-4 py-2">
@@ -305,8 +302,8 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                     Next Step <ArrowRight size={20} />
                                 </button>
                             ) : (
-                                <button onClick={handleGenerate} className="bg-green-600 hover:bg-green-700 text-white font-bold text-lg px-8 py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all flex items-center gap-2 animate-pulse">
-                                    Let's Play! <PartyPopper size={20} />
+                                <button onClick={handleGenerate} className="bg-green-600 hover:bg-green-700 text-white font-bold text-lg px-12 py-4 rounded-xl shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 animate-pulse">
+                                    Generate Game! <PartyPopper size={24} />
                                 </button>
                             )}
                         </div>
