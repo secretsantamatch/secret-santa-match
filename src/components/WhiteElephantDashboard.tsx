@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Header from './Header';
 import Footer from './Footer';
@@ -17,6 +16,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const [masterLinkCopied, setMasterLinkCopied] = useState(false);
     const [shareLinkCopied, setShareLinkCopied] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [hasInteracted, setHasInteracted] = useState(false);
     
     // Logging State
     const [stealActorId, setStealActorId] = useState('');
@@ -63,25 +63,57 @@ const WhiteElephantDashboard: React.FC = () => {
         return () => clearInterval(interval);
     }, [gameId]);
 
-    // Sound Effects Effect
+    // Sound Effects Logic using Web Audio API
+    const playSound = (type: 'swoosh' | 'ding' | 'buzz') => {
+        if (isMuted || !hasInteracted) return;
+        
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioContext) return;
+        
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        const now = ctx.currentTime;
+        
+        if (type === 'ding') {
+            // High pitched ding
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(400, now + 0.5);
+            gain.gain.setValueAtTime(0.5, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        } else if (type === 'swoosh') {
+             // Noise-like swoosh (simulated with triangle)
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.linearRampToValueAtTime(300, now + 0.3);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+    };
+
+    // Trigger sounds on history change
     useEffect(() => {
         if (game && game.history.length > prevHistoryLength.current) {
-            if (!isMuted && prevHistoryLength.current > 0) { // Don't play on initial load
+            if (!isMuted && prevHistoryLength.current > 0) { 
                 const lastEntry = game.history[game.history.length - 1];
-                // Note: You would need to add actual sound files to your public/sounds folder
-                // For now, we'll just log or placeholder. 
-                // If you add 'swoosh.mp3' and 'ding.mp3' to public folder, uncomment below:
-                /*
                 if (lastEntry.includes('turn')) {
-                    new Audio('/sounds/swoosh.mp3').play().catch(() => {});
+                    playSound('swoosh');
                 } else if (lastEntry.includes('opened') || lastEntry.includes('STOLE')) {
-                    new Audio('/sounds/ding.mp3').play().catch(() => {});
+                    playSound('ding');
                 }
-                */
             }
             prevHistoryLength.current = game.history.length;
         }
-    }, [game?.history, isMuted]);
+    }, [game?.history, isMuted, hasInteracted]);
 
     const handleUpdate = async (action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
         if (!gameId || !organizerKey || !game) return;
@@ -132,7 +164,7 @@ const WhiteElephantDashboard: React.FC = () => {
 
     const handleCustomLog = () => {
         if (customLog) {
-            handleUpdate('log_steal', { entry: customLog });
+            handleUpdate('log_steal', { entry: customLog }); // Reusing log_steal generic entry handling
         }
     };
 
@@ -160,12 +192,26 @@ const WhiteElephantDashboard: React.FC = () => {
         setTimeout(() => setShareLinkCopied(false), 2000);
     };
 
+    // Format history entries for display
+    const renderHistoryEntry = (entry: string) => {
+        if (entry.includes('opened')) {
+            return <div className="text-green-700 font-medium bg-green-50 p-2 rounded border border-green-100">🎁 {entry}</div>;
+        }
+        if (entry.includes('STOLE')) {
+            return <div className="text-red-700 font-bold bg-red-50 p-2 rounded border border-red-100">😈 {entry}</div>;
+        }
+        if (entry.includes('turn')) {
+            return <div className="text-blue-700 font-medium bg-blue-50 p-2 rounded border border-blue-100">➡️ {entry}</div>;
+        }
+        return <div className="text-slate-600 p-2 bg-slate-50 rounded">{entry}</div>;
+    };
+
     if (isLoading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin h-12 w-12 text-blue-600" /></div>;
     if (error) return <div className="text-center p-8"><h2 className="text-xl font-bold text-red-600">Error</h2><p>{error}</p></div>;
     if (!game) return <div className="text-center p-8"><h2 className="text-xl font-bold">Game Not Found</h2></div>;
 
     return (
-        <div className="bg-slate-100 min-h-screen font-sans">
+        <div className="bg-slate-100 min-h-screen font-sans" onClick={() => setHasInteracted(true)}>
             <Header />
             <main className="max-w-[1400px] mx-auto p-4 md:p-6">
                 
@@ -178,6 +224,11 @@ const WhiteElephantDashboard: React.FC = () => {
                         )}
                     </div>
                     <div className="mt-2 md:mt-0 flex gap-2 items-center">
+                         {!hasInteracted && (
+                             <button onClick={() => setHasInteracted(true)} className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold animate-pulse">
+                                Click anywhere to enable sounds
+                             </button>
+                         )}
                          <button onClick={() => setIsMuted(!isMuted)} className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors" title={isMuted ? "Unmute Sounds" : "Mute Sounds"}>
                             {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                          </button>
@@ -336,9 +387,9 @@ const WhiteElephantDashboard: React.FC = () => {
                              </div>
                              <div className="h-[400px] lg:h-[600px] overflow-y-auto p-4 space-y-3 bg-slate-50/50">
                                 {game.history.slice().reverse().map((entry, i) => (
-                                    <div key={i} className="text-sm text-slate-700 p-3 bg-white rounded-lg border border-slate-100 shadow-sm animate-fade-in">
+                                    <div key={i} className="animate-fade-in">
                                         <span className="font-mono text-xs text-slate-400 mb-1 block">Event #{game.history.length - i}</span>
-                                        {entry}
+                                        {renderHistoryEntry(entry)}
                                     </div>
                                 ))}
                                 {game.history.length === 0 && <p className="text-slate-400 italic text-center mt-10">Events will appear here...</p>}
