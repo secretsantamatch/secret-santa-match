@@ -1,12 +1,9 @@
+
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import type { ExchangeData, Participant } from '../types';
+import type { ExchangeData, Participant, WERules, WETheme } from '../types';
 
-// Augment jsPDF with the autoTable method
-// FIX: Changed from an interface to a type intersection. This correctly combines
-// the jsPDF class type with the additional autoTable method, resolving
-// multiple errors where methods on the original jsPDF object were not found.
 type jsPDFWithAutoTable = jsPDF & {
   autoTable: (options: any) => jsPDF;
 };
@@ -27,7 +24,7 @@ const addPageWatermark = (pdf: jsPDF) => {
 };
 
 export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<void> => {
-    // Create a US Letter (8.5x11 inches) PDF in portrait orientation.
+    await document.fonts.ready;
     const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'in',
@@ -83,7 +80,6 @@ export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<v
         pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
     }
     
-    // Watermark and page number are intentionally removed per user request.
     pdf.save('Secret_Santa_Cards.pdf');
 };
 
@@ -160,6 +156,138 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
 
     addPageWatermark(pdf);
     pdf.save('Secret_Santa_Master_List.pdf');
+};
+
+// --- NEW WHITE ELEPHANT FUNCTIONS ---
+
+export const generateWETurnNumbersPdf = (count: number): void => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const PAGE_WIDTH = pdf.internal.pageSize.getWidth();
+    const PAGE_HEIGHT = pdf.internal.pageSize.getHeight();
+    const MARGIN = 15;
+    const cardWidth = (PAGE_WIDTH - MARGIN * 3) / 2; // 2 cards per row
+    const cardHeight = 60;
+    const cardsPerPage = 8; // 4 rows x 2 cols
+
+    let x = MARGIN;
+    let y = MARGIN;
+    let cardsOnPage = 0;
+
+    for (let i = 1; i <= count; i++) {
+        if (cardsOnPage >= cardsPerPage) {
+            pdf.addPage();
+            cardsOnPage = 0;
+            y = MARGIN;
+            x = MARGIN;
+        }
+
+        // Draw Card Border
+        pdf.setDrawColor(200);
+        pdf.setLineWidth(0.5);
+        pdf.rect(x, y, cardWidth, cardHeight);
+        
+        // Decorative Header
+        pdf.setFillColor(240, 249, 255); // Light blue
+        pdf.rect(x, y, cardWidth, 15, 'F');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10);
+        pdf.setTextColor(50, 50, 50);
+        pdf.text("WHITE ELEPHANT", x + cardWidth / 2, y + 10, { align: 'center' });
+
+        // The Number
+        pdf.setFont('times', 'bold');
+        pdf.setFontSize(60);
+        pdf.setTextColor(37, 99, 235); // Blue-600
+        pdf.text(String(i), x + cardWidth / 2, y + 45, { align: 'center' });
+
+        // Footer
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(150);
+        pdf.text("SecretSantaMatch.com", x + cardWidth / 2, y + cardHeight - 3, { align: 'center' });
+
+        cardsOnPage++;
+        if (cardsOnPage % 2 === 0) {
+            x = MARGIN;
+            y += cardHeight + 10;
+        } else {
+            x += cardWidth + MARGIN;
+        }
+    }
+
+    pdf.save('White_Elephant_Turn_Numbers.pdf');
+};
+
+export const generateWERulesPdf = (rules: WERules, theme: WETheme): void => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const PAGE_WIDTH = pdf.internal.pageSize.getWidth();
+    const MARGIN = 20;
+    const PRIMARY_BLUE = '#2563eb';
+    
+    // Header
+    pdf.setFont('times', 'bold');
+    pdf.setFontSize(28);
+    pdf.setTextColor(PRIMARY_BLUE);
+    pdf.text("White Elephant Rules", PAGE_WIDTH / 2, MARGIN + 10, { align: 'center' });
+
+    // Game Info Box
+    pdf.setDrawColor(200);
+    pdf.setFillColor(248, 250, 252); // Slate-50
+    pdf.rect(MARGIN, MARGIN + 25, PAGE_WIDTH - MARGIN * 2, 40, 'FD');
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(12);
+    pdf.setTextColor(50);
+    pdf.text("THEME:", MARGIN + 10, MARGIN + 38);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(theme === 'classic' ? 'Classic (Anything Goes)' : 
+             theme === 'funny' ? 'Funny & Weird' : 
+             theme === 'useful' ? 'Genuinely Useful' : 'Regift / Eco-Friendly', MARGIN + 50, MARGIN + 38);
+             
+    pdf.setFont('helvetica', 'bold');
+    pdf.text("STEAL LIMIT:", MARGIN + 10, MARGIN + 48);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(rules.stealLimit === 0 ? 'Unlimited' : `${rules.stealLimit} steals per gift`, MARGIN + 50, MARGIN + 48);
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.text("STEAL BACK:", MARGIN + 10, MARGIN + 58);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(rules.noStealBack ? 'NOT Allowed immediately' : 'Allowed', MARGIN + 50, MARGIN + 58);
+
+    // Standard Rules List
+    const standardRules = [
+        "1. Everyone brings a wrapped gift and puts it in a central pile.",
+        "2. Everyone draws a number to determine the turn order.",
+        "3. Player #1 picks a gift from the pile and unwraps it.",
+        "4. Following players can choose to:",
+        "   a) Pick a new wrapped gift from the pile.",
+        "   b) Steal an already opened gift from another player.",
+        "5. If your gift is stolen, you can pick a new gift or steal from someone else.",
+        "6. The game ends when the last gift is opened.",
+        "7. (Optional) Player #1 gets a final chance to steal at the very end!"
+    ];
+
+    let y = MARGIN + 85;
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.setTextColor(0);
+    pdf.text("How to Play:", MARGIN, y);
+    y += 10;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(11);
+    standardRules.forEach(rule => {
+        const splitText = pdf.splitTextToSize(rule, PAGE_WIDTH - MARGIN * 2 - 10);
+        pdf.text(splitText, MARGIN + 5, y);
+        y += 10 * splitText.length;
+    });
+
+    // Footer
+    pdf.setFontSize(10);
+    pdf.setTextColor(150);
+    pdf.text("Generated by SecretSantaMatch.com", PAGE_WIDTH / 2, pdf.internal.pageSize.getHeight() - 15, { align: 'center' });
+
+    pdf.save('White_Elephant_Rules.pdf');
 };
 
 export const generatePartyPackPdf = async (): Promise<void> => {
