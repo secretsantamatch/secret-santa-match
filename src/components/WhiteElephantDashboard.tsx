@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
-import { generateWETurnNumbersPdf, generateWERulesPdf } from '../services/pdfService';
+import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } from '../services/pdfService';
 import type { WEGame } from '../types';
-import { Loader2, ArrowRight, RotateCw, Copy, Check, Users, Shield, History, Download, FileText, Printer, Save, X, Tv, Smartphone, Gift, RefreshCcw } from 'lucide-react';
+import { Loader2, ArrowRight, RotateCw, Copy, Check, Users, Shield, History, Download, FileText, Printer, Save, X, Tv, Gift, Building, Calendar } from 'lucide-react';
 
 const WhiteElephantDashboard: React.FC = () => {
     const [game, setGame] = useState<WEGame | null>(null);
@@ -14,6 +15,12 @@ const WhiteElephantDashboard: React.FC = () => {
     const [showActionModal, setShowActionModal] = useState(false);
     const [masterLinkCopied, setMasterLinkCopied] = useState(false);
     const [shareLinkCopied, setShareLinkCopied] = useState(false);
+    
+    // Logging State
+    const [stealActor, setStealActor] = useState('');
+    const [stealTarget, setStealTarget] = useState('');
+    const [stealGift, setStealGift] = useState('');
+    const [customLog, setCustomLog] = useState('');
 
     const { gameId, organizerKey } = useMemo(() => {
         const params = new URLSearchParams(window.location.hash.slice(1));
@@ -45,7 +52,8 @@ const WhiteElephantDashboard: React.FC = () => {
         };
 
         fetchGame();
-        const interval = setInterval(fetchGame, 5000);
+        // Poll every 3 seconds for near-realtime updates
+        const interval = setInterval(fetchGame, 3000);
         return () => clearInterval(interval);
     }, [gameId]);
 
@@ -56,10 +64,23 @@ const WhiteElephantDashboard: React.FC = () => {
             const updatedGame = await updateGameState(gameId, organizerKey, action, payload);
             setGame(updatedGame);
             setShowActionModal(false);
+            // Reset log form
+            setStealActor('');
+            setStealTarget('');
+            setStealGift('');
+            setCustomLog('');
         } catch (err) {
             alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
         } finally {
             setIsUpdating(false);
+        }
+    };
+    
+    const handleSmartLog = () => {
+        if (stealActor && stealTarget && stealGift) {
+            handleUpdate('log_steal', { entry: `${stealActor} STOLE [${stealGift}] from ${stealTarget}!` });
+        } else if (customLog) {
+            handleUpdate('log_steal', { entry: customLog });
         }
     };
     
@@ -88,6 +109,25 @@ const WhiteElephantDashboard: React.FC = () => {
         <div className="bg-slate-100 min-h-screen font-sans">
             <Header />
             <main className="max-w-7xl mx-auto p-4 md:p-8">
+                
+                {/* HEADER INFO (Visible to All) */}
+                <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-800 font-serif">{game.groupName || 'White Elephant Party'}</h1>
+                        {game.eventDetails && (
+                            <p className="text-slate-500 flex items-center gap-2 text-sm mt-1"><Calendar size={14}/> {game.eventDetails}</p>
+                        )}
+                    </div>
+                    <div className="mt-2 md:mt-0 flex gap-2">
+                         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                            Theme: {game.theme}
+                         </span>
+                         <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wider">
+                            Steals: {game.rules.stealLimit}
+                         </span>
+                    </div>
+                </div>
+
                 {isOrganizer && (
                     <div className="mb-8 space-y-6 animate-fade-in">
                         {/* Master Link Box */}
@@ -115,7 +155,7 @@ const WhiteElephantDashboard: React.FC = () => {
                                     <button onClick={() => generateWETurnNumbersPdf(game.turnOrder.length)} className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-white px-3 py-2 rounded-md transition-all">
                                         <Printer size={16} /> Turn #s
                                     </button>
-                                    <button onClick={() => generateWERulesPdf(game.rules, game.theme)} className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-white px-3 py-2 rounded-md transition-all">
+                                    <button onClick={() => generateWERulesPdf(game.rules, game.theme, game.groupName, game.eventDetails)} className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-white px-3 py-2 rounded-md transition-all">
                                         <FileText size={16} /> Rules
                                     </button>
                                 </div>
@@ -137,15 +177,24 @@ const WhiteElephantDashboard: React.FC = () => {
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{game.participants.length} Players</span>
                             </div>
                             <div className="max-h-[600px] overflow-y-auto p-2 space-y-1">
-                                {game.turnOrder.map((p, index) => (
-                                    <div key={p.id} className={`flex items-center gap-3 p-3 rounded-lg transition-all ${index === game.currentPlayerIndex && game.isStarted && !game.isFinished ? 'bg-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-slate-50'}`}>
-                                        <div className={`font-bold w-8 h-8 flex items-center justify-center rounded-full text-sm ${index === game.currentPlayerIndex && game.isStarted ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                                            {index + 1}
+                                {game.isStarted ? (
+                                    game.turnOrder.map((p, index) => (
+                                        <div key={p.id} className={`flex items-center gap-3 p-3 rounded-lg transition-all ${index === game.currentPlayerIndex && !game.isFinished ? 'bg-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-slate-50'}`}>
+                                            <div className={`font-bold w-8 h-8 flex items-center justify-center rounded-full text-sm ${index === game.currentPlayerIndex && !game.isFinished ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                                {index + 1}
+                                            </div>
+                                            <span className={`font-semibold ${index === game.currentPlayerIndex ? 'text-blue-900' : 'text-slate-600'}`}>{p.name}</span>
+                                            {index < game.currentPlayerIndex && <Check size={16} className="ml-auto text-green-500" />}
                                         </div>
-                                        <span className={`font-semibold ${index === game.currentPlayerIndex ? 'text-blue-900' : 'text-slate-600'}`}>{p.name}</span>
-                                        {index < game.currentPlayerIndex && <Check size={16} className="ml-auto text-green-500" />}
+                                    ))
+                                ) : (
+                                    <div className="p-8 text-center text-slate-500 italic">
+                                        <p>The turn order will be revealed when the game starts!</p>
+                                        <div className="mt-4 space-y-2">
+                                            {game.participants.map(p => <div key={p.id} className="text-sm font-medium">{p.name}</div>)}
+                                        </div>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     </div>
@@ -158,20 +207,20 @@ const WhiteElephantDashboard: React.FC = () => {
                             {!game.isStarted ? (
                                 <div className="py-8">
                                     <div className="inline-block p-4 rounded-full bg-blue-50 text-blue-600 mb-6"><Gift size={48} /></div>
-                                    <h1 className="text-4xl md:text-6xl font-extrabold font-serif text-slate-800 mb-4">Waiting to Start</h1>
-                                    <p className="text-xl text-slate-500 mb-8">Gather everyone around! The game will begin shortly.</p>
+                                    <h1 className="text-4xl md:text-6xl font-extrabold font-serif text-slate-800 mb-4">Waiting for Host...</h1>
+                                    <p className="text-xl text-slate-500 mb-8">The game has not started yet.</p>
                                     {isOrganizer ? (
                                         <button onClick={() => handleUpdate('start_game')} disabled={isUpdating} className="bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 px-10 rounded-full shadow-lg transform hover:scale-105 transition-all">
                                             Start Game! 🚀
                                         </button>
                                     ) : (
-                                        <p className="text-sm text-slate-400 animate-pulse">Waiting for organizer...</p>
+                                        <p className="text-sm text-slate-400 animate-pulse">Please wait for the organizer to begin.</p>
                                     )}
                                 </div>
                             ) : !game.isFinished ? (
                                 <div>
                                     <span className="inline-block bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1 rounded-full mb-6 uppercase tracking-wider">
-                                        Live Game
+                                        {game.finalRound ? "Final Steal Round" : "Live Game"}
                                     </span>
                                     <p className="text-xl text-slate-500 mb-2">It is currently</p>
                                     <h1 className="text-5xl md:text-7xl font-extrabold font-serif text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-10 pb-2">
@@ -195,7 +244,10 @@ const WhiteElephantDashboard: React.FC = () => {
                             ) : (
                                 <div className="py-8">
                                     <h1 className="text-5xl font-bold font-serif text-slate-800 mb-4">Game Over!</h1>
-                                    <p className="text-xl text-slate-600">Thanks for playing!</p>
+                                    <p className="text-xl text-slate-600 mb-8">Thanks for playing!</p>
+                                    <button onClick={() => generateWEGameLogPdf(game.history, game.groupName, game.eventDetails)} className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-lg inline-flex items-center gap-2 transition-colors">
+                                        <Download size={20} /> Download Game Log PDF
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -230,21 +282,28 @@ const WhiteElephantDashboard: React.FC = () => {
                             <button onClick={() => handleUpdate('log_steal', { entry: `${currentPlayer.name} opened a new gift!` })} className="p-4 bg-green-50 hover:bg-green-100 border border-green-200 text-green-800 font-bold rounded-xl text-left flex items-center gap-4 transition-all hover:shadow-md group">
                                 <span className="text-2xl group-hover:scale-110 transition-transform">🎁</span> Opened a Gift
                             </button>
-                            <button onClick={() => handleUpdate('log_steal', { entry: `${currentPlayer.name} STOLE a gift!` })} className="p-4 bg-red-50 hover:bg-red-100 border border-red-200 text-red-800 font-bold rounded-xl text-left flex items-center gap-4 transition-all hover:shadow-md group">
-                                <span className="text-2xl group-hover:scale-110 transition-transform">😈</span> Stole a Gift
-                            </button>
-                             <button onClick={() => handleUpdate('log_steal', { entry: `${currentPlayer.name} swapped gifts.` })} className="p-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-800 font-bold rounded-xl text-left flex items-center gap-4 transition-all hover:shadow-md group">
-                                <span className="text-2xl group-hover:scale-110 transition-transform">🔄</span> Swapped Gift
-                            </button>
+                            
+                            <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-3">
+                                <div className="font-bold text-red-800 flex items-center gap-2"><span className="text-xl">😈</span> Log a Steal</div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <select className="p-2 border rounded text-sm" value={stealActor} onChange={e => setStealActor(e.target.value)}>
+                                        <option value="">Who Stole?</option>
+                                        {game.participants.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                                    </select>
+                                    <select className="p-2 border rounded text-sm" value={stealTarget} onChange={e => setStealTarget(e.target.value)}>
+                                        <option value="">From Whom?</option>
+                                        {game.participants.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                                    </select>
+                                </div>
+                                <input type="text" placeholder="What Gift? (e.g. Wine)" className="w-full p-2 border rounded text-sm" value={stealGift} onChange={e => setStealGift(e.target.value)} />
+                                <button onClick={handleSmartLog} disabled={!stealActor || !stealTarget || !stealGift} className="w-full bg-red-600 text-white font-bold py-2 rounded disabled:opacity-50 hover:bg-red-700">Log Steal</button>
+                            </div>
                         </div>
                          <div className="mt-6 pt-4 border-t">
                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Custom Note</label>
                              <div className="flex gap-2">
-                                 <input type="text" id="customLog" placeholder="e.g. Grandma loved the socks" className="flex-1 p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                                 <button onClick={() => {
-                                     const input = document.getElementById('customLog') as HTMLInputElement;
-                                     if(input.value) handleUpdate('log_steal', { entry: input.value });
-                                 }} className="bg-slate-800 hover:bg-slate-900 text-white px-6 rounded-lg text-sm font-bold transition-colors">Add</button>
+                                 <input type="text" value={customLog} onChange={e => setCustomLog(e.target.value)} placeholder="e.g. Grandma loved the socks" className="flex-1 p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                                 <button onClick={() => { if(customLog) handleUpdate('log_steal', { entry: customLog }); }} className="bg-slate-800 hover:bg-slate-900 text-white px-6 rounded-lg text-sm font-bold transition-colors">Add</button>
                              </div>
                          </div>
                     </div>

@@ -1,3 +1,4 @@
+
 import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 import type { WEGame, WEParticipant, WERules, WETheme } from '../../src/types';
@@ -8,7 +9,7 @@ export default async (req: Request, context: Context) => {
     }
 
     try {
-        const { participants, rules, theme } = (await req.json()) as { participants: WEParticipant[], rules: WERules, theme: WETheme };
+        const { participants, rules, theme, groupName, eventDetails } = (await req.json()) as { participants: WEParticipant[], rules: WERules, theme: WETheme, groupName?: string, eventDetails?: string };
 
         if (!participants || participants.length < 2) {
             return new Response(JSON.stringify({ error: 'At least two participants are required.' }), { status: 400 });
@@ -27,6 +28,8 @@ export default async (req: Request, context: Context) => {
         const newGame: WEGame = {
             gameId,
             organizerKey,
+            groupName: groupName || '',
+            eventDetails: eventDetails || '',
             participants,
             turnOrder,
             rules,
@@ -34,6 +37,7 @@ export default async (req: Request, context: Context) => {
             currentPlayerIndex: 0,
             isStarted: false,
             isFinished: false,
+            finalRound: false,
             history: [],
             createdAt: new Date().toISOString(),
         };

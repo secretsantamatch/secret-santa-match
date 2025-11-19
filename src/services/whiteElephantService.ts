@@ -1,15 +1,18 @@
+
 import type { WEParticipant, WERules, WETheme, WEGame } from '../types';
 
 export const createGame = async (
     participants: WEParticipant[], 
     rules: WERules, 
-    theme: WETheme
+    theme: WETheme,
+    groupName?: string,
+    eventDetails?: string
 ): Promise<{ gameId: string; organizerKey: string } | null> => {
     try {
         const response = await fetch('/.netlify/functions/we-create-game', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ participants, rules, theme }),
+            body: JSON.stringify({ participants, rules, theme, groupName, eventDetails }),
         });
         if (!response.ok) {
             const errorData = await response.json();

@@ -129,11 +129,18 @@ export interface WEEvent {
     type: 'info' | 'steal' | 'open' | 'start' | 'end';
     message: string;
     timestamp: number;
+    payload?: {
+        actor?: string;
+        target?: string;
+        gift?: string;
+    }; 
 }
 
 export interface WEGame {
     gameId: string;
     organizerKey: string;
+    groupName?: string;
+    eventDetails?: string;
     participants: WEParticipant[];
     turnOrder: WEParticipant[];
     rules: WERules;
@@ -141,6 +148,7 @@ export interface WEGame {
     currentPlayerIndex: number;
     isStarted: boolean;
     isFinished: boolean;
-    history: string[]; // Keeping simple string array for backward compat/simple display
+    finalRound: boolean; // New field to track if we are in the final steal round
+    history: string[];
     createdAt: string;
 }

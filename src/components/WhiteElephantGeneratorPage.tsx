@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { produce } from 'immer';
 import Header from './Header';
@@ -6,7 +7,7 @@ import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { createGame } from '../services/whiteElephantService';
 import type { WEParticipant, WERules, WETheme } from '../types';
-import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle } from 'lucide-react';
+import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building } from 'lucide-react';
 
 const WhiteElephantGeneratorPage: React.FC = () => {
     const [participants, setParticipants] = useState<WEParticipant[]>([
@@ -14,6 +15,9 @@ const WhiteElephantGeneratorPage: React.FC = () => {
     ]);
     const [rules, setRules] = useState<WERules>({ stealLimit: 3, noStealBack: false });
     const [theme, setTheme] = useState<WETheme>('classic');
+    const [groupName, setGroupName] = useState('');
+    const [eventDetails, setEventDetails] = useState('');
+    
     const [activeStep, setActiveStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -80,7 +84,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         trackEvent('we_generate_start', { participant_count: validParticipants.length, theme, rules });
         
         try {
-            const gameData = await createGame(validParticipants, rules, theme);
+            const gameData = await createGame(validParticipants, rules, theme, groupName, eventDetails);
             if (gameData && gameData.gameId && gameData.organizerKey) {
                 trackEvent('we_generate_success', { gameId: gameData.gameId });
                 window.location.href = `/white-elephant-generator.html#gameId=${gameData.gameId}&organizerKey=${gameData.organizerKey}`;
@@ -210,6 +214,41 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-8">
+                                    {/* Group Info Section */}
+                                    <div className="md:col-span-2 bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-2">
+                                        <h3 className="font-bold text-slate-700 text-lg mb-4 flex items-center gap-2">
+                                            <PartyPopper size={20} className="text-blue-500"/> Event Details (Optional)
+                                        </h3>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-600 mb-1">Group / Party Name</label>
+                                                <div className="relative">
+                                                    <Building size={16} className="absolute left-3 top-3.5 text-slate-400"/>
+                                                    <input 
+                                                        type="text" 
+                                                        value={groupName}
+                                                        onChange={(e) => setGroupName(e.target.value)}
+                                                        placeholder="e.g. ACME Corp Holiday Party"
+                                                        className="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-600 mb-1">Date & Time / Location</label>
+                                                <div className="relative">
+                                                    <Calendar size={16} className="absolute left-3 top-3.5 text-slate-400"/>
+                                                    <input 
+                                                        type="text" 
+                                                        value={eventDetails}
+                                                        onChange={(e) => setEventDetails(e.target.value)}
+                                                        placeholder="e.g. Dec 24th @ 6PM"
+                                                        className="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="space-y-4">
                                         <label className="block font-bold text-slate-700 text-lg">Gift Theme</label>
                                         <div className="grid grid-cols-1 gap-3">
