@@ -221,92 +221,118 @@ export const generateWETurnNumbersPdf = (count: number): void => {
 export const generateWERulesPdf = (rules: WERules, theme: WETheme, groupName?: string, eventDetails?: string): void => {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const PAGE_WIDTH = pdf.internal.pageSize.getWidth();
+    const PAGE_HEIGHT = pdf.internal.pageSize.getHeight();
     const MARGIN = 20;
-    const PRIMARY_BLUE = '#2563eb';
-    
-    // Header
-    pdf.setFont('times', 'bold');
-    pdf.setFontSize(28);
-    pdf.setTextColor(PRIMARY_BLUE);
-    pdf.text("White Elephant Rules", PAGE_WIDTH / 2, MARGIN + 10, { align: 'center' });
-    
-    let currentY = MARGIN + 25;
+    const PRIMARY_RED = '#c62828';
+    const PRIMARY_GREEN = '#166534';
+    const BORDER_GOLD = '#D4AF37';
 
-    // Custom Event Header
+    // Draw Decorative Border
+    pdf.setDrawColor(PRIMARY_RED);
+    pdf.setLineWidth(1.5);
+    pdf.rect(MARGIN - 5, MARGIN - 5, PAGE_WIDTH - (MARGIN * 2) + 10, PAGE_HEIGHT - (MARGIN * 2) + 10);
+    pdf.setDrawColor(BORDER_GOLD);
+    pdf.setLineWidth(0.5);
+    pdf.rect(MARGIN - 2, MARGIN - 2, PAGE_WIDTH - (MARGIN * 2) + 4, PAGE_HEIGHT - (MARGIN * 2) + 4);
+    
+    // Header Title
+    pdf.setFont('times', 'bold');
+    pdf.setFontSize(32);
+    pdf.setTextColor(PRIMARY_RED);
+    pdf.text("White Elephant Rules", PAGE_WIDTH / 2, MARGIN + 15, { align: 'center' });
+    
+    let currentY = MARGIN + 35;
+
+    // Custom Event Header Box
     if (groupName || eventDetails) {
-        pdf.setDrawColor(PRIMARY_BLUE);
+        pdf.setDrawColor(PRIMARY_GREEN);
         pdf.setLineWidth(0.5);
-        pdf.rect(MARGIN, currentY, PAGE_WIDTH - MARGIN * 2, 25);
+        pdf.setFillColor(240, 253, 244); // Very light green
+        pdf.roundedRect(MARGIN, currentY, PAGE_WIDTH - MARGIN * 2, 25, 3, 3, 'FD');
         
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(14);
-        pdf.setTextColor(30);
+        pdf.setTextColor(PRIMARY_GREEN);
         if (groupName) pdf.text(groupName, PAGE_WIDTH / 2, currentY + 10, { align: 'center' });
         
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(11);
-        pdf.setTextColor(80);
+        pdf.setTextColor(60);
         if (eventDetails) pdf.text(eventDetails, PAGE_WIDTH / 2, currentY + 18, { align: 'center' });
         
         currentY += 35;
     }
 
-    // Game Info Box
-    pdf.setDrawColor(200);
-    pdf.setFillColor(248, 250, 252); // Slate-50
-    pdf.rect(MARGIN, currentY, PAGE_WIDTH - MARGIN * 2, 40, 'FD');
-    
+    // Game Config Grid
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(12);
     pdf.setTextColor(50);
-    pdf.text("THEME:", MARGIN + 10, currentY + 13);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(theme === 'classic' ? 'Classic (Anything Goes)' : 
-             theme === 'funny' ? 'Funny & Weird' : 
-             theme === 'useful' ? 'Genuinely Useful' : 'Regift / Eco-Friendly', MARGIN + 50, currentY + 13);
-             
-    pdf.setFont('helvetica', 'bold');
-    pdf.text("STEAL LIMIT:", MARGIN + 10, currentY + 23);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(rules.stealLimit === 0 ? 'Unlimited' : `${rules.stealLimit} steals per gift`, MARGIN + 50, currentY + 23);
     
-    pdf.setFont('helvetica', 'bold');
-    pdf.text("STEAL BACK:", MARGIN + 10, currentY + 33);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(rules.noStealBack ? 'NOT Allowed immediately' : 'Allowed', MARGIN + 50, currentY + 33);
+    const drawConfigItem = (label: string, value: string, x: number, y: number) => {
+        pdf.setFillColor(248, 250, 252);
+        pdf.setDrawColor(200);
+        pdf.rect(x, y, (PAGE_WIDTH - MARGIN * 2) / 3 - 2, 20, 'FD');
+        pdf.setFontSize(9);
+        pdf.setTextColor(100);
+        pdf.text(label, x + 5, y + 6);
+        pdf.setFontSize(11);
+        pdf.setTextColor(0);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(value, x + 5, y + 15);
+    };
+
+    const colWidth = (PAGE_WIDTH - MARGIN * 2) / 3;
+    drawConfigItem("THEME", theme === 'classic' ? 'Classic' : theme === 'funny' ? 'Funny & Weird' : theme === 'useful' ? 'Useful' : 'Regift', MARGIN, currentY);
+    drawConfigItem("STEAL LIMIT", rules.stealLimit === 0 ? 'Unlimited' : `${rules.stealLimit} per gift`, MARGIN + colWidth, currentY);
+    drawConfigItem("STEAL BACK", rules.noStealBack ? 'No Immediate' : 'Allowed', MARGIN + colWidth * 2, currentY);
+
+    currentY += 35;
 
     // Standard Rules List
     const standardRules = [
-        "1. Everyone brings a wrapped gift and puts it in a central pile.",
-        "2. Everyone draws a number to determine the turn order.",
-        "3. Player #1 picks a gift from the pile and unwraps it.",
-        "4. Following players can choose to:",
-        "   a) Pick a new wrapped gift from the pile.",
-        "   b) Steal an already opened gift from another player.",
-        "5. If your gift is stolen, you can pick a new gift or steal from someone else.",
-        "6. The game ends when the last gift is opened.",
-        "7. (Optional) Player #1 gets a final chance to steal at the very end!"
+        { title: "1. Wrap It Up", text: "Everyone brings a wrapped gift to the circle." },
+        { title: "2. Draw Numbers", text: "Everyone draws a number to decide the order." },
+        { title: "3. First Player", text: "Player #1 picks a gift from the pile and opens it for everyone to see." },
+        { title: "4. Next Players", text: "The next player can choose to:\n   a) Pick a new wrapped gift from the pile.\n   b) Steal an already opened gift from another player." },
+        { title: "5. Get Stolen From?", text: "If your gift is stolen, you can pick a new gift or steal from someone else (but you can't steal back immediately if that rule is on!)." },
+        { title: "6. Game Over", text: "The game ends when the last gift is opened." },
+        { title: "7. The Final Twist", text: "Player #1 gets the final turn to swap their gift with anyone else!" }
     ];
 
-    let y = currentY + 55;
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(14);
-    pdf.setTextColor(0);
-    pdf.text("How to Play:", MARGIN, y);
-    y += 10;
+    pdf.setFont('times', 'bold');
+    pdf.setFontSize(18);
+    pdf.setTextColor(PRIMARY_RED);
+    pdf.text("How to Play:", MARGIN, currentY);
+    
+    // Decorative Line
+    pdf.setDrawColor(BORDER_GOLD);
+    pdf.setLineWidth(0.5);
+    pdf.line(MARGIN, currentY + 2, MARGIN + 40, currentY + 2);
+    
+    currentY += 15;
 
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(11);
     standardRules.forEach(rule => {
-        const splitText = pdf.splitTextToSize(rule, PAGE_WIDTH - MARGIN * 2 - 10);
-        pdf.text(splitText, MARGIN + 5, y);
-        y += 10 * splitText.length;
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(11);
+        pdf.setTextColor(0);
+        pdf.text(rule.title, MARGIN, currentY);
+        
+        const textHeight = pdf.getTextDimensions(rule.title).h;
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
+        pdf.setTextColor(60);
+        
+        const splitText = pdf.splitTextToSize(rule.text, PAGE_WIDTH - MARGIN * 2 - 5);
+        pdf.text(splitText, MARGIN, currentY + 5);
+        
+        currentY += (splitText.length * 5) + 10; // Spacing between rules
     });
 
     // Footer
-    pdf.setFontSize(10);
+    pdf.setFontSize(9);
     pdf.setTextColor(150);
-    pdf.text("Generated by SecretSantaMatch.com", PAGE_WIDTH / 2, pdf.internal.pageSize.getHeight() - 15, { align: 'center' });
+    pdf.text("Generated by SecretSantaMatch.com", PAGE_WIDTH / 2, PAGE_HEIGHT - MARGIN + 2, { align: 'center' });
 
     pdf.save('White_Elephant_Rules.pdf');
 };

@@ -6,10 +6,10 @@ import AdBanner from './AdBanner';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
 import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } from '../services/pdfService';
 import type { WEGame } from '../types';
-import { Loader2, ArrowRight, RotateCw, Copy, Check, Users, Shield, History, Download, FileText, Printer, Save, X, Tv, Gift, Calendar, Volume2, VolumeX, Play } from 'lucide-react';
+import { trackEvent } from '../services/analyticsService';
+import { Loader2, ArrowRight, RotateCw, Copy, Check, Users, Shield, History, Download, FileText, Printer, Save, X, Tv, Gift, Calendar, Volume2, VolumeX, Play, Link as LinkIcon } from 'lucide-react';
 
 // --- AUDIO ENGINE ---
-// We use a singleton AudioContext to comply with browser policies
 let audioCtx: AudioContext | null = null;
 
 const initAudio = () => {
@@ -26,49 +26,72 @@ const playSoundEffect = (type: 'open' | 'steal' | 'turn') => {
     const ctx = initAudio();
     if (!ctx) return;
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
     const now = ctx.currentTime;
 
     if (type === 'open') {
-        // Magical Chime (Ascending Arpeggio)
+        // Pleasant Bell / Chime
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, now); // C5
-        osc.frequency.linearRampToValueAtTime(659.25, now + 0.1); // E5
-        osc.frequency.linearRampToValueAtTime(783.99, now + 0.2); // G5
-        osc.frequency.linearRampToValueAtTime(1046.50, now + 0.4); // C6
+        // Fundamental frequency (C6)
+        osc.frequency.setValueAtTime(1046.50, now); 
         
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-        
+        // Bell envelope: sharp attack, long decay
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.3, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
         osc.start(now);
-        osc.stop(now + 1.5);
+        osc.stop(now + 2.0);
+
+        // Add a harmonic for "sparkle"
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1046.50 * 2.5, now); // Non-integer harmonic for metallic sound
+        gain2.gain.setValueAtTime(0, now);
+        gain2.gain.linearRampToValueAtTime(0.1, now + 0.01);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now);
+        osc2.stop(now + 0.5);
+
     } else if (type === 'steal') {
-        // Dramatic Siren / Whoosh
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(400, now);
-        osc.frequency.linearRampToValueAtTime(800, now + 0.1); // Up
-        osc.frequency.linearRampToValueAtTime(200, now + 0.4); // Down fast
+        // Cartoon "Slip" / "Whoosh"
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
         
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.linearRampToValueAtTime(0.001, now + 0.5);
-        
-        osc.start(now);
-        osc.stop(now + 0.5);
-    } else {
-        // Turn Change (Pop)
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(400, now);
-        osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
         
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-        
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.1);
+        osc.stop(now + 0.3);
+    } else {
+        // Soft Pop/Click for turn
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
+        
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
     }
 };
 
@@ -100,6 +123,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const [masterLinkCopied, setMasterLinkCopied] = useState(false);
     const [shareLinkCopied, setShareLinkCopied] = useState(false);
     const [audioEnabled, setAudioEnabled] = useState(false);
+    const [shortShareLink, setShortShareLink] = useState('');
     
     // Animation State
     const [overlayEvent, setOverlayEvent] = useState<{ type: 'steal' | 'open' | 'turn', text: string, subtext: string } | null>(null);
@@ -131,6 +155,25 @@ const WhiteElephantDashboard: React.FC = () => {
     useEffect(() => {
         gameRef.current = game;
     }, [game]);
+
+    // Generate Short Link on Load
+    useEffect(() => {
+        if (gameId && !shortShareLink) {
+            const fullUrl = `${window.location.origin}/white-elephant-generator.html#gameId=${gameId}`;
+            // Optimistically set full URL first
+            setShortShareLink(fullUrl);
+            
+            // Attempt to shorten
+            fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullUrl)}`)
+                .then(res => res.ok ? res.text() : null)
+                .then(short => {
+                    if (short && !short.toLowerCase().includes('error')) {
+                        setShortShareLink(short);
+                    }
+                })
+                .catch(e => console.warn('Link shortening failed', e));
+        }
+    }, [gameId]);
 
     // Enable Audio Context on first interaction
     const enableAudio = () => {
@@ -228,6 +271,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const handleUpdate = async (action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
         if (!gameId || !organizerKey || !game) return;
         
+        trackEvent('we_action', { action });
         setIsUpdating(true);
         isUpdatingRef.current = true;
 
@@ -300,14 +344,15 @@ const WhiteElephantDashboard: React.FC = () => {
         const url = window.location.href;
         navigator.clipboard.writeText(url);
         setMasterLinkCopied(true);
+        trackEvent('we_copy_master_link');
         setTimeout(() => setMasterLinkCopied(false), 2000);
     };
 
     const handleCopyShareLink = () => {
-        if (!gameId) return;
-        const url = `${window.location.origin}/white-elephant-generator.html#gameId=${gameId}`;
-        navigator.clipboard.writeText(url);
+        if (!shortShareLink) return;
+        navigator.clipboard.writeText(shortShareLink);
         setShareLinkCopied(true);
+        trackEvent('we_copy_share_link');
         setTimeout(() => setShareLinkCopied(false), 2000);
     };
 
@@ -402,21 +447,25 @@ const WhiteElephantDashboard: React.FC = () => {
                                 <Shield className="text-blue-600" /> Organizer Command Center
                             </div>
                             <div className="flex flex-wrap gap-3">
-                                <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
-                                    <button onClick={() => generateWETurnNumbersPdf(game.turnOrder.length)} className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-white px-3 py-2 rounded-md transition-all">
+                                <div className="flex gap-2 bg-indigo-50 p-1 rounded-lg">
+                                    <button onClick={() => generateWETurnNumbersPdf(game.turnOrder.length)} className="flex items-center gap-2 text-sm font-bold text-indigo-700 hover:bg-white hover:shadow-sm px-3 py-2 rounded-md transition-all">
                                         <Printer size={16} /> Turn #s
                                     </button>
-                                    <button onClick={() => generateWERulesPdf(game.rules, game.theme, game.groupName, game.eventDetails)} className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-white px-3 py-2 rounded-md transition-all">
+                                    <div className="w-px bg-indigo-200 my-1"></div>
+                                    <button onClick={() => generateWERulesPdf(game.rules, game.theme, game.groupName, game.eventDetails)} className="flex items-center gap-2 text-sm font-bold text-indigo-700 hover:bg-white hover:shadow-sm px-3 py-2 rounded-md transition-all">
                                         <FileText size={16} /> Rules
                                     </button>
                                 </div>
                                 <button onClick={() => testAnimation('open')} className="flex items-center gap-2 text-sm font-bold text-slate-600 bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded-lg transition-colors" title="Test Animation">
                                     <Play size={16} /> Test Anim
                                 </button>
-                                <button onClick={handleCopyShareLink} className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors shadow-sm">
-                                    {shareLinkCopied ? <Check size={16} /> : <Tv size={16} />}
-                                    {shareLinkCopied ? 'Link Copied!' : 'Copy Shareable Game Link'}
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={handleCopyShareLink} className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                                        {shareLinkCopied ? <Check size={16} /> : <LinkIcon size={16} />}
+                                        {shareLinkCopied ? 'Link Copied!' : 'Copy Player Link'}
+                                    </button>
+                                    <input type="text" readOnly value={shortShareLink} className="hidden sm:block w-32 p-2 text-xs border rounded-lg bg-slate-50 text-slate-500 truncate" onClick={handleCopyShareLink} />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -434,13 +483,13 @@ const WhiteElephantDashboard: React.FC = () => {
                                 {game.isStarted ? (
                                     game.turnOrder.map((p, index) => (
                                         <div key={p.id} className={`flex items-center gap-3 p-3 rounded-lg transition-all ${index === game.currentPlayerIndex && !game.isFinished ? 'bg-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-slate-50'}`}>
-                                            <div className={`font-bold w-8 h-8 flex items-center justify-center rounded-full text-sm ${index === game.currentPlayerIndex && !game.isFinished ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                            <div className={`font-bold w-8 h-8 flex items-center justify-center rounded-full text-sm flex-shrink-0 ${index === game.currentPlayerIndex && !game.isFinished ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
                                                 {index + 1}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <span className={`font-semibold block truncate ${index === game.currentPlayerIndex ? 'text-blue-900' : 'text-slate-600'}`}>{p.name}</span>
                                                 {game.giftState && game.giftState[p.id] && (
-                                                    <span className="text-xs text-emerald-600 font-medium flex items-center gap-1 truncate">
+                                                    <span className="text-xs text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md font-bold flex items-center gap-1 mt-1 truncate w-fit">
                                                         <Gift size={10} /> {game.giftState[p.id]}
                                                     </span>
                                                 )}
