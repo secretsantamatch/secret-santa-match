@@ -6,7 +6,7 @@ import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, SkipForward, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, ArrowRight } from 'lucide-react';
+import { RefreshCw, Play, SkipForward, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, AlertTriangle, ExternalLink, Lock, Smartphone, ArrowRight } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import QRCode from 'react-qr-code';
 
@@ -23,6 +23,12 @@ const SOUNDS = {
 // Simple Audio Player Helper
 const playAudio = (type: 'open' | 'steal' | 'turn') => {
     try {
+        // In a real production app, these would be real mp3 file paths.
+        // Since we are using a generated environment, I'm using placeholders or relying on browser synthesis if possible,
+        // but for this code to be valid TSX, we'll stick to the structure.
+        
+        // For this specific request, I will use the Web Audio API to generate simple synthesized beeps 
+        // so that "Sound" actually produces noise without needing external assets.
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         if (!AudioContext) return;
         
@@ -76,6 +82,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const [gameId, setGameId] = useState<string | null>(null);
     const [organizerKey, setOrganizerKey] = useState<string | null>(null);
     const [isActionLoading, setIsActionLoading] = useState(false);
+    const [shortPlayerLink, setShortPlayerLink] = useState<string>('');
     
     // Sound & Animation State
     const [soundEnabled, setSoundEnabled] = useState(false);
@@ -90,7 +97,6 @@ const WhiteElephantDashboard: React.FC = () => {
     const [showStealModal, setShowStealModal] = useState(false);
     const [showOpenModal, setShowOpenModal] = useState(false);
     const [showEndGameModal, setShowEndGameModal] = useState(false);
-    const [shortPlayerLink, setShortPlayerLink] = useState<string>('');
 
     // Polling Refs (Critical for flicker fix)
     const pollInterval = useRef<NodeJS.Timeout | null>(null);
@@ -110,7 +116,7 @@ const WhiteElephantDashboard: React.FC = () => {
             fetchGame(gId);
             // Start Polling every 3 seconds
             pollInterval.current = setInterval(() => fetchGame(gId), 3000);
-            
+
             // Generate short link for player view
             const longLink = `${window.location.href.split('#')[0]}#gameId=${gId}`;
             fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longLink)}`)
@@ -377,13 +383,13 @@ const WhiteElephantDashboard: React.FC = () => {
                         </div>
                         {isOrganizer && (
                             <div className="flex flex-wrap gap-2">
-                                <button onClick={() => generateWETurnNumbersPdf(game.participants.length)} className="px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-200 font-semibold text-sm flex items-center gap-2 transition-colors" title="Print Turn Numbers">
+                                <button onClick={() => generateWETurnNumbersPdf(game.participants.length)} className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg border font-semibold text-sm flex items-center gap-2 transition-colors" title="Print Turn Numbers">
                                     <Download size={16} /> Turn #s
                                 </button>
-                                <button onClick={() => generateWERulesPdf(game.rules, game.theme, game.groupName, game.eventDetails)} className="px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-200 font-semibold text-sm flex items-center gap-2 transition-colors" title="Print Rules">
+                                <button onClick={() => generateWERulesPdf(game.rules, game.theme, game.groupName, game.eventDetails)} className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg border font-semibold text-sm flex items-center gap-2 transition-colors" title="Print Rules">
                                     <Download size={16} /> Rules
                                 </button>
-                                <button onClick={() => generateWEGameLogPdf(game.history, game.participants, game.giftState, game.groupName, game.eventDetails)} className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200 font-semibold text-sm flex items-center gap-2 transition-colors" title="Game Report">
+                                <button onClick={() => generateWEGameLogPdf(game.history, game.participants, game.giftState, game.groupName, game.eventDetails)} className="px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-200 font-semibold text-sm flex items-center gap-2 transition-colors" title="Game Report">
                                     <Users size={16} /> Summary
                                 </button>
                             </div>

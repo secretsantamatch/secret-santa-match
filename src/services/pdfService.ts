@@ -2,7 +2,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import type { ExchangeData, Participant, WERules, WETheme } from '../types';
+import type { ExchangeData, Participant, WERules, WETheme, WEParticipant } from '../types';
 
 type jsPDFWithAutoTable = jsPDF & {
   autoTable: (options: any) => jsPDF;
@@ -337,7 +337,7 @@ export const generateWERulesPdf = (rules: WERules, theme: WETheme, groupName?: s
     pdf.save('White_Elephant_Rules.pdf');
 };
 
-export const generateWEGameLogPdf = (history: string[], groupName?: string, eventDetails?: string): void => {
+export const generateWEGameLogPdf = (history: string[], participants: WEParticipant[], giftState: Record<string, string>, groupName?: string, eventDetails?: string): void => {
     const pdf = new jsPDF() as jsPDFWithAutoTable;
     
     // Header
@@ -352,6 +352,7 @@ export const generateWEGameLogPdf = (history: string[], groupName?: string, even
     if (groupName) pdf.text(groupName, pdf.internal.pageSize.getWidth() / 2, 30, { align: 'center' });
     if (eventDetails) pdf.text(eventDetails, pdf.internal.pageSize.getWidth() / 2, 36, { align: 'center' });
 
+    // Action Log Table
     const body = history.map((entry, index) => [index + 1, entry]);
 
     pdf.autoTable({
@@ -362,6 +363,35 @@ export const generateWEGameLogPdf = (history: string[], groupName?: string, even
         headStyles: { fillColor: '#2563eb' },
         columnStyles: { 0: { cellWidth: 15 } }
     });
+
+    // Final Gift Distribution Table
+    const giftBody = participants
+        .filter(p => giftState && giftState[p.id])
+        .map(p => [p.name, giftState[p.id]]);
+
+    if (giftBody.length > 0) {
+        // Determine if we need a new page or can fit it
+        const finalY = (pdf as any).lastAutoTable.finalY;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        
+        if (finalY + 60 > pageHeight) {
+            pdf.addPage();
+            (pdf as any).lastAutoTable.finalY = 20; // Reset Y for new page
+        }
+
+        pdf.setFontSize(16);
+        pdf.setTextColor(22, 101, 52); // Green
+        pdf.text("Final Gift Distribution", pdf.internal.pageSize.getWidth() / 2, (pdf as any).lastAutoTable.finalY + 20, { align: 'center' });
+
+        pdf.autoTable({
+            startY: (pdf as any).lastAutoTable.finalY + 25,
+            head: [['Player', 'Gift']],
+            body: giftBody,
+            theme: 'striped',
+            headStyles: { fillColor: '#166534' }, // Green for gifts
+            columnStyles: { 0: { cellWidth: 60 } }
+        });
+    }
 
     addPageWatermark(pdf);
     pdf.save('White_Elephant_Game_Log.pdf');
