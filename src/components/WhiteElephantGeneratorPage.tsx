@@ -7,9 +7,27 @@ import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { createGame } from '../services/whiteElephantService';
 import type { WEParticipant, WERules, WETheme } from '../types';
-import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building } from 'lucide-react';
+import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building, HelpCircle, BookOpen, MapPin, Video } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import { shouldTrackByDefault } from '../utils/privacy';
+
+const FaqItem: React.FC<{ question: string; children: React.ReactNode }> = ({ question, children }) => (
+    <div className="border-b border-slate-200 py-4">
+        <details className="group">
+            <summary className="flex justify-between items-center font-bold text-slate-800 cursor-pointer list-none text-lg hover:text-blue-700 transition-colors">
+                <span>{question}</span>
+                <span className="transition-transform transform group-open:rotate-180">
+                    <svg className="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </span>
+            </summary>
+            <div className="text-slate-600 mt-3 leading-relaxed prose prose-slate max-w-none">
+                {children}
+            </div>
+        </details>
+    </div>
+);
 
 const WhiteElephantGeneratorPage: React.FC = () => {
     const [participants, setParticipants] = useState<WEParticipant[]>([
@@ -32,9 +50,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         if (consent === null) {
             setShowCookieBanner(true);
         }
-        // Hybrid Tracking: 
-        // If US -> Tracks immediately. 
-        // If EU -> Waits for consent.
         if (shouldTrackByDefault()) {
             trackEvent('we_generator_view');
         }
@@ -67,8 +82,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         const isLastParticipant = participants.findIndex(p => p.id === id) === participants.length - 1;
         const wasEmpty = participants.find(p => p.id === id)?.name.trim() === '';
         
-        // Only add a new line if they are typing in the last one and it was previously empty
-        // And we do NOT set focus manually to avoid the jumping bug
         if (isLastParticipant && wasEmpty && name.trim() !== '') {
             setParticipants([...updatedParticipants, { id: crypto.randomUUID(), name: '' }]);
         } else {
@@ -162,7 +175,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                         White Elephant Generator
                     </h1>
                     <p className="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto font-medium">
-                        The easiest way to run your Yankee Swap or Elephant Gift Exchange. 
+                        The easiest way to run your Yankee Swap or Dirty Santa Party. 
                         <span className="block mt-2 text-yellow-300 font-bold">Free • No Sign-Up • Live Dashboard</span>
                     </p>
                 </div>
@@ -273,7 +286,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-8">
-                                    {/* Group Info Section */}
                                     <div className="md:col-span-2 bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-2">
                                         <h3 className="font-bold text-slate-700 text-lg mb-4 flex items-center gap-2">
                                             <PartyPopper size={20} className="text-blue-500"/> Event Details (Optional)
@@ -365,7 +377,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* STEP 3: READY - NOW FULL BLUE MODE */}
+                            {/* STEP 3: READY */}
                             <div className={activeStep === 3 ? 'block animate-fade-in' : 'hidden'}>
                                 <div className="text-center py-12">
                                     <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
@@ -408,6 +420,188 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                             )}
                         </div>
                      </div>
+                </div>
+
+                {/* NEW CONTENT SECTION: How To & FAQ */}
+                <div className="max-w-5xl mx-auto mt-20 px-4 space-y-16">
+                    
+                    {/* Visual How to Play Section */}
+                    <section>
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif text-center mb-12">How to Play White Elephant (Official Rules)</h2>
+                        <div className="grid md:grid-cols-4 gap-8 text-center relative">
+                            {/* Step 1 */}
+                            <div className="relative z-10">
+                                <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 h-full transition-transform hover:-translate-y-2">
+                                    <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-red-600 rotate-3">
+                                        <Gift size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="font-bold text-xl text-slate-800 mb-3">1. Bring a Gift</h3>
+                                    <p className="text-slate-600">Everyone brings one wrapped gift within the agreed budget (e.g. $25). No peeking!</p>
+                                </div>
+                            </div>
+                            {/* Step 2 */}
+                            <div className="relative z-10">
+                                <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 h-full transition-transform hover:-translate-y-2">
+                                    <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-blue-600 -rotate-2">
+                                        <Users size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="font-bold text-xl text-slate-800 mb-3">2. Draw Numbers</h3>
+                                    <p className="text-slate-600">Use our <strong>free generator</strong> above to instantly randomize the turn order for everyone.</p>
+                                </div>
+                            </div>
+                            {/* Step 3 */}
+                            <div className="relative z-10">
+                                <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 h-full transition-transform hover:-translate-y-2">
+                                    <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-green-600 rotate-3">
+                                        <ArrowRight size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="font-bold text-xl text-slate-800 mb-3">3. Open or Steal</h3>
+                                    <p className="text-slate-600">Player #1 opens. Player #2 can steal #1's gift or open a new one. This continues down the line!</p>
+                                </div>
+                            </div>
+                            {/* Step 4 */}
+                            <div className="relative z-10">
+                                <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 h-full transition-transform hover:-translate-y-2">
+                                    <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-purple-600 -rotate-2">
+                                        <PartyPopper size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="font-bold text-xl text-slate-800 mb-3">4. The Final Swap</h3>
+                                    <p className="text-slate-600">After the last gift is opened, Player #1 usually gets a chance to swap with anyone.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="2345678901" data-ad-format="auto" data-full-width-responsive="true" />
+
+                    {/* Regional Names Section */}
+                    <section className="bg-slate-900 text-white rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden">
+                         <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                            <div>
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-sm font-bold mb-6">
+                                    <MapPin size={16} className="text-red-400" /> One Game, Many Names
+                                </div>
+                                <h2 className="text-4xl md:text-5xl font-bold font-serif mb-6 leading-tight">
+                                    Is it White Elephant,<br/>Yankee Swap, or<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">Dirty Santa?</span>
+                                </h2>
+                                <p className="text-slate-300 text-lg leading-relaxed mb-8">
+                                    Depending on where you live in the United States, this holiday classic goes by different names. The good news? Our generator works perfectly for all of them!
+                                </p>
+                            </div>
+                            <div className="grid gap-4">
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                                    <h3 className="text-xl font-bold text-yellow-400 mb-1">🐘 White Elephant</h3>
+                                    <p className="text-slate-400 text-sm">The most common name worldwide. Traditionally implies funny, weird, or "gag" gifts that you might want to get rid of!</p>
+                                </div>
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                                    <h3 className="text-xl font-bold text-red-400 mb-1">🎩 Yankee Swap</h3>
+                                    <p className="text-slate-400 text-sm">Popular in New England (and 'The Office' fans). Rules are identical, but the focus is often on genuinely useful or desirable gifts.</p>
+                                </div>
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                                    <h3 className="text-xl font-bold text-green-400 mb-1">🎅 Dirty Santa</h3>
+                                    <p className="text-slate-400 text-sm">A Southern US tradition. The "dirty" refers to the ruthless stealing strategies! Often played for higher stakes and better gifts.</p>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Decorative Background Blobs */}
+                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] -mr-20 -mt-20"></div>
+                        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-600/20 rounded-full blur-[80px] -ml-10 -mb-10"></div>
+                    </section>
+
+                    {/* Virtual Play Guide */}
+                    <section className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 md:p-12 flex flex-col md:flex-row gap-10 items-center">
+                        <div className="md:w-1/2">
+                            <div className="inline-block p-3 rounded-2xl bg-indigo-100 text-indigo-600 mb-6">
+                                <Video size={32} />
+                            </div>
+                            <h2 className="text-3xl font-bold text-slate-800 font-serif mb-4">Can you play virtually? Yes!</h2>
+                            <p className="text-slate-600 text-lg mb-6">
+                                Don't let distance stop the fun. Our tool is designed to be the perfect companion for Zoom, Teams, or Google Meet parties.
+                            </p>
+                            <ul className="space-y-3 text-slate-700 font-medium">
+                                <li className="flex items-center gap-2"><CheckCircle size={20} className="text-green-500"/> Generate the order using this tool.</li>
+                                <li className="flex items-center gap-2"><CheckCircle size={20} className="text-green-500"/> Share your screen so everyone sees the dashboard.</li>
+                                <li className="flex items-center gap-2"><CheckCircle size={20} className="text-green-500"/> Participants unwrap gifts on camera.</li>
+                                <li className="flex items-center gap-2"><CheckCircle size={20} className="text-green-500"/> You log the steals live for everyone to track!</li>
+                            </ul>
+                        </div>
+                        <div className="md:w-1/2 w-full bg-slate-100 rounded-2xl p-6 border-2 border-dashed border-slate-300 text-center">
+                            <p className="font-bold text-slate-500 uppercase tracking-widest text-sm mb-4">Pro Tip</p>
+                            <p className="text-slate-600 italic mb-4">"We used this for our remote team party. Everyone mailed their gifts afterwards. It was chaotic and perfect!"</p>
+                            <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-800">
+                                <span>⭐⭐⭐⭐⭐</span>
+                                <span>- Sarah, HR Manager</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Extensive FAQ Section */}
+                    <section className="max-w-4xl mx-auto">
+                         <h2 className="text-3xl font-bold text-slate-800 font-serif text-center mb-10 flex items-center justify-center gap-3">
+                            <HelpCircle className="text-blue-500" /> Everything You Need To Know
+                        </h2>
+                        
+                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-2 md:p-4 divide-y divide-slate-100">
+                            <div className="px-4 md:px-8">
+                                {/* Core Questions */}
+                                <FaqItem question="What is a White Elephant generator?">
+                                    <p>A White Elephant generator is a free digital tool that randomly assigns turn numbers to participants and helps track the game flow (who opened what, who stole from whom) to ensure fair play without needing paper slips.</p>
+                                </FaqItem>
+                                <FaqItem question="How does the White Elephant order generator work?">
+                                    <p>Simply add all participant names, click generate, and receive a random order. You can print the turn numbers or use the live dashboard to track who opens what gift and manage steals in real-time.</p>
+                                </FaqItem>
+                                <FaqItem question="Is this White Elephant generator really free?">
+                                    <p>Yes, completely free. No credit card, email, or account needed. Generate unlimited orders for any group size.</p>
+                                </FaqItem>
+                                
+                                {/* Gameplay Questions */}
+                                <FaqItem question="How many people can play White Elephant?">
+                                    <p>White Elephant works best with <strong>5-30 people</strong>. Smaller groups (5-10) play faster, while larger groups (15-30) create more excitement and stealing opportunities. Groups larger than 40 might want to consider splitting into two circles to keep the game moving.</p>
+                                </FaqItem>
+                                <FaqItem question="How many times can you steal in White Elephant?">
+                                    <p>Most groups limit stealing to <strong>3 times per gift</strong>. After the third steal, the gift is "locked", "dead", or "frozen" and stays with that person. Our generator allows you to customize this limit in the rules step.</p>
+                                </FaqItem>
+                                <FaqItem question="How much should you spend on White Elephant gifts?">
+                                    <p>Most White Elephant exchanges set a budget of <strong>$20-$25</strong>. Always follow the organizer's price limit to keep things fair. If it's a "gag gift" party, the limit might be lower (e.g., $10).</p>
+                                </FaqItem>
+                                <FaqItem question="Can you steal back your own gift in White Elephant?">
+                                    <p>Generally, no immediate steal-backs are allowed. If someone steals your gift, you must wait until your next turn (if the game loops) or steal a different gift. The "No Immediate Steal Back" rule prevents a game from getting stuck in a loop between two players.</p>
+                                </FaqItem>
+                                
+                                {/* Comparison Questions */}
+                                <FaqItem question="What's the difference between White Elephant and Secret Santa?">
+                                    <p><strong>Secret Santa:</strong> You buy for a specific person assigned to you privately. <br/><strong>White Elephant:</strong> Everyone brings a generic gift, and players steal/swap them publicly during the game. White Elephant is more interactive and competitive.</p>
+                                </FaqItem>
+                                <FaqItem question="Is White Elephant the same as Yankee Swap?">
+                                    <p>Yes, they're the same game with different regional names. "Yankee Swap" is popular in New England, while "White Elephant" is used nationwide. The rules are identical.</p>
+                                </FaqItem>
+                                <FaqItem question="What is Dirty Santa vs White Elephant?">
+                                    <p>Same game, different names. "Dirty Santa" is popular in the Southern US. The "dirty" refers to the ruthless gift-stealing strategies players use!</p>
+                                </FaqItem>
+                                
+                                {/* Virtual Questions */}
+                                <FaqItem question="Can you play White Elephant virtually?">
+                                    <p>Yes! Use our generator to create the order. Share the link via Zoom/Teams. Have participants show their gifts on camera as they open/steal them. The organizer logs the steals on the dashboard so everyone knows who has what.</p>
+                                </FaqItem>
+                                <FaqItem question="How do you do White Elephant over Zoom?">
+                                    <p>Generate order → Share screen with the dashboard → Player 1 opens gift on camera → Organizer logs it → Player 2 steals or opens new → Repeat. Mailed gifts are sent after the party.</p>
+                                </FaqItem>
+
+                                {/* Strategy */}
+                                <FaqItem question="What makes a good White Elephant gift?">
+                                    <p>The best gifts are: funny but useful, weird but desirable, or surprisingly nice. Think quirky kitchen gadgets, funny books, cozy items, or trending novelty products. Avoid trash—getting a truly bad gift isn't fun for anyone.</p>
+                                </FaqItem>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div className="text-center pb-8">
+                        <h3 className="text-lg font-bold text-slate-600 mb-4">Ready to start your game?</h3>
+                        <button onClick={() => { setActiveStep(1); generatorRef.current?.scrollIntoView({ behavior: 'smooth' }); }} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all transform hover:scale-105">
+                            Scroll Up to Generator
+                        </button>
+                    </div>
+
                 </div>
             </main>
             <Footer />
