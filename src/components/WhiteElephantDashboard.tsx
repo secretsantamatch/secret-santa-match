@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Header from './Header';
 import Footer from './Footer';
+import AdBanner from './AdBanner';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
 import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } from '../services/pdfService';
 import type { WEGame } from '../types';
@@ -17,10 +18,12 @@ const WhiteElephantDashboard: React.FC = () => {
     const [shareLinkCopied, setShareLinkCopied] = useState(false);
     
     // Logging State
-    const [stealActor, setStealActor] = useState('');
-    const [stealTarget, setStealTarget] = useState('');
+    const [stealActorId, setStealActorId] = useState('');
+    const [stealTargetId, setStealTargetId] = useState('');
     const [stealGift, setStealGift] = useState('');
     const [customLog, setCustomLog] = useState('');
+    const [openGiftDescription, setOpenGiftDescription] = useState('');
+    const [logType, setLogType] = useState<'open' | 'steal' | 'custom'>('open');
 
     const { gameId, organizerKey } = useMemo(() => {
         const params = new URLSearchParams(window.location.hash.slice(1));
@@ -57,7 +60,7 @@ const WhiteElephantDashboard: React.FC = () => {
         return () => clearInterval(interval);
     }, [gameId]);
 
-    const handleUpdate = async (action: 'next_player' | 'log_steal' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
+    const handleUpdate = async (action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
         if (!gameId || !organizerKey || !game) return;
         setIsUpdating(true);
         try {
@@ -65,10 +68,11 @@ const WhiteElephantDashboard: React.FC = () => {
             setGame(updatedGame);
             setShowActionModal(false);
             // Reset log form
-            setStealActor('');
-            setStealTarget('');
+            setStealActorId('');
+            setStealTargetId('');
             setStealGift('');
             setCustomLog('');
+            setOpenGiftDescription('');
         } catch (err) {
             alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
         } finally {
@@ -76,11 +80,47 @@ const WhiteElephantDashboard: React.FC = () => {
         }
     };
     
-    const handleSmartLog = () => {
-        if (stealActor && stealTarget && stealGift) {
-            handleUpdate('log_steal', { entry: `${stealActor} STOLE [${stealGift}] from ${stealTarget}!` });
-        } else if (customLog) {
-            handleUpdate('log_steal', { entry: customLog });
+    const currentPlayer = game ? game.turnOrder[game.currentPlayerIndex] : null;
+
+    const handleLogOpen = () => {
+        if (!currentPlayer) return;
+        const giftName = openGiftDescription || 'a new gift';
+        handleUpdate('log_open', { 
+            entry: `${currentPlayer.name} opened [${giftName}]!`,
+            actorId: currentPlayer.id,
+            gift: giftName
+        });
+    };
+
+    const handleLogSteal = () => {
+        if (stealActorId && stealTargetId && stealGift) {
+            const actor = game?.participants.find(p => p.id === stealActorId)?.name;
+            const target = game?.participants.find(p => p.id === stealTargetId)?.name;
+            
+            if (actor && target) {
+                handleUpdate('log_steal', { 
+                    entry: `${actor} STOLE [${stealGift}] from ${target}!`,
+                    thiefId: stealActorId,
+                    victimId: stealTargetId,
+                    gift: stealGift
+                });
+            }
+        }
+    };
+
+    const handleCustomLog = () => {
+        if (customLog) {
+            handleUpdate('log_steal', { entry: customLog }); // Using 'log_steal' as generic log handler for now
+        }
+    };
+
+    // Logic for Steal Dropdowns
+    const handleTargetChange = (targetId: string) => {
+        setStealTargetId(targetId);
+        if (game && targetId && game.giftState && game.giftState[targetId]) {
+            setStealGift(game.giftState[targetId]);
+        } else {
+            setStealGift('');
         }
     };
     
@@ -102,8 +142,6 @@ const WhiteElephantDashboard: React.FC = () => {
     if (isLoading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin h-12 w-12 text-blue-600" /></div>;
     if (error) return <div className="text-center p-8"><h2 className="text-xl font-bold text-red-600">Error</h2><p>{error}</p></div>;
     if (!game) return <div className="text-center p-8"><h2 className="text-xl font-bold">Game Not Found</h2></div>;
-
-    const currentPlayer = game.turnOrder[game.currentPlayerIndex];
 
     return (
         <div className="bg-slate-100 min-h-screen font-sans">
@@ -183,7 +221,14 @@ const WhiteElephantDashboard: React.FC = () => {
                                             <div className={`font-bold w-8 h-8 flex items-center justify-center rounded-full text-sm ${index === game.currentPlayerIndex && !game.isFinished ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
                                                 {index + 1}
                                             </div>
-                                            <span className={`font-semibold ${index === game.currentPlayerIndex ? 'text-blue-900' : 'text-slate-600'}`}>{p.name}</span>
+                                            <div className="flex-1">
+                                                <span className={`font-semibold block ${index === game.currentPlayerIndex ? 'text-blue-900' : 'text-slate-600'}`}>{p.name}</span>
+                                                {game.giftState && game.giftState[p.id] && (
+                                                    <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                                                        <Gift size={10} /> Has: {game.giftState[p.id]}
+                                                    </span>
+                                                )}
+                                            </div>
                                             {index < game.currentPlayerIndex && <Check size={16} className="ml-auto text-green-500" />}
                                         </div>
                                     ))
@@ -209,6 +254,11 @@ const WhiteElephantDashboard: React.FC = () => {
                                     <div className="inline-block p-4 rounded-full bg-blue-50 text-blue-600 mb-6"><Gift size={48} /></div>
                                     <h1 className="text-4xl md:text-6xl font-extrabold font-serif text-slate-800 mb-4">Waiting for Host...</h1>
                                     <p className="text-xl text-slate-500 mb-8">The game has not started yet.</p>
+                                    
+                                    <div className="mb-8 max-w-lg mx-auto">
+                                        <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="5555555555" data-ad-format="auto" data-full-width-responsive="true" />
+                                    </div>
+
                                     {isOrganizer ? (
                                         <button onClick={() => handleUpdate('start_game')} disabled={isUpdating} className="bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 px-10 rounded-full shadow-lg transform hover:scale-105 transition-all">
                                             Start Game! 🚀
@@ -224,7 +274,7 @@ const WhiteElephantDashboard: React.FC = () => {
                                     </span>
                                     <p className="text-xl text-slate-500 mb-2">It is currently</p>
                                     <h1 className="text-5xl md:text-7xl font-extrabold font-serif text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-10 pb-2">
-                                        {currentPlayer.name}'s Turn!
+                                        {currentPlayer?.name}'s Turn!
                                     </h1>
                                     
                                     {isOrganizer && (
@@ -232,7 +282,10 @@ const WhiteElephantDashboard: React.FC = () => {
                                             <button onClick={() => handleUpdate('next_player')} disabled={isUpdating} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all transform active:scale-95">
                                                 Next Player <ArrowRight />
                                             </button>
-                                            <button onClick={() => setShowActionModal(true)} className="flex-1 bg-amber-400 hover:bg-amber-500 text-white font-bold py-4 rounded-xl shadow-md transition-colors">
+                                            <button onClick={() => {
+                                                setStealActorId(currentPlayer?.id || '');
+                                                setShowActionModal(true);
+                                            }} className="flex-1 bg-amber-400 hover:bg-amber-500 text-white font-bold py-4 rounded-xl shadow-md transition-colors">
                                                 Log Action
                                             </button>
                                             <button onClick={() => handleUpdate('undo')} className="px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors" title="Undo Last Action">
@@ -245,9 +298,14 @@ const WhiteElephantDashboard: React.FC = () => {
                                 <div className="py-8">
                                     <h1 className="text-5xl font-bold font-serif text-slate-800 mb-4">Game Over!</h1>
                                     <p className="text-xl text-slate-600 mb-8">Thanks for playing!</p>
-                                    <button onClick={() => generateWEGameLogPdf(game.history, game.groupName, game.eventDetails)} className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-lg inline-flex items-center gap-2 transition-colors">
-                                        <Download size={20} /> Download Game Log PDF
-                                    </button>
+                                    <div className="flex flex-col items-center gap-6">
+                                        <button onClick={() => generateWEGameLogPdf(game.history, game.groupName, game.eventDetails)} className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-lg inline-flex items-center gap-2 transition-colors">
+                                            <Download size={20} /> Download Game Log PDF
+                                        </button>
+                                        <div className="w-full max-w-lg">
+                                            <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="6666666666" data-ad-format="auto" data-full-width-responsive="true" />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -278,34 +336,95 @@ const WhiteElephantDashboard: React.FC = () => {
                             <h3 className="text-xl font-bold text-slate-800">Log an Event</h3>
                             <button onClick={() => setShowActionModal(false)}><X className="text-slate-400 hover:text-slate-600" /></button>
                         </div>
-                        <div className="grid grid-cols-1 gap-3">
-                            <button onClick={() => handleUpdate('log_steal', { entry: `${currentPlayer.name} opened a new gift!` })} className="p-4 bg-green-50 hover:bg-green-100 border border-green-200 text-green-800 font-bold rounded-xl text-left flex items-center gap-4 transition-all hover:shadow-md group">
-                                <span className="text-2xl group-hover:scale-110 transition-transform">🎁</span> Opened a Gift
+
+                        {/* Tab Selection */}
+                        <div className="flex gap-2 mb-4 bg-slate-100 p-1 rounded-lg">
+                            <button 
+                                onClick={() => setLogType('open')} 
+                                className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${logType === 'open' ? 'bg-white shadow text-green-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                Open Gift
                             </button>
-                            
-                            <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-3">
-                                <div className="font-bold text-red-800 flex items-center gap-2"><span className="text-xl">😈</span> Log a Steal</div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <select className="p-2 border rounded text-sm" value={stealActor} onChange={e => setStealActor(e.target.value)}>
-                                        <option value="">Who Stole?</option>
-                                        {game.participants.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
-                                    </select>
-                                    <select className="p-2 border rounded text-sm" value={stealTarget} onChange={e => setStealTarget(e.target.value)}>
-                                        <option value="">From Whom?</option>
-                                        {game.participants.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
-                                    </select>
-                                </div>
-                                <input type="text" placeholder="What Gift? (e.g. Wine)" className="w-full p-2 border rounded text-sm" value={stealGift} onChange={e => setStealGift(e.target.value)} />
-                                <button onClick={handleSmartLog} disabled={!stealActor || !stealTarget || !stealGift} className="w-full bg-red-600 text-white font-bold py-2 rounded disabled:opacity-50 hover:bg-red-700">Log Steal</button>
-                            </div>
+                            <button 
+                                onClick={() => setLogType('steal')} 
+                                className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${logType === 'steal' ? 'bg-white shadow text-red-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                Steal
+                            </button>
+                            <button 
+                                onClick={() => setLogType('custom')} 
+                                className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${logType === 'custom' ? 'bg-white shadow text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                Custom
+                            </button>
                         </div>
-                         <div className="mt-6 pt-4 border-t">
-                             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Custom Note</label>
-                             <div className="flex gap-2">
-                                 <input type="text" value={customLog} onChange={e => setCustomLog(e.target.value)} placeholder="e.g. Grandma loved the socks" className="flex-1 p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                                 <button onClick={() => { if(customLog) handleUpdate('log_steal', { entry: customLog }); }} className="bg-slate-800 hover:bg-slate-900 text-white px-6 rounded-lg text-sm font-bold transition-colors">Add</button>
-                             </div>
-                         </div>
+
+                        <div className="grid grid-cols-1 gap-3">
+                            {/* OPEN GIFT TAB */}
+                            {logType === 'open' && (
+                                <div className="space-y-3 animate-fade-in">
+                                    <p className="text-sm text-slate-600">What did {currentPlayer?.name} open?</p>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Gift Description (e.g. Fuzzy Socks)" 
+                                        className="w-full p-3 border rounded-lg text-sm"
+                                        value={openGiftDescription}
+                                        onChange={e => setOpenGiftDescription(e.target.value)}
+                                    />
+                                    <button onClick={handleLogOpen} className="w-full p-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                                        <Gift size={20} /> Log "Opened Gift"
+                                    </button>
+                                </div>
+                            )}
+                            
+                            {/* STEAL TAB */}
+                            {logType === 'steal' && (
+                                <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-3 animate-fade-in">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="block text-xs font-bold text-red-800 mb-1">Thief</label>
+                                            <select className="w-full p-2 border rounded text-sm" value={stealActorId} onChange={e => setStealActorId(e.target.value)}>
+                                                <option value="">Select...</option>
+                                                {game.participants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-red-800 mb-1">Victim</label>
+                                            <select className="w-full p-2 border rounded text-sm" value={stealTargetId} onChange={e => handleTargetChange(e.target.value)}>
+                                                <option value="">Select...</option>
+                                                {game.participants
+                                                    .filter(p => p.id !== stealActorId && game.giftState?.[p.id]) // Only show people with gifts who aren't the thief
+                                                    .map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-red-800 mb-1">Gift</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Auto-fills when victim selected" 
+                                            className="w-full p-2 border rounded text-sm bg-white" 
+                                            value={stealGift} 
+                                            onChange={e => setStealGift(e.target.value)} 
+                                        />
+                                    </div>
+                                    <button onClick={handleLogSteal} disabled={!stealActorId || !stealTargetId || !stealGift} className="w-full bg-red-600 text-white font-bold py-2 rounded disabled:opacity-50 hover:bg-red-700">
+                                        Log Steal
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* CUSTOM TAB */}
+                            {logType === 'custom' && (
+                                <div className="space-y-3 animate-fade-in">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Custom Note</label>
+                                    <div className="flex gap-2">
+                                        <input type="text" value={customLog} onChange={e => setCustomLog(e.target.value)} placeholder="e.g. Grandma loved the socks" className="flex-1 p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                                        <button onClick={handleCustomLog} className="bg-slate-800 hover:bg-slate-900 text-white px-6 rounded-lg text-sm font-bold transition-colors">Add</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

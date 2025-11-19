@@ -111,6 +111,7 @@ export interface CalculatorResult {
     moneySavingTips: { label: string; amount: number; description: string; icon: React.FC<any>; }[];
 }
 
+
 // --- WHITE ELEPHANT TYPES ---
 
 export interface WEParticipant {
@@ -148,7 +149,8 @@ export interface WEGame {
     currentPlayerIndex: number;
     isStarted: boolean;
     isFinished: boolean;
-    finalRound: boolean; // New field to track if we are in the final steal round
+    finalRound: boolean; 
     history: string[];
+    giftState: Record<string, string>; // Maps Participant ID -> Gift Description
     createdAt: string;
-}
+    }
