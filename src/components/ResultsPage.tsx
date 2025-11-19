@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -13,6 +14,7 @@ import { generateMatches } from '../services/matchService';
 import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
+import { shouldTrackByDefault } from '../utils/privacy';
 
 interface ResultsPageProps {
     data: ExchangeData;
@@ -204,8 +206,12 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         const consent = localStorage.getItem('cookie_consent');
         if (consent === null) {
             setShowCookieBanner(true);
-        } else if (consent === 'true') {
-            trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+        }
+        // Hybrid Tracking: 
+        // If US -> Tracks immediately. 
+        // If EU -> Waits for consent.
+        if (shouldTrackByDefault()) {
+             trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
         }
 
         if (isOrganizer) {
@@ -228,7 +234,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         localStorage.setItem('cookie_consent', 'true');
         setShowCookieBanner(false);
         trackEvent('cookie_consent_accept');
-        trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
     };
 
     const handleCookieDecline = () => {

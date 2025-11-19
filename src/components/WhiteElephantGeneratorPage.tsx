@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { produce } from 'immer';
 import Header from './Header';
 import Footer from './Footer';
@@ -8,6 +8,8 @@ import { trackEvent } from '../services/analyticsService';
 import { createGame } from '../services/whiteElephantService';
 import type { WEParticipant, WERules, WETheme } from '../types';
 import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building } from 'lucide-react';
+import CookieConsentBanner from './CookieConsentBanner';
+import { shouldTrackByDefault } from '../utils/privacy';
 
 const WhiteElephantGeneratorPage: React.FC = () => {
     const [participants, setParticipants] = useState<WEParticipant[]>([
@@ -22,7 +24,32 @@ const WhiteElephantGeneratorPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [validationError, setValidationError] = useState<string | null>(null);
+    const [showCookieBanner, setShowCookieBanner] = useState(false);
     const generatorRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const consent = localStorage.getItem('cookie_consent');
+        if (consent === null) {
+            setShowCookieBanner(true);
+        }
+        // Hybrid Tracking: 
+        // If US -> Tracks immediately. 
+        // If EU -> Waits for consent.
+        if (shouldTrackByDefault()) {
+            trackEvent('we_generator_view');
+        }
+    }, []);
+
+    const handleCookieAccept = () => {
+        localStorage.setItem('cookie_consent', 'true');
+        setShowCookieBanner(false);
+        trackEvent('cookie_consent_accept');
+    };
+
+    const handleCookieDecline = () => {
+        localStorage.setItem('cookie_consent', 'false');
+        setShowCookieBanner(false);
+    };
 
     const handleParticipantChange = (id: string, name: string) => {
         setValidationError(null);
@@ -351,6 +378,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                 </div>
             </main>
             <Footer />
+            {showCookieBanner && <CookieConsentBanner onAccept={handleCookieAccept} onDecline={handleCookieDecline} />}
             <style>{`
                 .animate-fade-in { animation: fadeIn 0.5s ease-out; }
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

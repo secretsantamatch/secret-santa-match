@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { produce } from 'immer';
 import type { Participant, Exclusion, Assignment, BackgroundOption, OutlineSizeSetting, FontSizeSetting, FontTheme, ExchangeData } from '../types';
@@ -20,6 +21,7 @@ import { Users, ScrollText, Palette, Shuffle, AlertTriangle, ArrowRight } from '
 import CookieConsentBanner from './CookieConsentBanner';
 import { getRandomPersona } from '../services/personaService';
 import AdBanner from './AdBanner';
+import { shouldTrackByDefault } from '../utils/privacy';
 
 interface GeneratorPageProps {
   onComplete: (data: ExchangeData) => void;
@@ -63,8 +65,15 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
 
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
-        if (consent === null) setShowCookieBanner(true);
-        else if (consent === 'true') trackEvent('page_view', { page_title: 'Generator' });
+        if (consent === null) {
+            setShowCookieBanner(true);
+        }
+        // Hybrid Tracking: 
+        // If US -> Tracks immediately. 
+        // If EU -> Waits for consent.
+        if (shouldTrackByDefault()) {
+             trackEvent('page_view', { page_title: 'Generator' });
+        }
         
         window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); });
 

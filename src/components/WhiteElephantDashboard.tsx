@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
@@ -24,8 +25,7 @@ const SOUNDS = {
 const playAudio = (type: 'open' | 'steal' | 'turn') => {
     try {
         // In a real production app, these would be real mp3 file paths.
-        // Since we are using a generated environment, I'm using placeholders or relying on browser synthesis if possible,
-        // but for this code to be valid TSX, we'll stick to the structure.
+        // Since we are using a generated environment, I'm using placeholders or relying on browser synthesis if possible.
         
         // For this specific request, I will use the Web Audio API to generate simple synthesized beeps 
         // so that "Sound" actually produces noise without needing external assets.
