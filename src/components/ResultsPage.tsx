@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -204,7 +205,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         const consent = localStorage.getItem('cookie_consent');
         if (consent === null) {
             setShowCookieBanner(true);
-        } else if (consent === 'true') {
+             // Opt-Out Model: Fire tracking immediately for new users
+            trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+        } else if (consent !== 'false') {
             trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
         }
 
@@ -228,7 +231,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         localStorage.setItem('cookie_consent', 'true');
         setShowCookieBanner(false);
         trackEvent('cookie_consent_accept');
-        trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+        // No need to fire again, we fired on mount for opt-out
     };
 
     const handleCookieDecline = () => {
