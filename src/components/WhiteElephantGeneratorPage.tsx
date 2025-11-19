@@ -40,6 +40,8 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         const isLastParticipant = participants.findIndex(p => p.id === id) === participants.length - 1;
         const wasEmpty = participants.find(p => p.id === id)?.name.trim() === '';
         
+        // Only add a new line if they are typing in the last one and it was previously empty
+        // And we do NOT set focus manually to avoid the jumping bug
         if (isLastParticipant && wasEmpty && name.trim() !== '') {
             setParticipants([...updatedParticipants, { id: crypto.randomUUID(), name: '' }]);
         } else {
@@ -116,10 +118,10 @@ const WhiteElephantGeneratorPage: React.FC = () => {
     }
 
     const themeOptions = [
-        { val: 'classic', label: 'Classic', desc: 'Anything Goes', color: 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100' },
-        { val: 'funny', label: 'Funny & Weird', desc: 'Gag Gifts Encouraged', color: 'bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100' },
-        { val: 'useful', label: 'Genuinely Useful', desc: 'Things people want', color: 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100' },
-        { val: 'regift', label: 'Regift / Eco', desc: 'Re-home items', color: 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100' }
+        { val: 'classic', label: 'Classic', desc: 'Anything Goes', color: 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 ring-blue-400' },
+        { val: 'funny', label: 'Funny & Weird', desc: 'Gag Gifts Encouraged', color: 'bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100 ring-orange-400' },
+        { val: 'useful', label: 'Genuinely Useful', desc: 'Things people want', color: 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 ring-emerald-400' },
+        { val: 'regift', label: 'Regift / Eco', desc: 'Re-home items', color: 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 ring-purple-400' }
     ];
 
     return (
@@ -185,7 +187,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                                 onChange={e => handleParticipantChange(p.id, e.target.value)}
                                                 placeholder={`Player Name`}
                                                 className={`flex-1 p-3 border-2 rounded-xl focus:ring-2 transition-all outline-none text-lg ${validationError && p.name && participants.filter(px => px.name.toLowerCase() === p.name.toLowerCase()).length > 1 ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-200'}`}
-                                                autoFocus={i === participants.length - 1 && i > 2}
                                             />
                                             <button 
                                                 onClick={() => removeParticipant(p.id)} 
@@ -256,7 +257,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                                 <button
                                                     key={opt.val}
                                                     onClick={() => setTheme(opt.val as WETheme)}
-                                                    className={`text-left p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${theme === opt.val ? `${opt.color} ring-2 ring-offset-1 ring-blue-300` : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}
+                                                    className={`text-left p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${theme === opt.val ? `${opt.color} ring-2 ring-offset-1 ${opt.val === 'classic' ? 'ring-blue-300' : opt.val === 'funny' ? 'ring-orange-300' : opt.val === 'useful' ? 'ring-emerald-300' : 'ring-purple-300'}` : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}
                                                 >
                                                     <div>
                                                         <div className="font-bold">{opt.label}</div>

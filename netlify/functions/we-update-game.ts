@@ -34,12 +34,11 @@ export default async (req: Request, context: Context) => {
             return new Response(JSON.stringify({ error: 'Unauthorized.' }), { status: 403 });
         }
 
-        // Ensure giftState exists (migration for older games)
+        // Ensure giftState exists
         if (!game.giftState) {
             game.giftState = {};
         }
 
-        // --- Game Logic ---
         switch (action) {
             case 'start_game':
                 if (!game.isStarted) {
@@ -83,8 +82,6 @@ export default async (req: Request, context: Context) => {
                 break;
             case 'undo':
                 // Simple undo: pops the last history entry. 
-                // NOTE: Truly undoing state changes (gift ownership) is complex and not implemented here.
-                // This just undoes the log message.
                 if (game.history.length > 1) { 
                     game.history.pop();
                 }
@@ -97,7 +94,6 @@ export default async (req: Request, context: Context) => {
 
         await store.setJSON(gameId, game);
 
-        // Return the updated game state, excluding the sensitive key
         const { organizerKey: _, ...publicGameData } = game;
 
         return new Response(JSON.stringify(publicGameData), {

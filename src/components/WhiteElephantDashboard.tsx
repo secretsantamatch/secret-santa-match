@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
 import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } from '../services/pdfService';
 import type { WEGame } from '../types';
-import { Loader2, ArrowRight, RotateCw, Copy, Check, Users, Shield, History, Download, FileText, Printer, Save, X, Tv, Gift, Building, Calendar } from 'lucide-react';
+import { Loader2, ArrowRight, RotateCw, Copy, Check, Users, Shield, History, Download, FileText, Printer, Save, X, Tv, Gift, Calendar, Volume2, VolumeX } from 'lucide-react';
 
 const WhiteElephantDashboard: React.FC = () => {
     const [game, setGame] = useState<WEGame | null>(null);
@@ -16,6 +16,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const [showActionModal, setShowActionModal] = useState(false);
     const [masterLinkCopied, setMasterLinkCopied] = useState(false);
     const [shareLinkCopied, setShareLinkCopied] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
     
     // Logging State
     const [stealActorId, setStealActorId] = useState('');
@@ -24,6 +25,9 @@ const WhiteElephantDashboard: React.FC = () => {
     const [customLog, setCustomLog] = useState('');
     const [openGiftDescription, setOpenGiftDescription] = useState('');
     const [logType, setLogType] = useState<'open' | 'steal' | 'custom'>('open');
+
+    // Sound Refs
+    const prevHistoryLength = useRef(0);
 
     const { gameId, organizerKey } = useMemo(() => {
         const params = new URLSearchParams(window.location.hash.slice(1));
@@ -55,10 +59,29 @@ const WhiteElephantDashboard: React.FC = () => {
         };
 
         fetchGame();
-        // Poll every 3 seconds for near-realtime updates
         const interval = setInterval(fetchGame, 3000);
         return () => clearInterval(interval);
     }, [gameId]);
+
+    // Sound Effects Effect
+    useEffect(() => {
+        if (game && game.history.length > prevHistoryLength.current) {
+            if (!isMuted && prevHistoryLength.current > 0) { // Don't play on initial load
+                const lastEntry = game.history[game.history.length - 1];
+                // Note: You would need to add actual sound files to your public/sounds folder
+                // For now, we'll just log or placeholder. 
+                // If you add 'swoosh.mp3' and 'ding.mp3' to public folder, uncomment below:
+                /*
+                if (lastEntry.includes('turn')) {
+                    new Audio('/sounds/swoosh.mp3').play().catch(() => {});
+                } else if (lastEntry.includes('opened') || lastEntry.includes('STOLE')) {
+                    new Audio('/sounds/ding.mp3').play().catch(() => {});
+                }
+                */
+            }
+            prevHistoryLength.current = game.history.length;
+        }
+    }, [game?.history, isMuted]);
 
     const handleUpdate = async (action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
         if (!gameId || !organizerKey || !game) return;
@@ -67,7 +90,6 @@ const WhiteElephantDashboard: React.FC = () => {
             const updatedGame = await updateGameState(gameId, organizerKey, action, payload);
             setGame(updatedGame);
             setShowActionModal(false);
-            // Reset log form
             setStealActorId('');
             setStealTargetId('');
             setStealGift('');
@@ -99,7 +121,7 @@ const WhiteElephantDashboard: React.FC = () => {
             
             if (actor && target) {
                 handleUpdate('log_steal', { 
-                    entry: `${actor} STOLE [${stealGift}] from ${target}!`,
+                    entry: `STEAL! ${actor} stole [${stealGift}] from ${target}!`,
                     thiefId: stealActorId,
                     victimId: stealTargetId,
                     gift: stealGift
@@ -110,11 +132,10 @@ const WhiteElephantDashboard: React.FC = () => {
 
     const handleCustomLog = () => {
         if (customLog) {
-            handleUpdate('log_steal', { entry: customLog }); // Using 'log_steal' as generic log handler for now
+            handleUpdate('log_steal', { entry: customLog });
         }
     };
 
-    // Logic for Steal Dropdowns
     const handleTargetChange = (targetId: string) => {
         setStealTargetId(targetId);
         if (game && targetId && game.giftState && game.giftState[targetId]) {
@@ -146,9 +167,9 @@ const WhiteElephantDashboard: React.FC = () => {
     return (
         <div className="bg-slate-100 min-h-screen font-sans">
             <Header />
-            <main className="max-w-7xl mx-auto p-4 md:p-8">
+            <main className="max-w-[1400px] mx-auto p-4 md:p-6">
                 
-                {/* HEADER INFO (Visible to All) */}
+                {/* HEADER INFO */}
                 <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-800 font-serif">{game.groupName || 'White Elephant Party'}</h1>
@@ -156,19 +177,18 @@ const WhiteElephantDashboard: React.FC = () => {
                             <p className="text-slate-500 flex items-center gap-2 text-sm mt-1"><Calendar size={14}/> {game.eventDetails}</p>
                         )}
                     </div>
-                    <div className="mt-2 md:mt-0 flex gap-2">
+                    <div className="mt-2 md:mt-0 flex gap-2 items-center">
+                         <button onClick={() => setIsMuted(!isMuted)} className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors" title={isMuted ? "Unmute Sounds" : "Mute Sounds"}>
+                            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                         </button>
                          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                             Theme: {game.theme}
-                         </span>
-                         <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wider">
-                            Steals: {game.rules.stealLimit}
                          </span>
                     </div>
                 </div>
 
                 {isOrganizer && (
                     <div className="mb-8 space-y-6 animate-fade-in">
-                        {/* Master Link Box */}
                         <div className="bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
                                 <div className="bg-amber-100 p-3 rounded-full text-amber-700"><Save size={24} /></div>
@@ -183,7 +203,6 @@ const WhiteElephantDashboard: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* Organizer Command Center */}
                         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-center justify-between">
                             <div className="flex items-center gap-2 text-slate-800 font-bold text-lg">
                                 <Shield className="text-blue-600" /> Organizer Command Center
@@ -206,10 +225,10 @@ const WhiteElephantDashboard: React.FC = () => {
                     </div>
                 )}
 
-                <div className="grid lg:grid-cols-3 gap-8">
+                <div className="grid lg:grid-cols-4 gap-6">
                     {/* Left Panel: Turn Order */}
                     <div className="lg:col-span-1 order-2 lg:order-1">
-                        <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                        <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden sticky top-24">
                             <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
                                 <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2"><Users size={20}/> Turn Order</h2>
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{game.participants.length} Players</span>
@@ -221,21 +240,21 @@ const WhiteElephantDashboard: React.FC = () => {
                                             <div className={`font-bold w-8 h-8 flex items-center justify-center rounded-full text-sm ${index === game.currentPlayerIndex && !game.isFinished ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
                                                 {index + 1}
                                             </div>
-                                            <div className="flex-1">
-                                                <span className={`font-semibold block ${index === game.currentPlayerIndex ? 'text-blue-900' : 'text-slate-600'}`}>{p.name}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <span className={`font-semibold block truncate ${index === game.currentPlayerIndex ? 'text-blue-900' : 'text-slate-600'}`}>{p.name}</span>
                                                 {game.giftState && game.giftState[p.id] && (
-                                                    <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                                                        <Gift size={10} /> Has: {game.giftState[p.id]}
+                                                    <span className="text-xs text-emerald-600 font-medium flex items-center gap-1 truncate">
+                                                        <Gift size={10} /> {game.giftState[p.id]}
                                                     </span>
                                                 )}
                                             </div>
-                                            {index < game.currentPlayerIndex && <Check size={16} className="ml-auto text-green-500" />}
+                                            {index < game.currentPlayerIndex && <Check size={16} className="ml-auto text-green-500 flex-shrink-0" />}
                                         </div>
                                     ))
                                 ) : (
                                     <div className="p-8 text-center text-slate-500 italic">
-                                        <p>The turn order will be revealed when the game starts!</p>
-                                        <div className="mt-4 space-y-2">
+                                        <p>Turn order hidden until game starts.</p>
+                                        <div className="mt-4 space-y-2 opacity-50">
                                             {game.participants.map(p => <div key={p.id} className="text-sm font-medium">{p.name}</div>)}
                                         </div>
                                     </div>
@@ -244,7 +263,7 @@ const WhiteElephantDashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Center Panel: Live Game Board */}
+                    {/* Center Panel: Main Stage */}
                     <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
                         <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border-2 border-blue-100 text-center relative overflow-hidden min-h-[400px] flex flex-col justify-center">
                             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
@@ -259,12 +278,10 @@ const WhiteElephantDashboard: React.FC = () => {
                                         <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="5555555555" data-ad-format="auto" data-full-width-responsive="true" />
                                     </div>
 
-                                    {isOrganizer ? (
+                                    {isOrganizer && (
                                         <button onClick={() => handleUpdate('start_game')} disabled={isUpdating} className="bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 px-10 rounded-full shadow-lg transform hover:scale-105 transition-all">
                                             Start Game! 🚀
                                         </button>
-                                    ) : (
-                                        <p className="text-sm text-slate-400 animate-pulse">Please wait for the organizer to begin.</p>
                                     )}
                                 </div>
                             ) : !game.isFinished ? (
@@ -300,7 +317,7 @@ const WhiteElephantDashboard: React.FC = () => {
                                     <p className="text-xl text-slate-600 mb-8">Thanks for playing!</p>
                                     <div className="flex flex-col items-center gap-6">
                                         <button onClick={() => generateWEGameLogPdf(game.history, game.groupName, game.eventDetails)} className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-lg inline-flex items-center gap-2 transition-colors">
-                                            <Download size={20} /> Download Game Log PDF
+                                            <Download size={20} /> Download Game Summary PDF
                                         </button>
                                         <div className="w-full max-w-lg">
                                             <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="6666666666" data-ad-format="auto" data-full-width-responsive="true" />
@@ -309,15 +326,19 @@ const WhiteElephantDashboard: React.FC = () => {
                                 </div>
                             )}
                         </div>
+                    </div>
 
-                        {/* Game History Log */}
-                        <div className="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-4"><History className="text-purple-500"/> Game Log</h2>
-                             <div className="bg-slate-50 rounded-xl p-4 h-48 overflow-y-auto space-y-3 border border-slate-100">
+                    {/* Right Panel: Game Ticker */}
+                    <div className="lg:col-span-1 order-3">
+                         <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden sticky top-24">
+                             <div className="bg-slate-50 p-4 border-b border-slate-200">
+                                 <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2"><History className="text-purple-500" size={20}/> Live Ticker</h2>
+                             </div>
+                             <div className="h-[400px] lg:h-[600px] overflow-y-auto p-4 space-y-3 bg-slate-50/50">
                                 {game.history.slice().reverse().map((entry, i) => (
-                                    <div key={i} className="text-sm text-slate-700 pb-2 border-b border-slate-200 last:border-0 flex gap-3">
-                                        <span className="font-mono text-xs text-slate-400 mt-0.5">[{game.history.length - i}]</span>
-                                        <span>{entry}</span>
+                                    <div key={i} className="text-sm text-slate-700 p-3 bg-white rounded-lg border border-slate-100 shadow-sm animate-fade-in">
+                                        <span className="font-mono text-xs text-slate-400 mb-1 block">Event #{game.history.length - i}</span>
+                                        {entry}
                                     </div>
                                 ))}
                                 {game.history.length === 0 && <p className="text-slate-400 italic text-center mt-10">Events will appear here...</p>}
@@ -337,7 +358,6 @@ const WhiteElephantDashboard: React.FC = () => {
                             <button onClick={() => setShowActionModal(false)}><X className="text-slate-400 hover:text-slate-600" /></button>
                         </div>
 
-                        {/* Tab Selection */}
                         <div className="flex gap-2 mb-4 bg-slate-100 p-1 rounded-lg">
                             <button 
                                 onClick={() => setLogType('open')} 
@@ -393,7 +413,7 @@ const WhiteElephantDashboard: React.FC = () => {
                                             <select className="w-full p-2 border rounded text-sm" value={stealTargetId} onChange={e => handleTargetChange(e.target.value)}>
                                                 <option value="">Select...</option>
                                                 {game.participants
-                                                    .filter(p => p.id !== stealActorId && game.giftState?.[p.id]) // Only show people with gifts who aren't the thief
+                                                    .filter(p => p.id !== stealActorId && game.giftState?.[p.id]) // Filter: Only people who HAVE a gift
                                                     .map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                             </select>
                                         </div>
