@@ -6,69 +6,69 @@ import AdBanner from './AdBanner';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
 import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } from '../services/pdfService';
 import type { WEGame } from '../types';
-import { Loader2, ArrowRight, RotateCw, Copy, Check, Users, Shield, History, Download, FileText, Printer, Save, X, Tv, Gift, Calendar, Volume2, VolumeX } from 'lucide-react';
+import { Loader2, ArrowRight, RotateCw, Copy, Check, Users, Shield, History, Download, FileText, Printer, Save, X, Tv, Gift, Calendar, Volume2, VolumeX, Play } from 'lucide-react';
 
-// --- SOUND ASSETS (Base64 for reliability) ---
-const SOUNDS = {
-    OPEN: 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==', // Placeholder, replaced below with real logic
-    STEAL: 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==', // Placeholder
-    TURN: 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==' // Placeholder
+// --- AUDIO ENGINE ---
+// We use a singleton AudioContext to comply with browser policies
+let audioCtx: AudioContext | null = null;
+
+const initAudio = () => {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    return audioCtx;
 };
 
-// Helper to play a beep/tone since we can't reliably embed large base64 mp3s in a single file response without bloat.
-// We will use the Web Audio API for clean, generated sound effects.
 const playSoundEffect = (type: 'open' | 'steal' | 'turn') => {
-    try {
-        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioContext) return;
+    const ctx = initAudio();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    const now = ctx.currentTime;
+
+    if (type === 'open') {
+        // Magical Chime (Ascending Arpeggio)
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.linearRampToValueAtTime(659.25, now + 0.1); // E5
+        osc.frequency.linearRampToValueAtTime(783.99, now + 0.2); // G5
+        osc.frequency.linearRampToValueAtTime(1046.50, now + 0.4); // C6
         
-        const ctx = new AudioContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
         
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 1.5);
+    } else if (type === 'steal') {
+        // Dramatic Siren / Whoosh
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.linearRampToValueAtTime(800, now + 0.1); // Up
+        osc.frequency.linearRampToValueAtTime(200, now + 0.4); // Down fast
         
-        const now = ctx.currentTime;
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.5);
         
-        if (type === 'open') {
-            // Magical Chime: High pitch arpeggio
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(523.25, now); // C5
-            osc.frequency.linearRampToValueAtTime(659.25, now + 0.1); // E5
-            osc.frequency.linearRampToValueAtTime(783.99, now + 0.2); // G5
-            osc.frequency.linearRampToValueAtTime(1046.50, now + 0.3); // C6
-            
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-            
-            osc.start(now);
-            osc.stop(now + 1.5);
-        } else if (type === 'steal') {
-            // Steal: Quick slide down (Whoosh/Whip)
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(600, now);
-            osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
-            
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.linearRampToValueAtTime(0.001, now + 0.3);
-            
-            osc.start(now);
-            osc.stop(now + 0.3);
-        } else {
-            // Turn: Gentle Pop
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(400, now);
-            osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-            
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-            
-            osc.start(now);
-            osc.stop(now + 0.1);
-        }
-    } catch (e) {
-        console.error("Audio play failed", e);
+        osc.start(now);
+        osc.stop(now + 0.5);
+    } else {
+        // Turn Change (Pop)
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+        
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        
+        osc.start(now);
+        osc.stop(now + 0.1);
     }
 };
 
@@ -99,7 +99,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const [showActionModal, setShowActionModal] = useState(false);
     const [masterLinkCopied, setMasterLinkCopied] = useState(false);
     const [shareLinkCopied, setShareLinkCopied] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);
+    const [audioEnabled, setAudioEnabled] = useState(false);
     
     // Animation State
     const [overlayEvent, setOverlayEvent] = useState<{ type: 'steal' | 'open' | 'turn', text: string, subtext: string } | null>(null);
@@ -116,7 +116,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const prevHistoryLength = useRef(0);
     const isUpdatingRef = useRef(false); 
     const lastManualUpdateRef = useRef(0);
-    const gameRef = useRef<WEGame | null>(null); // Keep a ref to current game state for polling logic
+    const gameRef = useRef<WEGame | null>(null);
 
     const { gameId, organizerKey } = useMemo(() => {
         const params = new URLSearchParams(window.location.hash.slice(1));
@@ -128,10 +128,15 @@ const WhiteElephantDashboard: React.FC = () => {
 
     const isOrganizer = !!organizerKey;
 
-    // Keep Ref synced with state
     useEffect(() => {
         gameRef.current = game;
     }, [game]);
+
+    // Enable Audio Context on first interaction
+    const enableAudio = () => {
+        initAudio();
+        setAudioEnabled(true);
+    };
 
     useEffect(() => {
         if (!gameId) {
@@ -141,9 +146,6 @@ const WhiteElephantDashboard: React.FC = () => {
         }
 
         const fetchGame = async () => {
-            // FIX: Prevent stale data flickering.
-            // 1. If we are currently pushing an update, pause polling.
-            // 2. If we just pushed an update (< 4s ago), pause polling to let DB catch up.
             if (isUpdatingRef.current || (Date.now() - lastManualUpdateRef.current < 4000)) {
                 return;
             }
@@ -152,9 +154,6 @@ const WhiteElephantDashboard: React.FC = () => {
                 const data = await getGameState(gameId);
                 if (!data) throw new Error("Game not found.");
                 
-                // INTELLIGENT POLLING:
-                // If the server sends back data that has FEWER history items than what we have locally,
-                // it means the server is stale (eventual consistency). Ignore it.
                 const localHistoryLen = gameRef.current?.history.length || 0;
                 if (data.history.length < localHistoryLen) {
                     console.warn("Ignored stale server data");
@@ -164,7 +163,6 @@ const WhiteElephantDashboard: React.FC = () => {
                 setGame(data);
             } catch (err) {
                 if (!game) setError(err instanceof Error ? err.message : "Failed to load game.");
-                console.error("Polling error:", err);
             } finally {
                 setIsLoading(false);
             }
@@ -177,40 +175,55 @@ const WhiteElephantDashboard: React.FC = () => {
 
     // Event Listener for Sound and Animation
     useEffect(() => {
-        if (game && game.history.length > prevHistoryLength.current) {
-            const newEntry = game.history[game.history.length - 1];
-            const isNew = prevHistoryLength.current > 0; // Don't play sound on initial load
+        if (game) {
+            // If it's the first load, just sync the ref, don't play sound
+            if (prevHistoryLength.current === 0) {
+                prevHistoryLength.current = game.history.length;
+                return;
+            }
 
-            if (isNew) {
+            if (game.history.length > prevHistoryLength.current) {
+                const newEntry = game.history[game.history.length - 1];
+                
                 let type: 'steal' | 'open' | 'turn' | null = null;
                 let mainText = '';
                 let subText = '';
 
                 if (newEntry.includes('STEAL') || newEntry.includes('stole')) {
                     type = 'steal';
-                    mainText = 'GIFT STOLEN!';
-                    subText = newEntry.replace('STEAL! ', '');
+                    mainText = 'STOLEN!';
+                    subText = newEntry.replace(/STEAL!|stole/gi, '').trim(); // Simplified text for impact
+                    if(subText.includes('[')) {
+                         // Extract just the gift if possible for cleaner display
+                         // Example: "WWER stole [Socks] from SDF" -> "Socks"
+                         const match = subText.match(/\[(.*?)\]/);
+                         if(match) subText = match[1];
+                    }
                 } else if (newEntry.includes('opened')) {
                     type = 'open';
                     mainText = 'GIFT OPENED!';
-                    subText = newEntry;
+                    // Extract gift name for big display
+                    const match = newEntry.match(/\[(.*?)\]/);
+                    subText = match ? match[1] : 'Something New!';
                 } else if (newEntry.includes('turn')) {
                     type = 'turn';
                 }
 
-                if (type && !isMuted) {
+                // Play Sound
+                if (type && audioEnabled) {
                     playSoundEffect(type);
                 }
 
-                // Trigger Overlay for Open and Steal
+                // Trigger Overlay
                 if (type === 'steal' || type === 'open') {
                     setOverlayEvent({ type, text: mainText, subtext: subText });
-                    setTimeout(() => setOverlayEvent(null), 3500);
+                    setTimeout(() => setOverlayEvent(null), 4000);
                 }
+
+                prevHistoryLength.current = game.history.length;
             }
-            prevHistoryLength.current = game.history.length;
         }
-    }, [game?.history, isMuted]);
+    }, [game?.history, audioEnabled]);
 
     const handleUpdate = async (action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
         if (!gameId || !organizerKey || !game) return;
@@ -218,10 +231,13 @@ const WhiteElephantDashboard: React.FC = () => {
         setIsUpdating(true);
         isUpdatingRef.current = true;
 
+        // If we are triggering an action, we implicitly enable audio context for the organizer
+        if (!audioEnabled) enableAudio();
+
         try {
             const updatedGame = await updateGameState(gameId, organizerKey, action, payload);
             setGame(updatedGame);
-            lastManualUpdateRef.current = Date.now(); // Mark timestamp to pause polling
+            lastManualUpdateRef.current = Date.now();
             
             setShowActionModal(false);
             setStealActorId('');
@@ -295,27 +311,47 @@ const WhiteElephantDashboard: React.FC = () => {
         setTimeout(() => setShareLinkCopied(false), 2000);
     };
 
+    // Test function for organizer to verify animation/sound
+    const testAnimation = (type: 'open' | 'steal') => {
+        enableAudio();
+        playSoundEffect(type);
+        setOverlayEvent({ 
+            type, 
+            text: type === 'open' ? 'GIFT OPENED!' : 'STOLEN!', 
+            subtext: type === 'open' ? 'Mystery Box' : 'The Good Blender' 
+        });
+        setTimeout(() => setOverlayEvent(null), 4000);
+    };
+
     if (isLoading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin h-12 w-12 text-blue-600" /></div>;
     if (error) return <div className="text-center p-8"><h2 className="text-xl font-bold text-red-600">Error</h2><p>{error}</p></div>;
     if (!game) return <div className="text-center p-8"><h2 className="text-xl font-bold">Game Not Found</h2></div>;
 
     return (
-        <div className="bg-slate-100 min-h-screen font-sans relative">
+        <div className="bg-slate-100 min-h-screen font-sans relative" onClick={enableAudio}>
             
             {/* BIG ANIMATION OVERLAY */}
             {overlayEvent && (
-                <div className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-fade-in">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in pointer-events-none">
                     <div className={`
                         transform transition-all duration-500 scale-100 opacity-100
-                        p-8 md:p-12 rounded-3xl shadow-2xl text-center border-4 max-w-4xl w-full
-                        ${overlayEvent.type === 'steal' ? 'bg-red-600 border-red-400 rotate-2' : 'bg-green-600 border-green-400 -rotate-2'}
+                        p-12 rounded-[2rem] shadow-2xl text-center border-8 max-w-5xl w-full
+                        flex flex-col items-center justify-center min-h-[400px]
+                        ${overlayEvent.type === 'steal' ? 'bg-white border-red-500' : 'bg-white border-green-500'}
                     `}>
-                        <h1 className="text-5xl md:text-8xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-lg animate-bounce-short">
+                        <div className={`text-2xl font-bold mb-4 uppercase tracking-[0.3em] ${overlayEvent.type === 'steal' ? 'text-red-400' : 'text-green-400'}`}>
+                            Event Alert
+                        </div>
+                        <h1 className={`text-6xl md:text-8xl font-black uppercase tracking-tighter mb-6 drop-shadow-sm ${overlayEvent.type === 'steal' ? 'text-red-600' : 'text-green-600'}`}>
                             {overlayEvent.text}
                         </h1>
-                        <p className="text-xl md:text-3xl text-white font-bold opacity-90 font-serif">
-                            {overlayEvent.subtext}
-                        </p>
+                        {overlayEvent.subtext && (
+                            <div className="bg-slate-100 px-8 py-4 rounded-xl">
+                                <p className="text-3xl md:text-5xl text-slate-800 font-bold font-serif">
+                                    {overlayEvent.subtext}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -332,8 +368,12 @@ const WhiteElephantDashboard: React.FC = () => {
                         )}
                     </div>
                     <div className="mt-2 md:mt-0 flex gap-2 items-center">
-                         <button onClick={() => setIsMuted(!isMuted)} className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors" title={isMuted ? "Unmute Sounds" : "Mute Sounds"}>
-                            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                         <button 
+                            onClick={enableAudio} 
+                            className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors ${audioEnabled ? 'bg-green-100 text-green-800 border-green-200' : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'}`}
+                         >
+                            {audioEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                            {audioEnabled ? 'Sound On' : 'Enable Sound'}
                          </button>
                          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                             Theme: {game.theme}
@@ -370,6 +410,9 @@ const WhiteElephantDashboard: React.FC = () => {
                                         <FileText size={16} /> Rules
                                     </button>
                                 </div>
+                                <button onClick={() => testAnimation('open')} className="flex items-center gap-2 text-sm font-bold text-slate-600 bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded-lg transition-colors" title="Test Animation">
+                                    <Play size={16} /> Test Anim
+                                </button>
                                 <button onClick={handleCopyShareLink} className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors shadow-sm">
                                     {shareLinkCopied ? <Check size={16} /> : <Tv size={16} />}
                                     {shareLinkCopied ? 'Link Copied!' : 'Copy Shareable Game Link'}
