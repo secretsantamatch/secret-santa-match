@@ -7,7 +7,7 @@ import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { createGame } from '../services/whiteElephantService';
 import type { WEParticipant, WERules, WETheme } from '../types';
-import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building, HelpCircle, BookOpen, MapPin, Video } from 'lucide-react';
+import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building, HelpCircle, BookOpen, MapPin, Video, Gamepad2, ShoppingBag } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import { shouldTrackByDefault } from '../utils/privacy';
 
@@ -163,8 +163,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         { val: 'useful', label: 'Genuinely Useful', desc: 'Things people want', color: 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 ring-emerald-400' },
         { val: 'regift', label: 'Regift / Eco', desc: 'Re-home items', color: 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 ring-purple-400' }
     ];
-    
-    const isBlueMode = activeStep === 3;
 
     return (
         <>
@@ -183,37 +181,26 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
                 
                 <div ref={generatorRef} className="max-w-4xl mx-auto -mt-10 px-4 relative z-10">
-                     <div className={`rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transition-all duration-500 ease-in-out ${isBlueMode ? 'bg-gradient-to-br from-blue-600 to-cyan-500 text-white' : 'bg-white'}`}>
+                     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
                         
                         {/* HEADER TABS */}
-                        <div className={`flex border-b transition-colors duration-300 ${isBlueMode ? 'bg-black/10 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                        <div className="flex border-b bg-slate-50 border-slate-200">
                             {steps.map(step => {
                                 const isActive = activeStep === step.id;
                                 const isCompleted = activeStep > step.id;
                                 
-                                let tabBaseClass = "flex-1 py-4 flex flex-col sm:flex-row items-center justify-center gap-2 transition-all ";
                                 let tabColorClass = "";
                                 let circleClass = "";
 
-                                if (isBlueMode) {
-                                    if (isActive) {
-                                        tabColorClass = "bg-white/20 border-b-4 border-white text-white shadow-inner";
-                                        circleClass = "bg-white text-blue-600";
-                                    } else if (isCompleted) {
-                                        tabColorClass = "text-blue-200 hover:bg-white/10 cursor-pointer";
-                                        circleClass = "bg-blue-500/50 text-blue-100";
-                                    }
+                                if (isActive) {
+                                    tabColorClass = "bg-white border-b-4 border-blue-500 text-blue-700";
+                                    circleClass = "bg-blue-100 text-blue-600";
+                                } else if (isCompleted) {
+                                    tabColorClass = "text-green-600 cursor-pointer hover:bg-slate-100";
+                                    circleClass = "bg-green-100 text-green-600";
                                 } else {
-                                    if (isActive) {
-                                        tabColorClass = "bg-white border-b-4 border-blue-500 text-blue-700";
-                                        circleClass = "bg-blue-100 text-blue-600";
-                                    } else if (isCompleted) {
-                                        tabColorClass = "text-green-600 cursor-pointer hover:bg-slate-100";
-                                        circleClass = "bg-green-100 text-green-600";
-                                    } else {
-                                        tabColorClass = "text-slate-400";
-                                        circleClass = "bg-slate-200 text-slate-500";
-                                    }
+                                    tabColorClass = "text-slate-400";
+                                    circleClass = "bg-slate-200 text-slate-500";
                                 }
 
                                 return (
@@ -221,7 +208,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                         key={step.id} 
                                         onClick={() => activeStep > step.id ? setActiveStep(step.id) : null}
                                         disabled={activeStep < step.id}
-                                        className={`${tabBaseClass} ${tabColorClass}`}
+                                        className={`flex-1 py-4 flex flex-col sm:flex-row items-center justify-center gap-2 transition-all ${tabColorClass}`}
                                     >
                                         <div className={`p-2 rounded-full ${circleClass}`}>
                                             <step.icon size={20} />
@@ -379,7 +366,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
 
                             {/* STEP 3: READY */}
                             <div className={activeStep === 3 ? 'block animate-fade-in' : 'hidden'}>
-                                <div className="text-center py-12">
+                                <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-inner p-8 md:p-12 text-center">
                                     <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                                         <PartyPopper size={48} className="text-white" />
                                     </div>
@@ -399,11 +386,11 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                         </div>
 
                         {/* FOOTER */}
-                        <div className={`p-6 border-t flex justify-between items-center transition-colors duration-300 ${isBlueMode ? 'bg-black/10 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                        <div className="p-6 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
                             {activeStep > 1 ? (
                                 <button 
                                     onClick={() => setActiveStep(activeStep - 1)} 
-                                    className={`font-bold px-4 py-2 transition-colors ${isBlueMode ? 'text-blue-200 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`}
+                                    className="font-bold px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors"
                                 >
                                     Back
                                 </button>
@@ -590,6 +577,17 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                 {/* Strategy */}
                                 <FaqItem question="What makes a good White Elephant gift?">
                                     <p>The best gifts are: funny but useful, weird but desirable, or surprisingly nice. Think quirky kitchen gadgets, funny books, cozy items, or trending novelty products. Avoid trash—getting a truly bad gift isn't fun for anyone.</p>
+                                </FaqItem>
+
+                                {/* NEW FAQs for Internal Linking */}
+                                <FaqItem question="Can I use this for a Secret Santa exchange instead?">
+                                    <p>This tool is specifically for random order generation and stealing games. For a traditional gift exchange where you buy for a specific person, use our free <a href="/generator.html" className="text-blue-600 hover:underline font-semibold">Secret Santa Generator</a>. It handles private matching and wishlists instantly!</p>
+                                </FaqItem>
+                                <FaqItem question="Do you have ideas for funny or good gifts?">
+                                    <p>Absolutely! If you're stuck on what to bring, check out our curated list of <a href="/white-elephant-gifts-under-20.html" className="text-blue-600 hover:underline font-semibold">38 White Elephant Gifts Under $20</a> that people actually want to steal. We also have specific <a href="/streaming-gifts-2025.html" className="text-blue-600 hover:underline font-semibold">ideas for movie lovers</a>.</p>
+                                </FaqItem>
+                                <FaqItem question="How can I make the party more fun?">
+                                    <p>Besides the gift exchange, adding a simple game can liven things up. Try our <a href="/secret-santa-bingo-guide.html" className="text-blue-600 hover:underline font-semibold">Secret Santa Bingo</a> or check out these <a href="/halloween-party-games.html" className="text-blue-600 hover:underline font-semibold">15 Party Games for Adults</a> that work great for any holiday gathering.</p>
                                 </FaqItem>
                             </div>
                         </div>
