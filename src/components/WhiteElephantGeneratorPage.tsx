@@ -150,6 +150,8 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         { val: 'useful', label: 'Genuinely Useful', desc: 'Things people want', color: 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 ring-emerald-400' },
         { val: 'regift', label: 'Regift / Eco', desc: 'Re-home items', color: 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 ring-purple-400' }
     ];
+    
+    const isBlueMode = activeStep === 3;
 
     return (
         <>
@@ -168,24 +170,53 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
                 
                 <div ref={generatorRef} className="max-w-4xl mx-auto -mt-10 px-4 relative z-10">
-                     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-                        <div className="flex border-b bg-slate-50">
-                            {steps.map(step => (
-                                <button 
-                                    key={step.id} 
-                                    onClick={() => activeStep > step.id ? setActiveStep(step.id) : null}
-                                    disabled={activeStep < step.id}
-                                    className={`flex-1 py-4 flex flex-col sm:flex-row items-center justify-center gap-2 transition-all
-                                        ${activeStep === step.id ? 'bg-white border-b-4 border-blue-500 text-blue-700' : 'text-slate-400'}
-                                        ${activeStep > step.id ? 'text-green-600 cursor-pointer hover:bg-slate-100' : ''}
-                                    `}
-                                >
-                                    <div className={`p-2 rounded-full ${activeStep === step.id ? 'bg-blue-100' : (activeStep > step.id ? 'bg-green-100' : 'bg-slate-200')}`}>
-                                        <step.icon size={20} />
-                                    </div>
-                                    <span className="font-bold text-sm sm:text-base">{step.label}</span>
-                                </button>
-                            ))}
+                     <div className={`rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transition-all duration-500 ease-in-out ${isBlueMode ? 'bg-gradient-to-br from-blue-600 to-cyan-500 text-white' : 'bg-white'}`}>
+                        
+                        {/* HEADER TABS */}
+                        <div className={`flex border-b transition-colors duration-300 ${isBlueMode ? 'bg-black/10 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                            {steps.map(step => {
+                                const isActive = activeStep === step.id;
+                                const isCompleted = activeStep > step.id;
+                                
+                                let tabBaseClass = "flex-1 py-4 flex flex-col sm:flex-row items-center justify-center gap-2 transition-all ";
+                                let tabColorClass = "";
+                                let circleClass = "";
+
+                                if (isBlueMode) {
+                                    if (isActive) {
+                                        tabColorClass = "bg-white/20 border-b-4 border-white text-white shadow-inner";
+                                        circleClass = "bg-white text-blue-600";
+                                    } else if (isCompleted) {
+                                        tabColorClass = "text-blue-200 hover:bg-white/10 cursor-pointer";
+                                        circleClass = "bg-blue-500/50 text-blue-100";
+                                    }
+                                } else {
+                                    if (isActive) {
+                                        tabColorClass = "bg-white border-b-4 border-blue-500 text-blue-700";
+                                        circleClass = "bg-blue-100 text-blue-600";
+                                    } else if (isCompleted) {
+                                        tabColorClass = "text-green-600 cursor-pointer hover:bg-slate-100";
+                                        circleClass = "bg-green-100 text-green-600";
+                                    } else {
+                                        tabColorClass = "text-slate-400";
+                                        circleClass = "bg-slate-200 text-slate-500";
+                                    }
+                                }
+
+                                return (
+                                    <button 
+                                        key={step.id} 
+                                        onClick={() => activeStep > step.id ? setActiveStep(step.id) : null}
+                                        disabled={activeStep < step.id}
+                                        className={`${tabBaseClass} ${tabColorClass}`}
+                                    >
+                                        <div className={`p-2 rounded-full ${circleClass}`}>
+                                            <step.icon size={20} />
+                                        </div>
+                                        <span className="font-bold text-sm sm:text-base">{step.label}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                         
                         <div className="p-6 md:p-10 min-h-[400px]">
@@ -334,32 +365,34 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* STEP 3: READY */}
+                            {/* STEP 3: READY - NOW FULL BLUE MODE */}
                             <div className={activeStep === 3 ? 'block animate-fade-in' : 'hidden'}>
-                                <div className="text-center py-10">
-                                    <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-8 rounded-3xl text-white shadow-xl max-w-xl mx-auto transform hover:scale-105 transition-transform">
-                                        <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <PartyPopper size={40} className="text-white" />
-                                        </div>
-                                        <h2 className="text-3xl font-bold mb-2">Ready to Party!</h2>
-                                        <p className="text-blue-50 mb-6">
-                                            We've shuffled the names and set up your control room.
-                                        </p>
-                                        <div className="grid grid-cols-2 gap-4 text-left bg-white/10 rounded-xl p-4 text-sm">
-                                             <div className="flex items-center gap-2"><CheckCircle size={16}/> Random Order</div>
-                                             <div className="flex items-center gap-2"><CheckCircle size={16}/> Live Dashboard</div>
-                                             <div className="flex items-center gap-2"><CheckCircle size={16}/> Mobile Friendly</div>
-                                             <div className="flex items-center gap-2"><CheckCircle size={16}/> Free Printables</div>
-                                        </div>
+                                <div className="text-center py-12">
+                                    <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                                        <PartyPopper size={48} className="text-white" />
+                                    </div>
+                                    <h2 className="text-4xl font-bold mb-3 text-white drop-shadow-md">Ready to Party!</h2>
+                                    <p className="text-blue-100 mb-8 text-lg max-w-xl mx-auto">
+                                        We've shuffled the names and set up your live dashboard. <br/>Everything is ready for your event!
+                                    </p>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left bg-white/10 rounded-2xl p-6 text-sm max-w-3xl mx-auto border border-white/20 shadow-inner">
+                                         <div className="flex flex-col items-center text-center gap-2"><CheckCircle size={24} className="text-green-300"/> <span className="font-bold">Random Order</span></div>
+                                         <div className="flex flex-col items-center text-center gap-2"><CheckCircle size={24} className="text-green-300"/> <span className="font-bold">Live Dashboard</span></div>
+                                         <div className="flex flex-col items-center text-center gap-2"><CheckCircle size={24} className="text-green-300"/> <span className="font-bold">Mobile Friendly</span></div>
+                                         <div className="flex flex-col items-center text-center gap-2"><CheckCircle size={24} className="text-green-300"/> <span className="font-bold">Free Printables</span></div>
                                     </div>
                                 </div>
                             </div>
 
                         </div>
 
-                        <div className="p-6 bg-slate-50 border-t flex justify-between items-center">
+                        {/* FOOTER */}
+                        <div className={`p-6 border-t flex justify-between items-center transition-colors duration-300 ${isBlueMode ? 'bg-black/10 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                             {activeStep > 1 ? (
-                                <button onClick={() => setActiveStep(activeStep - 1)} className="text-slate-500 font-bold hover:text-slate-800 px-4 py-2">
+                                <button 
+                                    onClick={() => setActiveStep(activeStep - 1)} 
+                                    className={`font-bold px-4 py-2 transition-colors ${isBlueMode ? 'text-blue-200 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`}
+                                >
                                     Back
                                 </button>
                             ) : <div></div>}
@@ -369,7 +402,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                     Next Step <ArrowRight size={20} />
                                 </button>
                             ) : (
-                                <button onClick={handleGenerate} className="bg-green-600 hover:bg-green-700 text-white font-bold text-lg px-12 py-4 rounded-xl shadow-lg transform hover:scale-105 transition-all flex items-center gap-3 animate-pulse">
+                                <button onClick={handleGenerate} className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-10 py-4 rounded-full shadow-xl shadow-green-900/20 transform hover:scale-105 transition-all flex items-center gap-3 animate-pulse border-4 border-green-400/50">
                                     Generate Game! <PartyPopper size={24} />
                                 </button>
                             )}
