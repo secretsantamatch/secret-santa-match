@@ -7,7 +7,7 @@ import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, SkipForward, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, AlertTriangle, ExternalLink, Lock, Smartphone, ArrowRight } from 'lucide-react';
+import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, ArrowRight, FileText, BarChart3 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import QRCode from 'react-qr-code';
 
@@ -25,10 +25,6 @@ const SOUNDS = {
 const playAudio = (type: 'open' | 'steal' | 'turn') => {
     try {
         // In a real production app, these would be real mp3 file paths.
-        // Since we are using a generated environment, I'm using placeholders or relying on browser synthesis if possible.
-        
-        // For this specific request, I will use the Web Audio API to generate simple synthesized beeps 
-        // so that "Sound" actually produces noise without needing external assets.
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         if (!AudioContext) return;
         
@@ -88,6 +84,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const [soundEnabled, setSoundEnabled] = useState(false);
     const [overlayMessage, setOverlayMessage] = useState<{ title: string, subtitle: string, type: 'open' | 'steal' } | null>(null);
     const lastHistoryLen = useRef(0);
+    const overlayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Action States
     const [openGiftDescription, setOpenGiftDescription] = useState('');
@@ -134,6 +131,7 @@ const WhiteElephantDashboard: React.FC = () => {
 
         return () => {
             if (pollInterval.current) clearInterval(pollInterval.current);
+            if (overlayTimeoutRef.current) clearTimeout(overlayTimeoutRef.current);
         };
     }, []);
 
@@ -152,7 +150,6 @@ const WhiteElephantDashboard: React.FC = () => {
             if (latestEvent.includes('opened')) {
                 if (soundEnabled) playAudio('open');
                 // Extract info for overlay
-                // Format: "Name opened [Gift]!"
                 const match = latestEvent.match(/^(.*) opened \[(.*)\]!$/);
                 if (match) {
                     setOverlayMessage({ title: 'GIFT OPENED!', subtitle: `${match[1]} opened ${match[2]}`, type: 'open' });
@@ -171,15 +168,22 @@ const WhiteElephantDashboard: React.FC = () => {
                 if (soundEnabled) playAudio('turn');
             }
 
-            // Clear overlay after 3.5 seconds
-            setTimeout(() => setOverlayMessage(null), 3500);
+            // Clear any existing timeout to prevent flickering/early dismissal
+            if (overlayTimeoutRef.current) {
+                clearTimeout(overlayTimeoutRef.current);
+            }
+            
+            // Set new timeout to clear overlay after 5 seconds (increased from 3.5s)
+            overlayTimeoutRef.current = setTimeout(() => {
+                setOverlayMessage(null);
+                overlayTimeoutRef.current = null;
+            }, 5000);
         }
     }, [game, soundEnabled]);
 
     const fetchGame = async (id: string) => {
         // SKIP polling if we just manually updated the state recently (within 2 seconds)
         // OR if a manual update is currently in progress.
-        // This prevents the "flicker" where the server returns stale data before the new write consistency settles.
         if (Date.now() - lastManualUpdate.current < 2000 || isUpdatingRef.current) {
             return;
         }
@@ -187,8 +191,6 @@ const WhiteElephantDashboard: React.FC = () => {
         try {
             const data = await getGameState(id);
             if (data) {
-                // Extra safety: Don't update if the server data seems "older" (fewer history items)
-                // than what we currently have locally (unless it's a genuine undo/reset).
                 setGame(prev => {
                     if (prev && data.history.length < prev.history.length && !data.isFinished) {
                          return prev;
@@ -207,13 +209,13 @@ const WhiteElephantDashboard: React.FC = () => {
         
         setIsActionLoading(true);
         isUpdatingRef.current = true;
-        lastManualUpdate.current = Date.now(); // Mark timestamp
+        lastManualUpdate.current = Date.now();
 
         try {
             const updatedGame = await updateGameState(gameId, organizerKey, action, payload);
             if (updatedGame) {
                 setGame(updatedGame);
-                lastHistoryLen.current = updatedGame.history.length; // Sync history length to prevent double sound
+                lastHistoryLen.current = updatedGame.history.length;
                 trackEvent(`we_action_${action}`);
             }
         } catch (err) {
@@ -295,7 +297,34 @@ const WhiteElephantDashboard: React.FC = () => {
     
     // Copy Helper
     const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text).then(() => alert("Link copied!"));
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Link copied!");
+            trackEvent('copy_link', { link_type: 'dashboard_share' });
+        });
+    };
+    
+    // Progress Bar Component
+    const GameProgressBar = () => {
+        if (!game || !game.isStarted || game.isFinished) return null;
+        
+        const totalTurns = game.turnOrder.length;
+        const currentTurnNum = game.currentPlayerIndex + 1;
+        const progressPercent = (currentTurnNum / totalTurns) * 100;
+
+        return (
+            <div className="mb-6 px-1">
+               <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                   <span>Progress</span>
+                   <span>{game.finalRound ? 'Final Round!' : `Turn ${currentTurnNum} of ${totalTurns}`}</span>
+               </div>
+               <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+                   <div 
+                        className={`h-full transition-all duration-700 ease-out ${game.finalRound ? 'bg-purple-500' : 'bg-blue-500'}`} 
+                        style={{ width: `${game.finalRound ? 100 : progressPercent}%` }}
+                    ></div>
+               </div>
+            </div>
+        );
     };
 
     // ... Rendering ...
@@ -343,8 +372,9 @@ const WhiteElephantDashboard: React.FC = () => {
                                 <div className="flex items-center gap-2 mb-2 font-bold text-lg text-indigo-100">
                                     <Smartphone size={22} /> Player Dashboard Link
                                 </div>
-                                <p className="text-indigo-100 text-sm mb-4 opacity-90">
-                                    <span className="font-bold bg-indigo-500 px-1 rounded text-white">SHARE THIS!</span> Send this link to everyone's phones. They can see the live turn order, what gifts have been opened, and hear sound effects!
+                                <p className="text-indigo-100 text-sm mb-4 opacity-90 leading-relaxed">
+                                    <span className="font-bold bg-indigo-500 px-1.5 py-0.5 rounded text-white text-xs mr-1 align-middle">FOR ZOOM/TEAMS</span> 
+                                    Share this view on your screen so everyone can see the animations! Send the link below to phones for individual updates.
                                 </p>
                                 <div className="flex items-center gap-2 bg-indigo-800/50 p-2 rounded border border-indigo-400/30">
                                     <input type="text" readOnly value={playerLink} className="flex-1 text-xs text-indigo-200 bg-transparent truncate outline-none font-mono" />
@@ -383,14 +413,26 @@ const WhiteElephantDashboard: React.FC = () => {
                         </div>
                         {isOrganizer && (
                             <div className="flex flex-wrap gap-2">
-                                <button onClick={() => generateWETurnNumbersPdf(game.participants.length)} className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg border font-semibold text-sm flex items-center gap-2 transition-colors" title="Print Turn Numbers">
+                                <button 
+                                    onClick={() => { trackEvent('download_turn_numbers'); generateWETurnNumbersPdf(game.participants.length); }} 
+                                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 font-semibold text-sm flex items-center gap-2 transition-colors" 
+                                    title="Print Turn Numbers"
+                                >
                                     <Download size={16} /> Turn #s
                                 </button>
-                                <button onClick={() => generateWERulesPdf(game.rules, game.theme, game.groupName, game.eventDetails)} className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg border font-semibold text-sm flex items-center gap-2 transition-colors" title="Print Rules">
-                                    <Download size={16} /> Rules
+                                <button 
+                                    onClick={() => { trackEvent('download_rules'); generateWERulesPdf(game.rules, game.theme, game.groupName, game.eventDetails); }} 
+                                    className="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg border border-emerald-200 font-semibold text-sm flex items-center gap-2 transition-colors" 
+                                    title="Print Rules"
+                                >
+                                    <FileText size={16} /> Rules
                                 </button>
-                                <button onClick={() => generateWEGameLogPdf(game.history, game.participants, game.giftState, game.groupName, game.eventDetails)} className="px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-200 font-semibold text-sm flex items-center gap-2 transition-colors" title="Game Report">
-                                    <Users size={16} /> Summary
+                                <button 
+                                    onClick={() => { trackEvent('download_summary'); generateWEGameLogPdf(game.history, game.participants, game.giftState, game.groupName, game.eventDetails); }} 
+                                    className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg border border-blue-200 font-semibold text-sm flex items-center gap-2 transition-colors" 
+                                    title="Game Report"
+                                >
+                                    <BarChart3 size={16} /> Summary
                                 </button>
                             </div>
                         )}
@@ -461,6 +503,9 @@ const WhiteElephantDashboard: React.FC = () => {
                             <div className={`absolute top-0 left-0 w-full h-2 ${game.finalRound ? 'bg-purple-500' : game.isFinished ? 'bg-slate-400' : 'bg-gradient-to-r from-blue-500 to-cyan-500'}`}></div>
                             
                             <div className="p-8 md:p-12 text-center relative">
+                                
+                                <GameProgressBar />
+
                                 <div className="inline-block px-4 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">
                                     {game.isFinished ? 'Game Summary' : game.isStarted ? (game.finalRound ? 'Final Round' : 'Live Game') : 'Waiting Room'}
                                 </div>
