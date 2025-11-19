@@ -49,10 +49,11 @@ const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) =>
                     <div>
                         <h4 className="font-bold text-white mb-4 tracking-wider uppercase text-sm">Quick Links</h4>
                         <ul className="space-y-3 text-sm">
-                            <li><a href="/generator.html" className="text-slate-400 hover:text-white transition-colors">Generator</a></li>
+                            <li><a href="/generator.html" className="text-slate-400 hover:text-white transition-colors">Secret Santa Generator</a></li>
+                            <li><a href="/white-elephant-generator.html" className="text-slate-400 hover:text-white transition-colors">White Elephant Tool</a></li>
+                            <li><a href="/free-printables.html" className="text-slate-400 hover:text-white transition-colors">Free Printables Hub</a></li>
                             <li><a href="/" className="text-slate-400 hover:text-white transition-colors">Holiday Blog</a></li>
                             <li><a href="/holiday-budget-calculator.html" className="text-slate-400 hover:text-white transition-colors">Budget Calculator</a></li>
-                            <li><a href="/minimum-payment-calculator.html" className="text-slate-400 hover:text-white transition-colors">Debt Calculator</a></li>
                         </ul>
                     </div>
                     {/* Column 3: Company */}

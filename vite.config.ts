@@ -23,7 +23,8 @@ export default defineConfig({
         'minimum-payment-calculator': resolve(__dirname, 'minimum-payment-calculator.html'),
         'holiday-budget-calculator': resolve(__dirname, 'holiday-budget-calculator.html'),
        'terms-of-service': resolve(__dirname, 'terms-of-service.html'),
-        'complete-secret-santa-comparison': resolve(__dirname, 'complete-secret-santa-comparison.html')
+        'complete-secret-santa-comparison': resolve(__dirname, 'complete-secret-santa-comparison.html'),
+        'free-printables': resolve(__dirname, 'free-printables.html')
       }
     }
   },
