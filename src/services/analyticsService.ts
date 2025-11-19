@@ -1,3 +1,4 @@
+
 // FIX: The global declaration for `import.meta.env` has been removed.
 // It was conflicting with Vite's built-in client types, which should be
 // configured project-wide (e.g., in tsconfig.json). This redundant
@@ -25,7 +26,8 @@ export const initAnalytics = (): void => {
 export const trackEvent = (eventName: string, eventParams: Record<string, any> = {}): void => {
   if (typeof window.gtag === 'function') {
     const consent = localStorage.getItem('cookie_consent');
-    if (consent === 'true') {
+    // OPT-OUT MODEL: Track by default. Only block if explicitly set to 'false'.
+    if (consent !== 'false') {
         window.gtag('event', eventName, eventParams);
     }
   } else {
