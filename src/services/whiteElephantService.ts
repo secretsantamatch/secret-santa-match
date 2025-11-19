@@ -43,7 +43,7 @@ export const getGameState = async (gameId: string): Promise<WEGame | null> => {
 export const updateGameState = async (
     gameId: string, 
     organizerKey: string, 
-    action: 'next_player' | 'log_steal' | 'undo' | 'start_game' | 'end_game', 
+    action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', 
     payload?: any
 ): Promise<WEGame | null> => {
     try {
