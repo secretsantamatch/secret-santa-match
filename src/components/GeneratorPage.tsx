@@ -21,6 +21,7 @@ import { Users, ScrollText, Palette, Shuffle, AlertTriangle, ArrowRight } from '
 import CookieConsentBanner from './CookieConsentBanner';
 import { getRandomPersona } from '../services/personaService';
 import AdBanner from './AdBanner';
+import { shouldTrackByDefault } from '../utils/privacy';
 
 interface GeneratorPageProps {
   onComplete: (data: ExchangeData) => void;
@@ -66,10 +67,11 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         const consent = localStorage.getItem('cookie_consent');
         if (consent === null) {
             setShowCookieBanner(true);
-            // Opt-Out Model: Fire tracking immediately for new users
-            trackEvent('page_view', { page_title: 'Generator' });
         }
-        else if (consent !== 'false') {
+        // Hybrid Tracking: 
+        // If US -> Tracks immediately. 
+        // If EU -> Waits for consent.
+        if (shouldTrackByDefault()) {
              trackEvent('page_view', { page_title: 'Generator' });
         }
         

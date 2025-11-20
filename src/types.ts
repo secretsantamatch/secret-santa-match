@@ -110,3 +110,47 @@ export interface CalculatorResult {
     interestVsPrincipal: { name: string; value: number; fill: string; }[];
     moneySavingTips: { label: string; amount: number; description: string; icon: React.FC<any>; }[];
 }
+
+
+// --- WHITE ELEPHANT TYPES ---
+
+export interface WEParticipant {
+    id: string;
+    name: string;
+}
+
+export type WETheme = 'classic' | 'funny' | 'useful' | 'regift';
+
+export interface WERules {
+    stealLimit: number;
+    noStealBack: boolean;
+}
+
+export interface WEEvent {
+    type: 'info' | 'steal' | 'open' | 'start' | 'end';
+    message: string;
+    timestamp: number;
+    payload?: {
+        actor?: string;
+        target?: string;
+        gift?: string;
+    }; 
+}
+
+export interface WEGame {
+    gameId: string;
+    organizerKey: string;
+    groupName?: string;
+    eventDetails?: string;
+    participants: WEParticipant[];
+    turnOrder: WEParticipant[];
+    rules: WERules;
+    theme: WETheme;
+    currentPlayerIndex: number;
+    isStarted: boolean;
+    isFinished: boolean;
+    finalRound: boolean; 
+    history: string[];
+    giftState: Record<string, string>; // Maps Participant ID -> Gift Description
+    createdAt: string;
+    }

@@ -1,12 +1,9 @@
+
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import type { ExchangeData, Participant } from '../types';
+import type { ExchangeData, Participant, WERules, WETheme, WEParticipant } from '../types';
 
-// Augment jsPDF with the autoTable method
-// FIX: Changed from an interface to a type intersection. This correctly combines
-// the jsPDF class type with the additional autoTable method, resolving
-// multiple errors where methods on the original jsPDF object were not found.
 type jsPDFWithAutoTable = jsPDF & {
   autoTable: (options: any) => jsPDF;
 };
@@ -83,7 +80,6 @@ export const generateAllCardsPdf = async (exchangeData: ExchangeData): Promise<v
         pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
     }
     
-    // Watermark and page number are intentionally removed per user request.
     pdf.save('Secret_Santa_Cards.pdf');
 };
 
@@ -160,6 +156,245 @@ export const generateMasterListPdf = (exchangeData: ExchangeData): void => {
 
     addPageWatermark(pdf);
     pdf.save('Secret_Santa_Master_List.pdf');
+};
+
+// --- NEW WHITE ELEPHANT FUNCTIONS ---
+
+export const generateWETurnNumbersPdf = (count: number): void => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const PAGE_WIDTH = pdf.internal.pageSize.getWidth();
+    const PAGE_HEIGHT = pdf.internal.pageSize.getHeight();
+    const MARGIN = 15;
+    const cardWidth = (PAGE_WIDTH - MARGIN * 3) / 2; // 2 cards per row
+    const cardHeight = 60;
+    const cardsPerPage = 8; // 4 rows x 2 cols
+
+    let x = MARGIN;
+    let y = MARGIN;
+    let cardsOnPage = 0;
+
+    for (let i = 1; i <= count; i++) {
+        if (cardsOnPage >= cardsPerPage) {
+            pdf.addPage();
+            cardsOnPage = 0;
+            y = MARGIN;
+            x = MARGIN;
+        }
+
+        // Draw Card Border
+        pdf.setDrawColor(200);
+        pdf.setLineWidth(0.5);
+        pdf.rect(x, y, cardWidth, cardHeight);
+        
+        // Decorative Header
+        pdf.setFillColor(240, 249, 255); // Light blue
+        pdf.rect(x, y, cardWidth, 15, 'F');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10);
+        pdf.setTextColor(50, 50, 50);
+        pdf.text("WHITE ELEPHANT", x + cardWidth / 2, y + 10, { align: 'center' });
+
+        // The Number
+        pdf.setFont('times', 'bold');
+        pdf.setFontSize(60);
+        pdf.setTextColor(37, 99, 235); // Blue-600
+        pdf.text(String(i), x + cardWidth / 2, y + 45, { align: 'center' });
+
+        // Footer
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(150);
+        pdf.text("SecretSantaMatch.com", x + cardWidth / 2, y + cardHeight - 3, { align: 'center' });
+
+        cardsOnPage++;
+        if (cardsOnPage % 2 === 0) {
+            x = MARGIN;
+            y += cardHeight + 10;
+        } else {
+            x += cardWidth + MARGIN;
+        }
+    }
+
+    pdf.save('White_Elephant_Turn_Numbers.pdf');
+};
+
+export const generateWERulesPdf = (rules: WERules, theme: WETheme, groupName?: string, eventDetails?: string): void => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const PAGE_WIDTH = pdf.internal.pageSize.getWidth();
+    const PAGE_HEIGHT = pdf.internal.pageSize.getHeight();
+    const MARGIN = 20;
+    const PRIMARY_RED = '#c62828';
+    const PRIMARY_GREEN = '#166534';
+    const BORDER_GOLD = '#D4AF37';
+
+    // Draw Decorative Border
+    pdf.setDrawColor(PRIMARY_RED);
+    pdf.setLineWidth(1.5);
+    pdf.rect(MARGIN - 5, MARGIN - 5, PAGE_WIDTH - (MARGIN * 2) + 10, PAGE_HEIGHT - (MARGIN * 2) + 10);
+    pdf.setDrawColor(BORDER_GOLD);
+    pdf.setLineWidth(0.5);
+    pdf.rect(MARGIN - 2, MARGIN - 2, PAGE_WIDTH - (MARGIN * 2) + 4, PAGE_HEIGHT - (MARGIN * 2) + 4);
+    
+    // Header Title
+    pdf.setFont('times', 'bold');
+    pdf.setFontSize(32);
+    pdf.setTextColor(PRIMARY_RED);
+    pdf.text("White Elephant Rules", PAGE_WIDTH / 2, MARGIN + 15, { align: 'center' });
+    
+    let currentY = MARGIN + 35;
+
+    // Custom Event Header Box
+    if (groupName || eventDetails) {
+        pdf.setDrawColor(PRIMARY_GREEN);
+        pdf.setLineWidth(0.5);
+        pdf.setFillColor(240, 253, 244); // Very light green
+        pdf.roundedRect(MARGIN, currentY, PAGE_WIDTH - MARGIN * 2, 25, 3, 3, 'FD');
+        
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(14);
+        pdf.setTextColor(PRIMARY_GREEN);
+        if (groupName) pdf.text(groupName, PAGE_WIDTH / 2, currentY + 10, { align: 'center' });
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(11);
+        pdf.setTextColor(60);
+        if (eventDetails) pdf.text(eventDetails, PAGE_WIDTH / 2, currentY + 18, { align: 'center' });
+        
+        currentY += 35;
+    }
+
+    // Game Config Grid
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(12);
+    pdf.setTextColor(50);
+    
+    const drawConfigItem = (label: string, value: string, x: number, y: number) => {
+        pdf.setFillColor(248, 250, 252);
+        pdf.setDrawColor(200);
+        pdf.rect(x, y, (PAGE_WIDTH - MARGIN * 2) / 3 - 2, 20, 'FD');
+        pdf.setFontSize(9);
+        pdf.setTextColor(100);
+        pdf.text(label, x + 5, y + 6);
+        pdf.setFontSize(11);
+        pdf.setTextColor(0);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(value, x + 5, y + 15);
+    };
+
+    const colWidth = (PAGE_WIDTH - MARGIN * 2) / 3;
+    drawConfigItem("THEME", theme === 'classic' ? 'Classic' : theme === 'funny' ? 'Funny & Weird' : theme === 'useful' ? 'Useful' : 'Regift', MARGIN, currentY);
+    drawConfigItem("STEAL LIMIT", rules.stealLimit === 0 ? 'Unlimited' : `${rules.stealLimit} per gift`, MARGIN + colWidth, currentY);
+    drawConfigItem("STEAL BACK", rules.noStealBack ? 'No Immediate' : 'Allowed', MARGIN + colWidth * 2, currentY);
+
+    currentY += 35;
+
+    // Standard Rules List
+    const standardRules = [
+        { title: "1. Wrap It Up", text: "Everyone brings a wrapped gift to the circle." },
+        { title: "2. Draw Numbers", text: "Everyone draws a number to decide the order." },
+        { title: "3. First Player", text: "Player #1 picks a gift from the pile and opens it for everyone to see." },
+        { title: "4. Next Players", text: "The next player can choose to:\n   a) Pick a new wrapped gift from the pile.\n   b) Steal an already opened gift from another player." },
+        { title: "5. Get Stolen From?", text: "If your gift is stolen, you can pick a new gift or steal from someone else (but you can't steal back immediately if that rule is on!)." },
+        { title: "6. Game Over", text: "The game ends when the last gift is opened." },
+        { title: "7. The Final Twist", text: "Player #1 gets the final turn to swap their gift with anyone else!" }
+    ];
+
+    pdf.setFont('times', 'bold');
+    pdf.setFontSize(18);
+    pdf.setTextColor(PRIMARY_RED);
+    pdf.text("How to Play:", MARGIN, currentY);
+    
+    // Decorative Line
+    pdf.setDrawColor(BORDER_GOLD);
+    pdf.setLineWidth(0.5);
+    pdf.line(MARGIN, currentY + 2, MARGIN + 40, currentY + 2);
+    
+    currentY += 15;
+
+    standardRules.forEach(rule => {
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(11);
+        pdf.setTextColor(0);
+        pdf.text(rule.title, MARGIN, currentY);
+        
+        const textHeight = pdf.getTextDimensions(rule.title).h;
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
+        pdf.setTextColor(60);
+        
+        const splitText = pdf.splitTextToSize(rule.text, PAGE_WIDTH - MARGIN * 2 - 5);
+        pdf.text(splitText, MARGIN, currentY + 5);
+        
+        currentY += (splitText.length * 5) + 10; // Spacing between rules
+    });
+
+    // Footer
+    pdf.setFontSize(9);
+    pdf.setTextColor(150);
+    pdf.text("Generated by SecretSantaMatch.com", PAGE_WIDTH / 2, PAGE_HEIGHT - MARGIN + 2, { align: 'center' });
+
+    pdf.save('White_Elephant_Rules.pdf');
+};
+
+export const generateWEGameLogPdf = (history: string[], participants: WEParticipant[], giftState: Record<string, string>, groupName?: string, eventDetails?: string): void => {
+    const pdf = new jsPDF() as jsPDFWithAutoTable;
+    
+    // Header
+    pdf.setFontSize(22);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(37, 99, 235); // Blue
+    pdf.text("White Elephant Game Summary", pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(0);
+    if (groupName) pdf.text(groupName, pdf.internal.pageSize.getWidth() / 2, 30, { align: 'center' });
+    if (eventDetails) pdf.text(eventDetails, pdf.internal.pageSize.getWidth() / 2, 36, { align: 'center' });
+
+    // Action Log Table
+    const body = history.map((entry, index) => [index + 1, entry]);
+
+    pdf.autoTable({
+        startY: 45,
+        head: [['#', 'Action Log']],
+        body: body,
+        theme: 'striped',
+        headStyles: { fillColor: '#2563eb' },
+        columnStyles: { 0: { cellWidth: 15 } }
+    });
+
+    // Final Gift Distribution Table
+    const giftBody = participants
+        .filter(p => giftState && giftState[p.id])
+        .map(p => [p.name, giftState[p.id]]);
+
+    if (giftBody.length > 0) {
+        // Determine if we need a new page or can fit it
+        const finalY = (pdf as any).lastAutoTable.finalY;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        
+        if (finalY + 60 > pageHeight) {
+            pdf.addPage();
+            (pdf as any).lastAutoTable.finalY = 20; // Reset Y for new page
+        }
+
+        pdf.setFontSize(16);
+        pdf.setTextColor(22, 101, 52); // Green
+        pdf.text("Final Gift Distribution", pdf.internal.pageSize.getWidth() / 2, (pdf as any).lastAutoTable.finalY + 20, { align: 'center' });
+
+        pdf.autoTable({
+            startY: (pdf as any).lastAutoTable.finalY + 25,
+            head: [['Player', 'Gift']],
+            body: giftBody,
+            theme: 'striped',
+            headStyles: { fillColor: '#166534' }, // Green for gifts
+            columnStyles: { 0: { cellWidth: 60 } }
+        });
+    }
+
+    addPageWatermark(pdf);
+    pdf.save('White_Elephant_Game_Log.pdf');
 };
 
 export const generatePartyPackPdf = async (): Promise<void> => {
