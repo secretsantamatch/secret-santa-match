@@ -42,7 +42,7 @@ const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) =>
                             <span>SecretSantaMatch</span>
                         </a>
                         <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
-                            The easiest free Secret Santa generator. Instantly draw names, add exclusions, and share private links—no emails or signups required.
+                            The ultimate free holiday party platform. Instantly organize Secret Santa & White Elephant games, download festive printables, and find the best gift ideas—all with no emails or sign-ups required.
                         </p>
                     </div>
                     {/* Column 2: Quick Links */}
