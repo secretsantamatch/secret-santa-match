@@ -14,7 +14,7 @@ import QRCode from 'react-qr-code';
 // --- SOUND EFFECTS (Base64 encoded for instant playback) ---
 const SOUNDS = {
     // "Ding/Chime" for opening a gift
-    open: 'data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq',
+    open: 'data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq',
     // "Whoosh/Slide" for stealing
     steal: 'data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq',
     // "Pop" for next turn
@@ -84,7 +84,8 @@ const WhiteElephantDashboard: React.FC = () => {
     const [soundEnabled, setSoundEnabled] = useState(false);
     const [overlayMessage, setOverlayMessage] = useState<{ title: string, subtitle: string, type: 'open' | 'steal' } | null>(null);
     const lastHistoryLen = useRef(0);
-    const overlayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // FIX: Explicitly type as number | null and use window.setTimeout to avoid NodeJS.Timeout type conflict
+    const overlayTimeoutRef = useRef<number | null>(null);
 
     // Action States
     const [openGiftDescription, setOpenGiftDescription] = useState('');
@@ -96,7 +97,8 @@ const WhiteElephantDashboard: React.FC = () => {
     const [showEndGameModal, setShowEndGameModal] = useState(false);
 
     // Polling Refs (Critical for flicker fix)
-    const pollInterval = useRef<NodeJS.Timeout | null>(null);
+    // FIX: Explicitly type as number | null and use window.setInterval
+    const pollInterval = useRef<number | null>(null);
     const lastManualUpdate = useRef<number>(0); // Timestamp of last manual action
     const isUpdatingRef = useRef(false); // Flag if an update request is in flight
 
@@ -111,8 +113,8 @@ const WhiteElephantDashboard: React.FC = () => {
 
         if (gId) {
             fetchGame(gId);
-            // Start Polling every 3 seconds
-            pollInterval.current = setInterval(() => fetchGame(gId), 3000);
+            // Start Polling every 3 seconds using window.setInterval
+            pollInterval.current = window.setInterval(() => fetchGame(gId), 3000);
 
             // Generate short link for player view
             const longLink = `${window.location.href.split('#')[0]}#gameId=${gId}`;
@@ -130,8 +132,8 @@ const WhiteElephantDashboard: React.FC = () => {
         }
 
         return () => {
-            if (pollInterval.current) clearInterval(pollInterval.current);
-            if (overlayTimeoutRef.current) clearTimeout(overlayTimeoutRef.current);
+            if (pollInterval.current) window.clearInterval(pollInterval.current);
+            if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
         };
     }, []);
 
@@ -170,11 +172,11 @@ const WhiteElephantDashboard: React.FC = () => {
 
             // Clear any existing timeout to prevent flickering/early dismissal
             if (overlayTimeoutRef.current) {
-                clearTimeout(overlayTimeoutRef.current);
+                window.clearTimeout(overlayTimeoutRef.current);
             }
             
-            // Set new timeout to clear overlay after 5 seconds (increased from 3.5s)
-            overlayTimeoutRef.current = setTimeout(() => {
+            // Set new timeout to clear overlay after 5 seconds
+            overlayTimeoutRef.current = window.setTimeout(() => {
                 setOverlayMessage(null);
                 overlayTimeoutRef.current = null;
             }, 5000);
