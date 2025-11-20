@@ -63,6 +63,25 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     // PWA & Cookie State
     const [showCookieBanner, setShowCookieBanner] = useState(false);
 
+    // Analytics: Track Step Changes
+    useEffect(() => {
+        const stepNames = {
+            1: 'Add Participants',
+            2: 'Add Details & Rules',
+            3: 'Style Cards'
+        };
+        const currentStepName = stepNames[activeStep as keyof typeof stepNames];
+        
+        // Only track if we are in a valid step range
+        if (currentStepName) {
+            trackEvent('step_view', { 
+                step_number: activeStep, 
+                step_name: currentStepName,
+                generator_type: 'secret_santa'
+            });
+        }
+    }, [activeStep]);
+
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
         if (consent === null) {
@@ -206,11 +225,19 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         trackEvent('click_clear_all');
     };
     
-    const addExclusion = () => setExclusions(produce(draft => { draft.push({ p1: '', p2: '' }); }));
+    const addExclusion = () => {
+        setExclusions(produce(draft => { draft.push({ p1: '', p2: '' }); }));
+        trackEvent('feature_click', { feature: 'add_exclusion' });
+    };
+    
     const updateExclusion = (index: number, field: 'p1' | 'p2', value: string) => setExclusions(produce(draft => { draft[index][field] = value; }));
     const removeExclusion = (index: number) => setExclusions(exclusions.filter((_, i) => i !== index));
 
-    const addAssignment = () => setAssignments(produce(draft => { draft.push({ giverId: '', receiverId: '' }); }));
+    const addAssignment = () => {
+        setAssignments(produce(draft => { draft.push({ giverId: '', receiverId: '' }); }));
+        trackEvent('feature_click', { feature: 'add_assignment' });
+    };
+    
     const updateAssignment = (index: number, field: 'giverId' | 'receiverId', value: string) => setAssignments(produce(draft => { draft[index][field] = value; }));
     const removeAssignment = (index: number) => setAssignments(assignments.filter((_, i) => i !== index));
 
@@ -276,7 +303,15 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 greetingText, introText, wishlistLabelText,
             };
             
-            trackEvent('generate_success', { participants: validParticipants.length });
+            // Enhanced tracking for success event
+            trackEvent('generate_success', { 
+                participants: validParticipants.length,
+                selected_theme: selectedBackgroundId,
+                exclusion_count: exclusions.length,
+                assignment_count: assignments.length,
+                has_budget: validParticipants.some(p => p.budget && p.budget.trim().length > 0)
+            });
+            
             onComplete({ ...exchangePayload, backgroundOptions });
             localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear draft on success
 
