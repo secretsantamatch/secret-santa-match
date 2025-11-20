@@ -9,10 +9,11 @@ const VideoTutorial: React.FC = () => {
                 </h2>
                 <div className="aspect-w-16 aspect-h-9 max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-lg">
                     <iframe
-                        src="https://www.youtube.com/embed/H6JpNsKRVKE?start=21"
-                        title="How to Use Secret Santa Match Tutorial"
+                        src="https://www.youtube.com/embed/I1_70eIGwPE?si=gOswZHJEOmAVL20z&start=2"
+                        title="YouTube video player"
                         frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
                         className="w-full h-full"
                     ></iframe>
