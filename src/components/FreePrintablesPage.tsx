@@ -1,9 +1,11 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
-import { Download, Printer, Heart } from 'lucide-react';
+import CookieConsentBanner from './CookieConsentBanner';
+import { Download, Printer, Heart, Search } from 'lucide-react';
+import { trackEvent } from '../services/analyticsService';
+import { shouldTrackByDefault } from '../utils/privacy';
 
 interface Printable {
     id: string;
@@ -103,16 +105,58 @@ const PRINTABLES: Printable[] = [
 
 const FreePrintablesPage: React.FC = () => {
     const [filter, setFilter] = useState<'All' | 'Gift Tags' | 'Games' | 'Planning'>('All');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showCookieBanner, setShowCookieBanner] = useState(false);
 
-    const filteredItems = filter === 'All' 
-        ? PRINTABLES 
-        : PRINTABLES.filter(p => p.category === filter);
+    useEffect(() => {
+        const consent = localStorage.getItem('cookie_consent');
+        if (consent === null) {
+            setShowCookieBanner(true);
+        }
+        if (shouldTrackByDefault()) {
+            trackEvent('view_free_printables_page');
+        }
+    }, []);
+
+    const handleCookieAccept = () => {
+        localStorage.setItem('cookie_consent', 'true');
+        setShowCookieBanner(false);
+        trackEvent('cookie_consent_accept');
+    };
+
+    const handleCookieDecline = () => {
+        localStorage.setItem('cookie_consent', 'false');
+        setShowCookieBanner(false);
+    };
+
+    const filteredItems = useMemo(() => {
+        let items = PRINTABLES;
+        
+        if (filter !== 'All') {
+            items = items.filter(p => p.category === filter);
+        }
+        
+        if (searchTerm) {
+            const lowerTerm = searchTerm.toLowerCase();
+            items = items.filter(p => 
+                p.title.toLowerCase().includes(lowerTerm) || 
+                p.description.toLowerCase().includes(lowerTerm)
+            );
+        }
+        
+        return items;
+    }, [filter, searchTerm]);
 
     const handlePinIt = (item: Printable) => {
         const url = encodeURIComponent(window.location.origin + item.link);
         const media = encodeURIComponent(window.location.origin + item.image);
         const desc = encodeURIComponent(item.description);
         window.open(`https://pinterest.com/pin/create/button/?url=${url}&media=${media}&description=${desc}`, '_blank');
+        trackEvent('pinterest_pin', { item_id: item.id });
+    };
+    
+    const handleDownloadClick = (item: Printable) => {
+        trackEvent('download_click', { item_id: item.id, category: item.category });
     };
 
     return (
@@ -134,6 +178,18 @@ const FreePrintablesPage: React.FC = () => {
                         Make your holiday easier (and prettier) with our curated collection of free downloads. 
                         From vintage gift tags to hilarious party games, it's all here—no email required.
                     </p>
+                    
+                    {/* Search Bar */}
+                    <div className="max-w-md mx-auto mb-8 relative">
+                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                         <input 
+                            type="search" 
+                            placeholder="Search printables (e.g., 'tags', 'bingo')..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 rounded-full border-2 border-slate-200 focus:border-red-500 focus:ring-4 focus:ring-red-100 outline-none transition-all shadow-sm text-slate-700 font-medium"
+                         />
+                    </div>
                     
                     <div className="flex flex-wrap justify-center gap-3">
                         {['All', 'Gift Tags', 'Games', 'Planning'].map((cat) => (
@@ -162,55 +218,63 @@ const FreePrintablesPage: React.FC = () => {
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="5555555555" data-ad-format="auto" data-full-width-responsive="true" />
 
                 {/* Masonry-style Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredItems.map((item) => (
-                        <div key={item.id} className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-slate-100 flex flex-col h-full relative">
-                            
-                            {/* Image Container */}
-                            <div className="relative overflow-hidden aspect-[4/3]">
-                                <img 
-                                    src={item.image} 
-                                    alt={item.title} 
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                    loading="lazy"
-                                />
-                                {/* Overlay on Hover */}
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
-                                    <button 
-                                        onClick={() => handlePinIt(item)}
-                                        className="bg-red-600 text-white px-4 py-2 rounded-full font-bold flex items-center gap-2 hover:bg-red-700 transform hover:scale-105 transition-all"
-                                        title="Pin to Pinterest"
-                                    >
-                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12 0C5.373 0 0 5.373 0 12c0 4.99 3.063 9.248 7.39 10.966-.102-.934-.195-2.368.04-3.388.212-.918 1.36-5.766 1.36-5.766s-.347-.694-.347-1.72c0-1.612.935-2.815 2.1-2.815.99 0 1.468.743 1.468 1.634 0 .996-.634 2.487-.96 3.868-.273 1.156.58 2.098 1.718 2.098 2.062 0 3.648-2.174 3.648-5.307 0-2.776-1.995-4.708-4.84-4.708-3.526 0-5.593 2.645-5.593 5.38 0 1.065.41 2.205.92 2.826.102.123.116.23.086.354-.095.395-.307 1.246-.35 1.418-.055.227-.18.275-.415.166-1.548-.72-2.513-2.983-2.513-4.8 0-3.91 2.84-7.508 8.19-7.508 4.3 0 7.644 3.065 7.644 7.162 0 4.274-2.694 7.713-6.433 7.713-1.256 0-2.437-.653-2.84-1.423l-.774 2.95c-.28.995-1.038 2.24-1.546 3.002.995.305 2.05.47 3.14.47 6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
-                                        Pin It
-                                    </button>
-                                </div>
-                                {item.isPopular && (
-                                    <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
-                                        <Heart size={12} fill="currentColor" /> Popular
+                {filteredItems.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {filteredItems.map((item) => (
+                            <div key={item.id} className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-slate-100 flex flex-col h-full relative">
+                                
+                                {/* Image Container */}
+                                <div className="relative overflow-hidden aspect-[4/3]">
+                                    <img 
+                                        src={item.image} 
+                                        alt={item.title} 
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                        loading="lazy"
+                                    />
+                                    {/* Overlay on Hover */}
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                                        <button 
+                                            onClick={() => handlePinIt(item)}
+                                            className="bg-red-600 text-white px-4 py-2 rounded-full font-bold flex items-center gap-2 hover:bg-red-700 transform hover:scale-105 transition-all"
+                                            title="Pin to Pinterest"
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12 0C5.373 0 0 5.373 0 12c0 4.99 3.063 9.248 7.39 10.966-.102-.934-.195-2.368.04-3.388.212-.918 1.36-5.766 1.36-5.766s-.347-.694-.347-1.72c0-1.612.935-2.815 2.1-2.815.99 0 1.468.743 1.468 1.634 0 .996-.634 2.487-.96 3.868-.273 1.156.58 2.098 1.718 2.098 2.062 0 3.648-2.174 3.648-5.307 0-2.776-1.995-4.708-4.84-4.708-3.526 0-5.593 2.645-5.593 5.38 0 1.065.41 2.205.92 2.826.102.123.116.23.086.354-.095.395-.307 1.246-.35 1.418-.055.227-.18.275-.415.166-1.548-.72-2.513-2.983-2.513-4.8 0-3.91 2.84-7.508 8.19-7.508 4.3 0 7.644 3.065 7.644 7.162 0 4.274-2.694 7.713-6.433 7.713-1.256 0-2.437-.653-2.84-1.423l-.774 2.95c-.28.995-1.038 2.24-1.546 3.002.995.305 2.05.47 3.14.47 6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+                                            Pin It
+                                        </button>
                                     </div>
-                                )}
-                            </div>
+                                    {item.isPopular && (
+                                        <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
+                                            <Heart size={12} fill="currentColor" /> Popular
+                                        </div>
+                                    )}
+                                </div>
 
-                            {/* Content */}
-                            <div className="p-6 flex flex-col flex-grow">
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{item.category}</div>
-                                <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-red-600 transition-colors">
-                                    {item.title}
-                                </h3>
-                                <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
-                                    {item.description}
-                                </p>
-                                <a 
-                                    href={item.link} 
-                                    className="w-full py-3 rounded-xl bg-slate-100 hover:bg-red-600 hover:text-white text-slate-700 font-bold text-center transition-all duration-300 flex items-center justify-center gap-2"
-                                >
-                                    <Download size={18} /> Get Free Printable
-                                </a>
+                                {/* Content */}
+                                <div className="p-6 flex flex-col flex-grow">
+                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{item.category}</div>
+                                    <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-red-600 transition-colors">
+                                        {item.title}
+                                    </h3>
+                                    <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
+                                        {item.description}
+                                    </p>
+                                    <a 
+                                        href={item.link} 
+                                        onClick={() => handleDownloadClick(item)}
+                                        className="w-full py-3 rounded-xl bg-slate-100 hover:bg-red-600 hover:text-white text-slate-700 font-bold text-center transition-all duration-300 flex items-center justify-center gap-2"
+                                    >
+                                        <Download size={18} /> Get Free Printable
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-20">
+                         <p className="text-xl text-slate-500 font-serif italic">No printables found matching "{searchTerm}".</p>
+                         <button onClick={() => { setSearchTerm(''); setFilter('All'); }} className="mt-4 text-red-600 font-bold hover:underline">Clear Search</button>
+                    </div>
+                )}
 
                 {/* Bottom CTA */}
                 <div className="mt-20 bg-slate-900 rounded-3xl p-12 text-center text-white relative overflow-hidden">
@@ -230,6 +294,7 @@ const FreePrintablesPage: React.FC = () => {
 
             </main>
             <Footer />
+            {showCookieBanner && <CookieConsentBanner onAccept={handleCookieAccept} onDecline={handleCookieDecline} />}
         </div>
     );
 };
