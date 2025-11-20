@@ -45,6 +45,25 @@ const WhiteElephantGeneratorPage: React.FC = () => {
     const [showCookieBanner, setShowCookieBanner] = useState(false);
     const generatorRef = useRef<HTMLDivElement>(null);
 
+    // Analytics: Track Step Changes
+    useEffect(() => {
+        const stepNames = {
+            1: 'Add Names',
+            2: 'Set Rules',
+            3: 'Generate'
+        };
+        const currentStepName = stepNames[activeStep as keyof typeof stepNames];
+        
+        // Only track if we are in a valid step range
+        if (currentStepName) {
+            trackEvent('step_view', { 
+                step_number: activeStep, 
+                step_name: currentStepName,
+                generator_type: 'white_elephant'
+            });
+        }
+    }, [activeStep]);
+
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
         if (consent === null) {
@@ -123,7 +142,12 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         const validParticipants = participants.filter(p => p.name.trim() !== '');
         
         setIsLoading(true);
-        trackEvent('we_generate_start', { participant_count: validParticipants.length, theme, rules });
+        // Track the design/rules preference at start of generation
+        trackEvent('we_generate_start', { 
+            participant_count: validParticipants.length, 
+            theme, 
+            rules 
+        });
         
         try {
             const gameData = await createGame(validParticipants, rules, theme, groupName, eventDetails);
