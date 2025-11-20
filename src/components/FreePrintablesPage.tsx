@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
-import { Download, Search, Filter, Printer, Share2, Heart } from 'lucide-react';
+import { Download, Printer, Heart } from 'lucide-react';
 
 interface Printable {
     id: string;
@@ -213,7 +214,7 @@ const FreePrintablesPage: React.FC = () => {
 
                 {/* Bottom CTA */}
                 <div className="mt-20 bg-slate-900 rounded-3xl p-12 text-center text-white relative overflow-hidden">
-                     <div className="relative z-10">
+                    <div className="relative z-10">
                         <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Organizing a Gift Exchange?</h2>
                         <p className="text-slate-300 text-lg max-w-2xl mx-auto mb-8">
                             Our Secret Santa Generator is free, private, and doesn't require any emails or sign-ups. It pairs perfectly with these printables!
