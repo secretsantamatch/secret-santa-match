@@ -46,6 +46,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
     const generatorRef = useRef<HTMLDivElement>(null);
 
     // Analytics: Track Step Changes
+    // Detailed step tracking to lower bounce rate and measure drop-off
     useEffect(() => {
         const stepNames = {
             1: 'Add Names',
@@ -54,7 +55,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         };
         const currentStepName = stepNames[activeStep as keyof typeof stepNames];
         
-        // Only track if we are in a valid step range
         if (currentStepName) {
             trackEvent('step_view', { 
                 step_number: activeStep, 
@@ -142,7 +142,9 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         const validParticipants = participants.filter(p => p.name.trim() !== '');
         
         setIsLoading(true);
-        // Track the design/rules preference at start of generation
+        
+        // PREFERENCE TRACKING:
+        // Record what settings users are choosing (e.g., do people like the 'Funny' theme?)
         trackEvent('we_generate_start', { 
             participant_count: validParticipants.length, 
             theme, 
