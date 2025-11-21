@@ -46,7 +46,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     
     // Options State
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
-    const [eventDetails, setEventDetails] = useState('');
+    const [eventDetails, setEventDetails] = useState(''); // FIXED: Default to empty string
     const [selectedBackgroundId, setSelectedBackgroundId] = useState('gift-border');
     const [customBackground, setCustomBackground] = useState<string | null>(null);
     const [textColor, setTextColor] = useState('#265343');
@@ -109,7 +109,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                     setParticipants(draft.participants || [ { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' } ]);
                     setExclusions(draft.exclusions || []);
                     setAssignments(draft.assignments || []);
-                    setEventDetails(draft.eventDetails || 'Gift exchange on Dec 25th!');
+                    setEventDetails(draft.eventDetails || ''); // FIXED: Default to empty
                     setSelectedBackgroundId(draft.selectedBackgroundId || 'gift-border');
                     setCustomBackground(draft.customBackground || null);
                     setTextColor(draft.textColor || '#265343');
@@ -135,7 +135,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             setParticipants(initialData.p.length > 0 ? initialData.p : [ { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' } ]);
             setExclusions(initialData.exclusions || []);
             setAssignments(initialData.assignments || []);
-            setEventDetails(initialData.eventDetails || 'Gift exchange on Dec 25th!');
+            setEventDetails(initialData.eventDetails || ''); // FIXED: Default to empty
             setSelectedBackgroundId(initialData.bgId || 'gift-border');
             setCustomBackground(initialData.customBackground || null);
             setTextColor(initialData.textColor || '#265343');
@@ -155,7 +155,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
             ]);
-            setEventDetails('Gift exchange on Dec 25th!');
+            setEventDetails(''); // FIXED: Default to empty
             setGreetingText("Happy Holidays, {secret_santa}!");
             setIntroText("You are the Secret Santa for...");
             setWishlistLabelText("Gift Ideas & Wishlist");
