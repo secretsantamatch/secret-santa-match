@@ -64,6 +64,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     const [showCookieBanner, setShowCookieBanner] = useState(false);
 
     // Analytics: Track Step Changes
+    // This lowers bounce rate by recording engagement as they move through the wizard
     useEffect(() => {
         const stepNames = {
             1: 'Add Participants',
@@ -72,7 +73,6 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         };
         const currentStepName = stepNames[activeStep as keyof typeof stepNames];
         
-        // Only track if we are in a valid step range
         if (currentStepName) {
             trackEvent('step_view', { 
                 step_number: activeStep, 
@@ -227,6 +227,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     
     const addExclusion = () => {
         setExclusions(produce(draft => { draft.push({ p1: '', p2: '' }); }));
+        // FEATURE TRACKING: Track when users use advanced features
         trackEvent('feature_click', { feature: 'add_exclusion' });
     };
     
@@ -235,6 +236,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
 
     const addAssignment = () => {
         setAssignments(produce(draft => { draft.push({ giverId: '', receiverId: '' }); }));
+        // FEATURE TRACKING: Track when users use advanced features
         trackEvent('feature_click', { feature: 'add_assignment' });
     };
     
@@ -303,7 +305,8 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 greetingText, introText, wishlistLabelText,
             };
             
-            // Enhanced tracking for success event
+            // PREFERENCE TRACKING:
+            // Track detailed stats about the generated game to understand user preferences.
             trackEvent('generate_success', { 
                 participants: validParticipants.length,
                 selected_theme: selectedBackgroundId,
