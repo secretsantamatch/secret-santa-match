@@ -10,6 +10,7 @@ import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } fr
 import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, ArrowRight, FileText, BarChart3 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import QRCode from 'react-qr-code';
+import { shouldTrackByDefault } from '../utils/privacy';
 
 // --- SOUND EFFECTS (Base64 encoded for instant playback) ---
 const SOUNDS = {
@@ -84,7 +85,6 @@ const WhiteElephantDashboard: React.FC = () => {
     const [soundEnabled, setSoundEnabled] = useState(false);
     const [overlayMessage, setOverlayMessage] = useState<{ title: string, subtitle: string, type: 'open' | 'steal' } | null>(null);
     const lastHistoryLen = useRef(0);
-    // FIX: Explicitly type as number | null and use window.setTimeout to avoid NodeJS.Timeout type conflict
     const overlayTimeoutRef = useRef<number | null>(null);
 
     // Action States
@@ -96,8 +96,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const [showOpenModal, setShowOpenModal] = useState(false);
     const [showEndGameModal, setShowEndGameModal] = useState(false);
 
-    // Polling Refs (Critical for flicker fix)
-    // FIX: Explicitly type as number | null and use window.setInterval
+    // Polling Refs
     const pollInterval = useRef<number | null>(null);
     const lastManualUpdate = useRef<number>(0); // Timestamp of last manual action
     const isUpdatingRef = useRef(false); // Flag if an update request is in flight
@@ -125,6 +124,15 @@ const WhiteElephantDashboard: React.FC = () => {
                     else setShortPlayerLink(longLink);
                 })
                 .catch(() => setShortPlayerLink(longLink));
+            
+            // BOUNCE RATE FIX: Fire Virtual Page View
+            if (shouldTrackByDefault()) {
+                trackEvent('page_view', {
+                    page_title: oKey ? 'White Elephant Organizer Dashboard' : 'White Elephant Player View',
+                    page_location: window.location.href,
+                    page_path: oKey ? '/white-elephant/organizer-dashboard' : '/white-elephant/player-view'
+                });
+            }
 
         } else {
             setError("No game ID found in URL.");
