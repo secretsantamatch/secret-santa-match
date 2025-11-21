@@ -11,10 +11,10 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
-import { shouldTrackByDefault } from '../utils/privacy';
+import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
 
 interface ResultsPageProps {
     data: ExchangeData;
@@ -107,6 +107,21 @@ const CocktailPromo = () => (
     </div>
 );
 
+const MetPromo = () => (
+    <div className="p-4 bg-gradient-to-r from-stone-50 to-orange-50 rounded-lg border border-stone-200">
+        <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-stone-600 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                <Palette size={20} />
+            </div>
+            <div>
+                <h4 className="font-bold text-stone-800">For the Art Lover</h4>
+                <p className="text-sm text-stone-600">Unique, artistic gifts inspired by 5,000 years of art history.</p>
+                <a href="https://store.metmuseum.org/" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-orange-700 hover:underline">Shop The Met Store &rarr;</a>
+            </div>
+        </div>
+    </div>
+);
+
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
@@ -174,29 +189,38 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         if (!currentMatch) return null;
     
         const combinedText = `${currentMatch.receiver.interests?.toLowerCase() || ''} ${currentMatch.receiver.likes?.toLowerCase() || ''}`;
+        const isEu = isEuVisitor();
     
-        const promos = [
-            { id: 'pet', keywords: ['pet', 'dog', 'cat', 'puppy', 'kitten', 'animal'] },
-            { id: 'spa', keywords: ['spa', 'relax', 'bath', 'pamper', 'massage'] },
-            { id: 'cocktail', keywords: ['cocktail', 'drinks', 'wine', 'alcohol', 'bar', 'spirits'] }
-        ];
-    
-        let firstPromoId: string | null = null;
-        let firstPromoIndex = Infinity;
-    
-        for (const promo of promos) {
-            for (const keyword of promo.keywords) {
-                const index = combinedText.indexOf(keyword);
-                if (index !== -1 && index < firstPromoIndex) {
-                    firstPromoId = promo.id;
-                    firstPromoIndex = index;
-                }
-            }
+        // 1. High Priority: Global Art/History (The Met)
+        // Good for everyone, including EU/International
+        if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry/)) {
+            return <MetPromo />;
         }
+
+        // 2. US-Specific Promos (Hide for EU visitors to save clicks/bounce)
+        if (!isEu) {
+             const promos = [
+                { id: 'pet', keywords: ['pet', 'dog', 'cat', 'puppy', 'kitten', 'animal'] },
+                { id: 'spa', keywords: ['spa', 'relax', 'bath', 'pamper', 'massage', 'candle'] },
+                { id: 'cocktail', keywords: ['cocktail', 'drinks', 'wine', 'alcohol', 'bar', 'spirits'] }
+            ];
         
-        if (firstPromoId === 'pet') return <PetPromo />;
-        if (firstPromoId === 'spa') return <SpaPromo />;
-        if (firstPromoId === 'cocktail') return <CocktailPromo />;
+            let firstPromoId: string | null = null;
+    
+            for (const promo of promos) {
+                for (const keyword of promo.keywords) {
+                    if (combinedText.includes(keyword)) {
+                        firstPromoId = promo.id;
+                        break;
+                    }
+                }
+                if (firstPromoId) break;
+            }
+            
+            if (firstPromoId === 'pet') return <PetPromo />;
+            if (firstPromoId === 'spa') return <SpaPromo />;
+            if (firstPromoId === 'cocktail') return <CocktailPromo />;
+        }
         
         return null;
     }, [currentMatch]);
@@ -211,7 +235,16 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         // If US -> Tracks immediately. 
         // If EU -> Waits for consent.
         if (shouldTrackByDefault()) {
+             // Keep legacy event
              trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+             
+             // BOUNCE RATE FIX: Fire a virtual "Page View"
+             // This tells Google that "Dashboard" is a separate page from "Generator"
+             trackEvent('page_view', {
+                page_title: isOrganizer ? 'Secret Santa Organizer Dashboard' : 'Secret Santa Reveal Page',
+                page_location: window.location.href,
+                page_path: isOrganizer ? '/secret-santa/organizer-dashboard' : '/secret-santa/reveal'
+             });
         }
 
         if (isOrganizer) {
@@ -258,6 +291,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         setIsShareModalOpen(true);
         trackEvent('open_share_modal', { initial_view: view });
     };
+    
+    const openWishlistModal = () => {
+        setIsWishlistModalOpen(true);
+        trackEvent('open_wishlist_editor');
+    };
 
     const executeShuffle = async () => {
         if (!isOrganizer) return;
@@ -288,6 +326,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             trackEvent('copy_link', { link_type: 'organizer_master_link' });
         });
     };
+    
+    const isEu = isEuVisitor();
 
     if (!isOrganizer && !currentMatch) {
         return (
@@ -407,7 +447,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                             <span className="font-bold text-green-700">{currentMatch.giver.name}</span>, you are the Secret Santa for...
                                         </p>
                                         
-                                        <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
+                                        <button onClick={openWishlistModal} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
                                             Edit My Wishlist for My Santa
                                         </button>
                                         
@@ -441,19 +481,21 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         </div>
                                                     )}
 
-                                                    {/* SugarRush Affiliate Promo */}
-                                                    <div className="p-4 bg-gradient-to-r from-pink-50 to-amber-50 rounded-lg border border-pink-200">
-                                                        <div className="flex items-start gap-4">
-                                                            <div className="flex-shrink-0 bg-pink-500 text-white rounded-full h-10 w-10 flex items-center justify-center mt-1">
-                                                                <Gift />
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="font-bold text-pink-800">Premium Gift Idea</h4>
-                                                                <p className="text-sm text-pink-700">Looking for a 'wow' gift? Consider a gourmet candy box from SugarRush!</p>
-                                                                <a href="https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-pink-600 hover:underline">Shop SugarRush Gifts &rarr;</a>
+                                                    {/* SugarRush Affiliate Promo - Hidden for EU */}
+                                                    {!isEu && (
+                                                        <div className="p-4 bg-gradient-to-r from-pink-50 to-amber-50 rounded-lg border border-pink-200">
+                                                            <div className="flex items-start gap-4">
+                                                                <div className="flex-shrink-0 bg-pink-500 text-white rounded-full h-10 w-10 flex items-center justify-center mt-1">
+                                                                    <Gift />
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="font-bold text-pink-800">Premium Gift Idea</h4>
+                                                                    <p className="text-sm text-pink-700">Looking for a 'wow' gift? Consider a gourmet candy box from SugarRush!</p>
+                                                                    <a href="https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-pink-600 hover:underline">Shop SugarRush Gifts &rarr;</a>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    )}
 
                                                     {SmartPromoComponent}
 
@@ -479,19 +521,21 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     </div>
                                                 )}
 
-                                                {/* Credit Karma Promo */}
-                                                 <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="flex-shrink-0 bg-indigo-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
-                                                            <TrendingUp />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-bold text-indigo-800">Manage Your Holiday Budget</h4>
-                                                            <p className="text-sm text-indigo-700">Keep track of your holiday spending and credit score for free.</p>
-                                                            <a href="https://www.awin1.com/awclick.php?gid=580820&mid=66532&awinaffid=2612068&linkid=4507342&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-indigo-600 hover:underline">Try Credit Karma &rarr;</a>
+                                                {/* Credit Karma Promo - Hidden for EU */}
+                                                 {!isEu && (
+                                                     <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="flex-shrink-0 bg-indigo-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                                                                <TrendingUp />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="font-bold text-indigo-800">Manage Your Holiday Budget</h4>
+                                                                <p className="text-sm text-indigo-700">Keep track of your holiday spending and credit score for free.</p>
+                                                                <a href="https://www.awin1.com/awclick.php?gid=580820&mid=66532&awinaffid=2612068&linkid=4507342&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-indigo-600 hover:underline">Try Credit Karma &rarr;</a>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                 )}
                                             </div>
                                         )}
                                     </div>
