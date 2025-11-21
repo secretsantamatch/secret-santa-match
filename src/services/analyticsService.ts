@@ -1,4 +1,3 @@
-
 import { shouldTrackByDefault } from '../utils/privacy';
 
 // This file centralizes Google Analytics tracking.
@@ -19,17 +18,28 @@ export const initAnalytics = (): void => {
  * @param {Record<string, any>} [eventParams] - Optional parameters for the event.
  */
 export const trackEvent = (eventName: string, eventParams: Record<string, any> = {}): void => {
+  // Debug log to verify function is called
+  console.log(`[Analytics] Attempting to track: ${eventName}`, eventParams);
+
+  // Check if tracking is allowed
+  if (!shouldTrackByDefault()) {
+      console.warn(`[Analytics] Blocked by privacy settings: ${eventName}`);
+      return;
+  }
+
   if (typeof window.gtag === 'function') {
-    // Use the smart logic: 
-    // - Returns TRUE for US/Global users immediately (unless they declined)
-    // - Returns FALSE for EU users (unless they accepted)
-    if (shouldTrackByDefault()) {
-        window.gtag('event', eventName, eventParams);
-    }
+    window.gtag('event', eventName, eventParams);
+    console.log(`[Analytics] Event SENT to Google: ${eventName}`);
   } else {
-    // Do not log in production, but helpful for development
-    if (import.meta.env.DEV) {
-        console.log(`Analytics Event (gtag not found): ${eventName}`, eventParams);
+    console.error(`[Analytics] FAILED: window.gtag is not a function. Is AdBlock on?`);
+    
+    // Fallback: Try pushing to dataLayer directly if gtag function is missing but script loaded
+    if (window.dataLayer) {
+        console.log(`[Analytics] Attempting fallback push to dataLayer...`);
+        window.dataLayer.push({
+            'event': eventName,
+            ...eventParams
+        });
     }
   }
 };
