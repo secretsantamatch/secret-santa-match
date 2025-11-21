@@ -35,9 +35,10 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-HG140X6CQ6');
+      // Explicitly define gtag on window to ensure availability
+      window.gtag = function(){window.dataLayer.push(arguments);}
+      window.gtag('js', new Date());
+      window.gtag('config', 'G-HG140X6CQ6');
     </script>
 
     <!-- Google AdSense -->
