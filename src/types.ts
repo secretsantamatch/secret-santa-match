@@ -1,9 +1,9 @@
 import type React from 'react';
 
-// FIX: Added global declaration for window.gtag to resolve TypeScript errors across the application.
 declare global {
   interface Window {
     gtag: (command: 'event', eventName: string, eventParams?: Record<string, any>) => void;
+    dataLayer: unknown[];
   }
 }
 
@@ -51,7 +51,7 @@ export interface BackgroundOption {
 }
 
 export interface ExchangeData {
-  id?: string; // Only used client-side for hash, not a DB id
+  id?: string;
   p: Participant[];
   matches: { g: string; r: string }[];
   exclusions: Exclusion[];
@@ -69,8 +69,8 @@ export interface ExchangeData {
   greetingText: string;
   introText: string;
   wishlistLabelText: string;
-  backgroundOptions: BackgroundOption[]; // Loaded client-side, not stored in URL
-  views?: Record<string, any>; // FIX: Added optional 'views' property for tracking link views.
+  backgroundOptions: BackgroundOption[];
+  views?: Record<string, any>;
 }
 
 export interface Resource {
@@ -153,4 +153,4 @@ export interface WEGame {
     history: string[];
     giftState: Record<string, string>; // Maps Participant ID -> Gift Description
     createdAt: string;
-    }
+}
