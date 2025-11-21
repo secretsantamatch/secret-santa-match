@@ -27,29 +27,20 @@ export const trackEvent = (eventName: string, eventParams: Record<string, any> =
       return;
   }
 
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', eventName, eventParams);
-    console.log(`[Analytics] Event SENT to Google: ${eventName}`);
-  } else {
-    // Self-Healing Logic: If window.gtag is missing (AdBlock or slow load), 
-    // we attempt to recreate the minimal gtag function to push data to the dataLayer.
-    // This allows tracking to work if the script eventually loads, or if GTM is used.
-    console.warn(`[Analytics] window.gtag missing. Attempting self-healing...`);
-    
-    if (!window.dataLayer) {
-        window.dataLayer = [];
-    }
-    
-    if (!window.gtag) {
-        window.gtag = function() { window.dataLayer.push(arguments); }
-    }
-    
-    // Try sending again with the shimmed function
-    try {
-        window.gtag('event', eventName, eventParams);
-        console.log(`[Analytics] Event QUEUED via fallback (dataLayer): ${eventName}`);
-    } catch (e) {
-        console.error(`[Analytics] CRITICAL FAILURE: Could not track event.`, e);
-    }
+  // SELF-HEALING LOGIC
+  // If window.gtag doesn't exist yet (script slow to load), we create a temporary shim.
+  // This prevents "window.gtag is not a function" errors and queues the event for later.
+  if (typeof window.gtag !== 'function') {
+      console.warn(`[Analytics] window.gtag missing. Creating fallback shim...`);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function() { window.dataLayer.push(arguments); }
+  }
+
+  // Now safe to call
+  try {
+      window.gtag('event', eventName, eventParams);
+      console.log(`[Analytics] Event SENT to Google: ${eventName}`);
+  } catch (e) {
+      console.error(`[Analytics] CRITICAL FAILURE: Could not track event.`, e);
   }
 };
