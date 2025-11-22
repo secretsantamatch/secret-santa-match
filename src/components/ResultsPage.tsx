@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -11,10 +10,10 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
-import { shouldTrackByDefault } from '../utils/privacy';
+import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
 
 interface ResultsPageProps {
     data: ExchangeData;
@@ -24,14 +23,359 @@ interface ResultsPageProps {
 
 type LiveWishlists = Record<string, Partial<Omit<Participant, 'id' | 'name'>>>;
 
+// --- AFFILIATE LINKS (Your IDs) ---
+const AFFILIATE_LINKS = {
+    AMAZON_TAG: "secretsanmat-20",
+    SUGAR_RUSH: "https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=",
+    THE_MET: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1772143.347&type=3&subid=0",
+    CREDIT_KARMA: "https://www.awin1.com/awclick.php?gid=580820&mid=66532&awinaffid=2612068&linkid=4507342&clickref=",
+    GIFTCARDS_COM: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.925&subid=0&type=4",
+    TEABOOK: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068"
+};
+
+// --- SNIPER DEALS (Main Gifts - $20+) ---
+const SNIPER_DEALS = [
+    {
+        keywords: ['blanket', 'throw', 'cozy', 'warm', 'soft', 'bed', 'couch', 'home'],
+        url: `https://www.amazon.com/dp/B0CK9SR543?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2QJOSHFSVGDO1&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2QJOSHFSVGDO1_1763778354440`,
+        name: 'Faux Fur Throw Blanket',
+        icon: Moon,
+        promoText: 'Cozy Pick: Faux Fur Blanket',
+        color: 'text-stone-600'
+    },
+    {
+        keywords: ['quilt', 'cotton', 'throw', 'decor', 'beige', 'brown', 'living room'],
+        url: `https://www.amazon.com/dp/B0D3JCPZDB?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.17QTZOO69DJAF&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.17QTZOO69DJAF_1763778288849`,
+        name: 'Cotton Quilted Throw',
+        icon: ShoppingBag,
+        promoText: 'Home Decor: Quilted Throw',
+        color: 'text-amber-700'
+    },
+    {
+        keywords: ['slipper', 'shoe', 'arch support', 'comfort', 'feet', 'mom', 'grandma'],
+        url: `https://www.amazon.com/dp/B0FL6XFLMZ?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3MJY4XPP0F0NB&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3MJY4XPP0F0NB_1763778261421`,
+        name: 'Arch Support Slippers',
+        icon: Smile,
+        promoText: 'Comfort Pick: Support Slippers',
+        color: 'text-rose-600'
+    },
+    {
+        keywords: ['kitchen', 'cook', 'gadget', 'tool', 'pizza', 'garlic', 'chef'],
+        url: `https://www.amazon.com/dp/B0FLCZB5C1?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1PPXU1LGBSR42&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1PPXU1LGBSR42_1763778008137`,
+        name: 'Premium Kitchen Set',
+        icon: Utensils,
+        promoText: 'Chef\'s Choice: Kitchen Set',
+        color: 'text-zinc-600'
+    },
+    {
+        keywords: ['slipper', 'sock', 'men', 'dad', 'brother', 'husband', 'fleece'],
+        url: `https://www.amazon.com/dp/B0DFVJBCPD?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.PT0SPMEIC3U6&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.PT0SPMEIC3U6_1763777972911`,
+        name: 'Mens Slipper Socks',
+        icon: ShoppingBag,
+        promoText: 'Cozy Gift: Mens Slippers',
+        color: 'text-slate-700'
+    },
+    {
+        keywords: ['skin', 'balm', 'tallow', 'moisturizer', 'natural', 'skincare', 'face'],
+        url: `https://www.amazon.com/dp/B0DTGQN758?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2LAASFXWLYT6U&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2LAASFXWLYT6U_1763777896535`,
+        name: 'Whipped Tallow Balm',
+        icon: Sparkles,
+        promoText: 'Viral Skincare: Tallow Balm',
+        color: 'text-emerald-700'
+    },
+    {
+        keywords: ['car', 'wash', 'drying', 'towel', 'cleaning', 'auto', 'truck'],
+        url: `https://www.amazon.com/dp/B0BPMMSQ13?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1L7ZRS38TT88P&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1L7ZRS38TT88P_1763777713716`,
+        name: 'Shammy XL Cloth',
+        icon: Car,
+        promoText: 'Car Lover: XL Shammy',
+        color: 'text-blue-800'
+    },
+    {
+        keywords: ['meat', 'thermometer', 'grill', 'bbq', 'steak', 'cooking'],
+        url: `https://www.amazon.com/dp/B00S93EQUK?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.AA0X17M8N4V6&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.AA0X17M8N4V6_1763777639135`,
+        name: 'Digital Meat Thermometer',
+        icon: Thermometer,
+        promoText: 'Top Rated: Instant Read Thermometer',
+        color: 'text-red-700'
+    },
+    {
+        keywords: ['candle', 'warmer', 'lamp', 'light', 'scent', 'aesthetic', 'vintage'],
+        url: `https://www.amazon.com/dp/B0CHRT3HZS?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1RSE0J9PZOOGB&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1RSE0J9PZOOGB_1763777396107`,
+        name: 'Candle Warmer Lamp',
+        icon: Flame,
+        promoText: 'Trending: Candle Warmer',
+        color: 'text-amber-600'
+    },
+    {
+        keywords: ['mattress', 'heated', 'bed', 'sleep', 'cold', 'winter', 'electric blanket'],
+        url: `https://www.amazon.com/dp/B011KZ8EX8?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.24NE2WDE1A0HY&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.24NE2WDE1A0HY_1763776969635`,
+        name: 'Heated Mattress Pad',
+        icon: Moon,
+        promoText: 'Stay Warm: Heated Mattress Pad',
+        color: 'text-slate-600'
+    },
+    {
+        keywords: ['bath', 'bomb', 'set', 'gift', 'spa', 'essential oil', 'relaxation'],
+        url: `https://www.amazon.com/dp/B07SX18BGD?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.15OTDT3Q4NILE&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.15OTDT3Q4NILE_1763776885486`,
+        name: 'Bath Bomb Gift Set',
+        icon: Gift,
+        promoText: 'Gift Idea: 12 Bath Bombs',
+        color: 'text-purple-500'
+    }
+];
+
+// --- STOCKING STUFFERS (Cheap Add-ons - Under $15) ---
+const STOCKING_STUFFERS = [
+    {
+        name: 'Tinted Lip Plumper',
+        url: `https://www.amazon.com/dp/B0C7KTQDC3?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.152AF08NB0PAI&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.152AF08NB0PAI_1763778467692`,
+        icon: Smile,
+        desc: 'Hydrating & Glossy'
+    },
+    {
+        name: 'Lavender Foot Balm',
+        url: `https://www.amazon.com/dp/B0D81KGRXY?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2UF9E3C30DG4O&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2UF9E3C30DG4O_1763778414775`,
+        icon: Sparkles,
+        desc: 'Deep Hydration'
+    },
+    {
+        name: 'Fuzzy Mens Socks',
+        url: `https://www.amazon.com/dp/B0FP1PK9MZ?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1Y0J5SNDQIX3M&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1Y0J5SNDQIX3M_1763778158731`,
+        icon: ShoppingBag,
+        desc: 'Warm & Durable'
+    },
+    {
+        name: 'Lip Gloss Set',
+        url: `https://www.amazon.com/dp/B0FNNFPH11?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.18OLS5AFQMQ25&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.18OLS5AFQMQ25_1763778094203`,
+        icon: Gift,
+        desc: 'Hot Cocoa Scented'
+    },
+    {
+        name: 'Eye Brightener Stick',
+        url: `https://www.amazon.com/dp/B0CVBGLZ5S?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.24Y1WJL9RQIF7&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.24Y1WJL9RQIF7_1763777817681`,
+        icon: Eye,
+        desc: 'Wake Up Tired Eyes'
+    },
+    {
+        name: 'Fuzzy Slippers',
+        url: `https://www.amazon.com/dp/B0DSZZ37JD?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1HSY0XFXTCLLT&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1HSY0XFXTCLLT_1763777592278`,
+        icon: Moon,
+        desc: 'Open Toe Comfort'
+    },
+    {
+        name: 'French Cookies',
+        url: `https://www.amazon.com/dp/B07Z19YMN4?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3GU0VWLV1VHFA&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3GU0VWLV1VHFA_1763777366321`,
+        icon: Cookie,
+        desc: 'Real Butter Shortbread'
+    },
+    {
+        name: 'Crystal Bath Bomb',
+        url: `https://www.amazon.com/dp/B0D1YG1SXM?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2HHD1QD1IETFG&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2HHD1QD1IETFG_1763777199755`,
+        icon: Droplet,
+        desc: 'Rose Quartz Surprise'
+    },
+    {
+        name: 'Candy Cane Candle',
+        url: `https://www.amazon.com/dp/B0FJY2X6XG?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2495YJ1VCSZTC&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2495YJ1VCSZTC_1763776723320`,
+        icon: Flame,
+        desc: 'Holiday Scent'
+    }
+];
+
+// --- PROMO COMPONENTS ---
+
+const HighCommissionPromo = ({ deal }: { deal: typeof SNIPER_DEALS[0] }) => (
+    <div className={`p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg border border-slate-200 shadow-sm animate-fade-in`}>
+        <div className="flex items-center gap-4">
+            <div className={`flex-shrink-0 ${deal.color.replace('text-', 'bg-').replace('600', '100').replace('700', '100')} ${deal.color} rounded-full h-12 w-12 flex items-center justify-center`}>
+                <deal.icon size={24} />
+            </div>
+            <div className="flex-grow">
+                <h4 className={`font-bold ${deal.color.replace('600', '800').replace('700', '900')}`}>{deal.promoText}</h4>
+                <p className="text-sm text-slate-600">Based on their wishlist, they might love this!</p>
+                <a 
+                    href={deal.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer sponsored" 
+                    className={`text-sm font-bold ${deal.color} hover:underline mt-1 inline-block`}
+                    onClick={() => trackEvent('affiliate_click', { partner: `High Comm: ${deal.name}` })}
+                >
+                    View Deal on Amazon &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+);
+
+const MetPromo = () => (
+    <div className="p-4 bg-gradient-to-r from-stone-100 to-orange-50 rounded-lg border border-stone-200 shadow-sm animate-fade-in">
+        <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-stone-700 text-white rounded-full h-12 w-12 flex items-center justify-center">
+                <Palette size={24} />
+            </div>
+            <div className="flex-grow">
+                <h4 className="font-bold text-stone-800">For the Art Lover</h4>
+                <p className="text-sm text-stone-600">Unique gifts from The Met Museum (Free Earrings w/ $125+).</p>
+                <a 
+                    href={AFFILIATE_LINKS.THE_MET} 
+                    target="_blank" 
+                    rel="noopener noreferrer sponsored" 
+                    className="text-sm font-bold text-orange-700 hover:underline mt-1 inline-block"
+                    onClick={() => trackEvent('affiliate_click', { partner: 'The Met' })}
+                >
+                    Shop The Met Store &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+);
+
+const SugarRushPromo = () => (
+    <div className="p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border border-pink-200 shadow-sm animate-fade-in">
+        <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 bg-pink-500 text-white rounded-full h-12 w-12 flex items-center justify-center mt-1">
+                <Gift size={24} />
+            </div>
+            <div className="flex-grow">
+                <h4 className="font-bold text-pink-900">Sweeten the Deal</h4>
+                <p className="text-sm text-pink-700">Luxury candy boxes that look as good as they taste.</p>
+                <a 
+                    href={AFFILIATE_LINKS.SUGAR_RUSH} 
+                    target="_blank" 
+                    rel="noopener noreferrer sponsored" 
+                    className="text-sm font-bold text-pink-600 hover:underline mt-1 inline-block"
+                    onClick={() => trackEvent('affiliate_click', { partner: 'Sugarfina' })}
+                >
+                    Shop Sugarfina Gifts &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+);
+
+const TeaBookPromo = () => (
+    <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 shadow-sm animate-fade-in">
+        <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-emerald-600 text-white rounded-full h-12 w-12 flex items-center justify-center">
+                <Coffee size={24} />
+            </div>
+            <div className="flex-grow">
+                <h4 className="font-bold text-emerald-900">For the Tea Lover</h4>
+                <p className="text-sm text-emerald-700">Eco-friendly, organic teas in fun, giftable packaging.</p>
+                <a 
+                    href={AFFILIATE_LINKS.TEABOOK} 
+                    target="_blank" 
+                    rel="noopener noreferrer sponsored" 
+                    className="text-sm font-bold text-emerald-600 hover:underline mt-1 inline-block"
+                    onClick={() => trackEvent('affiliate_click', { partner: 'The TeaBook' })}
+                >
+                    Shop The TeaBook &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+);
+
+const GiftCardPromo = () => (
+    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm animate-fade-in">
+        <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-blue-600 text-white rounded-full h-12 w-12 flex items-center justify-center">
+                <CreditCard size={24} />
+            </div>
+            <div className="flex-grow">
+                <h4 className="font-bold text-blue-900">The Gift of Choice</h4>
+                <p className="text-sm text-blue-700">Up to 15% off Gift Cards! Black Friday Deals 11/27 - 12/1.</p>
+                <a 
+                    href={AFFILIATE_LINKS.GIFTCARDS_COM} 
+                    target="_blank" 
+                    rel="noopener noreferrer sponsored" 
+                    className="text-sm font-bold text-blue-600 hover:underline mt-1 inline-block"
+                    onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com' })}
+                >
+                    Find the Perfect Gift Card &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+);
+
+const AmazonGeneralPromo = ({ budget }: { budget?: string }) => (
+    <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200 shadow-sm animate-fade-in">
+        <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-amber-500 text-white rounded-full h-12 w-12 flex items-center justify-center">
+                <ShoppingBag size={24} />
+            </div>
+            <div className="flex-grow">
+                <h4 className="font-bold text-amber-900">Curated Amazon Finds</h4>
+                <p className="text-sm text-amber-700">
+                    {budget ? `Great gifts matching the ${budget} budget.` : 'Trending gifts they will actually use.'}
+                </p>
+                <a 
+                    href={`https://www.amazon.com/s?k=gift+ideas&tag=${AFFILIATE_LINKS.AMAZON_TAG}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer sponsored" 
+                    className="text-sm font-bold text-amber-700 hover:underline mt-1 inline-block"
+                    onClick={() => trackEvent('affiliate_click', { partner: 'Amazon General' })}
+                >
+                    Browse Gift Ideas &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+);
+
+// --- STOCKING STUFFER ROW ---
+const StockingStufferRow = () => {
+    // Randomly select 2 stocking stuffers
+    const randomStuffers = useMemo(() => {
+        const shuffled = [...STOCKING_STUFFERS].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, 2);
+    }, []);
+
+    return (
+        <div className="mt-6 pt-4 border-t border-slate-100">
+            <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 text-center">Add a Little Something Extra?</h5>
+            <div className="grid grid-cols-2 gap-3">
+                {randomStuffers.map((item, idx) => (
+                    <a 
+                        key={idx}
+                        href={item.url}
+                        target="_blank" 
+                        rel="noopener noreferrer sponsored"
+                        onClick={() => trackEvent('affiliate_click', { partner: `Stuffer: ${item.name}` })}
+                        className="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200 hover:border-red-200 hover:bg-red-50 transition-colors group"
+                    >
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-red-500 shadow-sm">
+                            <item.icon size={14} />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-700 group-hover:text-red-700 truncate">{item.name}</p>
+                            <p className="text-[10px] text-slate-500 truncate">{item.desc}</p>
+                        </div>
+                    </a>
+                ))}
+            </div>
+        </div>
+    );
+};
 
 const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label }) => {
     if (!items || items.trim() === '') return null;
 
-    const affiliateTag = "secretsanmat-20"; // Your Amazon Affiliate Tag
+    const createLink = (searchTerm: string) => {
+        const lowerTerm = searchTerm.toLowerCase();
+        
+        // 1. Check for High Commission Match (Sniper)
+        const deal = SNIPER_DEALS.find(d => d.keywords.some(k => lowerTerm.includes(k)));
+        if (deal) return deal.url;
+        
+        // 2. Check Stocking Stuffers (if exact match keyword)
+        const stuffer = STOCKING_STUFFERS.find(s => lowerTerm.includes(s.name.toLowerCase()));
+        if (stuffer) return stuffer.url;
 
-    const createAmazonLink = (searchTerm: string) => {
-        return `https://www.amazon.com/s?k=${encodeURIComponent(searchTerm)}&tag=${affiliateTag}`;
+        // 3. Fallback to Standard Search
+        return `https://www.amazon.com/s?k=${encodeURIComponent(searchTerm)}&tag=${AFFILIATE_LINKS.AMAZON_TAG}`;
     };
 
     const linkedItems = items.split(',').map(item => item.trim()).filter(Boolean);
@@ -41,10 +385,11 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
             {linkedItems.map((item, index) => (
                 <React.Fragment key={index}>
                     <a
-                        href={createAmazonLink(item)}
+                        href={createLink(item)}
                         target="_blank"
                         rel="noopener noreferrer sponsored"
-                        className="text-indigo-600 hover:underline"
+                        className="text-indigo-600 hover:underline font-medium"
+                        onClick={() => trackEvent('affiliate_click', { partner: 'Amazon Linker', keyword: item })}
                     >
                         {item}
                     </a>
@@ -54,59 +399,6 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
         </p>
     );
 };
-
-const PetPromo = () => (
-    <div className="p-4 bg-gradient-to-r from-green-50 to-cyan-50 rounded-lg border border-green-200">
-        <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 bg-green-500 text-white rounded-full h-10 w-10 flex items-center justify-center mt-1">
-                <PawPrint />
-            </div>
-            <div>
-                <h4 className="font-bold text-green-800">For Their Furry Friend?</h4>
-                <p className="text-sm text-green-700 mb-2">We noticed they're a pet lover! Here are some great gift ideas for their companion.</p>
-                <div className="space-y-1">
-                    <a href="https://www.awin1.com/awclick.php?gid=561473&mid=118439&awinaffid=2612068&linkid=4305916&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-green-600 hover:underline block">
-                        Shop Zeal's Ethically Sourced Pet Food &rarr;
-                    </a>
-                    <a href="https://www.awin1.com/awclick.php?gid=518488&mid=33495&awinaffid=2612068&linkid=3923498&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-orange-600 hover:underline block">
-                        Shop SugarRush's Gourmet Dog Treats &rarr;
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
-const SpaPromo = () => (
-    <div className="p-4 bg-gradient-to-r from-violet-50 to-fuchsia-50 rounded-lg border border-violet-200">
-        <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-violet-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
-                <Sparkles />
-            </div>
-            <div>
-                <h4 className="font-bold text-violet-800">A Relaxing Gift Idea</h4>
-                <p className="text-sm text-violet-700">Help them unwind with a luxurious spa gift box from SugarRush.</p>
-                <a href="https://www.awin1.com/awclick.php?gid=518515&mid=33495&awinaffid=2612068&linkid=3923639&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-violet-600 hover:underline">Shop Spa & Relaxation Gifts &rarr;</a>
-            </div>
-        </div>
-    </div>
-);
-
-const CocktailPromo = () => (
-     <div className="p-4 bg-gradient-to-r from-blue-50 to-sky-50 rounded-lg border border-blue-200">
-        <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-blue-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
-                <Martini />
-            </div>
-            <div>
-                <h4 className="font-bold text-blue-800">For the Home Bartender</h4>
-                <p className="text-sm text-blue-700">Their wishlist suggests they enjoy a good drink! Check out cocktail mixer kits from SugarRush.</p>
-                <a href="https://www.awin1.com/awclick.php?gid=518472&mid=33495&awinaffid=2612068&linkid=3923542&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-blue-600 hover:underline">Shop Cocktail Gifts &rarr;</a>
-            </div>
-        </div>
-    </div>
-);
-
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
@@ -170,35 +462,46 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         currentParticipant ? matches.find(m => m.giver.id === currentParticipant.id) : null,
     [matches, currentParticipant]);
 
+    // --- SMART RECOMMENDATION ENGINE ---
     const SmartPromoComponent = useMemo(() => {
         if (!currentMatch) return null;
     
         const combinedText = `${currentMatch.receiver.interests?.toLowerCase() || ''} ${currentMatch.receiver.likes?.toLowerCase() || ''}`;
-    
-        const promos = [
-            { id: 'pet', keywords: ['pet', 'dog', 'cat', 'puppy', 'kitten', 'animal'] },
-            { id: 'spa', keywords: ['spa', 'relax', 'bath', 'pamper', 'massage'] },
-            { id: 'cocktail', keywords: ['cocktail', 'drinks', 'wine', 'alcohol', 'bar', 'spirits'] }
-        ];
-    
-        let firstPromoId: string | null = null;
-        let firstPromoIndex = Infinity;
-    
-        for (const promo of promos) {
-            for (const keyword of promo.keywords) {
-                const index = combinedText.indexOf(keyword);
-                if (index !== -1 && index < firstPromoIndex) {
-                    firstPromoId = promo.id;
-                    firstPromoIndex = index;
-                }
-            }
+        const isEu = isEuVisitor();
+        
+        if (isEu) return null; // Simplified EU Logic
+
+        // 1. Check High Commission "Sniper" Deals First (10-20% Commission)
+        const matchedDeal = SNIPER_DEALS.find(deal => 
+            deal.keywords.some(k => combinedText.includes(k))
+        );
+        if (matchedDeal) {
+            return <HighCommissionPromo deal={matchedDeal} />;
+        }
+
+        // 2. The Met (High Intent Art)
+        if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) {
+            return <MetPromo />;
+        }
+
+        // 3. Sugarfina (Sweets)
+        if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) {
+            return <SugarRushPromo />;
         }
         
-        if (firstPromoId === 'pet') return <PetPromo />;
-        if (firstPromoId === 'spa') return <SpaPromo />;
-        if (firstPromoId === 'cocktail') return <CocktailPromo />;
-        
-        return null;
+        // 4. TeaBook (Tea)
+        if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) {
+            return <TeaBookPromo />;
+        }
+
+        // 5. Giftcards.com (Indecisive / General)
+        if (combinedText.match(/idk|anything|money|cash|gift card|shopping|mall|dining|restaurant/) || combinedText.trim().length < 3) {
+            return <GiftCardPromo />;
+        }
+
+        // 6. Fallback: Amazon General
+        return <AmazonGeneralPromo budget={currentMatch.receiver.budget} />;
+
     }, [currentMatch]);
 
 
@@ -207,11 +510,22 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         if (consent === null) {
             setShowCookieBanner(true);
         }
-        // Hybrid Tracking: 
-        // If US -> Tracks immediately. 
-        // If EU -> Waits for consent.
+        
         if (shouldTrackByDefault()) {
              trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+             
+             trackEvent('page_view', {
+                page_title: isOrganizer ? 'Secret Santa Organizer Dashboard' : 'Secret Santa Reveal Page',
+                page_location: window.location.href,
+                page_path: isOrganizer ? '/secret-santa/organizer-dashboard' : '/secret-santa/reveal'
+             });
+
+             if (isOrganizer) {
+                 trackEvent('organizer_dashboard_loaded', {
+                     participant_count: matches.length,
+                     has_budget: matches.some(m => m.receiver.budget)
+                 });
+             }
         }
 
         if (isOrganizer) {
@@ -228,7 +542,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             };
             fetchShortLink();
         }
-    }, [isOrganizer, currentParticipantId]);
+    }, [isOrganizer, currentParticipantId, matches.length]);
     
     const handleCookieAccept = () => {
         localStorage.setItem('cookie_consent', 'true');
@@ -246,17 +560,22 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         trackEvent('reveal_name');
         setTimeout(() => {
             setDetailsVisible(true);
-        }, 2500); // Match animation duration from PrintableCard + buffer
+        }, 2500);
     };
     
     const handleWishlistSaveSuccess = () => {
-        fetchWishlists(); // Re-fetch the live data
+        fetchWishlists();
     };
 
     const openShareModal = (view: 'links' | 'print') => {
         setShareModalInitialView(view);
         setIsShareModalOpen(true);
         trackEvent('open_share_modal', { initial_view: view });
+    };
+    
+    const openWishlistModal = () => {
+        setIsWishlistModalOpen(true);
+        trackEvent('open_wishlist_editor');
     };
 
     const executeShuffle = async () => {
@@ -288,6 +607,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             trackEvent('copy_link', { link_type: 'organizer_master_link' });
         });
     };
+    
+    const isEu = isEuVisitor();
 
     if (!isOrganizer && !currentMatch) {
         return (
@@ -407,12 +728,13 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                             <span className="font-bold text-green-700">{currentMatch.giver.name}</span>, you are the Secret Santa for...
                                         </p>
                                         
-                                        <button onClick={() => setIsWishlistModalOpen(true)} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
+                                        <button onClick={openWishlistModal} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
                                             Edit My Wishlist for My Santa
                                         </button>
                                         
                                         {detailsVisible && (
-                                            <div className="bg-slate-100 rounded-2xl p-6 border text-left shadow-inner space-y-6">
+                                            <div className="bg-slate-100 rounded-2xl p-6 border text-left shadow-inner space-y-6 animate-fade-in">
+                                                
                                                 <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 rounded-r-lg">
                                                     <div className="flex">
                                                         <div className="py-1"><Bookmark className="h-5 w-5 text-amber-500 mr-3" /></div>
@@ -441,21 +763,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         </div>
                                                     )}
 
-                                                    {/* SugarRush Affiliate Promo */}
-                                                    <div className="p-4 bg-gradient-to-r from-pink-50 to-amber-50 rounded-lg border border-pink-200">
-                                                        <div className="flex items-start gap-4">
-                                                            <div className="flex-shrink-0 bg-pink-500 text-white rounded-full h-10 w-10 flex items-center justify-center mt-1">
-                                                                <Gift />
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="font-bold text-pink-800">Premium Gift Idea</h4>
-                                                                <p className="text-sm text-pink-700">Looking for a 'wow' gift? Consider a gourmet candy box from SugarRush!</p>
-                                                                <a href="https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-pink-600 hover:underline">Shop SugarRush Gifts &rarr;</a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
+                                                    {/* SMART RECOMMENDATION ENGINE (Affiliate) */}
                                                     {SmartPromoComponent}
+                                                    
+                                                    {/* STOCKING STUFFER ADD-ONS (New Revenue Stream) */}
+                                                    {!isEu && <StockingStufferRow />}
 
                                                     {hasLinks && (
                                                         <div>
@@ -479,19 +791,21 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     </div>
                                                 )}
 
-                                                {/* Credit Karma Promo */}
-                                                 <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="flex-shrink-0 bg-indigo-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
-                                                            <TrendingUp />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-bold text-indigo-800">Manage Your Holiday Budget</h4>
-                                                            <p className="text-sm text-indigo-700">Keep track of your holiday spending and credit score for free.</p>
-                                                            <a href="https://www.awin1.com/awclick.php?gid=580820&mid=66532&awinaffid=2612068&linkid=4507342&clickref=" target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-indigo-600 hover:underline">Try Credit Karma &rarr;</a>
+                                                {/* Credit Karma Promo - Budget Focused, Hidden for EU */}
+                                                 {!isEu && (
+                                                     <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="flex-shrink-0 bg-indigo-500 text-white rounded-full h-10 w-10 flex items-center justify-center">
+                                                                <TrendingUp />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="font-bold text-indigo-800">Manage Your Holiday Budget</h4>
+                                                                <p className="text-sm text-indigo-700">Keep track of your holiday spending and credit score for free.</p>
+                                                                <a href={AFFILIATE_LINKS.CREDIT_KARMA} target="_blank" rel="noopener noreferrer sponsored" className="text-sm font-bold text-indigo-600 hover:underline">Try Credit Karma &rarr;</a>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                 )}
                                             </div>
                                         )}
                                     </div>
@@ -503,6 +817,15 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             </main>
             <Footer />
             {showCookieBanner && <CookieConsentBanner onAccept={handleCookieAccept} onDecline={handleCookieDecline} />}
+            <style>{`
+                @keyframes fade-in {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in {
+                    animation: fade-in 0.5s ease-out forwards;
+                }
+            `}</style>
         </div>
     );
 };
