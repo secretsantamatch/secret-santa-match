@@ -33,8 +33,21 @@ const AFFILIATE_LINKS = {
     TEABOOK: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068"
 };
 
+// TYPE DEFINITION for Sniper Deals
+interface SniperDeal {
+    keywords: string[];
+    url: string;
+    name: string;
+    icon: React.FC<any>;
+    promoText: string;
+    color: string;
+    bg: string;
+    border: string;
+    gradient: string; // Explicitly added
+}
+
 // --- SNIPER DEALS (Main Gifts - $20+) ---
-const SNIPER_DEALS = [
+const SNIPER_DEALS: SniperDeal[] = [
     {
         keywords: ['blanket', 'throw', 'cozy', 'warm', 'soft', 'bed', 'couch', 'home'],
         url: `https://www.amazon.com/dp/B0CK9SR543?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2QJOSHFSVGDO1&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2QJOSHFSVGDO1_1763778354440`,
@@ -43,7 +56,8 @@ const SNIPER_DEALS = [
         promoText: 'Cozy Pick: Faux Fur Blanket',
         color: 'text-slate-700',
         bg: 'bg-slate-100',
-        border: 'border-slate-300'
+        border: 'border-slate-300',
+        gradient: 'from-slate-100 to-indigo-100 border-indigo-200'
     },
     {
         keywords: ['quilt', 'cotton', 'throw', 'decor', 'beige', 'brown', 'living room'],
@@ -53,7 +67,8 @@ const SNIPER_DEALS = [
         promoText: 'Home Decor: Quilted Throw',
         color: 'text-amber-800',
         bg: 'bg-amber-100',
-        border: 'border-amber-300'
+        border: 'border-amber-300',
+        gradient: 'from-amber-50 to-orange-100 border-amber-200'
     },
     {
         keywords: ['slipper', 'shoe', 'arch support', 'comfort', 'feet', 'mom', 'grandma'],
@@ -63,7 +78,8 @@ const SNIPER_DEALS = [
         promoText: 'Comfort Pick: Support Slippers',
         color: 'text-rose-800',
         bg: 'bg-rose-100',
-        border: 'border-rose-300'
+        border: 'border-rose-300',
+        gradient: 'from-rose-50 to-pink-100 border-rose-200'
     },
     {
         keywords: ['kitchen', 'cook', 'gadget', 'tool', 'pizza', 'garlic', 'chef'],
@@ -73,7 +89,8 @@ const SNIPER_DEALS = [
         promoText: 'Chef\'s Choice: Kitchen Set',
         color: 'text-zinc-800',
         bg: 'bg-zinc-200',
-        border: 'border-zinc-400'
+        border: 'border-zinc-400',
+        gradient: 'from-emerald-50 to-teal-100 border-emerald-200'
     },
     {
         keywords: ['slipper', 'sock', 'men', 'dad', 'brother', 'husband', 'fleece'],
@@ -83,7 +100,8 @@ const SNIPER_DEALS = [
         promoText: 'Cozy Gift: Mens Slippers',
         color: 'text-slate-800',
         bg: 'bg-slate-200',
-        border: 'border-slate-400'
+        border: 'border-slate-400',
+        gradient: 'from-blue-50 to-sky-100 border-blue-200'
     },
     {
         keywords: ['skin', 'balm', 'tallow', 'moisturizer', 'natural', 'skincare', 'face'],
@@ -93,7 +111,8 @@ const SNIPER_DEALS = [
         promoText: 'Viral Skincare: Tallow Balm',
         color: 'text-emerald-800',
         bg: 'bg-emerald-100',
-        border: 'border-emerald-300'
+        border: 'border-emerald-300',
+        gradient: 'from-green-50 to-emerald-100 border-green-200'
     },
     {
         keywords: ['car', 'wash', 'drying', 'towel', 'cleaning', 'auto', 'truck'],
@@ -103,7 +122,8 @@ const SNIPER_DEALS = [
         promoText: 'Car Lover: XL Shammy',
         color: 'text-blue-800',
         bg: 'bg-blue-100',
-        border: 'border-blue-300'
+        border: 'border-blue-300',
+        gradient: 'from-blue-50 to-cyan-100 border-blue-200'
     },
     {
         keywords: ['meat', 'thermometer', 'grill', 'bbq', 'steak', 'cooking'],
@@ -113,7 +133,8 @@ const SNIPER_DEALS = [
         promoText: 'Top Rated: Instant Read Thermometer',
         color: 'text-red-800',
         bg: 'bg-red-100',
-        border: 'border-red-300'
+        border: 'border-red-300',
+        gradient: 'from-red-50 to-orange-100 border-red-200'
     },
     {
         keywords: ['candle', 'warmer', 'lamp', 'light', 'scent', 'aesthetic', 'vintage'],
@@ -123,7 +144,8 @@ const SNIPER_DEALS = [
         promoText: 'Trending: Candle Warmer',
         color: 'text-amber-800',
         bg: 'bg-amber-100',
-        border: 'border-amber-300'
+        border: 'border-amber-300',
+        gradient: 'from-orange-50 to-amber-100 border-orange-200'
     },
     {
         keywords: ['mattress', 'heated', 'bed', 'sleep', 'cold', 'winter', 'electric blanket'],
@@ -133,7 +155,8 @@ const SNIPER_DEALS = [
         promoText: 'Stay Warm: Heated Mattress Pad',
         color: 'text-indigo-800',
         bg: 'bg-indigo-100',
-        border: 'border-indigo-300'
+        border: 'border-indigo-300',
+        gradient: 'from-indigo-50 to-purple-100 border-indigo-200'
     },
     {
         keywords: ['bath', 'bomb', 'set', 'gift', 'spa', 'essential oil', 'relaxation'],
@@ -143,7 +166,8 @@ const SNIPER_DEALS = [
         promoText: 'Gift Idea: 12 Bath Bombs',
         color: 'text-purple-800',
         bg: 'bg-purple-100',
-        border: 'border-purple-300'
+        border: 'border-purple-300',
+        gradient: 'from-fuchsia-50 to-pink-100 border-fuchsia-200'
     }
 ];
 
@@ -162,7 +186,7 @@ const STOCKING_STUFFERS = [
 
 // --- PROMO COMPONENTS ---
 
-const HighCommissionPromo = ({ deal }: { deal: typeof SNIPER_DEALS[0] }) => (
+const HighCommissionPromo = ({ deal }: { deal: SniperDeal }) => (
     <div className={`p-4 bg-gradient-to-r ${deal.gradient} rounded-xl border-2 shadow-md animate-fade-in hover:shadow-lg transition-all transform hover:-translate-y-0.5`}>
         <div className="flex items-center gap-4">
             <div className={`flex-shrink-0 bg-white/80 rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-white`}>
@@ -175,10 +199,10 @@ const HighCommissionPromo = ({ deal }: { deal: typeof SNIPER_DEALS[0] }) => (
                     href={deal.url} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className={`mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-amber-400 text-amber-900 px-5 py-2.5 rounded-lg border border-amber-500 shadow-sm hover:bg-amber-500 transition-colors`}
+                    className={`mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border shadow-sm ${deal.color} hover:bg-opacity-90 transition-colors`}
                     onClick={() => trackEvent('affiliate_click', { partner: `High Comm: ${deal.name}` })}
                 >
-                    Browse Gift Ideas <ExternalLink size={14} />
+                    View Deal on Amazon <ExternalLink size={14} />
                 </a>
             </div>
         </div>
@@ -319,8 +343,7 @@ const StockingStufferRow = () => {
                 <div className="h-px w-8 bg-slate-300"></div>
             </div>
             
-            {/* PREMIUM GOLD CONTAINER */}
-            <div className="bg-gradient-to-br from-amber-100 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
                 <div className="grid grid-cols-2 gap-4">
                     {randomStuffers.map((item, idx) => (
                         <a 
@@ -433,7 +456,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }));
     }, [participantsFromUrl, liveWishlists]);
 
-    // --- OPTIMISTIC UI UPDATE ---
     const handleWishlistSaveSuccess = (newWishlist: any) => {
         if (currentParticipantId) {
             setLiveWishlists(prev => ({
@@ -441,7 +463,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
-        // Background fetch to sync
         fetchWishlists();
     };
 
@@ -459,16 +480,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         currentParticipant ? matches.find(m => m.giver.id === currentParticipant.id) : null,
     [matches, currentParticipant]);
 
-    // --- SMART RECOMMENDATION ENGINE ---
     const SmartPromoComponent = useMemo(() => {
         if (!currentMatch) return null;
     
         const combinedText = `${currentMatch.receiver.interests?.toLowerCase() || ''} ${currentMatch.receiver.likes?.toLowerCase() || ''}`;
         const isEu = isEuVisitor();
         
-        if (isEu) return null; // Simplified EU Logic
+        if (isEu) return null;
 
-        // 1. Check High Commission "Sniper" Deals First (10-20% Commission)
         const matchedDeal = SNIPER_DEALS.find(deal => 
             deal.keywords.some(k => combinedText.includes(k))
         );
@@ -476,28 +495,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             return <HighCommissionPromo deal={matchedDeal} />;
         }
 
-        // 2. The Met (High Intent Art - 2% Commission but high basket value)
-        if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) {
-            return <MetPromo />;
-        }
+        if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) return <MetPromo />;
+        if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) return <SugarRushPromo />;
+        if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) return <TeaBookPromo />;
 
-        // 3. Sugarfina (Sweets - High Conversion)
-        if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) {
-            return <SugarRushPromo />;
-        }
-        
-        // 4. TeaBook (Tea)
-        if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) {
-            return <TeaBookPromo />;
-        }
-
-        // 5. Giftcards.com (Indecisive / General)
-        // UPDATED LOGIC: If text is short OR has "IDK" phrases OR no specific matches above
         if (combinedText.trim().length < 4 || combinedText.match(/idk|anything|money|cash|gift card|shopping|mall|dining|restaurant|sure|whatever/)) {
             return <GiftCardPromo />;
         }
 
-        // 6. Fallback: Amazon General
         return <AmazonGeneralPromo budget={currentMatch.receiver.budget} />;
 
     }, [currentMatch]);
@@ -559,10 +564,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         setTimeout(() => {
             setDetailsVisible(true);
         }, 2500);
-    };
-    
-    const handleWishlistSaveSuccessWrapper = () => { // Renamed to avoid redeclaration error
-        fetchWishlists();
     };
 
     const openShareModal = (view: 'links' | 'print') => {
@@ -788,13 +789,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     </p>
                                                 </div>
                                                 
-                                                {data.eventDetails && (
-                                                    // FIX: Hide event details if it's the placeholder text or empty
-                                                    data.eventDetails !== 'Gift exchange on Dec 25th!' && data.eventDetails.trim() !== '' && (
-                                                        <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                                                            <p className="text-sm text-amber-800 text-center">{data.eventDetails}</p>
-                                                        </div>
-                                                    )
+                                                {data.eventDetails && data.eventDetails !== 'Gift exchange on Dec 25th!' && data.eventDetails.trim() !== '' && (
+                                                    <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-center">
+                                                        <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Event Details</p>
+                                                        <p className="text-sm text-slate-700">{data.eventDetails}</p>
+                                                    </div>
                                                 )}
 
                                                 {/* Credit Karma Promo - Budget Focused, Hidden for EU */}
