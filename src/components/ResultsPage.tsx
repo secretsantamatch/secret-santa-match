@@ -306,6 +306,7 @@ const AmazonGeneralPromo = ({ budget }: { budget?: string }) => (
 
 // --- STOCKING STUFFER ROW ---
 const StockingStufferRow = () => {
+    // Randomly select 2 stocking stuffers
     const randomStuffers = useMemo(() => {
         const shuffled = [...STOCKING_STUFFERS].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, 2);
@@ -319,8 +320,8 @@ const StockingStufferRow = () => {
                 <div className="h-px w-8 bg-slate-300"></div>
             </div>
             
-            {/* Gold/Premium Container for Visibility */}
-            <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
+            {/* GOLD PREMIUM CONTAINER */}
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
                 <div className="grid grid-cols-2 gap-4">
                     {randomStuffers.map((item, idx) => (
                         <a 
@@ -329,13 +330,16 @@ const StockingStufferRow = () => {
                             target="_blank" 
                             rel="noopener noreferrer sponsored"
                             onClick={() => trackEvent('affiliate_click', { partner: `Stuffer: ${item.name}` })}
-                            className="flex flex-col items-center text-center p-3 rounded-xl bg-white border-2 border-amber-100 hover:border-red-300 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden"
+                            className="flex flex-col items-center text-center p-3 rounded-xl bg-white border-2 border-amber-100 hover:border-red-300 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden shadow-sm"
                         >
-                            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 group-hover:text-red-600 group-hover:bg-red-50 transition-colors mb-2 border border-amber-100">
+                            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 group-hover:text-red-600 group-hover:bg-red-50 transition-colors mb-2 border border-amber-200">
                                 <item.icon size={20} />
                             </div>
                             <p className="text-xs font-bold text-slate-800 group-hover:text-red-700 leading-tight">{item.name}</p>
                             <p className="text-[10px] text-slate-500 mt-1">{item.desc}</p>
+                             <div className="mt-2 text-[10px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                Shop Now
+                            </div>
                         </a>
                     ))}
                 </div>
@@ -463,17 +467,38 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         const combinedText = `${currentMatch.receiver.interests?.toLowerCase() || ''} ${currentMatch.receiver.likes?.toLowerCase() || ''}`;
         const isEu = isEuVisitor();
         
-        if (isEu) return null; 
+        if (isEu) return null; // Simplified EU Logic
 
-        const matchedDeal = SNIPER_DEALS.find(deal => deal.keywords.some(k => combinedText.includes(k)));
-        if (matchedDeal) return <HighCommissionPromo deal={matchedDeal} />;
+        // 1. Check High Commission "Sniper" Deals First (10-20% Commission)
+        const matchedDeal = SNIPER_DEALS.find(deal => 
+            deal.keywords.some(k => combinedText.includes(k))
+        );
+        if (matchedDeal) {
+            return <HighCommissionPromo deal={matchedDeal} />;
+        }
 
-        if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) return <MetPromo />;
-        if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) return <SugarRushPromo />;
-        if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) return <TeaBookPromo />;
+        // 2. The Met (High Intent Art - 2% Commission but high basket value)
+        if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) {
+            return <MetPromo />;
+        }
 
-        if (combinedText.trim().length < 4 || combinedText.match(/idk|anything|money|cash|gift card|shopping|mall|dining|restaurant|sure|whatever/)) return <GiftCardPromo />;
+        // 3. Sugarfina (Sweets - High Conversion)
+        if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) {
+            return <SugarRushPromo />;
+        }
+        
+        // 4. TeaBook (Tea)
+        if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) {
+            return <TeaBookPromo />;
+        }
 
+        // 5. Giftcards.com (Indecisive / General)
+        // UPDATED LOGIC: If text is short OR has "IDK" phrases OR no specific matches above
+        if (combinedText.trim().length < 4 || combinedText.match(/idk|anything|money|cash|gift card|shopping|mall|dining|restaurant|sure|whatever/)) {
+            return <GiftCardPromo />;
+        }
+
+        // 6. Fallback: Amazon General
         return <AmazonGeneralPromo budget={currentMatch.receiver.budget} />;
 
     }, [currentMatch]);
@@ -537,6 +562,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }, 2500);
     };
     
+    const handleWishlistSaveSuccess = () => {
+        fetchWishlists();
+    };
+
     const openShareModal = (view: 'links' | 'print') => {
         setShareModalInitialView(view);
         setIsShareModalOpen(true);
@@ -616,7 +645,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl pb-16">
                 {isOrganizer ? (
                     <div className="space-y-8">
-                        {/* Organizer View */}
                         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200 text-center">
                             <Gift className="h-16 w-16 text-red-500 mx-auto mb-4" />
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Success! Your Game is Ready!</h1>
