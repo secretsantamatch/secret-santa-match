@@ -23,17 +23,20 @@ interface ResultsPageProps {
 
 type LiveWishlists = Record<string, Partial<Omit<Participant, 'id' | 'name'>>>;
 
-// --- AFFILIATE LINKS (Your IDs) ---
+// --- AFFILIATE LINKS (EXTRACTED FROM YOUR BANNERS) ---
 const AFFILIATE_LINKS = {
     AMAZON_TAG: "secretsanmat-20",
     SUGAR_RUSH: "https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=",
+    // Extracted from LinkSynergy banner
     THE_MET: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1772143.347&type=3&subid=0",
     CREDIT_KARMA: "https://www.awin1.com/awclick.php?gid=580820&mid=66532&awinaffid=2612068&linkid=4507342&clickref=",
+    // Extracted from LinkSynergy banner
     GIFTCARDS_COM: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.925&subid=0&type=4",
+    // Extracted from Awin banner
     TEABOOK: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068"
 };
 
-// --- SNIPER DEALS (Main Gifts - $20+) ---
+// --- SNIPER DEALS (Your Specific Amazon Creator Products) ---
 const SNIPER_DEALS = [
     {
         keywords: ['blanket', 'throw', 'cozy', 'warm', 'soft', 'bed', 'couch', 'home'],
@@ -479,12 +482,12 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             return <HighCommissionPromo deal={matchedDeal} />;
         }
 
-        // 2. The Met (High Intent Art)
+        // 2. The Met (High Intent Art - 2% Commission but high basket value)
         if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) {
             return <MetPromo />;
         }
 
-        // 3. Sugarfina (Sweets)
+        // 3. Sugarfina (Sweets - High Conversion)
         if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) {
             return <SugarRushPromo />;
         }
@@ -499,7 +502,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             return <GiftCardPromo />;
         }
 
-        // 6. Fallback: Amazon General
+        // 6. Fallback: Amazon General (3-4% Commission)
         return <AmazonGeneralPromo budget={currentMatch.receiver.budget} />;
 
     }, [currentMatch]);
