@@ -136,6 +136,21 @@
           color: #334155;
       }
     </style>
+    
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      // Explicitly define gtag on window to ensure availability
+      window.gtag = function(){window.dataLayer.push(arguments);}
+      window.gtag('js', new Date());
+      window.gtag('config', 'G-HG140X6CQ6');
+    </script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3037944530219260"
+     crossorigin="anonymous"></script>
+
 <script type="importmap">
 {
   "imports": {
@@ -153,7 +168,8 @@
     "pako": "https://aistudiocdn.com/pako@^2.1.0",
     "driver.js": "https://aistudiocdn.com/driver.js@^1.3.6",
     "driver.js/": "https://aistudiocdn.com/driver.js@^1.3.6/",
-    "recharts": "https://aistudiocdn.com/recharts@^3.3.0"
+    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
+    "immer": "https://aistudiocdn.com/immer@^10.1.1"
   }
 }
 </script>

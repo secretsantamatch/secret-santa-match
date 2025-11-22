@@ -46,7 +46,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     
     // Options State
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
-    const [eventDetails, setEventDetails] = useState('');
+    const [eventDetails, setEventDetails] = useState(''); // FIXED: Default to empty string
     const [selectedBackgroundId, setSelectedBackgroundId] = useState('gift-border');
     const [customBackground, setCustomBackground] = useState<string | null>(null);
     const [textColor, setTextColor] = useState('#265343');
@@ -62,6 +62,25 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
 
     // PWA & Cookie State
     const [showCookieBanner, setShowCookieBanner] = useState(false);
+
+    // Analytics: Track Step Changes
+    // This lowers bounce rate by recording engagement as they move through the wizard
+    useEffect(() => {
+        const stepNames = {
+            1: 'Add Participants',
+            2: 'Add Details & Rules',
+            3: 'Style Cards'
+        };
+        const currentStepName = stepNames[activeStep as keyof typeof stepNames];
+        
+        if (currentStepName) {
+            trackEvent('step_view', { 
+                step_number: activeStep, 
+                step_name: currentStepName,
+                generator_type: 'secret_santa'
+            });
+        }
+    }, [activeStep]);
 
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
@@ -90,7 +109,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                     setParticipants(draft.participants || [ { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' } ]);
                     setExclusions(draft.exclusions || []);
                     setAssignments(draft.assignments || []);
-                    setEventDetails(draft.eventDetails || 'Gift exchange on Dec 25th!');
+                    setEventDetails(draft.eventDetails || ''); // FIXED: Default to empty
                     setSelectedBackgroundId(draft.selectedBackgroundId || 'gift-border');
                     setCustomBackground(draft.customBackground || null);
                     setTextColor(draft.textColor || '#265343');
@@ -116,7 +135,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             setParticipants(initialData.p.length > 0 ? initialData.p : [ { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' } ]);
             setExclusions(initialData.exclusions || []);
             setAssignments(initialData.assignments || []);
-            setEventDetails(initialData.eventDetails || 'Gift exchange on Dec 25th!');
+            setEventDetails(initialData.eventDetails || ''); // FIXED: Default to empty
             setSelectedBackgroundId(initialData.bgId || 'gift-border');
             setCustomBackground(initialData.customBackground || null);
             setTextColor(initialData.textColor || '#265343');
@@ -136,7 +155,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
             ]);
-            setEventDetails('Gift exchange on Dec 25th!');
+            setEventDetails(''); // FIXED: Default to empty
             setGreetingText("Happy Holidays, {secret_santa}!");
             setIntroText("You are the Secret Santa for...");
             setWishlistLabelText("Gift Ideas & Wishlist");
@@ -206,11 +225,21 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         trackEvent('click_clear_all');
     };
     
-    const addExclusion = () => setExclusions(produce(draft => { draft.push({ p1: '', p2: '' }); }));
+    const addExclusion = () => {
+        setExclusions(produce(draft => { draft.push({ p1: '', p2: '' }); }));
+        // FEATURE TRACKING: Track when users use advanced features
+        trackEvent('feature_click', { feature: 'add_exclusion' });
+    };
+    
     const updateExclusion = (index: number, field: 'p1' | 'p2', value: string) => setExclusions(produce(draft => { draft[index][field] = value; }));
     const removeExclusion = (index: number) => setExclusions(exclusions.filter((_, i) => i !== index));
 
-    const addAssignment = () => setAssignments(produce(draft => { draft.push({ giverId: '', receiverId: '' }); }));
+    const addAssignment = () => {
+        setAssignments(produce(draft => { draft.push({ giverId: '', receiverId: '' }); }));
+        // FEATURE TRACKING: Track when users use advanced features
+        trackEvent('feature_click', { feature: 'add_assignment' });
+    };
+    
     const updateAssignment = (index: number, field: 'giverId' | 'receiverId', value: string) => setAssignments(produce(draft => { draft[index][field] = value; }));
     const removeAssignment = (index: number) => setAssignments(assignments.filter((_, i) => i !== index));
 
@@ -276,7 +305,16 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 greetingText, introText, wishlistLabelText,
             };
             
-            trackEvent('generate_success', { participants: validParticipants.length });
+            // PREFERENCE TRACKING:
+            // Track detailed stats about the generated game to understand user preferences.
+            trackEvent('generate_success', { 
+                participants: validParticipants.length,
+                selected_theme: selectedBackgroundId,
+                exclusion_count: exclusions.length,
+                assignment_count: assignments.length,
+                has_budget: validParticipants.some(p => p.budget && p.budget.trim().length > 0)
+            });
+            
             onComplete({ ...exchangePayload, backgroundOptions });
             localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear draft on success
 

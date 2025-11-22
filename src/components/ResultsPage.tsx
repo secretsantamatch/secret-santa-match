@@ -43,7 +43,7 @@ interface SniperDeal {
     color: string;
     bg: string;
     border: string;
-    gradient: string; // Explicitly added
+    gradient: string; 
 }
 
 // --- SNIPER DEALS (Main Gifts - $20+) ---
@@ -109,7 +109,7 @@ const SNIPER_DEALS: SniperDeal[] = [
         name: 'Whipped Tallow Balm',
         icon: Sparkles,
         promoText: 'Viral Skincare: Tallow Balm',
-        color: 'text-emerald-800',
+        color: 'text-green-900',
         bg: 'bg-emerald-100',
         border: 'border-emerald-300',
         gradient: 'from-green-50 to-emerald-100 border-green-200'
@@ -120,7 +120,7 @@ const SNIPER_DEALS: SniperDeal[] = [
         name: 'Shammy XL Cloth',
         icon: Car,
         promoText: 'Car Lover: XL Shammy',
-        color: 'text-blue-800',
+        color: 'text-blue-900',
         bg: 'bg-blue-100',
         border: 'border-blue-300',
         gradient: 'from-blue-50 to-cyan-100 border-blue-200'
@@ -343,7 +343,8 @@ const StockingStufferRow = () => {
                 <div className="h-px w-8 bg-slate-300"></div>
             </div>
             
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
+            {/* GOLD PREMIUM CONTAINER */}
+            <div className="bg-gradient-to-br from-amber-100 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
                 <div className="grid grid-cols-2 gap-4">
                     {randomStuffers.map((item, idx) => (
                         <a 
