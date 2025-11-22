@@ -175,7 +175,7 @@ const HighCommissionPromo = ({ deal }: { deal: typeof SNIPER_DEALS[0] }) => (
                     href={deal.url} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className={`mt-2 inline-flex items-center gap-1 text-sm font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-300 ${deal.color} hover:bg-slate-50 transition-colors`}
+                    className={`mt-2 inline-flex items-center gap-1 text-sm font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-300 text-amber-700 hover:text-amber-800 hover:bg-amber-50 transition-colors`}
                     onClick={() => trackEvent('affiliate_click', { partner: `High Comm: ${deal.name}` })}
                 >
                     View Deal on Amazon <ExternalLink size={14} />
@@ -321,7 +321,7 @@ const StockingStufferRow = () => {
             </div>
             
             {/* GOLD PREMIUM CONTAINER */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
+            <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
                 <div className="grid grid-cols-2 gap-4">
                     {randomStuffers.map((item, idx) => (
                         <a 
@@ -562,10 +562,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }, 2500);
     };
     
-    const handleWishlistSaveSuccess = () => {
-        fetchWishlists();
-    };
-
     const openShareModal = (view: 'links' | 'print') => {
         setShareModalInitialView(view);
         setIsShareModalOpen(true);
