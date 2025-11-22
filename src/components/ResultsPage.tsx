@@ -280,7 +280,7 @@ const GiftCardPromo = () => (
 );
 
 const AmazonGeneralPromo = ({ budget }: { budget?: string }) => (
-    <div className="p-4 bg-amber-50 rounded-xl border-2 border-amber-300 shadow-md animate-fade-in hover:border-amber-400 transition-colors">
+    <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-100 rounded-xl border-2 border-amber-300 shadow-md animate-fade-in hover:border-amber-400 transition-colors">
         <div className="flex items-center gap-4">
             <div className="flex-shrink-0 bg-amber-500 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm">
                 <ShoppingBag size={28} />
@@ -306,7 +306,6 @@ const AmazonGeneralPromo = ({ budget }: { budget?: string }) => (
 
 // --- STOCKING STUFFER ROW ---
 const StockingStufferRow = () => {
-    // Randomly select 2 stocking stuffers
     const randomStuffers = useMemo(() => {
         const shuffled = [...STOCKING_STUFFERS].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, 2);
@@ -320,8 +319,8 @@ const StockingStufferRow = () => {
                 <div className="h-px w-8 bg-slate-300"></div>
             </div>
             
-            {/* HIGH CONTRAST CONTAINER */}
-            <div className="bg-amber-100 rounded-xl p-4 border-2 border-amber-300 shadow-inner">
+            {/* Gold/Premium Container for Visibility */}
+            <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
                 <div className="grid grid-cols-2 gap-4">
                     {randomStuffers.map((item, idx) => (
                         <a 
@@ -330,16 +329,13 @@ const StockingStufferRow = () => {
                             target="_blank" 
                             rel="noopener noreferrer sponsored"
                             onClick={() => trackEvent('affiliate_click', { partner: `Stuffer: ${item.name}` })}
-                            className="flex flex-col items-center text-center p-3 rounded-xl bg-white border-2 border-slate-100 hover:border-red-300 hover:shadow-lg hover:-translate-y-1 transition-all group"
+                            className="flex flex-col items-center text-center p-3 rounded-xl bg-white border-2 border-amber-100 hover:border-red-300 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden"
                         >
-                            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 group-hover:text-red-500 group-hover:bg-red-50 transition-colors mb-2 border border-amber-100">
+                            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 group-hover:text-red-600 group-hover:bg-red-50 transition-colors mb-2 border border-amber-100">
                                 <item.icon size={20} />
                             </div>
                             <p className="text-xs font-bold text-slate-800 group-hover:text-red-700 leading-tight">{item.name}</p>
                             <p className="text-[10px] text-slate-500 mt-1">{item.desc}</p>
-                             <div className="mt-2 text-[10px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                Shop Now
-                            </div>
                         </a>
                     ))}
                 </div>
@@ -353,16 +349,12 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
 
     const createLink = (searchTerm: string) => {
         const lowerTerm = searchTerm.toLowerCase();
-        
-        // 1. Check for High Commission Match (Sniper)
         const deal = SNIPER_DEALS.find(d => d.keywords.some(k => lowerTerm.includes(k)));
         if (deal) return deal.url;
         
-        // 2. Check Stocking Stuffers (if exact match keyword)
         const stuffer = STOCKING_STUFFERS.find(s => lowerTerm.includes(s.name.toLowerCase()));
         if (stuffer) return stuffer.url;
 
-        // 3. Fallback to Standard Search
         return `https://www.amazon.com/s?k=${encodeURIComponent(searchTerm)}&tag=${AFFILIATE_LINKS.AMAZON_TAG}`;
     };
 
@@ -370,12 +362,7 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
 
     return (
         <div className="mb-3">
-            <div className="flex flex-wrap items-center gap-2 mb-1">
-                <strong className="font-bold text-slate-700">{label}:</strong>
-                <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wide bg-amber-100 border border-amber-200 px-1.5 rounded flex items-center gap-1">
-                    (Click items to shop on Amazon <ExternalLink size={8} />)
-                </span>
-            </div>
+             <p className="text-sm font-bold text-slate-700 mb-1">{label}:</p>
             <div className="flex flex-wrap gap-2">
                 {linkedItems.map((item, index) => (
                     <a
@@ -385,6 +372,7 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
                         rel="noopener noreferrer sponsored"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950 border border-amber-200 transition-all shadow-sm hover:shadow hover:-translate-y-0.5 text-sm font-semibold group"
                         onClick={() => trackEvent('affiliate_click', { partner: 'Amazon Linker', keyword: item })}
+                        title="Shop this item on Amazon"
                     >
                         <ShoppingCart size={12} className="text-amber-600 group-hover:text-amber-800" /> {item} <ExternalLink size={10} className="opacity-50" />
                     </a>
@@ -442,6 +430,18 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }));
     }, [participantsFromUrl, liveWishlists]);
 
+    // --- OPTIMISTIC UI UPDATE ---
+    const handleWishlistSaveSuccess = (newWishlist: any) => {
+        if (currentParticipantId) {
+            setLiveWishlists(prev => ({
+                ...prev,
+                [currentParticipantId]: newWishlist
+            }));
+        }
+        // Background fetch to sync
+        fetchWishlists();
+    };
+
 
     const matches: Match[] = useMemo(() => matchIds.map(m => ({
         giver: participants.find(p => p.id === m.g)!,
@@ -463,40 +463,17 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         const combinedText = `${currentMatch.receiver.interests?.toLowerCase() || ''} ${currentMatch.receiver.likes?.toLowerCase() || ''}`;
         const isEu = isEuVisitor();
         
-        if (isEu) return null; // Simplified EU Logic
+        if (isEu) return null; 
 
-        // 1. Check High Commission "Sniper" Deals First (10-20% Commission)
-        const matchedDeal = SNIPER_DEALS.find(deal => 
-            deal.keywords.some(k => combinedText.includes(k))
-        );
-        if (matchedDeal) {
-            return <HighCommissionPromo deal={matchedDeal} />;
-        }
+        const matchedDeal = SNIPER_DEALS.find(deal => deal.keywords.some(k => combinedText.includes(k)));
+        if (matchedDeal) return <HighCommissionPromo deal={matchedDeal} />;
 
-        // 2. The Met (High Intent Art - 2% Commission but high basket value)
-        if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) {
-            return <MetPromo />;
-        }
+        if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) return <MetPromo />;
+        if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) return <SugarRushPromo />;
+        if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) return <TeaBookPromo />;
 
-        // 3. Sugarfina (Sweets - High Conversion)
-        if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) {
-            return <SugarRushPromo />;
-        }
-        
-        // 4. TeaBook (Tea)
-        if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) {
-            return <TeaBookPromo />;
-        }
+        if (combinedText.trim().length < 4 || combinedText.match(/idk|anything|money|cash|gift card|shopping|mall|dining|restaurant|sure|whatever/)) return <GiftCardPromo />;
 
-        // 5. Giftcards.com (Indecisive / General / Default Fallback)
-        // CHANGED: This is now the primary fallback instead of Amazon General
-        // unless they specifically mention Amazon or a budget.
-        if (combinedText.trim().length < 4 || combinedText.match(/idk|anything|money|cash|gift card|shopping|mall|dining|restaurant|sure|whatever/)) {
-            return <GiftCardPromo />;
-        }
-
-        // 6. Fallback: Amazon General
-        // Only if they have enough text to search but didn't trigger anything else
         return <AmazonGeneralPromo budget={currentMatch.receiver.budget} />;
 
     }, [currentMatch]);
@@ -560,10 +537,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }, 2500);
     };
     
-    const handleWishlistSaveSuccess = () => {
-        fetchWishlists();
-    };
-
     const openShareModal = (view: 'links' | 'print') => {
         setShareModalInitialView(view);
         setIsShareModalOpen(true);
@@ -643,6 +616,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl pb-16">
                 {isOrganizer ? (
                     <div className="space-y-8">
+                        {/* Organizer View */}
                         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200 text-center">
                             <Gift className="h-16 w-16 text-red-500 mx-auto mb-4" />
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Success! Your Game is Ready!</h1>
@@ -732,9 +706,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                         {detailsVisible && (
                                             <div className="bg-slate-100 rounded-2xl p-6 border text-left shadow-inner space-y-6 animate-fade-in">
                                                 
-                                                <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 rounded-r-lg">
+                                                {/* Save Link Banner - ADMIN COLOR (Blue) */}
+                                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-indigo-500 text-indigo-900 p-4 rounded-r-lg">
                                                     <div className="flex">
-                                                        <div className="py-1"><Bookmark className="h-5 w-5 text-amber-500 mr-3" /></div>
+                                                        <div className="py-1"><Bookmark className="h-5 w-5 text-indigo-500 mr-3" /></div>
                                                         <div>
                                                             <p className="font-bold">Save Your Link!</p>
                                                             <p className="text-sm">Bookmark this page to easily come back and check your person's wishlist.</p>
@@ -750,7 +725,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
                                                     {hasDetails && (
                                                         <div>
-                                                            <h4 className="font-bold text-slate-700 mb-2">Their Gift Ideas</h4>
+                                                            <h4 className="font-bold text-slate-700 mb-1">Their Gift Ideas</h4>
+                                                            <p className="text-xs font-bold text-amber-700 mb-3 flex items-center gap-1">
+                                                                🎁 Tip: Tap any highlighted interest to find it on Amazon.
+                                                            </p>
+                                                            
                                                             <div className="space-y-2 text-slate-600 text-sm pl-2 break-all">
                                                                 <AmazonLinker items={currentMatch.receiver.interests} label="Interests" />
                                                                 <AmazonLinker items={currentMatch.receiver.likes} label="Likes" />
