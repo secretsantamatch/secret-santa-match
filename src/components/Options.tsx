@@ -54,14 +54,13 @@ const Options: React.FC<OptionsProps> = (props) => {
   }, [themeSearch, backgroundOptions]);
   
   const sampleMatch: Match = useMemo(() => {
-      // FIX: Changed `links: ''` to `links: []` to match the Participant type definition.
+      // Sample data for preview
       const giver = participants[0] || { id: 'sample-giver', name: 'Alex', interests: 'Loves dark roast coffee', likes: 'Horror movies', dislikes: '', links: [], budget: '' };
       const receiver = participants[1] || participants[0] || { id: 'sample-receiver', name: 'Taylor', interests: 'Enjoys hiking and board games', likes: 'Spicy food', dislikes: '', links: [], budget: '$25' };
       return { giver, receiver };
   }, [participants]);
 
   const displayBgId = hoveredBgId || selectedBackgroundId;
-  const displayBgImg = displayBgId === 'custom' ? styleProps.customBackground : null;
   
   const hoveredOption = backgroundOptions.find(opt => opt.id === hoveredBgId);
   const selectedOption = backgroundOptions.find(opt => opt.id === selectedBackgroundId);
@@ -71,6 +70,9 @@ const Options: React.FC<OptionsProps> = (props) => {
   const displayIntroText = hoveredOption?.cardText?.intro ?? styleProps.introText;
   const displayWishlistLabelText = hoveredOption?.cardText?.wishlistLabel ?? styleProps.wishlistLabelText;
   const displayBgOption = hoveredOption || selectedOption;
+
+  // FIX: Explicitly handle the eventDetails. If it matches the old placeholder or is empty, pass empty string.
+  const displayEventDetails = (eventDetails === 'Gift exchange on Dec 25th!' || !eventDetails) ? '' : eventDetails;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 lg:items-start">
@@ -203,7 +205,7 @@ const Options: React.FC<OptionsProps> = (props) => {
             <div className="w-full max-w-sm mx-auto">
                  <PrintableCard
                     match={sampleMatch}
-                    eventDetails={eventDetails}
+                    eventDetails={displayEventDetails} // Uses the logic to hide placeholder
                     isNameRevealed={true}
                     backgroundOptions={backgroundOptions}
                     bgId={displayBgOption?.id ?? ''}
