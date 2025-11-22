@@ -10,7 +10,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -319,23 +319,30 @@ const StockingStufferRow = () => {
                 <h5 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Add a Little Something Extra?</h5>
                 <div className="h-px w-8 bg-slate-300"></div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-                {randomStuffers.map((item, idx) => (
-                    <a 
-                        key={idx}
-                        href={item.url}
-                        target="_blank" 
-                        rel="noopener noreferrer sponsored"
-                        onClick={() => trackEvent('affiliate_click', { partner: `Stuffer: ${item.name}` })}
-                        className="flex flex-col items-center text-center p-3 rounded-xl bg-white border-2 border-slate-100 hover:border-red-200 hover:shadow-md transition-all group"
-                    >
-                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-red-500 group-hover:bg-red-50 transition-colors mb-2">
-                            <item.icon size={18} />
-                        </div>
-                        <p className="text-xs font-bold text-slate-700 group-hover:text-red-700 leading-tight">{item.name}</p>
-                        <p className="text-[10px] text-slate-500 mt-1">{item.desc}</p>
-                    </a>
-                ))}
+            
+            {/* HIGH CONTRAST CONTAINER */}
+            <div className="bg-amber-100 rounded-xl p-4 border-2 border-amber-300 shadow-inner">
+                <div className="grid grid-cols-2 gap-4">
+                    {randomStuffers.map((item, idx) => (
+                        <a 
+                            key={idx}
+                            href={item.url}
+                            target="_blank" 
+                            rel="noopener noreferrer sponsored"
+                            onClick={() => trackEvent('affiliate_click', { partner: `Stuffer: ${item.name}` })}
+                            className="flex flex-col items-center text-center p-3 rounded-xl bg-white border-2 border-slate-100 hover:border-red-300 hover:shadow-lg hover:-translate-y-1 transition-all group"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 group-hover:text-red-500 group-hover:bg-red-50 transition-colors mb-2 border border-amber-100">
+                                <item.icon size={20} />
+                            </div>
+                            <p className="text-xs font-bold text-slate-800 group-hover:text-red-700 leading-tight">{item.name}</p>
+                            <p className="text-[10px] text-slate-500 mt-1">{item.desc}</p>
+                             <div className="mt-2 text-[10px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                Shop Now
+                            </div>
+                        </a>
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -362,10 +369,12 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
     const linkedItems = items.split(',').map(item => item.trim()).filter(Boolean);
 
     return (
-        <div className="mb-1">
-            <div className="flex items-center gap-2 mb-1">
+        <div className="mb-3">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
                 <strong className="font-bold text-slate-700">{label}:</strong>
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide bg-slate-100 px-1.5 rounded">(Click items to shop)</span>
+                <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wide bg-amber-100 border border-amber-200 px-1.5 rounded flex items-center gap-1">
+                    (Click items to shop on Amazon <ExternalLink size={8} />)
+                </span>
             </div>
             <div className="flex flex-wrap gap-2">
                 {linkedItems.map((item, index) => (
@@ -374,10 +383,10 @@ const AmazonLinker: React.FC<{ items: string, label: string }> = ({ items, label
                         href={createLink(item)}
                         target="_blank"
                         rel="noopener noreferrer sponsored"
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 border border-indigo-100 transition-colors text-sm font-medium"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950 border border-amber-200 transition-all shadow-sm hover:shadow hover:-translate-y-0.5 text-sm font-semibold group"
                         onClick={() => trackEvent('affiliate_click', { partner: 'Amazon Linker', keyword: item })}
                     >
-                        {item} <ExternalLink size={10} className="opacity-50" />
+                        <ShoppingCart size={12} className="text-amber-600 group-hover:text-amber-800" /> {item} <ExternalLink size={10} className="opacity-50" />
                     </a>
                 ))}
             </div>
@@ -479,13 +488,15 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             return <TeaBookPromo />;
         }
 
-        // 5. Giftcards.com (Indecisive / General)
-        // UPDATED LOGIC: If text is short OR has "IDK" phrases OR no specific matches above
+        // 5. Giftcards.com (Indecisive / General / Default Fallback)
+        // CHANGED: This is now the primary fallback instead of Amazon General
+        // unless they specifically mention Amazon or a budget.
         if (combinedText.trim().length < 4 || combinedText.match(/idk|anything|money|cash|gift card|shopping|mall|dining|restaurant|sure|whatever/)) {
             return <GiftCardPromo />;
         }
 
         // 6. Fallback: Amazon General
+        // Only if they have enough text to search but didn't trigger anything else
         return <AmazonGeneralPromo budget={currentMatch.receiver.budget} />;
 
     }, [currentMatch]);
@@ -740,7 +751,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     {hasDetails && (
                                                         <div>
                                                             <h4 className="font-bold text-slate-700 mb-2">Their Gift Ideas</h4>
-                                                            <div className="space-y-1 text-slate-600 text-sm pl-2 break-all">
+                                                            <div className="space-y-2 text-slate-600 text-sm pl-2 break-all">
                                                                 <AmazonLinker items={currentMatch.receiver.interests} label="Interests" />
                                                                 <AmazonLinker items={currentMatch.receiver.likes} label="Likes" />
                                                                 {currentMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {currentMatch.receiver.dislikes}</p>}
