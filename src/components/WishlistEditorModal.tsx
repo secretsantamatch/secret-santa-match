@@ -191,4 +191,5 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
     );
 };
 
+
 export default WishlistEditorModal;

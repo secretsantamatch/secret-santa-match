@@ -34,6 +34,7 @@ const AFFILIATE_LINKS = {
 };
 
 // --- SNIPER DEALS (Main Gifts - $20+) ---
+// Added 'gradient' property for the new colorful look
 const SNIPER_DEALS = [
     {
         keywords: ['blanket', 'throw', 'cozy', 'warm', 'soft', 'bed', 'couch', 'home'],
@@ -41,9 +42,8 @@ const SNIPER_DEALS = [
         name: 'Faux Fur Throw Blanket',
         icon: Moon,
         promoText: 'Cozy Pick: Faux Fur Blanket',
-        color: 'text-slate-700',
-        bg: 'bg-slate-100',
-        border: 'border-slate-300'
+        color: 'text-indigo-900',
+        gradient: 'from-slate-100 to-indigo-100 border-indigo-200'
     },
     {
         keywords: ['quilt', 'cotton', 'throw', 'decor', 'beige', 'brown', 'living room'],
@@ -51,9 +51,8 @@ const SNIPER_DEALS = [
         name: 'Cotton Quilted Throw',
         icon: ShoppingBag,
         promoText: 'Home Decor: Quilted Throw',
-        color: 'text-amber-800',
-        bg: 'bg-amber-100',
-        border: 'border-amber-300'
+        color: 'text-amber-900',
+        gradient: 'from-amber-50 to-orange-100 border-amber-200'
     },
     {
         keywords: ['slipper', 'shoe', 'arch support', 'comfort', 'feet', 'mom', 'grandma'],
@@ -61,9 +60,8 @@ const SNIPER_DEALS = [
         name: 'Arch Support Slippers',
         icon: Smile,
         promoText: 'Comfort Pick: Support Slippers',
-        color: 'text-rose-800',
-        bg: 'bg-rose-100',
-        border: 'border-rose-300'
+        color: 'text-rose-900',
+        gradient: 'from-rose-50 to-pink-100 border-rose-200'
     },
     {
         keywords: ['kitchen', 'cook', 'gadget', 'tool', 'pizza', 'garlic', 'chef'],
@@ -71,9 +69,8 @@ const SNIPER_DEALS = [
         name: 'Premium Kitchen Set',
         icon: Utensils,
         promoText: 'Chef\'s Choice: Kitchen Set',
-        color: 'text-zinc-800',
-        bg: 'bg-zinc-200',
-        border: 'border-zinc-400'
+        color: 'text-emerald-900',
+        gradient: 'from-emerald-50 to-teal-100 border-emerald-200'
     },
     {
         keywords: ['slipper', 'sock', 'men', 'dad', 'brother', 'husband', 'fleece'],
@@ -81,9 +78,8 @@ const SNIPER_DEALS = [
         name: 'Mens Slipper Socks',
         icon: ShoppingBag,
         promoText: 'Cozy Gift: Mens Slippers',
-        color: 'text-slate-800',
-        bg: 'bg-slate-200',
-        border: 'border-slate-400'
+        color: 'text-blue-900',
+        gradient: 'from-blue-50 to-sky-100 border-blue-200'
     },
     {
         keywords: ['skin', 'balm', 'tallow', 'moisturizer', 'natural', 'skincare', 'face'],
@@ -91,9 +87,8 @@ const SNIPER_DEALS = [
         name: 'Whipped Tallow Balm',
         icon: Sparkles,
         promoText: 'Viral Skincare: Tallow Balm',
-        color: 'text-emerald-800',
-        bg: 'bg-emerald-100',
-        border: 'border-emerald-300'
+        color: 'text-green-900',
+        gradient: 'from-green-50 to-emerald-100 border-green-200'
     },
     {
         keywords: ['car', 'wash', 'drying', 'towel', 'cleaning', 'auto', 'truck'],
@@ -101,9 +96,8 @@ const SNIPER_DEALS = [
         name: 'Shammy XL Cloth',
         icon: Car,
         promoText: 'Car Lover: XL Shammy',
-        color: 'text-blue-800',
-        bg: 'bg-blue-100',
-        border: 'border-blue-300'
+        color: 'text-blue-900',
+        gradient: 'from-blue-50 to-cyan-100 border-blue-200'
     },
     {
         keywords: ['meat', 'thermometer', 'grill', 'bbq', 'steak', 'cooking'],
@@ -111,9 +105,8 @@ const SNIPER_DEALS = [
         name: 'Digital Meat Thermometer',
         icon: Thermometer,
         promoText: 'Top Rated: Instant Read Thermometer',
-        color: 'text-red-800',
-        bg: 'bg-red-100',
-        border: 'border-red-300'
+        color: 'text-red-900',
+        gradient: 'from-red-50 to-orange-100 border-red-200'
     },
     {
         keywords: ['candle', 'warmer', 'lamp', 'light', 'scent', 'aesthetic', 'vintage'],
@@ -121,9 +114,8 @@ const SNIPER_DEALS = [
         name: 'Candle Warmer Lamp',
         icon: Flame,
         promoText: 'Trending: Candle Warmer',
-        color: 'text-amber-800',
-        bg: 'bg-amber-100',
-        border: 'border-amber-300'
+        color: 'text-orange-900',
+        gradient: 'from-orange-50 to-amber-100 border-orange-200'
     },
     {
         keywords: ['mattress', 'heated', 'bed', 'sleep', 'cold', 'winter', 'electric blanket'],
@@ -131,9 +123,8 @@ const SNIPER_DEALS = [
         name: 'Heated Mattress Pad',
         icon: Moon,
         promoText: 'Stay Warm: Heated Mattress Pad',
-        color: 'text-indigo-800',
-        bg: 'bg-indigo-100',
-        border: 'border-indigo-300'
+        color: 'text-indigo-900',
+        gradient: 'from-indigo-50 to-purple-100 border-indigo-200'
     },
     {
         keywords: ['bath', 'bomb', 'set', 'gift', 'spa', 'essential oil', 'relaxation'],
@@ -141,41 +132,41 @@ const SNIPER_DEALS = [
         name: 'Bath Bomb Gift Set',
         icon: Gift,
         promoText: 'Gift Idea: 12 Bath Bombs',
-        color: 'text-purple-800',
-        bg: 'bg-purple-100',
-        border: 'border-purple-300'
+        color: 'text-fuchsia-900',
+        gradient: 'from-fuchsia-50 to-pink-100 border-fuchsia-200'
     }
 ];
 
 // --- STOCKING STUFFERS (Cheap Add-ons - Under $15) ---
+// Added specific gradients for each item
 const STOCKING_STUFFERS = [
-    { name: 'Tinted Lip Plumper', url: `https://www.amazon.com/dp/B0C7KTQDC3?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.152AF08NB0PAI&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.152AF08NB0PAI_1763778467692`, icon: Smile, desc: 'Hydrating & Glossy' },
-    { name: 'Lavender Foot Balm', url: `https://www.amazon.com/dp/B0D81KGRXY?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2UF9E3C30DG4O&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2UF9E3C30DG4O_1763778414775`, icon: Sparkles, desc: 'Deep Hydration' },
-    { name: 'Fuzzy Mens Socks', url: `https://www.amazon.com/dp/B0FP1PK9MZ?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1Y0J5SNDQIX3M&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1Y0J5SNDQIX3M_1763778158731`, icon: ShoppingBag, desc: 'Warm & Durable' },
-    { name: 'Lip Gloss Set', url: `https://www.amazon.com/dp/B0FNNFPH11?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.18OLS5AFQMQ25&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.18OLS5AFQMQ25_1763778094203`, icon: Gift, desc: 'Hot Cocoa Scented' },
-    { name: 'Eye Brightener Stick', url: `https://www.amazon.com/dp/B0CVBGLZ5S?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.24Y1WJL9RQIF7&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.24Y1WJL9RQIF7_1763777817681`, icon: Eye, desc: 'Wake Up Tired Eyes' },
-    { name: 'Fuzzy Slippers', url: `https://www.amazon.com/dp/B0DSZZ37JD?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1HSY0XFXTCLLT&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1HSY0XFXTCLLT_1763777592278`, icon: Moon, desc: 'Open Toe Comfort' },
-    { name: 'French Cookies', url: `https://www.amazon.com/dp/B07Z19YMN4?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3GU0VWLV1VHFA&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3GU0VWLV1VHFA_1763777366321`, icon: Cookie, desc: 'Real Butter Shortbread' },
-    { name: 'Crystal Bath Bomb', url: `https://www.amazon.com/dp/B0D1YG1SXM?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2HHD1QD1IETFG&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2HHD1QD1IETFG_1763777199755`, icon: Droplet, desc: 'Rose Quartz Surprise' },
-    { name: 'Candy Cane Candle', url: `https://www.amazon.com/dp/B0FJY2X6XG?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2495YJ1VCSZTC&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2495YJ1VCSZTC_1763776723320`, icon: Flame, desc: 'Holiday Scent' }
+    { name: 'Tinted Lip Plumper', url: `https://www.amazon.com/dp/B0C7KTQDC3?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.152AF08NB0PAI&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.152AF08NB0PAI_1763778467692`, icon: Smile, desc: 'Hydrating & Glossy', gradient: 'from-pink-50 to-rose-100 border-pink-200' },
+    { name: 'Lavender Foot Balm', url: `https://www.amazon.com/dp/B0D81KGRXY?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2UF9E3C30DG4O&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2UF9E3C30DG4O_1763778414775`, icon: Sparkles, desc: 'Deep Hydration', gradient: 'from-purple-50 to-violet-100 border-purple-200' },
+    { name: 'Fuzzy Mens Socks', url: `https://www.amazon.com/dp/B0FP1PK9MZ?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1Y0J5SNDQIX3M&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1Y0J5SNDQIX3M_1763778158731`, icon: ShoppingBag, desc: 'Warm & Durable', gradient: 'from-slate-50 to-gray-100 border-slate-200' },
+    { name: 'Lip Gloss Set', url: `https://www.amazon.com/dp/B0FNNFPH11?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.18OLS5AFQMQ25&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.18OLS5AFQMQ25_1763778094203`, icon: Gift, desc: 'Hot Cocoa Scented', gradient: 'from-orange-50 to-amber-100 border-orange-200' },
+    { name: 'Eye Brightener Stick', url: `https://www.amazon.com/dp/B0CVBGLZ5S?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.24Y1WJL9RQIF7&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.24Y1WJL9RQIF7_1763777817681`, icon: Eye, desc: 'Wake Up Tired Eyes', gradient: 'from-cyan-50 to-sky-100 border-cyan-200' },
+    { name: 'Fuzzy Slippers', url: `https://www.amazon.com/dp/B0DSZZ37JD?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1HSY0XFXTCLLT&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1HSY0XFXTCLLT_1763777592278`, icon: Moon, desc: 'Open Toe Comfort', gradient: 'from-indigo-50 to-blue-100 border-indigo-200' },
+    { name: 'French Cookies', url: `https://www.amazon.com/dp/B07Z19YMN4?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3GU0VWLV1VHFA&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3GU0VWLV1VHFA_1763777366321`, icon: Cookie, desc: 'Real Butter Shortbread', gradient: 'from-yellow-50 to-orange-100 border-yellow-200' },
+    { name: 'Crystal Bath Bomb', url: `https://www.amazon.com/dp/B0D1YG1SXM?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2HHD1QD1IETFG&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2HHD1QD1IETFG_1763777199755`, icon: Droplet, desc: 'Rose Quartz Surprise', gradient: 'from-fuchsia-50 to-pink-100 border-fuchsia-200' },
+    { name: 'Candy Cane Candle', url: `https://www.amazon.com/dp/B0FJY2X6XG?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2495YJ1VCSZTC&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2495YJ1VCSZTC_1763776723320`, icon: Flame, desc: 'Holiday Scent', gradient: 'from-red-50 to-rose-100 border-red-200' }
 ];
 
 // --- PROMO COMPONENTS ---
 
 const HighCommissionPromo = ({ deal }: { deal: typeof SNIPER_DEALS[0] }) => (
-    <div className={`p-4 ${deal.bg} rounded-xl border-2 ${deal.border} shadow-md animate-fade-in hover:shadow-lg transition-shadow`}>
+    <div className={`p-4 bg-gradient-to-r ${deal.gradient} rounded-xl border-2 shadow-md animate-fade-in hover:shadow-lg transition-all transform hover:-translate-y-0.5`}>
         <div className="flex items-center gap-4">
-            <div className={`flex-shrink-0 bg-white ${deal.color} rounded-full h-14 w-14 flex items-center justify-center border border-slate-200 shadow-sm`}>
-                <deal.icon size={28} />
+            <div className="flex-shrink-0 bg-white/80 rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-white">
+                <deal.icon size={28} className={deal.color} />
             </div>
             <div className="flex-grow">
                 <h4 className={`font-extrabold text-lg ${deal.color}`}>{deal.promoText}</h4>
-                <p className="text-sm text-slate-700 font-medium">Based on their wishlist, they might love this!</p>
+                <p className="text-sm text-slate-700 font-medium opacity-90">Based on their wishlist, they might love this!</p>
                 <a 
                     href={deal.url} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className={`mt-2 inline-flex items-center gap-1 text-sm font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-300 text-amber-700 hover:text-amber-800 hover:bg-amber-50 transition-colors`}
+                    className={`mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border shadow-sm ${deal.color} hover:bg-opacity-90 transition-colors`}
                     onClick={() => trackEvent('affiliate_click', { partner: `High Comm: ${deal.name}` })}
                 >
                     View Deal on Amazon <ExternalLink size={14} />
@@ -186,20 +177,20 @@ const HighCommissionPromo = ({ deal }: { deal: typeof SNIPER_DEALS[0] }) => (
 );
 
 const MetPromo = () => (
-    <div className="p-4 bg-stone-100 rounded-xl border-2 border-orange-200 shadow-md animate-fade-in hover:border-orange-300 transition-colors">
+    <div className="p-4 bg-gradient-to-r from-stone-100 to-orange-100 rounded-xl border-2 border-orange-200 shadow-md animate-fade-in hover:shadow-lg transition-all">
         <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-stone-800 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm">
-                <Palette size={28} />
+            <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-stone-200">
+                <Palette size={28} className="text-stone-700" />
             </div>
             <div className="flex-grow">
-                <h4 className="font-extrabold text-lg text-stone-900">For the Art Lover</h4>
-                <p className="text-sm text-stone-700 font-medium">Unique gifts from The Met Museum.</p>
+                <h4 className="font-extrabold text-lg text-stone-800">For the Art Lover</h4>
+                <p className="text-sm text-stone-600 font-medium">Unique gifts from The Met Museum.</p>
                 <p className="text-xs text-orange-700 font-bold mt-0.5">🎁 Free Earrings w/ $125+ Purchase</p>
                 <a 
                     href={AFFILIATE_LINKS.THE_MET} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className="mt-2 inline-flex items-center gap-1 text-sm font-bold bg-white px-3 py-1.5 rounded-lg border border-stone-300 text-stone-800 hover:text-orange-700 hover:border-orange-300 transition-colors"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border border-stone-300 text-stone-800 hover:text-orange-700 hover:border-orange-300 transition-colors shadow-sm"
                     onClick={() => trackEvent('affiliate_click', { partner: 'The Met' })}
                 >
                     Shop The Met Store <ExternalLink size={14} />
@@ -210,10 +201,10 @@ const MetPromo = () => (
 );
 
 const SugarRushPromo = () => (
-    <div className="p-4 bg-pink-50 rounded-xl border-2 border-pink-300 shadow-md animate-fade-in hover:border-pink-400 transition-colors">
+    <div className="p-4 bg-gradient-to-r from-pink-50 to-rose-100 rounded-xl border-2 border-pink-300 shadow-md animate-fade-in hover:shadow-lg transition-all">
         <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 bg-pink-500 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm">
-                <Gift size={28} />
+            <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-pink-100">
+                <Gift size={28} className="text-pink-500" />
             </div>
             <div className="flex-grow">
                 <h4 className="font-extrabold text-lg text-pink-900">Sweeten the Deal</h4>
@@ -222,7 +213,7 @@ const SugarRushPromo = () => (
                     href={AFFILIATE_LINKS.SUGAR_RUSH} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className="mt-2 inline-flex items-center gap-1 text-sm font-bold bg-white px-3 py-1.5 rounded-lg border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors shadow-sm"
                     onClick={() => trackEvent('affiliate_click', { partner: 'Sugarfina' })}
                 >
                     Shop Sugarfina Gifts <ExternalLink size={14} />
@@ -233,10 +224,10 @@ const SugarRushPromo = () => (
 );
 
 const TeaBookPromo = () => (
-    <div className="p-4 bg-emerald-50 rounded-xl border-2 border-emerald-300 shadow-md animate-fade-in hover:border-emerald-400 transition-colors">
+    <div className="p-4 bg-gradient-to-r from-emerald-50 to-green-100 rounded-xl border-2 border-emerald-300 shadow-md animate-fade-in hover:shadow-lg transition-all">
         <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-emerald-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm">
-                <Coffee size={28} />
+            <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-emerald-100">
+                <Coffee size={28} className="text-emerald-600" />
             </div>
             <div className="flex-grow">
                 <h4 className="font-extrabold text-lg text-emerald-900">For the Tea Lover</h4>
@@ -245,7 +236,7 @@ const TeaBookPromo = () => (
                     href={AFFILIATE_LINKS.TEABOOK} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className="mt-2 inline-flex items-center gap-1 text-sm font-bold bg-white px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors shadow-sm"
                     onClick={() => trackEvent('affiliate_click', { partner: 'The TeaBook' })}
                 >
                     Shop The TeaBook <ExternalLink size={14} />
@@ -256,10 +247,10 @@ const TeaBookPromo = () => (
 );
 
 const GiftCardPromo = () => (
-    <div className="p-4 bg-indigo-50 rounded-xl border-2 border-indigo-300 shadow-md animate-fade-in hover:border-indigo-400 transition-colors">
+    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl border-2 border-indigo-300 shadow-md animate-fade-in hover:shadow-lg transition-all">
         <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-indigo-600 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm">
-                <CreditCard size={28} />
+            <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-indigo-100">
+                <CreditCard size={28} className="text-indigo-600" />
             </div>
             <div className="flex-grow">
                 <h4 className="font-extrabold text-lg text-indigo-900">The Ultimate Safe Bet</h4>
@@ -269,7 +260,7 @@ const GiftCardPromo = () => (
                     href={AFFILIATE_LINKS.GIFTCARDS_COM} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className="mt-2 inline-flex items-center gap-1 text-sm font-bold bg-white px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition-colors"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition-colors shadow-sm"
                     onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com' })}
                 >
                     Buy a Gift Card <ExternalLink size={14} />
@@ -280,10 +271,10 @@ const GiftCardPromo = () => (
 );
 
 const AmazonGeneralPromo = ({ budget }: { budget?: string }) => (
-    <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-100 rounded-xl border-2 border-amber-300 shadow-md animate-fade-in hover:border-amber-400 transition-colors">
+    <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-100 rounded-xl border-2 border-amber-300 shadow-md animate-fade-in hover:shadow-lg transition-all">
         <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-amber-500 text-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm">
-                <ShoppingBag size={28} />
+            <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-amber-100">
+                <ShoppingBag size={28} className="text-amber-500" />
             </div>
             <div className="flex-grow">
                 <h4 className="font-extrabold text-lg text-amber-900">Curated Amazon Finds</h4>
@@ -294,7 +285,7 @@ const AmazonGeneralPromo = ({ budget }: { budget?: string }) => (
                     href={`https://www.amazon.com/s?k=gift+ideas&tag=${AFFILIATE_LINKS.AMAZON_TAG}`} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className="mt-2 inline-flex items-center gap-1 text-sm font-bold bg-white px-3 py-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition-colors"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition-colors shadow-sm"
                     onClick={() => trackEvent('affiliate_click', { partner: 'Amazon General' })}
                 >
                     Browse Gift Ideas <ExternalLink size={14} />
@@ -306,7 +297,6 @@ const AmazonGeneralPromo = ({ budget }: { budget?: string }) => (
 
 // --- STOCKING STUFFER ROW ---
 const StockingStufferRow = () => {
-    // Randomly select 2 stocking stuffers
     const randomStuffers = useMemo(() => {
         const shuffled = [...STOCKING_STUFFERS].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, 2);
@@ -320,8 +310,7 @@ const StockingStufferRow = () => {
                 <div className="h-px w-8 bg-slate-300"></div>
             </div>
             
-            {/* GOLD PREMIUM CONTAINER */}
-            <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
                 <div className="grid grid-cols-2 gap-4">
                     {randomStuffers.map((item, idx) => (
                         <a 
@@ -330,14 +319,14 @@ const StockingStufferRow = () => {
                             target="_blank" 
                             rel="noopener noreferrer sponsored"
                             onClick={() => trackEvent('affiliate_click', { partner: `Stuffer: ${item.name}` })}
-                            className="flex flex-col items-center text-center p-3 rounded-xl bg-white border-2 border-amber-100 hover:border-red-300 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden shadow-sm"
+                            className={`flex flex-col items-center text-center p-3 rounded-xl bg-gradient-to-br ${item.gradient} border-2 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden shadow-sm h-full`}
                         >
-                            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 group-hover:text-red-600 group-hover:bg-red-50 transition-colors mb-2 border border-amber-200">
-                                <item.icon size={20} />
+                            <div className="w-12 h-12 rounded-full bg-white/60 flex items-center justify-center shadow-sm mb-2 border border-white/50">
+                                <item.icon size={20} className="text-slate-700" />
                             </div>
-                            <p className="text-xs font-bold text-slate-800 group-hover:text-red-700 leading-tight">{item.name}</p>
-                            <p className="text-[10px] text-slate-500 mt-1">{item.desc}</p>
-                             <div className="mt-2 text-[10px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-xs font-bold text-slate-800 leading-tight">{item.name}</p>
+                            <p className="text-[10px] text-slate-600 mt-1 opacity-90">{item.desc}</p>
+                             <div className="mt-auto pt-2 text-[10px] font-bold text-white bg-slate-800 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                                 Shop Now
                             </div>
                         </a>
@@ -641,6 +630,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl pb-16">
                 {isOrganizer ? (
                     <div className="space-y-8">
+                        {/* Organizer View */}
                         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200 text-center">
                             <Gift className="h-16 w-16 text-red-500 mx-auto mb-4" />
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Success! Your Game is Ready!</h1>
@@ -675,6 +665,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 ) : (
                     currentMatch && (
                         <div className="flex flex-col md:flex-row gap-8 items-start justify-center">
+                            {/* Printable Card Preview */}
                             <div className="w-full max-w-sm mx-auto md:flex-shrink-0">
                                 <PrintableCard 
                                     match={currentMatch} 
@@ -696,6 +687,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     showLinks={false}
                                 />
                             </div>
+                            
+                            {/* Reveal Section & Wishlist Details */}
                              <div className="text-center md:text-left h-fit w-full max-w-md">
                                 {!isNameRevealed ? (
                                     <div className="p-6">
@@ -731,13 +724,13 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                             <div className="bg-slate-100 rounded-2xl p-6 border text-left shadow-inner space-y-6 animate-fade-in">
                                                 
                                                 {/* Save Link Banner - ADMIN COLOR (Blue) */}
-                                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-indigo-500 text-indigo-900 p-4 rounded-r-lg">
-                                                    <div className="flex">
-                                                        <div className="py-1"><Bookmark className="h-5 w-5 text-indigo-500 mr-3" /></div>
-                                                        <div>
-                                                            <p className="font-bold">Save Your Link!</p>
-                                                            <p className="text-sm">Bookmark this page to easily come back and check your person's wishlist.</p>
-                                                        </div>
+                                                <div className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white p-4 rounded-xl shadow-md flex items-center gap-4 border border-indigo-400">
+                                                    <div className="bg-white/20 p-2 rounded-full">
+                                                        <Bookmark className="h-6 w-6 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-lg">Save Your Link!</p>
+                                                        <p className="text-sm text-indigo-100">Bookmark this page to check for wishlist updates later.</p>
                                                     </div>
                                                 </div>
 
@@ -750,7 +743,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     {hasDetails && (
                                                         <div>
                                                             <h4 className="font-bold text-slate-700 mb-1">Their Gift Ideas</h4>
-                                                            <p className="text-xs font-bold text-amber-700 mb-3 flex items-center gap-1">
+                                                            <p className="text-xs font-bold text-amber-700 mb-3 flex items-center gap-1 bg-amber-50 w-fit px-2 py-1 rounded-md">
                                                                 🎁 Tip: Tap any highlighted interest to find it on Amazon.
                                                             </p>
                                                             
@@ -786,8 +779,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                 </div>
                                                 
                                                 {data.eventDetails && (
-                                                    <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                                                        <p className="text-sm text-amber-800 text-center">{data.eventDetails}</p>
+                                                    <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-center">
+                                                        <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Event Details</p>
+                                                        <p className="text-sm text-slate-700">{data.eventDetails}</p>
                                                     </div>
                                                 )}
 
