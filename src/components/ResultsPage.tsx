@@ -34,7 +34,6 @@ const AFFILIATE_LINKS = {
 };
 
 // --- SNIPER DEALS (Main Gifts - $20+) ---
-// Added 'gradient' property for the new colorful look
 const SNIPER_DEALS = [
     {
         keywords: ['blanket', 'throw', 'cozy', 'warm', 'soft', 'bed', 'couch', 'home'],
@@ -42,8 +41,9 @@ const SNIPER_DEALS = [
         name: 'Faux Fur Throw Blanket',
         icon: Moon,
         promoText: 'Cozy Pick: Faux Fur Blanket',
-        color: 'text-indigo-900',
-        gradient: 'from-slate-100 to-indigo-100 border-indigo-200'
+        color: 'text-slate-700',
+        bg: 'bg-slate-100',
+        border: 'border-slate-300'
     },
     {
         keywords: ['quilt', 'cotton', 'throw', 'decor', 'beige', 'brown', 'living room'],
@@ -51,8 +51,9 @@ const SNIPER_DEALS = [
         name: 'Cotton Quilted Throw',
         icon: ShoppingBag,
         promoText: 'Home Decor: Quilted Throw',
-        color: 'text-amber-900',
-        gradient: 'from-amber-50 to-orange-100 border-amber-200'
+        color: 'text-amber-800',
+        bg: 'bg-amber-100',
+        border: 'border-amber-300'
     },
     {
         keywords: ['slipper', 'shoe', 'arch support', 'comfort', 'feet', 'mom', 'grandma'],
@@ -60,8 +61,9 @@ const SNIPER_DEALS = [
         name: 'Arch Support Slippers',
         icon: Smile,
         promoText: 'Comfort Pick: Support Slippers',
-        color: 'text-rose-900',
-        gradient: 'from-rose-50 to-pink-100 border-rose-200'
+        color: 'text-rose-800',
+        bg: 'bg-rose-100',
+        border: 'border-rose-300'
     },
     {
         keywords: ['kitchen', 'cook', 'gadget', 'tool', 'pizza', 'garlic', 'chef'],
@@ -69,8 +71,9 @@ const SNIPER_DEALS = [
         name: 'Premium Kitchen Set',
         icon: Utensils,
         promoText: 'Chef\'s Choice: Kitchen Set',
-        color: 'text-emerald-900',
-        gradient: 'from-emerald-50 to-teal-100 border-emerald-200'
+        color: 'text-zinc-800',
+        bg: 'bg-zinc-200',
+        border: 'border-zinc-400'
     },
     {
         keywords: ['slipper', 'sock', 'men', 'dad', 'brother', 'husband', 'fleece'],
@@ -78,8 +81,9 @@ const SNIPER_DEALS = [
         name: 'Mens Slipper Socks',
         icon: ShoppingBag,
         promoText: 'Cozy Gift: Mens Slippers',
-        color: 'text-blue-900',
-        gradient: 'from-blue-50 to-sky-100 border-blue-200'
+        color: 'text-slate-800',
+        bg: 'bg-slate-200',
+        border: 'border-slate-400'
     },
     {
         keywords: ['skin', 'balm', 'tallow', 'moisturizer', 'natural', 'skincare', 'face'],
@@ -87,8 +91,9 @@ const SNIPER_DEALS = [
         name: 'Whipped Tallow Balm',
         icon: Sparkles,
         promoText: 'Viral Skincare: Tallow Balm',
-        color: 'text-green-900',
-        gradient: 'from-green-50 to-emerald-100 border-green-200'
+        color: 'text-emerald-800',
+        bg: 'bg-emerald-100',
+        border: 'border-emerald-300'
     },
     {
         keywords: ['car', 'wash', 'drying', 'towel', 'cleaning', 'auto', 'truck'],
@@ -96,8 +101,9 @@ const SNIPER_DEALS = [
         name: 'Shammy XL Cloth',
         icon: Car,
         promoText: 'Car Lover: XL Shammy',
-        color: 'text-blue-900',
-        gradient: 'from-blue-50 to-cyan-100 border-blue-200'
+        color: 'text-blue-800',
+        bg: 'bg-blue-100',
+        border: 'border-blue-300'
     },
     {
         keywords: ['meat', 'thermometer', 'grill', 'bbq', 'steak', 'cooking'],
@@ -105,8 +111,9 @@ const SNIPER_DEALS = [
         name: 'Digital Meat Thermometer',
         icon: Thermometer,
         promoText: 'Top Rated: Instant Read Thermometer',
-        color: 'text-red-900',
-        gradient: 'from-red-50 to-orange-100 border-red-200'
+        color: 'text-red-800',
+        bg: 'bg-red-100',
+        border: 'border-red-300'
     },
     {
         keywords: ['candle', 'warmer', 'lamp', 'light', 'scent', 'aesthetic', 'vintage'],
@@ -114,8 +121,9 @@ const SNIPER_DEALS = [
         name: 'Candle Warmer Lamp',
         icon: Flame,
         promoText: 'Trending: Candle Warmer',
-        color: 'text-orange-900',
-        gradient: 'from-orange-50 to-amber-100 border-orange-200'
+        color: 'text-amber-800',
+        bg: 'bg-amber-100',
+        border: 'border-amber-300'
     },
     {
         keywords: ['mattress', 'heated', 'bed', 'sleep', 'cold', 'winter', 'electric blanket'],
@@ -123,8 +131,9 @@ const SNIPER_DEALS = [
         name: 'Heated Mattress Pad',
         icon: Moon,
         promoText: 'Stay Warm: Heated Mattress Pad',
-        color: 'text-indigo-900',
-        gradient: 'from-indigo-50 to-purple-100 border-indigo-200'
+        color: 'text-indigo-800',
+        bg: 'bg-indigo-100',
+        border: 'border-indigo-300'
     },
     {
         keywords: ['bath', 'bomb', 'set', 'gift', 'spa', 'essential oil', 'relaxation'],
@@ -132,13 +141,13 @@ const SNIPER_DEALS = [
         name: 'Bath Bomb Gift Set',
         icon: Gift,
         promoText: 'Gift Idea: 12 Bath Bombs',
-        color: 'text-fuchsia-900',
-        gradient: 'from-fuchsia-50 to-pink-100 border-fuchsia-200'
+        color: 'text-purple-800',
+        bg: 'bg-purple-100',
+        border: 'border-purple-300'
     }
 ];
 
 // --- STOCKING STUFFERS (Cheap Add-ons - Under $15) ---
-// Added specific gradients for each item
 const STOCKING_STUFFERS = [
     { name: 'Tinted Lip Plumper', url: `https://www.amazon.com/dp/B0C7KTQDC3?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.152AF08NB0PAI&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.152AF08NB0PAI_1763778467692`, icon: Smile, desc: 'Hydrating & Glossy', gradient: 'from-pink-50 to-rose-100 border-pink-200' },
     { name: 'Lavender Foot Balm', url: `https://www.amazon.com/dp/B0D81KGRXY?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2UF9E3C30DG4O&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2UF9E3C30DG4O_1763778414775`, icon: Sparkles, desc: 'Deep Hydration', gradient: 'from-purple-50 to-violet-100 border-purple-200' },
@@ -156,7 +165,7 @@ const STOCKING_STUFFERS = [
 const HighCommissionPromo = ({ deal }: { deal: typeof SNIPER_DEALS[0] }) => (
     <div className={`p-4 bg-gradient-to-r ${deal.gradient} rounded-xl border-2 shadow-md animate-fade-in hover:shadow-lg transition-all transform hover:-translate-y-0.5`}>
         <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-white/80 rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-white">
+            <div className={`flex-shrink-0 bg-white/80 rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-white`}>
                 <deal.icon size={28} className={deal.color} />
             </div>
             <div className="flex-grow">
@@ -166,10 +175,10 @@ const HighCommissionPromo = ({ deal }: { deal: typeof SNIPER_DEALS[0] }) => (
                     href={deal.url} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className={`mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border shadow-sm ${deal.color} hover:bg-opacity-90 transition-colors`}
+                    className={`mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-amber-400 text-amber-900 px-5 py-2.5 rounded-lg border border-amber-500 shadow-sm hover:bg-amber-500 transition-colors`}
                     onClick={() => trackEvent('affiliate_click', { partner: `High Comm: ${deal.name}` })}
                 >
-                    View Deal on Amazon <ExternalLink size={14} />
+                    Browse Gift Ideas <ExternalLink size={14} />
                 </a>
             </div>
         </div>
@@ -285,7 +294,7 @@ const AmazonGeneralPromo = ({ budget }: { budget?: string }) => (
                     href={`https://www.amazon.com/s?k=gift+ideas&tag=${AFFILIATE_LINKS.AMAZON_TAG}`} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition-colors shadow-sm"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-amber-400 text-amber-900 px-4 py-2.5 rounded-lg border border-amber-500 shadow-sm hover:bg-amber-500 transition-colors"
                     onClick={() => trackEvent('affiliate_click', { partner: 'Amazon General' })}
                 >
                     Browse Gift Ideas <ExternalLink size={14} />
@@ -310,7 +319,8 @@ const StockingStufferRow = () => {
                 <div className="h-px w-8 bg-slate-300"></div>
             </div>
             
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
+            {/* PREMIUM GOLD CONTAINER */}
+            <div className="bg-gradient-to-br from-amber-100 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
                 <div className="grid grid-cols-2 gap-4">
                     {randomStuffers.map((item, idx) => (
                         <a 
@@ -324,7 +334,7 @@ const StockingStufferRow = () => {
                             <div className="w-12 h-12 rounded-full bg-white/60 flex items-center justify-center shadow-sm mb-2 border border-white/50">
                                 <item.icon size={20} className="text-slate-700" />
                             </div>
-                            <p className="text-xs font-bold text-slate-800 leading-tight">{item.name}</p>
+                            <p className="text-xs font-bold text-slate-800 group-hover:text-red-700 leading-tight">{item.name}</p>
                             <p className="text-[10px] text-slate-600 mt-1 opacity-90">{item.desc}</p>
                              <div className="mt-auto pt-2 text-[10px] font-bold text-white bg-slate-800 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                                 Shop Now
@@ -551,6 +561,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }, 2500);
     };
     
+    const handleWishlistSaveSuccessWrapper = () => { // Renamed to avoid redeclaration error
+        fetchWishlists();
+    };
+
     const openShareModal = (view: 'links' | 'print') => {
         setShareModalInitialView(view);
         setIsShareModalOpen(true);
@@ -630,7 +644,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             <main className="container mx-auto p-4 sm:p-6 md:p-8 max-w-5xl pb-16">
                 {isOrganizer ? (
                     <div className="space-y-8">
-                        {/* Organizer View */}
                         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200 text-center">
                             <Gift className="h-16 w-16 text-red-500 mx-auto mb-4" />
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif">Success! Your Game is Ready!</h1>
@@ -665,7 +678,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 ) : (
                     currentMatch && (
                         <div className="flex flex-col md:flex-row gap-8 items-start justify-center">
-                            {/* Printable Card Preview */}
                             <div className="w-full max-w-sm mx-auto md:flex-shrink-0">
                                 <PrintableCard 
                                     match={currentMatch} 
@@ -687,8 +699,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     showLinks={false}
                                 />
                             </div>
-                            
-                            {/* Reveal Section & Wishlist Details */}
                              <div className="text-center md:text-left h-fit w-full max-w-md">
                                 {!isNameRevealed ? (
                                     <div className="p-6">
@@ -730,7 +740,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-lg">Save Your Link!</p>
-                                                        <p className="text-sm text-indigo-100">Bookmark this page to check for wishlist updates later.</p>
+                                                        <p className="text-sm text-indigo-100">Bookmark this page to easily come back and check your person's wishlist.</p>
                                                     </div>
                                                 </div>
 
@@ -779,10 +789,12 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                 </div>
                                                 
                                                 {data.eventDetails && (
-                                                    <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-center">
-                                                        <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Event Details</p>
-                                                        <p className="text-sm text-slate-700">{data.eventDetails}</p>
-                                                    </div>
+                                                    // FIX: Hide event details if it's the placeholder text or empty
+                                                    data.eventDetails !== 'Gift exchange on Dec 25th!' && data.eventDetails.trim() !== '' && (
+                                                        <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                                                            <p className="text-sm text-amber-800 text-center">{data.eventDetails}</p>
+                                                        </div>
+                                                    )
                                                 )}
 
                                                 {/* Credit Karma Promo - Budget Focused, Hidden for EU */}
