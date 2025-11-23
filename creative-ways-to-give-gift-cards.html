@@ -30,10 +30,9 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      // Explicitly define gtag on window to ensure availability
       window.gtag = function(){window.dataLayer.push(arguments);}
-      window.gtag('js', new Date());
-      window.gtag('config', 'G-HG140X6CQ6');
+      gtag('js', new Date());
+      gtag('config', 'G-HG140X6CQ6');
     </script>
 
     <!-- Google AdSense -->
@@ -80,15 +79,8 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         .nav-logo { font-weight: 800; font-size: 1.2em; color: var(--primary-red); text-decoration: none; font-family: 'Playfair Display', serif; }
-        .nav-logo img { height: 32px; width: 32px; margin-right: 8px; vertical-align: middle; }
-        .nav-links { display: flex; gap: 20px; }
-        .nav-link { color: var(--slate-600); text-decoration: none; font-weight: 600; font-size: 0.95em; transition: color 0.2s; }
+        .nav-link { color: var(--slate-600); text-decoration: none; font-weight: 600; font-size: 0.95em; margin-left: 20px; }
         .nav-link:hover { color: var(--primary-red); }
-
-        /* Mobile Menu */
-        .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5em; cursor: pointer; color: var(--slate-600); }
-        .mobile-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; padding: 20px; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex-direction: column; gap: 15px; text-align: center; }
-        .mobile-menu.active { display: flex; }
 
         .container { max-width: 800px; margin: 0 auto; padding: 20px; }
         
@@ -224,6 +216,10 @@
 
         .disclaimer { font-size: 0.85em; color: #64748b; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
 
+        .materials-list { background: #f7fafc; padding: 20px; border-radius: 8px; margin-top: 15px; }
+        .materials-list h4 { margin-top: 0; color: #475569; font-size: 1em; text-transform: uppercase; letter-spacing: 1px; }
+        .materials-list ul { margin-bottom: 0; }
+
         /* Footer */
         footer { background-color: var(--slate-800); color: #cbd5e1; padding: 40px 20px; margin-top: 60px; font-size: 0.9em; }
         .footer-content { max-width: 800px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
@@ -234,30 +230,20 @@
         @media (max-width: 768px) {
             h1 { font-size: 2em; }
             header { padding: 40px 20px; }
-            .nav-links { display: none; }
-            .mobile-menu-btn { display: block; }
             .footer-content { grid-template-columns: 1fr; gap: 20px; }
+            .nav-link { margin-left: 10px; font-size: 0.85em; }
         }
     </style>
 </head>
 <body>
     <div class="nav-bar">
-        <a href="/" class="nav-logo">
-            <img src="/logo_256.png" alt="Logo"> SecretSantaMatch
-        </a>
-        <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
-        <div class="nav-links">
+        <a href="/" class="nav-logo">SecretSantaMatch</a>
+        <nav>
             <a href="/generator.html" class="nav-link">Generator</a>
             <a href="/white-elephant-generator.html" class="nav-link">White Elephant</a>
-            <a href="/free-printables.html" class="nav-link">Printables</a>
-            <a href="/" class="nav-link">Blog</a>
-        </div>
-        <div class="mobile-menu" id="mobileMenu">
-            <a href="/generator.html" class="nav-link">Secret Santa Generator</a>
-            <a href="/white-elephant-generator.html" class="nav-link">White Elephant Tool</a>
-            <a href="/free-printables.html" class="nav-link">Free Printables</a>
-            <a href="/" class="nav-link">Blog</a>
-        </div>
+            <a href="/gift-ideas.html" class="nav-link" style="color: #15803d;">Gift Ideas</a>
+            <a href="/blog.html" class="nav-link">Blog</a>
+        </nav>
     </div>
 
     <header>
@@ -346,6 +332,20 @@
                 <p>Wrap the card in a small box. Wrap that box in a bigger box. Repeat 5 times. Watch them struggle.</p>
                 <div class="why-it-works">Why it works: Classic comedy. It builds suspense and makes for great photos.</div>
             </div>
+            
+            <div class="idea-card">
+                <h3><span class="idea-number">9</span> The DIY Scratch-Off <span class="difficulty-tag">MEDIUM</span></h3>
+                <p>Create your own scratch-off card to reveal the gift amount or retailer.</p>
+                <div class="materials-list">
+                    <h4>What You Need:</h4>
+                    <ul>
+                        <li>Cardstock</li>
+                        <li>Clear packing tape</li>
+                        <li>Metallic acrylic paint + dish soap (2:1 ratio)</li>
+                    </ul>
+                </div>
+                <div class="why-it-works">Why it works: It adds a gamified element to the reveal. Everyone loves scratching a lottery ticket!</div>
+            </div>
 
             <div class="affiliate-banner">
                 <a href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1592447.7085&type=3&subid=0" target="_blank" rel="nofollow">
@@ -356,24 +356,34 @@
             <h2>Quick-Fire Ideas for Specific People</h2>
             
             <div class="idea-card">
-                <h3><span class="idea-number">9</span> For the Gamer</h3>
+                <h3><span class="idea-number">10</span> For the Gamer</h3>
                 <p><strong>Card:</strong> Xbox/PlayStation/Steam<br><strong>Presentation:</strong> Tape it to a bag of Doritos or a can of energy drink.</p>
             </div>
 
             <div class="idea-card">
-                <h3><span class="idea-number">10</span> For the DIY Dad</h3>
+                <h3><span class="idea-number">11</span> For the DIY Dad</h3>
                 <p><strong>Card:</strong> Home Depot/Lowe's<br><strong>Presentation:</strong> Put it inside a new pair of work gloves or tape it to a measuring tape.</p>
             </div>
 
             <div class="idea-card">
-                <h3><span class="idea-number">11</span> For the Teacher</h3>
+                <h3><span class="idea-number">12</span> For the Teacher</h3>
                 <p><strong>Card:</strong> Target/Amazon<br><strong>Presentation:</strong> Inside a reusable tumbler cup with a note: "Thanks for pouring into our child."</p>
             </div>
 
             <div class="idea-card">
-                <h3><span class="idea-number">12</span> For the Teenager</h3>
+                <h3><span class="idea-number">13</span> For the Teenager</h3>
                 <p><strong>Card:</strong> Sephora/Ulta/GameStop<br><strong>Presentation:</strong> Honestly? Just digital delivery to their phone. They prefer not to lose the plastic.</p>
                 <a href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1592447.7085&type=3&subid=0" target="_blank" rel="nofollow" style="display:inline-block; margin-top:10px; font-weight:bold; color:#15803d;">Send Instant eGift →</a>
+            </div>
+            
+            <div class="idea-card">
+                <h3><span class="idea-number">14</span> For the Foodie</h3>
+                <p><strong>Card:</strong> Local Restaurant/DoorDash<br><strong>Presentation:</strong> Attach to a bottle of wine or a fancy chocolate bar.</p>
+            </div>
+            
+            <div class="idea-card">
+                <h3><span class="idea-number">15</span> For the Traveler</h3>
+                <p><strong>Card:</strong> Airbnb/Hotels.com/Airline<br><strong>Presentation:</strong> Inside a new luggage tag or passport holder.</p>
             </div>
 
             <div class="internal-links">
@@ -410,13 +420,6 @@
             &copy; 2025 SecretSantaMatch.com. All rights reserved.
         </div>
     </footer>
-
-    <script>
-        function toggleMenu() {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('active');
-        }
-    </script>
 
     <script type="application/ld+json">
     {
