@@ -30,9 +30,10 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
+      // Explicitly define gtag on window to ensure availability
       window.gtag = function(){window.dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-HG140X6CQ6');
+      window.gtag('js', new Date());
+      window.gtag('config', 'G-HG140X6CQ6');
     </script>
 
     <!-- Google AdSense -->
@@ -79,8 +80,15 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         .nav-logo { font-weight: 800; font-size: 1.2em; color: var(--primary-red); text-decoration: none; font-family: 'Playfair Display', serif; }
-        .nav-link { color: var(--slate-600); text-decoration: none; font-weight: 600; font-size: 0.95em; }
+        .nav-logo img { height: 32px; width: 32px; margin-right: 8px; vertical-align: middle; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-link { color: var(--slate-600); text-decoration: none; font-weight: 600; font-size: 0.95em; transition: color 0.2s; }
         .nav-link:hover { color: var(--primary-red); }
+
+        /* Mobile Menu */
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5em; cursor: pointer; color: var(--slate-600); }
+        .mobile-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; padding: 20px; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex-direction: column; gap: 15px; text-align: center; }
+        .mobile-menu.active { display: flex; }
 
         .container { max-width: 800px; margin: 0 auto; padding: 20px; }
         
@@ -216,19 +224,40 @@
 
         .disclaimer { font-size: 0.85em; color: #64748b; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
 
+        /* Footer */
+        footer { background-color: var(--slate-800); color: #cbd5e1; padding: 40px 20px; margin-top: 60px; font-size: 0.9em; }
+        .footer-content { max-width: 800px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .footer-links a { color: #cbd5e1; text-decoration: none; display: block; margin-bottom: 10px; transition: color 0.2s; }
+        .footer-links a:hover { color: white; }
+        .copyright { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #334155; color: #64748b; }
+
         @media (max-width: 768px) {
             h1 { font-size: 2em; }
             header { padding: 40px 20px; }
+            .nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .footer-content { grid-template-columns: 1fr; gap: 20px; }
         }
     </style>
 </head>
 <body>
     <div class="nav-bar">
-        <a href="/" class="nav-logo">SecretSantaMatch</a>
-        <nav>
-            <a href="/generator.html" class="nav-link" style="margin-right: 15px;">Generator</a>
-            <a href="/blog.html" class="nav-link">Back to Blog</a>
-        </nav>
+        <a href="/" class="nav-logo">
+            <img src="/logo_256.png" alt="Logo"> SecretSantaMatch
+        </a>
+        <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
+        <div class="nav-links">
+            <a href="/generator.html" class="nav-link">Generator</a>
+            <a href="/white-elephant-generator.html" class="nav-link">White Elephant</a>
+            <a href="/free-printables.html" class="nav-link">Printables</a>
+            <a href="/" class="nav-link">Blog</a>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="/generator.html" class="nav-link">Secret Santa Generator</a>
+            <a href="/white-elephant-generator.html" class="nav-link">White Elephant Tool</a>
+            <a href="/free-printables.html" class="nav-link">Free Printables</a>
+            <a href="/" class="nav-link">Blog</a>
+        </div>
     </div>
 
     <header>
@@ -363,6 +392,31 @@
             <p><em>Last updated: November 2025.</em></p>
         </article>
     </div>
+
+    <footer>
+        <div class="footer-content">
+            <div>
+                <p><strong>SecretSantaMatch.com</strong></p>
+                <p>The easiest way to organize holiday fun.</p>
+            </div>
+            <div class="footer-links">
+                <a href="/about-us.html">About Us</a>
+                <a href="/contact.html">Contact</a>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+                <a href="/terms-of-service.html">Terms of Service</a>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2025 SecretSantaMatch.com. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+        }
+    </script>
 
     <script type="application/ld+json">
     {
