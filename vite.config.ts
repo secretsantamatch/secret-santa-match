@@ -23,6 +23,10 @@ export default defineConfig({
         'terms-of-service': resolve(__dirname, 'terms-of-service.html'),
         'complete-secret-santa-comparison': resolve(__dirname, 'complete-secret-santa-comparison.html'),
         'free-printables': resolve(__dirname, 'free-printables.html'),
+         'are-gift-cards-good-gifts': resolve(__dirname, 'are-gift-cards-good-gifts.html'),
+        'digital-vs-physical-gift-cards': resolve(__dirname, 'digital-vs-physical-gift-cards.html'),
+        'creative-ways-to-give-gift-cards': resolve(__dirname, 'creative-ways-to-give-gift-cards.html'),
+        'gift-card-etiquette': resolve(__dirname, 'gift-card-etiquette.html'),
       }
     }
   },
