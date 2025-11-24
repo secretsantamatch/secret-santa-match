@@ -281,30 +281,35 @@ const TeaBookPromo = () => (
 );
 
 const GiftCardPromo = () => (
-    <div className="p-4 bg-gradient-to-br from-violet-100 to-indigo-100 rounded-xl border-2 border-indigo-300 shadow-md animate-fade-in hover:shadow-lg transition-all">
-        <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-indigo-200 mt-1">
-                <CreditCard size={28} className="text-indigo-600" />
+    <div className="p-5 rounded-xl border-2 border-indigo-300 shadow-md animate-fade-in transition-all bg-gradient-to-br from-indigo-50 via-purple-50 to-indigo-100 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-200 rounded-full mix-blend-multiply filter blur-2xl opacity-30 -mr-10 -mt-10"></div>
+        
+        <div className="flex flex-col sm:flex-row items-center gap-5 relative z-10">
+            <div className="flex-shrink-0 bg-white p-3 rounded-full shadow-sm border border-indigo-100">
+                <CreditCard size={32} className="text-indigo-600" />
             </div>
-            <div className="flex-grow">
-                <h4 className="font-extrabold text-lg text-indigo-900">The Ultimate Safe Bet</h4>
-                <p className="text-sm text-indigo-800 font-medium mb-3 leading-relaxed">
+            <div className="flex-grow text-center sm:text-left">
+                <h4 className="font-extrabold text-xl text-indigo-900 mb-2">The Ultimate Safe Bet</h4>
+                <p className="text-sm text-indigo-800 font-medium leading-relaxed mb-4">
                     Not sure what to get? Get a physical or digital gift card for over 450+ stores. Or customize Visa & Mastercard from Giftcards.com.
                 </p>
                 
-                <a 
-                    href={AFFILIATE_LINKS.GIFTCARDS_COM} 
-                    target="_blank" 
-                    rel="noopener noreferrer sponsored" 
-                    className="inline-flex items-center gap-1.5 text-sm font-bold bg-white text-indigo-700 px-6 py-2.5 rounded-lg border border-indigo-200 hover:bg-indigo-50 transition-colors shadow-sm mb-3"
-                    onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com' })}
-                >
-                    Browse Now <ExternalLink size={14} />
-                </a>
-
-                <div className="pt-2 border-t border-indigo-300/50">
-                     <a href="/creative-ways-to-give-gift-cards.html" target="_blank" className="flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 hover:underline">
-                        Think giving a gift card is impersonal? Click here for 15 creative ideas <ArrowRight size={10} />
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <a 
+                        href={AFFILIATE_LINKS.GIFTCARDS_COM} 
+                        target="_blank" 
+                        rel="noopener noreferrer sponsored" 
+                        className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-indigo-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-indigo-700 hover:scale-105 transition-all w-full sm:w-auto"
+                        onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com' })}
+                    >
+                        Browse Now <ArrowRight size={16} />
+                    </a>
+                    <a 
+                        href="/creative-ways-to-give-gift-cards.html" 
+                        target="_blank" 
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline mt-2 sm:mt-0"
+                    >
+                        Think giving a gift card is impersonal? <br className="hidden sm:block"/>Click here for 15 creative ideas &rarr;
                     </a>
                 </div>
             </div>
@@ -347,14 +352,15 @@ const StockingStufferRow = () => {
     return (
         <div className="mt-8 pt-6 border-t-2 border-slate-100">
             <div className="flex items-center justify-center gap-2 mb-4">
-                <div className="h-px w-8 bg-slate-300"></div>
-                <h5 className="text-xs font-extrabold text-red-500 uppercase tracking-widest animate-pulse">Trending Add-ons (Selling Out Fast!)</h5>
-                <div className="h-px w-8 bg-slate-300"></div>
+                <div className="h-px w-8 bg-red-200"></div>
+                <h5 className="text-xs font-extrabold text-red-600 uppercase tracking-widest flex items-center gap-1">
+                    <Flame size={12} className="animate-pulse" /> Trending Add-ons (Selling Out Fast!)
+                </h5>
+                <div className="h-px w-8 bg-red-200"></div>
             </div>
             
-            {/* GOLD PREMIUM CONTAINER */}
-            <div className="bg-gradient-to-br from-amber-100 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
-                <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-amber-50 to-orange-100 rounded-xl p-4 border border-amber-200 shadow-sm">
+                <div className="grid grid-cols-2 gap-3">
                     {randomStuffers.map((item, idx) => (
                         <a 
                             key={idx}
@@ -362,14 +368,17 @@ const StockingStufferRow = () => {
                             target="_blank" 
                             rel="noopener noreferrer sponsored"
                             onClick={() => trackEvent('affiliate_click', { partner: `Stuffer: ${item.name}` })}
-                            className={`flex flex-col items-center text-center p-3 rounded-xl bg-gradient-to-br ${item.gradient} border-2 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden shadow-sm h-full`}
+                            className={`flex flex-col items-center text-center p-3 rounded-xl bg-white border border-slate-200 hover:border-red-300 shadow-sm hover:shadow-md transition-all group h-full relative overflow-hidden`}
                         >
-                            <div className="w-12 h-12 rounded-full bg-white/60 flex items-center justify-center shadow-sm mb-2 border border-white/50">
-                                <item.icon size={20} className="text-slate-700" />
+                            <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-10 transition-opacity`}></div>
+                            
+                            <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                <item.icon size={18} className="text-slate-700" />
                             </div>
-                            <p className="text-xs font-bold text-slate-800 group-hover:text-red-700 leading-tight">{item.name}</p>
-                            <p className="text-[10px] text-slate-600 mt-1 opacity-90 mb-3">{item.desc}</p>
-                             <div className="mt-auto text-[10px] font-bold text-white bg-slate-800 px-3 py-1 rounded-full shadow-sm group-hover:bg-red-600 transition-colors">
+                            <p className="text-xs font-bold text-slate-800 leading-tight mb-1">{item.name}</p>
+                            <p className="text-[10px] text-slate-500 mb-3 line-clamp-1">{item.desc}</p>
+                            
+                            <div className="mt-auto bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-full group-hover:bg-red-600 transition-colors w-full">
                                 Shop Now
                             </div>
                         </a>
@@ -516,7 +525,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }
 
         // 3. Fallback Logic - Gift Cards for everyone (including EU)
-        // Previously we filtered EU here, but user requested it be available.
         return <GiftCardPromo />;
 
     }, [currentMatch]);
