@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -286,15 +284,15 @@ const GiftCardPromo = () => (
         
         {/* Image Banner - Acts as Main CTA */}
         <a 
-            href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.462&type=4&subid=0" 
+            href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.910&subid=0&type=4" 
             target="_blank" 
             rel="noopener noreferrer sponsored"
             onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Banner' })}
             className="block w-full rounded-lg overflow-hidden transition-transform transform group-hover:scale-[1.01] bg-transparent min-h-[100px] flex items-center justify-center"
         >
             <img 
-                src="https://www.giftcards.com/content/dam/bhn/live/nam/us/en/catalog-assets/product-images/07675050096/07675050096_1038799_master.png/_jcr_content/renditions/cq5dam.thumbnail.319.319.png" 
-                alt="Giftcards.com eGift - Shop Over 350 Brands" 
+                src="https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.910&subid=0&type=4&gridnum=0" 
+                alt="Giftcards.com Santa Hat Stocking Stuffer Xmas Christmas December Image Giftcards.com eGift Logo" 
                 className="w-auto h-auto max-h-[200px] object-contain"
                 loading="lazy"
                 onError={(e) => {
@@ -317,11 +315,11 @@ const GiftCardPromo = () => (
         {/* Text Fallback / Extra Info */}
         <div className="text-center px-2 w-full">
              <p className="text-sm text-indigo-900 font-medium mb-3">
-                Not sure what to get? Get a physical or digital gift card for over 450+ stores. Or customize Visa & Mastercard from Giftcards.com.
+                Not sure what to get? Get a digital or physical gift card or a personalized Visa or Mastercard.
             </p>
             
             <a 
-                href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.462&type=4&subid=0" 
+                href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.910&subid=0&type=4" 
                 target="_blank" 
                 rel="noopener noreferrer sponsored"
                 onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Text Link' })}
