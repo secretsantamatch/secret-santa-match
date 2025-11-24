@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -280,7 +281,7 @@ const TeaBookPromo = () => (
 );
 
 const GiftCardPromo = () => (
-    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl border-2 border-indigo-300 shadow-md animate-fade-in hover:shadow-lg transition-all">
+    <div className="p-4 bg-gradient-to-br from-indigo-50 via-blue-50 to-violet-50 rounded-xl border-2 border-indigo-200 shadow-md animate-fade-in hover:shadow-lg transition-all">
         <div className="flex items-start gap-4">
             <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-indigo-100 mt-1">
                 <CreditCard size={28} className="text-indigo-600" />
@@ -301,7 +302,7 @@ const GiftCardPromo = () => (
                     Browse Now <ExternalLink size={14} />
                 </a>
 
-                <div className="pt-2 border-t border-indigo-200">
+                <div className="pt-2 border-t border-indigo-200/50">
                      <a href="/creative-ways-to-give-gift-cards.html" target="_blank" className="flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
                         Think giving a gift card is impersonal? Click here for 15 creative ideas <ArrowRight size={10} />
                     </a>
@@ -497,7 +498,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         
         // 1. Sniper Deals (High Priority, Exact Match) - US Only
         // Only show Amazon/Sniper deals if NOT EU, as Amazon links are usually US specific.
-        // However, Gift Card links are typically global or have redirects.
         
         if (!isEu) {
             const matchedDeal = SNIPER_DEALS.find(deal => 
