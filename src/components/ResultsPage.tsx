@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -281,26 +282,26 @@ const TeaBookPromo = () => (
 );
 
 const GiftCardPromo = () => (
-    <div className="flex flex-col items-center gap-3 my-6 animate-fade-in w-full p-4 rounded-xl bg-gradient-to-br from-indigo-100 via-blue-100 to-violet-100 border border-indigo-200 shadow-md hover:shadow-lg transition-all group">
+    <div className="flex flex-col items-center gap-3 my-6 animate-fade-in w-full p-4 rounded-xl bg-gradient-to-br from-indigo-100 via-blue-100 to-violet-100 border border-indigo-300 shadow-md hover:shadow-lg transition-all group">
         
         {/* Image Banner - Acts as Main CTA */}
         <a 
-            href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.929&subid=0&type=4" 
+            href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.462&type=4&subid=0" 
             target="_blank" 
             rel="noopener noreferrer sponsored"
             onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Banner' })}
-            className="block w-full rounded-lg overflow-hidden transition-transform transform group-hover:scale-[1.01] bg-white min-h-[100px] flex items-center justify-center"
+            className="block w-full rounded-lg overflow-hidden transition-transform transform group-hover:scale-[1.01] bg-transparent min-h-[100px] flex items-center justify-center"
         >
             <img 
-                src="https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.929&subid=0&type=4&gridnum=0" 
-                alt="Giftcards.com Cyber Week, Mega Treats 12/1 - 12/7 BOGO Offers & Deals Up to 15% OFF Select Brands" 
-                className="w-full h-auto max-h-[180px] object-contain"
+                src="https://www.giftcards.com/content/dam/bhn/live/nam/us/en/catalog-assets/product-images/07675050096/07675050096_1038799_master.png/_jcr_content/renditions/cq5dam.thumbnail.319.319.png" 
+                alt="Giftcards.com eGift - Shop Over 350 Brands" 
+                className="w-auto h-auto max-h-[200px] object-contain"
                 loading="lazy"
                 onError={(e) => {
                     // Fallback if image fails (e.g., AdBlock)
                     e.currentTarget.style.display = 'none';
                     e.currentTarget.parentElement!.innerHTML = `
-                        <div class="p-6 text-center">
+                        <div class="p-6 text-center bg-white/80 rounded-lg border border-indigo-200">
                             <h4 class="text-lg font-bold text-indigo-900 mb-2">The Ultimate Safe Bet</h4>
                             <p class="text-indigo-700 mb-3">Deals on 450+ brands of physical/digital gift cards, customizable Visa & Mastercards and more.</p>
                             <span class="inline-block bg-indigo-600 text-white font-bold py-2 px-6 rounded-full">Browse Now</span>
@@ -310,14 +311,17 @@ const GiftCardPromo = () => (
             />
         </a>
         
+        {/* Tracking Pixel */}
+        <img width={1} height={1} src="https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.462&type=4&subid=0" alt="" className="hidden" />
+        
         {/* Text Fallback / Extra Info */}
-        <div className="text-center px-2">
-             <p className="text-sm text-indigo-800 font-medium mb-3">
+        <div className="text-center px-2 w-full">
+             <p className="text-sm text-indigo-900 font-medium mb-3">
                 Not sure what to get? Get a physical or digital gift card for over 450+ stores. Or customize Visa & Mastercard from Giftcards.com.
             </p>
             
             <a 
-                href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.929&subid=0&type=4" 
+                href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.462&type=4&subid=0" 
                 target="_blank" 
                 rel="noopener noreferrer sponsored"
                 onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Text Link' })}
@@ -374,7 +378,7 @@ const StockingStufferRow = () => {
             <div className="flex items-center justify-center gap-2 mb-4">
                 <div className="h-px w-8 bg-red-200"></div>
                 <h5 className="text-xs font-extrabold text-red-600 uppercase tracking-widest flex items-center gap-1">
-                    <Flame size={12} className="animate-pulse" /> Trending Add-ons (Selling Out Fast!)
+                    <Flame size={12} className="animate-pulse" /> Trending Add-ons on Amazon (Selling Out Fast!)
                 </h5>
                 <div className="h-px w-8 bg-red-200"></div>
             </div>
@@ -388,15 +392,13 @@ const StockingStufferRow = () => {
                             target="_blank" 
                             rel="noopener noreferrer sponsored"
                             onClick={() => trackEvent('affiliate_click', { partner: `Stuffer: ${item.name}` })}
-                            className={`flex flex-col items-center text-center p-3 rounded-xl bg-white border border-slate-200 hover:border-red-300 shadow-sm hover:shadow-md transition-all group h-full relative overflow-hidden`}
+                            className={`flex flex-col items-center text-center p-3 rounded-xl bg-gradient-to-br ${item.gradient} border-2 border-white/50 hover:border-red-300 shadow-sm hover:shadow-md transition-all group h-full relative overflow-hidden`}
                         >
-                            <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-10 transition-opacity`}></div>
-                            
-                            <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                            <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-sm">
                                 <item.icon size={18} className="text-slate-700" />
                             </div>
                             <p className="text-xs font-bold text-slate-800 leading-tight mb-1">{item.name}</p>
-                            <p className="text-[10px] text-slate-500 mb-3 line-clamp-1">{item.desc}</p>
+                            <p className="text-[10px] text-slate-600 mb-3 line-clamp-1 opacity-90">{item.desc}</p>
                             
                             <div className="mt-auto bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-full group-hover:bg-red-600 transition-colors w-full">
                                 Shop Now
