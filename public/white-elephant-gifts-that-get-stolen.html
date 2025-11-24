@@ -80,7 +80,7 @@
         header {
             background: linear-gradient(135deg, #c62828 0%, #8b1818 100%);
             color: white;
-            padding: 60px 20px;
+            padding: 40px 20px 60px;
             text-align: center;
             box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3);
         }
@@ -110,40 +110,44 @@
             backdrop-filter: blur(10px);
         }
 
-        .jump-button {
-            display: inline-block;
-            background: white;
-            color: #c62828;
-            padding: 12px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 800;
-            font-size: 1.1em;
-            margin-top: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: transform 0.2s, box-shadow 0.2s;
+        /* Quick Nav */
+        .quick-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 30px;
         }
 
-        .jump-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            background-color: #f8f9fa;
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #c62828;
+            padding: 10px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95em;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            background: white;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
         }
         
         .urgency-banner {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
             color: white;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             font-weight: 600;
-            font-size: 1.1em;
+            font-size: 1em;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.9; }
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         
         .intro-section {
@@ -189,7 +193,7 @@
         
         .gift-category {
             margin: 60px 0;
-            scroll-margin-top: 20px;
+            scroll-margin-top: 80px;
         }
         
         .category-header {
@@ -235,8 +239,9 @@
             height: 180px;
             object-fit: contain;
             border-radius: 8px;
-            background: #f8f9fa;
-            padding: 10px;
+            background: #fff;
+            padding: 5px;
+            border: 1px solid #eee;
         }
         
         .gift-content h3 {
@@ -401,8 +406,14 @@
             <h1>25 White Elephant Gifts That Actually Get Stolen 🎁</h1>
             <p class="subtitle">Data-Backed Picks from Real Gift Exchange Games</p>
             <div class="data-badge">📊 Updated November 2025 • Avg. Steal Rate: 3.2x Higher</div>
-            <br>
-            <a href="#top-picks" class="jump-button">⬇ Jump Straight to the Gifts</a>
+            
+            <div class="quick-nav">
+                <a href="#office" class="nav-btn">💼 Office Humor</a>
+                <a href="#useful" class="nav-btn">🎭 Useful & Funny</a>
+                <a href="#party" class="nav-btn">🎉 Party Animals</a>
+                <a href="#creative" class="nav-btn">🎨 Creative</a>
+                <a href="#wild" class="nav-btn">🃏 Wild Cards</a>
+            </div>
         </div>
     </header>
     
@@ -450,14 +461,14 @@
         </div>
         
         <!-- CATEGORY 1: Office Comedy Gold -->
-        <div class="gift-category" id="top-picks">
+        <div class="gift-category" id="office">
             <div class="category-header">
                 <h2 class="category-title">💼 Office Comedy Gold</h2>
                 <p class="category-subtitle">Perfect for coworkers who need a laugh (and won't get fired)</p>
             </div>
             <div class="gift-grid">
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/61lkJU3wbTL._AC_SL1500_.jpg" alt="Passive Aggressive Pens" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/61lkJU3wbTL._AC_SL1500_.jpg" alt="Passive Aggressive Pens" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Passive Aggressive Pens (3-Pack)</h3>
                         <p class="gift-description">
@@ -466,12 +477,12 @@
                         <p class="gift-description">
                             Three retractable pens with quotes like "Let Me Know When You're Done Being Wrong." Smooth black ink meets savage humor—perfect for taking notes in meetings when you desperately need to bite your tongue. One reviewer said her whole team fought over these during their gift exchange, and they're still being used six months later. That's the magic: they're actually quality pens that happen to be hilarious.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0DVMTB55F?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931513107" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0DVMTB55F?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931513107" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71s4g3XBZVL._AC_SL1500_.jpg" alt="Cat People Pens" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71s4g3XBZVL._AC_SL1500_.jpg" alt="Cat People Pens" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Cat People Pens (5-Pack)</h3>
                         <p class="gift-description">
@@ -481,12 +492,12 @@
                         <p class="gift-description">
                             Five pens with cat puns: "Sorry I'm Late My Cat Was Napping On Me," "You Don't Own A Cat, You Know A Cat," and more. If your office has even one cat person (spoiler: it has at least three), this gift will cause a bidding war. Smooth writing, genuinely funny, and they actually get used every single day. Cat lovers will protect these pens like Gollum guarding the One Ring.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0DJZ73ZD8?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931580354" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0DJZ73ZD8?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931580354" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/81kkMzfDVAL._AC_SL1500_.jpg" alt="Brain Has Too Many Tabs Open Sign" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/81kkMzfDVAL._AC_SL1500_.jpg" alt="Brain Has Too Many Tabs Open Sign" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>"My Brain Has Too Many Tabs Open" Desk Sign</h3>
                         <p class="gift-description">
@@ -496,12 +507,12 @@
                         <p class="gift-description">
                             If you've ever had 47 browser tabs open while trying to remember what you walked into the kitchen for, you need this sign. It's the perfect blend of self-deprecating humor and actual mood. Place it on your desk and watch coworkers nod in silent agreement. This gift speaks to the soul of every overwhelmed knowledge worker trying to juggle Slack, email, and remembering to eat lunch.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0CKGQBF7G?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931661754" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0FR4HNQQK?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1BLL8WIAQFS6Y&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1BLL8WIAQFS6Y_1763932163469" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71EW2yxz7YL._AC_SL1500_.jpg" alt="Answer Desk Rates Sign" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71EW2yxz7YL._AC_SL1500_.jpg" alt="Answer Desk Rates Sign" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>"Answer Desk Rates" Double-Sided Sign</h3>
                         <p class="gift-description">
@@ -511,12 +522,12 @@
                         <p class="gift-description">
                             Lists hilarious "rates" for answering questions: "Correct Answer: $5, Dumb Answer: $5, Obviously Correct Answer to a Dumb Question: $10." For that coworker who fields a million questions daily (usually about things people could Google). It's cheeky enough to be funny but truthful enough to make everyone slightly uncomfortable. Perfect for the office know-it-all who's earned the title.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0CKHSR77M?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931687084" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0FR4CSCWS?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1BLL8WIAQFS6Y&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1BLL8WIAQFS6Y_1763932297472" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71OiCSVDEPL._AC_SL1500_.jpg" alt="Dumpster Fire Magnetic Dry Erase Board" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71OiCSVDEPL._AC_SL1500_.jpg" alt="Dumpster Fire Magnetic Dry Erase Board" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Dumpster Fire Magnetic Dry Erase Board</h3>
                         <p class="gift-description">
@@ -526,21 +537,21 @@
                         <p class="gift-description">
                             A literal dumpster fire for your desk with a magnetic dry erase surface. Write your daily mood, tasks, or just how many fires you're currently putting out. It's simultaneously a to-do list, mood tracker, and conversation piece. Perfect for project managers, teachers, nurses, or anyone navigating organizational chaos. Magnetic design means you can stick reminders right to your personal dumpster fire—very on-brand for 2024.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0CLVL54VF?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931918402" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0CLVL54VF?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931918402" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- CATEGORY 2: Actually Useful (But Make It Funny) -->
-        <div class="gift-category">
+        <div class="gift-category" id="useful">
             <div class="category-header">
                 <h2 class="category-title">🎭 Actually Useful (But Make It Funny)</h2>
                 <p class="category-subtitle">Gifts that solve real problems with maximum comedy</p>
             </div>
             <div class="gift-grid">
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/51AYLSF8i8L._AC_SL1000_.jpg" alt="Telescopic Back Scratcher" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/51AYLSF8i8L._AC_SL1000_.jpg" alt="Telescopic Back Scratcher" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Telescopic Back Scratcher (Extends to 26.4")</h3>
                         <p class="gift-description">
@@ -550,12 +561,12 @@
                         <p class="gift-description">
                             Don't underestimate the back scratcher. This isn't your grandpa's wooden stick—this has three interchangeable scratching heads and extends from pocket-size to full arm's length. Everyone laughs when it's opened, but then someone tries it, and suddenly four people are in a negotiation war. Fun fact from our data: back scratchers have the highest "reluctant steal" rate—people who swore they'd never steal absolutely will steal this. Works for home, office, or travel. Gift-ready packaging makes it presentation-perfect.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0CJF9YZCK?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.18NS2QEKLLQA3&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.18NS2QEKLLQA3_1763931191796" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0CJF9YZCK?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.18NS2QEKLLQA3&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.18NS2QEKLLQA3_1763931191796" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71KoCi7VJEL._AC_SL1500_.jpg" alt="LED Beanie Hat" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71KoCi7VJEL._AC_SL1500_.jpg" alt="LED Beanie Hat" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Beanie Hat with Built-In Rechargeable LED Light</h3>
                         <p class="gift-description">
@@ -565,12 +576,12 @@
                         <p class="gift-description">
                             A cozy knit beanie with a rechargeable LED light built right in. Sounds ridiculous until you're walking the dog at 6 PM in December darkness. Then it's genius. Perfect for runners, campers, dog walkers, or anyone who's ever tried to hold a phone flashlight while juggling literally anything else. Sleek enough for everyday wear, bright enough to actually help. USB rechargeable means no batteries to replace. People laugh when they see it, then immediately add it to their cart.
                         </p>
-                        <a href="https://www.amazon.com/dp/B09881TYSV?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.PFG5FSUG93LI&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.PFG5FSUG93LI_1763931325071" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B09881TYSV?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.PFG5FSUG93LI&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.PFG5FSUG93LI_1763931325071" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71FkKxUxhxL._AC_SL1500_.jpg" alt="Bear Hands Oven Mitts" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71FkKxUxhxL._AC_SL1500_.jpg" alt="Bear Hands Oven Mitts" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Bear Hands Oven Mitts</h3>
                         <p class="gift-description">
@@ -580,12 +591,12 @@
                         <p class="gift-description">
                             Heat-resistant silicone and cotton mitts shaped like bear paws. You'll look ridiculous pulling cookies out of the oven—that's the point. But they're genuinely high-quality oven mitts from Genuine Fred with excellent heat protection. Safe for the dishwasher, durable enough for daily use, silly enough to make you smile every time you cook. Perfect for the person who takes their food seriously but not themselves.
                         </p>
-                        <a href="https://www.amazon.com/dp/B009NSLSSI?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931850922" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B00I0VULXC?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.YVFV8EFQGWAY&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.YVFV8EFQGWAY_1763932563620" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71YprZ6sFoL._AC_SL1500_.jpg" alt="Emergency Meal Transportation Bag" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71YprZ6sFoL._AC_SL1500_.jpg" alt="Emergency Meal Transportation Bag" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>E.M.T. Emergency Meal Transportation Bag</h3>
                         <p class="gift-description">
@@ -595,12 +606,12 @@
                         <p class="gift-description">
                             An insulated lunch tote designed to look like a medical emergency bag—because some of us treat lunchtime with appropriate seriousness. Waterproof lining, plenty of room, and excellent insulation. The joke works because it's actually a great lunch bag. Perfect for the coworker who gets hangry, the friend who meal preps religiously, or anyone who understands that missing lunch IS an emergency. Gets photographed constantly—everyone wants to know where to buy it.
                         </p>
-                        <a href="https://www.amazon.com/dp/B004E3VNWM?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931876752" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B007M2OHEY?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.YVFV8EFQGWAY&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.YVFV8EFQGWAY_1763932616666" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71-n1LDrlIL._AC_SL1500_.jpg" alt="Emergency Box with Hammer" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71-n1LDrlIL._AC_SL1500_.jpg" alt="Emergency Box with Hammer" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>"Break in Case of Emergency" Box with Hammer</h3>
                         <p class="gift-description">
@@ -610,21 +621,21 @@
                         <p class="gift-description">
                             A red shadow box labeled "IN CASE OF EMERGENCY BREAK GLASS" with a novelty hammer. The genius part? You fill it with whatever you want: chocolate, gift cards, airline bottles, emergency coffee, batteries, stress balls—literally anything someone would need in a crisis. The back opens easily, the acrylic front looks like glass but is safe, and it works as wall art or desk decor. Perfect for dorm rooms, offices, or kitchens. People laugh, then immediately start planning what to put in theirs.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0D8JVJYX3?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3OJ5IC0YFBR1V&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3OJ5IC0YFBR1V_1763931774573" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0D8JVJYX3?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3OJ5IC0YFBR1V&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3OJ5IC0YFBR1V_1763931774573" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- CATEGORY 3: Party Animals -->
-        <div class="gift-category">
+        <div class="gift-category" id="party">
             <div class="category-header">
                 <h2 class="category-title">🎉 Party Animals</h2>
                 <p class="category-subtitle">For the friend group that doesn't take themselves seriously</p>
             </div>
             <div class="gift-grid">
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/61FPwvvvHML._AC_SL1000_.jpg" alt="Toilet Shot Glasses" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/61FPwvvvHML._AC_SL1000_.jpg" alt="Toilet Shot Glasses" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Throne Shots: Toilet-Shaped Shot Glasses (Set of 2)</h3>
                         <p class="gift-description">
@@ -634,12 +645,12 @@
                         <p class="gift-description">
                             Two toilet-shaped 1oz shot glasses with flip lids. Yes, they're absurd. Yes, they're hilarious. And yes, they get used at every party. Made from durable plastic, hand wash only. Perfect for bachelor parties, game nights, or the friend with an inappropriate sense of humor (you know who). Comes in a set of two because no one drinks alone from a toilet shot glass—that's just sad. People photograph these constantly and post them on social media, giving you social credit for months.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0D467CQZC?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1VNSFAHI8WZ90&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1VNSFAHI8WZ90_1763931723482" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0D467CQZC?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1VNSFAHI8WZ90&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1VNSFAHI8WZ90_1763931723482" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71JePwF2czL._AC_SL1500_.jpg" alt="Poop Emoji Waffle Maker" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71JePwF2czL._AC_SL1500_.jpg" alt="Poop Emoji Waffle Maker" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Poop Emoji Mini Waffle Maker</h3>
                         <p class="gift-description">
@@ -649,12 +660,12 @@
                         <p class="gift-description">
                             Makes 4-inch poop emoji waffles or pancakes. It's juvenile. It's ridiculous. Kids will lose their minds. This isn't just a gag gift—it's a legitimate waffle maker with nonstick surface and proper temperature control. Perfect for the parent who's run out of ways to make breakfast interesting, the college student with a sense of humor, or anyone who appreciates a good poop joke. Come Christmas morning, this will be the most-used appliance in the kitchen. Comes with recipe ideas included.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0D7PS7SYH?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931710804" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0BKH7VML7?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1Q3Z4WOHX4EAD&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1Q3Z4WOHX4EAD_1763932417841" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71rNxmJewLL._AC_SL1500_.jpg" alt="Middle Finger Pop Out Coffee Cup" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71rNxmJewLL._AC_SL1500_.jpg" alt="Middle Finger Pop Out Coffee Cup" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Middle Finger Pop-Out Coffee Cup</h3>
                         <p class="gift-description">
@@ -664,12 +675,12 @@
                         <p class="gift-description">
                             A coffee mug with a hidden middle finger that pops up when you drink. It's the perfect way to communicate before you've had your coffee without actually saying anything rude. Ceramic construction, microwave and dishwasher safe, holds a proper cup of coffee. For the coworker who isn't a morning person, the friend with the darkest sense of humor, or literally anyone who's ever needed to flip off Monday morning. Fair warning: once people see this in action, they'll want to steal it immediately.
                         </p>
-                        <a href="https://www.amazon.com/dp/B097R91DN7?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931743752" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0DPL67VTV?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3TWHJ46WZYG05&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3TWHJ46WZYG05_1763931925812" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71qGADM0YGL._AC_SL1500_.jpg" alt="Big Undies Gag Gift" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71qGADM0YGL._AC_SL1500_.jpg" alt="Big Undies Gag Gift" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Big Undies Gag Gift - Giant Novelty Underwear</h3>
                         <p class="gift-description">
@@ -679,12 +690,12 @@
                         <p class="gift-description">
                             Comically oversized "granny panties" that could fit three people. Absolutely zero practical use. Maximum entertainment value. Perfect for the White Elephant participant who wants to cause absolute chaos. People will try them on over their clothes, take ridiculous photos, and make them a party costume. Works as a hilarious gag gift for birthdays, bachelorette parties, or any event where dignity goes to die. Fair warning: whoever gets stuck with these will absolutely make you pay for it next year.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0CHC1F1XH?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931768413" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0CQXMKQBB?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.22UZT16M9EURF&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.22UZT16M9EURF_1763932075303" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71n7vBBf9oL._AC_SL1500_.jpg" alt="Champagne Flutes Set" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71n7vBBf9oL._AC_SL1500_.jpg" alt="Champagne Flutes Set" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Champagne Flutes Gift Set (5 Pieces)</h3>
                         <p class="gift-description">
@@ -694,21 +705,21 @@
                         <p class="gift-description">
                             Five elegant champagne flutes in gift-ready packaging. This is your "I'm an adult now" White Elephant gift—practical, pretty, and perfect for any celebration. Great for the friend planning a wedding, the couple who just moved in together, or anyone who's tired of drinking champagne from coffee mugs (been there). These elevate any party, work for bachelorette events or bridesmaid proposals, and actually get used. When you want to bring something nice but still fun, this is your answer.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0CPQK1M85?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931797202" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B01K2MTVPA?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3836EFXBQK5F1&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3836EFXBQK5F1_1763932706776" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- CATEGORY 4: Creative Minds -->
-        <div class="gift-category">
+        <div class="gift-category" id="creative">
             <div class="category-header">
                 <h2 class="category-title">🎨 Creative Minds</h2>
                 <p class="category-subtitle">Art supplies that double as therapy</p>
             </div>
             <div class="gift-grid">
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71eGKKO4EBL._AC_SL1500_.jpg" alt="Happy Little Dictators Coloring Book" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71eGKKO4EBL._AC_SL1500_.jpg" alt="Happy Little Dictators Coloring Book" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Happy Little Dictators Adult Coloring Book</h3>
                         <p class="gift-description">
@@ -718,12 +729,12 @@
                         <p class="gift-description">
                             30 twisted illustrations of history's most notorious dictators in awkward, absurd scenarios. Perfect for fans of dark humor, satire, and extremely niche historical comedy. This isn't your grandmother's relaxation coloring book—unless your grandmother has a seriously twisted sense of humor (in which case, we like her). Great for history buffs with a dark side, anyone who appreciates absurdist humor, or that friend who makes uncomfortable jokes at dinner parties.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0D3MCF25Z?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931443924" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0D3MCF25Z?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931443924" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71ixYZI4v1L._AC_SL1500_.jpg" alt="Color Meme Funny Coloring Book" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71ixYZI4v1L._AC_SL1500_.jpg" alt="Color Meme Funny Coloring Book" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Color Meme Funny: Meme Coloring Book</h3>
                         <p class="gift-description">
@@ -733,12 +744,12 @@
                         <p class="gift-description">
                             Over 60 iconic meme designs from viral classics to latest internet sensations. Double-sided pages, suitable for teens and adults, perfect for stress relief with a side of laughter. If your group spends too much time online (who doesn't?), this book will be instantly recognized and fought over. Works with crayons, pencils, or pens. Perfect for the chronically online friend, the stressed-out student, or anyone who finds comfort in coloring while their anxiety screams.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0D3MDKF8M?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931605654" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0D3MDKF8M?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931605654" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/81OqvH2BqGL._AC_SL1500_.jpg" alt="48 Funny Offensive Colored Pencils" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/81OqvH2BqGL._AC_SL1500_.jpg" alt="48 Funny Offensive Colored Pencils" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>48 Funny & Offensive Colored Pencils for Adults</h3>
                         <p class="gift-description">
@@ -748,7 +759,7 @@
                         <p class="gift-description">
                             48 pre-sharpened colored pencils with absurd and hilarious color names. For artists who don't take themselves seriously, nurses who color to decompress, or anyone who needs a laugh. Works perfectly with adult coloring books, swear word pages, or sarcastic office doodling. Comes with built-in sharpener. Wax-based for smooth coloring. Perfect for the crafty friend with dark humor, the stressed-out parent, or your friend who colors while high (you know who they are).
                         </p>
-                        <a href="https://www.amazon.com/dp/B0BP6Q5M19?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931633804" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0BP6Q5M19?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931633804" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
             </div>
@@ -762,7 +773,7 @@
             </div>
             <div class="gift-grid">
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71vtdQdGj7L._AC_SL1500_.jpg" alt="Hand Casting Kit for Couples" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71vtdQdGj7L._AC_SL1500_.jpg" alt="Hand Casting Kit for Couples" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Hand Casting Kit for Couples</h3>
                         <p class="gift-description">
@@ -772,12 +783,12 @@
                         <p class="gift-description">
                             Create a permanent sculpture of two hands holding. Sounds cheesy, but it's actually beautiful—and it's a surprisingly popular White Elephant steal for couples, newlyweds, or parents. Everything's included: molding powder, casting stone, step-by-step instructions. Takes about an hour total. Perfect for the couple who just got engaged, new parents, or anyone celebrating an anniversary. Fair warning: this gift makes people weirdly emotional, so maybe have tissues ready.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0D8JTD68R?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931824222" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B01E4LWBLQ?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3JH8DB7YM69RJ&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3JH8DB7YM69RJ_1763932769385" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71hKWlR7o5L._AC_SL1500_.jpg" alt="Baby Footprint Hand Casting Kit" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71hKWlR7o5L._AC_SL1500_.jpg" alt="Baby Footprint Hand Casting Kit" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Baby Footprint & Hand Casting Kit</h3>
                         <p class="gift-description">
@@ -787,12 +798,12 @@
                         <p class="gift-description">
                             Premium newborn infant keepsake kit for preserving those tiny hands and feet. Perfect for first-time parents, grandparents-to-be, or anyone attending a baby shower White Elephant. Safe materials, easy instructions, and creates a display-worthy keepsake that actually looks good (not like a Pinterest fail). At your party, watch new parents or expecting couples fight over this one. It's one of those gifts people regret not buying sooner.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0D7PXFRJN?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931845452" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0DPLBNZNG?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3OAONZS980OFB&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3OAONZS980OFB_1763932903330" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71t0eJqrT3L._AC_SL1500_.jpg" alt="Miniature Bookshelf" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71t0eJqrT3L._AC_SL1500_.jpg" alt="Miniature Bookshelf" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Anxiety Bookshelf with 200 Miniature Books</h3>
                         <p class="gift-description">
@@ -802,12 +813,12 @@
                         <p class="gift-description">
                             A 9.84" x 7.87" decorative bookshelf filled with 200 unique tiny books. Each spine is readable, many are funny, some are weirdly specific. It's desk art, a conversation piece, and genuinely impressive craftsmanship. Book lovers will absolutely steal this—it combines their love of literature with miniature cuteness. Perfect for home offices, bookshelves (very meta), or desks. Warning: people WILL try to read every single tiny spine.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0CLSLKVHS?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931892612" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0DCBP4ZD5?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.3UG42DBREI4FQ&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.3UG42DBREI4FQ_1763932935339" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71SyNNlRVqL._AC_SL1500_.jpg" alt="Funny Christmas Ornaments 2025" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71SyNNlRVqL._AC_SL1500_.jpg" alt="Funny Christmas Ornaments 2025" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Funny Christmas Ornaments 2025 - Wooden Hanging Decor</h3>
                         <p class="gift-description">
@@ -817,21 +828,21 @@
                         <p class="gift-description">
                             Wooden hanging ornaments with hilarious sayings. Perfect for the person whose tree has more personality than elegance. Quality wood construction, ready to hang, and funny enough that guests will actually comment on them. These aren't tacky plastic—they're genuinely nice ornaments that happen to be hilarious. For the friend whose holiday decorating aesthetic is "chaos with tinsel," the family that doesn't take Christmas too seriously, or anyone who needs more laughs in their life.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0DHTD9ZLG?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931738772" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0FMD851KY?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2T7LO2BCWM0DI&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2T7LO2BCWM0DI_1763932525142" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- CATEGORY 6: The Wild Cards -->
-        <div class="gift-category">
+        <div class="gift-category" id="wild">
             <div class="category-header">
                 <h2 class="category-title">🃏 The Wild Cards</h2>
                 <p class="category-subtitle">Because some gifts defy categorization</p>
             </div>
             <div class="gift-grid">
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71xOCqWr5cL._AC_SL1500_.jpg" alt="Stool Sample Gag Gift" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71xOCqWr5cL._AC_SL1500_.jpg" alt="Stool Sample Gag Gift" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Stool Sample Gag Gift</h3>
                         <p class="gift-description">
@@ -841,12 +852,12 @@
                         <p class="gift-description">
                             A sealed specimen container with miniature stool inside, complete with biohazard bag. It's exactly what it sounds like, and it's exactly as funny as you think. Perfect for doctors, medical students, nurses, or anyone in healthcare who's seen some stuff. Fully assembled and ready to traumatize. This is the gift that makes everyone uncomfortable for exactly three seconds before they burst out laughing. For the person with the darkest sense of humor at your party.
                         </p>
-                        <a href="https://www.amazon.com/dp/B0CPJM367T?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.QU32N6B8F6SS&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.QU32N6B8F6SS_1763931822062" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0CPJM367T?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.QU32N6B8F6SS&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.QU32N6B8F6SS_1763931822062" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
                 
                 <div class="gift-item">
-                    <img src="https://m.media-amazon.com/images/I/71z-WDMRJbL._AC_SL1500_.jpg" alt="Dumpster Fire Desk Sign" class="gift-image">
+                    <img src="https://m.media-amazon.com/images/I/71z-WDMRJbL._AC_SL1500_.jpg" alt="Dumpster Fire Desk Sign" class="gift-image" referrerpolicy="no-referrer">
                     <div class="gift-content">
                         <h3>Dumpster Fire Desk Sign with Day Counter</h3>
                         <p class="gift-description">
@@ -856,7 +867,7 @@
                         <p class="gift-description">
                             Decorative desk sign featuring a dumpster fire with customizable day counter: "Days Since Last Chaos." Track your team's progress (or lack thereof), count down to vacation, or just embrace the entropy. Perfect for teachers surviving parent-teacher conferences, nurses counting shifts, project managers watching deadlines burn, or anyone navigating organizational disaster. It's funny, it's relatable, and it's weirdly motivational. Great for offices, classrooms, or home desks where you need a daily reminder that everything's fine (it's not, but we're coping).
                         </p>
-                        <a href="https://www.amazon.com/dp/B0CTNQZQHH?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1SIMZYLI24A7J&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1SIMZYLI24A7J_1763931943382" class="amazon-link" target="_blank">View on Amazon</a>
+                        <a href="https://www.amazon.com/dp/B0F8P738JR?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1YSJN4Z7BIPOF&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1YSJN4Z7BIPOF_1763932972541" class="amazon-link" target="_blank" rel="nofollow">View on Amazon</a>
                     </div>
                 </div>
             </div>
@@ -926,14 +937,14 @@
             <p style="font-size: 1.2em; margin: 20px 0; opacity: 0.95;">
                 Create your gift exchange in under 5 minutes. No emails, no signups, 100% free.
             </p>
-            <a href="/" class="cta-button">Start Your Gift Exchange →</a>
+            <a href="https://secretsantamatch.com" class="cta-button">Start Your Gift Exchange →</a>
         </div>
         
     </div>
     
     <footer style="background: #333; color: white; padding: 40px 20px; text-align: center; margin-top: 80px;">
         <p style="font-size: 0.95em;">© 2025 SecretSantaMatch.com | The Holiday Gift Exchange Experts</p>
-        <p style="font-size: 0.85em; margin-top: 10px; opacity: 0.8;">Amazon affiliate links help keep our platform free forever</p>
+        <p style="font-size: 0.85em; margin-top: 10px; opacity: 0.8;">Transparency: We may earn a small commission from links on this page. This supports our free tool at no extra cost to you.</p>
     </footer>
 </body>
 </html>
