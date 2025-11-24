@@ -281,29 +281,59 @@ const TeaBookPromo = () => (
 );
 
 const GiftCardPromo = () => (
-    <div className="flex flex-col items-center gap-3 my-4 animate-fade-in">
+    <div className="flex flex-col items-center gap-3 my-6 animate-fade-in w-full p-4 rounded-xl bg-gradient-to-br from-indigo-100 via-blue-100 to-violet-100 border border-indigo-200 shadow-md hover:shadow-lg transition-all group">
+        
+        {/* Image Banner - Acts as Main CTA */}
         <a 
             href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.929&subid=0&type=4" 
             target="_blank" 
             rel="noopener noreferrer sponsored"
             onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Banner' })}
-            className="block w-full rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 border border-slate-200 bg-white"
+            className="block w-full rounded-lg overflow-hidden transition-transform transform group-hover:scale-[1.01] bg-white min-h-[100px] flex items-center justify-center"
         >
             <img 
                 src="https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.929&subid=0&type=4&gridnum=0" 
                 alt="Giftcards.com Cyber Week, Mega Treats 12/1 - 12/7 BOGO Offers & Deals Up to 15% OFF Select Brands" 
-                className="w-full h-auto mx-auto"
+                className="w-full h-auto max-h-[180px] object-contain"
                 loading="lazy"
+                onError={(e) => {
+                    // Fallback if image fails (e.g., AdBlock)
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement!.innerHTML = `
+                        <div class="p-6 text-center">
+                            <h4 class="text-lg font-bold text-indigo-900 mb-2">The Ultimate Safe Bet</h4>
+                            <p class="text-indigo-700 mb-3">Deals on 450+ brands of physical/digital gift cards, customizable Visa & Mastercards and more.</p>
+                            <span class="inline-block bg-indigo-600 text-white font-bold py-2 px-6 rounded-full">Browse Now</span>
+                        </div>
+                    `;
+                }}
             />
         </a>
         
-        <a 
-            href="/creative-ways-to-give-gift-cards.html" 
-            target="_blank" 
-            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline text-center px-4 py-2 bg-indigo-50 rounded-lg border border-indigo-100 w-full flex items-center justify-center gap-1.5"
-        >
-            <span className="text-lg">💡</span> Think giving a gift card is impersonal? Click here for 15 creative ideas &rarr;
-        </a>
+        {/* Text Fallback / Extra Info */}
+        <div className="text-center px-2">
+             <p className="text-sm text-indigo-800 font-medium mb-3">
+                Not sure what to get? Get a physical or digital gift card for over 450+ stores. Or customize Visa & Mastercard from Giftcards.com.
+            </p>
+            
+            <a 
+                href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.929&subid=0&type=4" 
+                target="_blank" 
+                rel="noopener noreferrer sponsored"
+                onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Text Link' })}
+                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-8 rounded-full shadow transition-colors mb-3"
+            >
+                Browse Now
+            </a>
+
+            <a 
+                href="/creative-ways-to-give-gift-cards.html" 
+                target="_blank" 
+                className="block text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline mt-1"
+            >
+                💡 Think giving a gift card is impersonal? Click here for 15 creative ideas &rarr;
+            </a>
+        </div>
     </div>
 );
 
@@ -497,7 +527,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         
         // 1. Sniper Deals (High Priority, Exact Match) - US Only
         // Only show Amazon/Sniper deals if NOT EU, as Amazon links are usually US specific.
-        
         if (!isEu) {
             const matchedDeal = SNIPER_DEALS.find(deal => 
                 deal.keywords.some(k => combinedText.includes(k))
