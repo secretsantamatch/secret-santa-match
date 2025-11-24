@@ -281,14 +281,14 @@ const TeaBookPromo = () => (
 );
 
 const GiftCardPromo = () => (
-    <div className="p-4 bg-gradient-to-br from-indigo-50 via-blue-50 to-violet-50 rounded-xl border-2 border-indigo-200 shadow-md animate-fade-in hover:shadow-lg transition-all">
+    <div className="p-4 bg-gradient-to-br from-violet-100 to-indigo-100 rounded-xl border-2 border-indigo-300 shadow-md animate-fade-in hover:shadow-lg transition-all">
         <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-indigo-100 mt-1">
+            <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-indigo-200 mt-1">
                 <CreditCard size={28} className="text-indigo-600" />
             </div>
             <div className="flex-grow">
                 <h4 className="font-extrabold text-lg text-indigo-900">The Ultimate Safe Bet</h4>
-                <p className="text-sm text-indigo-700 font-medium mb-3 leading-relaxed">
+                <p className="text-sm text-indigo-800 font-medium mb-3 leading-relaxed">
                     Not sure what to get? Get a physical or digital gift card for over 450+ stores. Or customize Visa & Mastercard from Giftcards.com.
                 </p>
                 
@@ -302,8 +302,8 @@ const GiftCardPromo = () => (
                     Browse Now <ExternalLink size={14} />
                 </a>
 
-                <div className="pt-2 border-t border-indigo-200/50">
-                     <a href="/creative-ways-to-give-gift-cards.html" target="_blank" className="flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                <div className="pt-2 border-t border-indigo-300/50">
+                     <a href="/creative-ways-to-give-gift-cards.html" target="_blank" className="flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 hover:underline">
                         Think giving a gift card is impersonal? Click here for 15 creative ideas <ArrowRight size={10} />
                     </a>
                 </div>
