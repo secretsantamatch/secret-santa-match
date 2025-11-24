@@ -281,39 +281,29 @@ const TeaBookPromo = () => (
 );
 
 const GiftCardPromo = () => (
-    <div className="p-5 rounded-xl border-2 border-indigo-300 shadow-md animate-fade-in transition-all bg-gradient-to-br from-indigo-50 via-purple-50 to-indigo-100 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-200 rounded-full mix-blend-multiply filter blur-2xl opacity-30 -mr-10 -mt-10"></div>
+    <div className="flex flex-col items-center gap-3 my-4 animate-fade-in">
+        <a 
+            href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.929&subid=0&type=4" 
+            target="_blank" 
+            rel="noopener noreferrer sponsored"
+            onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Banner' })}
+            className="block w-full rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 border border-slate-200 bg-white"
+        >
+            <img 
+                src="https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.929&subid=0&type=4&gridnum=0" 
+                alt="Giftcards.com Cyber Week, Mega Treats 12/1 - 12/7 BOGO Offers & Deals Up to 15% OFF Select Brands" 
+                className="w-full h-auto mx-auto"
+                loading="lazy"
+            />
+        </a>
         
-        <div className="flex flex-col sm:flex-row items-center gap-5 relative z-10">
-            <div className="flex-shrink-0 bg-white p-3 rounded-full shadow-sm border border-indigo-100">
-                <CreditCard size={32} className="text-indigo-600" />
-            </div>
-            <div className="flex-grow text-center sm:text-left">
-                <h4 className="font-extrabold text-xl text-indigo-900 mb-2">The Ultimate Safe Bet</h4>
-                <p className="text-sm text-indigo-800 font-medium leading-relaxed mb-4">
-                    Not sure what to get? Get a physical or digital gift card for over 450+ stores. Or customize Visa & Mastercard from Giftcards.com.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <a 
-                        href={AFFILIATE_LINKS.GIFTCARDS_COM} 
-                        target="_blank" 
-                        rel="noopener noreferrer sponsored" 
-                        className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-indigo-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-indigo-700 hover:scale-105 transition-all w-full sm:w-auto"
-                        onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com' })}
-                    >
-                        Browse Now <ArrowRight size={16} />
-                    </a>
-                    <a 
-                        href="/creative-ways-to-give-gift-cards.html" 
-                        target="_blank" 
-                        className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline mt-2 sm:mt-0"
-                    >
-                        Think giving a gift card is impersonal? <br className="hidden sm:block"/>Click here for 15 creative ideas &rarr;
-                    </a>
-                </div>
-            </div>
-        </div>
+        <a 
+            href="/creative-ways-to-give-gift-cards.html" 
+            target="_blank" 
+            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline text-center px-4 py-2 bg-indigo-50 rounded-lg border border-indigo-100 w-full flex items-center justify-center gap-1.5"
+        >
+            <span className="text-lg">💡</span> Think giving a gift card is impersonal? Click here for 15 creative ideas &rarr;
+        </a>
     </div>
 );
 
