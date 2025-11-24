@@ -10,7 +10,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -287,21 +287,25 @@ const GiftCardPromo = () => (
             </div>
             <div className="flex-grow">
                 <h4 className="font-extrabold text-lg text-indigo-900">The Ultimate Safe Bet</h4>
-                <p className="text-sm text-indigo-700 font-medium mb-2">
-                    Deals on 450+ brands of physical/digital gift cards, customizable Visa & Mastercards and more.
+                <p className="text-sm text-indigo-700 font-medium mb-3 leading-relaxed">
+                    Not sure what to get? Get a physical or digital gift card for over 450+ stores. Or customize Visa & Mastercard from Giftcards.com.
                 </p>
-                <a href="/creative-ways-to-give-gift-cards.html" target="_blank" className="block mb-3 text-xs font-bold text-indigo-600 hover:underline bg-white/50 px-2 py-1 rounded-md w-fit border border-indigo-200">
-                    🎁 15 Creative Ways to Make a Gift Card Feel Personal &rarr;
-                </a>
+                
                 <a 
                     href={AFFILIATE_LINKS.GIFTCARDS_COM} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
-                    className="inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition-colors shadow-sm"
+                    className="inline-flex items-center gap-1.5 text-sm font-bold bg-white text-indigo-700 px-6 py-2.5 rounded-lg border border-indigo-200 hover:bg-indigo-50 transition-colors shadow-sm mb-3"
                     onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com' })}
                 >
-                    Buy a Gift Card <ExternalLink size={14} />
+                    Browse Now <ExternalLink size={14} />
                 </a>
+
+                <div className="pt-2 border-t border-indigo-200">
+                     <a href="/creative-ways-to-give-gift-cards.html" target="_blank" className="flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                        Think giving a gift card is impersonal? Click here for 15 creative ideas <ArrowRight size={10} />
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -343,7 +347,7 @@ const StockingStufferRow = () => {
         <div className="mt-8 pt-6 border-t-2 border-slate-100">
             <div className="flex items-center justify-center gap-2 mb-4">
                 <div className="h-px w-8 bg-slate-300"></div>
-                <h5 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Add a Little Something Extra?</h5>
+                <h5 className="text-xs font-extrabold text-red-500 uppercase tracking-widest animate-pulse">Trending Add-ons (Selling Out Fast!)</h5>
                 <div className="h-px w-8 bg-slate-300"></div>
             </div>
             
@@ -363,8 +367,8 @@ const StockingStufferRow = () => {
                                 <item.icon size={20} className="text-slate-700" />
                             </div>
                             <p className="text-xs font-bold text-slate-800 group-hover:text-red-700 leading-tight">{item.name}</p>
-                            <p className="text-[10px] text-slate-600 mt-1 opacity-90">{item.desc}</p>
-                             <div className="mt-auto pt-2 text-[10px] font-bold text-white bg-slate-800 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-[10px] text-slate-600 mt-1 opacity-90 mb-3">{item.desc}</p>
+                             <div className="mt-auto text-[10px] font-bold text-white bg-slate-800 px-3 py-1 rounded-full shadow-sm group-hover:bg-red-600 transition-colors">
                                 Shop Now
                             </div>
                         </a>
