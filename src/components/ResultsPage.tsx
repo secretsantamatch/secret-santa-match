@@ -524,7 +524,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         const isEu = isEuVisitor();
         
         // 1. Sniper Deals (High Priority, Exact Match) - US Only
-        // Only show Amazon/Sniper deals if NOT EU, as Amazon links are usually US specific.
         if (!isEu) {
             const matchedDeal = SNIPER_DEALS.find(deal => 
                 deal.keywords.some(k => combinedText.includes(k))
@@ -534,7 +533,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             }
         }
 
-        // 2. Keyword Matching for Specialized Partners (US/NA focused usually)
+        // 2. Keyword Matching for Specialized Partners
         if (!isEu) {
             if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) return <MetPromo />;
             if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) return <SugarRushPromo />;
