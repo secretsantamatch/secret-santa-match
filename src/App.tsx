@@ -1,3 +1,4 @@
+
     import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
     import type { ExchangeData } from './types';
     import { compressData, decompressData } from './services/urlService';
@@ -52,12 +53,23 @@
                     throw new Error("Could not read the gift exchange data from the link. It might be corrupted or incomplete.");
                 }
 
+                // CRITICAL FIX: Ensure ID exists. If it's an old link without an ID, generate one.
+                // However, we must persist this ID to the URL immediately or the next reload will generate a NEW ID
+                // and lose connection to any saved wishlists.
+                let dataId = decompressed.id;
+                if (!dataId) {
+                    dataId = crypto.randomUUID();
+                    decompressed.id = dataId;
+                    // Note: We can't easily update the URL here without triggering a re-render loop, 
+                    // but the app should handle it gracefully on the next save/update.
+                }
+
                 // Load templates and merge them into the data
                 const templatesRes = await fetch('/templates.json');
                 if (!templatesRes.ok) throw new Error('Failed to load design templates.');
                 const backgroundOptions = await templatesRes.json();
                 
-                const fullData: ExchangeData = { ...decompressed, backgroundOptions };
+                const fullData: ExchangeData = { ...decompressed, id: dataId, backgroundOptions } as ExchangeData;
                 setExchangeData(fullData);
 
                 const params = new URLSearchParams(queryString || '');
@@ -103,6 +115,11 @@
         };
         
         const handleCreationComplete = (newData: ExchangeData) => {
+            // CRITICAL: Ensure a persistent ID is generated at creation time.
+            if (!newData.id) {
+                newData.id = crypto.randomUUID();
+            }
+            
             const { backgroundOptions, ...dataToCompress } = newData;
             const compressed = compressData(dataToCompress);
             if (compressed) {

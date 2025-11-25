@@ -1,9 +1,9 @@
+
 import type React from 'react';
 
 declare global {
   interface Window {
     gtag: (command: 'event', eventName: string, eventParams?: Record<string, any>) => void;
-    dataLayer: unknown[];
   }
 }
 
@@ -51,7 +51,7 @@ export interface BackgroundOption {
 }
 
 export interface ExchangeData {
-  id?: string;
+  id: string; // Unique UUID for the exchange (used as Blob Key)
   p: Participant[];
   matches: { g: string; r: string }[];
   exclusions: Exclusion[];

@@ -46,7 +46,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     
     // Options State
     const [backgroundOptions, setBackgroundOptions] = useState<BackgroundOption[]>([]);
-    const [eventDetails, setEventDetails] = useState(''); // FIXED: Default to empty string
+    const [eventDetails, setEventDetails] = useState(''); 
     const [selectedBackgroundId, setSelectedBackgroundId] = useState('gift-border');
     const [customBackground, setCustomBackground] = useState<string | null>(null);
     const [textColor, setTextColor] = useState('#265343');
@@ -64,7 +64,6 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     const [showCookieBanner, setShowCookieBanner] = useState(false);
 
     // Analytics: Track Step Changes
-    // This lowers bounce rate by recording engagement as they move through the wizard
     useEffect(() => {
         const stepNames = {
             1: 'Add Participants',
@@ -87,9 +86,6 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         if (consent === null) {
             setShowCookieBanner(true);
         }
-        // Hybrid Tracking: 
-        // If US -> Tracks immediately. 
-        // If EU -> Waits for consent.
         if (shouldTrackByDefault()) {
              trackEvent('page_view', { page_title: 'Generator' });
         }
@@ -109,7 +105,14 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                     setParticipants(draft.participants || [ { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' } ]);
                     setExclusions(draft.exclusions || []);
                     setAssignments(draft.assignments || []);
-                    setEventDetails(draft.eventDetails || ''); // FIXED: Default to empty
+                    
+                    const oldDefaultText = "Gift exchange on Dec 25th!";
+                    if (draft.eventDetails === oldDefaultText) {
+                        setEventDetails('');
+                    } else {
+                        setEventDetails(draft.eventDetails || '');
+                    }
+
                     setSelectedBackgroundId(draft.selectedBackgroundId || 'gift-border');
                     setCustomBackground(draft.customBackground || null);
                     setTextColor(draft.textColor || '#265343');
@@ -131,11 +134,10 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         }
 
         if (initialData) {
-            // Populate state from initialData for editing
             setParticipants(initialData.p.length > 0 ? initialData.p : [ { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' } ]);
             setExclusions(initialData.exclusions || []);
             setAssignments(initialData.assignments || []);
-            setEventDetails(initialData.eventDetails || ''); // FIXED: Default to empty
+            setEventDetails(initialData.eventDetails || ''); 
             setSelectedBackgroundId(initialData.bgId || 'gift-border');
             setCustomBackground(initialData.customBackground || null);
             setTextColor(initialData.textColor || '#265343');
@@ -149,22 +151,20 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             setIntroText(initialData.introText || "You are the Secret Santa for...");
             setWishlistLabelText(initialData.wishlistLabelText || "Gift Ideas & Wishlist");
         } else if (!loadedFromDraft) {
-            // Default state for new creation
             setParticipants([
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
                 { id: crypto.randomUUID(), name: '', interests: '', likes: '', dislikes: '', links: Array(5).fill(''), budget: '' },
             ]);
-            setEventDetails(''); // FIXED: Default to empty
+            setEventDetails(''); 
             setGreetingText("Happy Holidays, {secret_santa}!");
             setIntroText("You are the Secret Santa for...");
             setWishlistLabelText("Gift Ideas & Wishlist");
         }
     }, [initialData]);
 
-    // Effect to save progress to local storage
     useEffect(() => {
-        if (initialData) return; // Don't save over an active edit session
+        if (initialData) return; 
 
         const handler = setTimeout(() => {
             try {
@@ -179,7 +179,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             } catch (e) {
                 console.error("Failed to save draft to localStorage", e);
             }
-        }, 500); // Debounce save
+        }, 500); 
 
         return () => clearTimeout(handler);
     }, [
@@ -220,6 +220,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         ]);
         setExclusions([]);
         setAssignments([]);
+        setEventDetails('');
         setError(null);
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         trackEvent('click_clear_all');
@@ -227,7 +228,6 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     
     const addExclusion = () => {
         setExclusions(produce(draft => { draft.push({ p1: '', p2: '' }); }));
-        // FEATURE TRACKING: Track when users use advanced features
         trackEvent('feature_click', { feature: 'add_exclusion' });
     };
     
@@ -236,7 +236,6 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
 
     const addAssignment = () => {
         setAssignments(produce(draft => { draft.push({ giverId: '', receiverId: '' }); }));
-        // FEATURE TRACKING: Track when users use advanced features
         trackEvent('feature_click', { feature: 'add_assignment' });
     };
     
@@ -255,7 +254,6 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
         setIsLoading(true);
         setLoadingMessage(getRandomPersona());
 
-        // Simulate a short delay for a better user experience
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
@@ -265,19 +263,18 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 throw new Error(result.error || 'Failed to generate matches.');
             }
             
-            // Track initial data on successful generation
             try {
-                const allDomains = validParticipants.flatMap(p => p.links)
+                const allDomains = validParticipants.flatMap(p => p.links || [])
                     .map(link => {
-                        if (!link || !link.startsWith('http')) return null;
+                        if (!link || typeof link !== 'string' || !link.startsWith('http')) return null;
                         try {
                             return new URL(link).hostname.replace(/^www\./, '');
                         } catch (e) { return null; }
                     })
                     .filter((d): d is string => d !== null);
 
-                const allLikes = validParticipants.map(p => p.likes.trim()).filter(Boolean);
-                const allInterests = validParticipants.map(p => p.interests.trim()).filter(Boolean);
+                const allLikes = validParticipants.map(p => (p.likes || '').trim()).filter(Boolean);
+                const allInterests = validParticipants.map(p => (p.interests || '').trim()).filter(Boolean);
                 
                 trackEvent('exchange_generated', {
                     participant_count: validParticipants.length,
@@ -287,13 +284,20 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 });
             } catch (analyticsError) {
                 console.error("Failed to track initial group details:", analyticsError);
+                trackEvent('exchange_generated', {
+                    participant_count: validParticipants.length,
+                    error: 'detail_tracking_failed'
+                });
             }
 
 
             const finalMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
             
+            // FIX: Ensure a unique ID is generated for the exchange so backend storage works
+            const exchangeId = initialData?.id || crypto.randomUUID();
+
             const exchangePayload: Omit<ExchangeData, 'backgroundOptions'> = {
-                id: initialData?.id || crypto.randomUUID(),
+                id: exchangeId,
                 p: validParticipants,
                 matches: finalMatches,
                 exclusions,
@@ -305,8 +309,6 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                 greetingText, introText, wishlistLabelText,
             };
             
-            // PREFERENCE TRACKING:
-            // Track detailed stats about the generated game to understand user preferences.
             trackEvent('generate_success', { 
                 participants: validParticipants.length,
                 selected_theme: selectedBackgroundId,
@@ -316,12 +318,12 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
             });
             
             onComplete({ ...exchangePayload, backgroundOptions });
-            localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear draft on success
+            localStorage.removeItem(LOCAL_STORAGE_KEY); 
 
         } catch (matchError) {
             const message = matchError instanceof Error ? matchError.message : "An unknown error occurred.";
             setError(message);
-            setActiveStep(2); // Go to rules step on creation error
+            setActiveStep(2); 
             setIsLoading(false);
             trackEvent('generate_fail', { error: message });
         }
@@ -350,7 +352,7 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
     const steps = [
         { id: 1, label: '1. Add Participants', icon: Users },
         { id: 2, label: '2. Add Details & Rules', icon: ScrollText },
-        { id: 3, label: '3. Style Your Cards', icon: Palette }
+        { id: 3, label: '3. Style Cards', icon: Palette }
     ];
 
     if (isLoading) {

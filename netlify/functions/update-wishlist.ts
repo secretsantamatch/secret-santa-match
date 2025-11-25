@@ -1,79 +1,69 @@
+
 import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 
-interface UpdatePayload {
-    exchangeId: string;
-    participantId: string;
-    wishlist: {
-        interests: string;
-        likes: string;
-        dislikes: string;
-        links: string[];
-    };
-}
-
 export default async (req: Request, context: Context) => {
-    const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-    };
-
-    // Handle Preflight
+    // Handle CORS preflight
     if (req.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers: corsHeaders });
+        return new Response(null, {
+            status: 204,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+            }
+        });
     }
 
     if (req.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return new Response("Method Not Allowed", { status: 405 });
     }
 
     try {
-        const { exchangeId, participantId, wishlist } = (await req.json()) as UpdatePayload;
+        const body = await req.json();
+        const { exchangeId, participantId, wishlist } = body;
 
-        // 1. Validation
         if (!exchangeId || !participantId || !wishlist) {
-            console.error("Missing fields:", { exchangeId, participantId, wishlist });
-            return new Response(JSON.stringify({ error: 'Missing required fields.' }), {
-                status: 400,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
+             return new Response(JSON.stringify({ error: "Missing required fields" }), { 
+                 status: 400,
+                 headers: { 
+                     "Content-Type": "application/json",
+                     "Access-Control-Allow-Origin": "*"
+                 } 
+             });
         }
 
-        // 2. Get Store
-        const store = getStore('wishlists');
+        // 1. Get the Store
+        const store = getStore("wishlists");
         
-        // 3. Retrieve Existing Data (Safely)
-        let allWishlists: Record<string, any> = {};
-        try {
-            const existingData = await store.get(exchangeId, { type: 'json' });
-            if (existingData) {
-                allWishlists = existingData as Record<string, any>;
-            }
-        } catch (readError) {
-            console.warn("Could not read existing store (might be new):", readError);
-            // We continue with an empty object, essentially creating the store
-        }
+        // 2. Retrieve existing data. 
+        // We use { type: 'json' } to automatically parse the blob content.
+        // If the key doesn't exist, store.get returns null, so we default to {}.
+        const existingData = await store.get(exchangeId, { type: 'json' });
+        const data: Record<string, any> = existingData || {};
+        
+        // 3. Update the specific participant's wishlist
+        data[participantId] = wishlist;
+        
+        // 4. Save the updated object back to the blob store using setJSON
+        await store.setJSON(exchangeId, data);
 
-        // 4. Merge New Data
-        allWishlists[participantId] = wishlist;
-
-        // 5. Write Back to Store
-        await store.setJSON(exchangeId, allWishlists);
-
-        return new Response(JSON.stringify({ success: true, savedData: wishlist }), {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ success: true, message: "Wishlist saved successfully" }), { 
+            status: 200, 
+            headers: { 
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            } 
         });
 
-    } catch (error) {
-        console.error('FATAL Update Wishlist Error:', error);
-        return new Response(JSON.stringify({ error: 'Internal Server Error during save.' }), {
+    } catch (error: any) {
+        console.error("Update Wishlist Error:", error);
+        return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { 
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            headers: { 
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            } 
         });
     }
 };
