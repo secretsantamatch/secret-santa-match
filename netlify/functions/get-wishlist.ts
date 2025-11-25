@@ -33,12 +33,22 @@ export default async (req: Request, context: Context) => {
 
         const store = getStore('wishlists');
         
-        // Retrieve the JSON object directly using the SDK helper
-        const data = await store.get(exchangeId, { type: 'json' });
+        // Retrieve as raw string to match the update logic
+        const rawData = await store.get(exchangeId, { type: 'text' });
         
-        console.log(`[get-wishlist] Data retrieved: ${data ? 'Found' : 'Null'}`);
+        console.log(`[get-wishlist] Raw data retrieved length: ${rawData ? rawData.length : 0}`);
 
-        return new Response(JSON.stringify(data || {}), {
+        let data = {};
+        if (rawData) {
+            try {
+                data = JSON.parse(rawData);
+            } catch (e) {
+                console.error('[get-wishlist] Failed to parse JSON:', e);
+                // Return empty object if corrupt, but log it
+            }
+        }
+
+        return new Response(JSON.stringify(data), {
             status: 200,
             headers
         });
