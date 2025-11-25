@@ -1,6 +1,17 @@
 import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 
+// Use a consistent store name across all deploy previews
+const getStoreName = () => {
+    const context = process.env.CONTEXT;
+    console.log('[get-wishlist] Netlify context:', context);
+    
+    if (context === 'deploy-preview' || context === 'branch-deploy') {
+        return 'wishlists-preview';
+    }
+    return 'wishlists';
+};
+
 export default async (req: Request, context: Context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -28,17 +39,21 @@ export default async (req: Request, context: Context) => {
             });
         }
 
-        const store = getStore("wishlists");
+        const storeName = getStoreName();
+        console.log('[get-wishlist] Using store:', storeName);
+
+        // Get the store with STRONG consistency
+        const store = getStore({
+            name: storeName,
+            consistency: "strong"
+        });
         
-        // Log raw blob data for debugging
+        // Get the data
         const data = await store.get(exchangeId, { type: 'json' });
         
         console.log('[get-wishlist] Raw blob data:', JSON.stringify(data));
-        console.log('[get-wishlist] Data type:', typeof data);
         console.log('[get-wishlist] Data is null?', data === null);
-        console.log('[get-wishlist] Data is undefined?', data === undefined);
         
-        // Return data or empty object
         const responseData = data || {};
         console.log('[get-wishlist] Returning:', JSON.stringify(responseData));
 
@@ -49,7 +64,6 @@ export default async (req: Request, context: Context) => {
 
     } catch (error: any) {
         console.error('[get-wishlist] Error:', error);
-        console.error('[get-wishlist] Error stack:', error.stack);
         return new Response(JSON.stringify({ error: 'Failed to retrieve wishlist data.' }), {
             status: 500,
             headers
