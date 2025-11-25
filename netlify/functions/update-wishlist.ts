@@ -19,6 +19,7 @@ export default async (req: Request, context: Context) => {
         'Access-Control-Allow-Headers': 'Content-Type',
     };
 
+    // Handle Preflight
     if (req.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: corsHeaders });
     }
@@ -33,41 +34,44 @@ export default async (req: Request, context: Context) => {
     try {
         const { exchangeId, participantId, wishlist } = (await req.json()) as UpdatePayload;
 
+        // 1. Validation
         if (!exchangeId || !participantId || !wishlist) {
+            console.error("Missing fields:", { exchangeId, participantId, wishlist });
             return new Response(JSON.stringify({ error: 'Missing required fields.' }), {
                 status: 400,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
         }
 
+        // 2. Get Store
         const store = getStore('wishlists');
         
-        // Robustly handle store retrieval
+        // 3. Retrieve Existing Data (Safely)
         let allWishlists: Record<string, any> = {};
         try {
             const existingData = await store.get(exchangeId, { type: 'json' });
             if (existingData) {
                 allWishlists = existingData as Record<string, any>;
             }
-        } catch (e) {
-            console.log("Store retrieval returned null or failed, creating new entry.", e);
-            // Proceed with empty object to initialize the store
+        } catch (readError) {
+            console.warn("Could not read existing store (might be new):", readError);
+            // We continue with an empty object, essentially creating the store
         }
 
-        // Update the specific participant's wishlist
+        // 4. Merge New Data
         allWishlists[participantId] = wishlist;
 
-        // Save the entire updated object back to the store
+        // 5. Write Back to Store
         await store.setJSON(exchangeId, allWishlists);
 
-        return new Response(JSON.stringify({ success: true }), {
+        return new Response(JSON.stringify({ success: true, savedData: wishlist }), {
             status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 
     } catch (error) {
-        console.error('Update Wishlist Error:', error);
-        return new Response(JSON.stringify({ error: 'Failed to save wishlist data.' }), {
+        console.error('FATAL Update Wishlist Error:', error);
+        return new Response(JSON.stringify({ error: 'Internal Server Error during save.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });

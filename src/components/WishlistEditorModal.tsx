@@ -11,25 +11,31 @@ interface WishlistEditorModalProps {
 }
 
 const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, exchangeId, onClose, onSaveSuccess }) => {
-    // Initialize state with empty values
+    // Core State
     const [wishlist, setWishlist] = useState({
         interests: '',
         likes: '',
         dislikes: '',
-        links: ['', '', '', '', ''], // Always 5 empty strings initially
+        links: ['', '', '', '', ''], // Fixed 5 empty slots
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Force sync state with participant prop whenever the modal opens or participant changes
+    // Initialize on load
     useEffect(() => {
         if (participant) {
+            // Pad the links array to ensure we always have 5 slots
+            const incomingLinks = participant.links || [];
+            const paddedLinks = [...incomingLinks];
+            while (paddedLinks.length < 5) {
+                paddedLinks.push('');
+            }
+
             setWishlist({
                 interests: participant.interests || '',
                 likes: participant.likes || '',
                 dislikes: participant.dislikes || '',
-                // Ensure we always have an array of exactly 5 strings to keep inputs controlled
-                links: Array.from({ length: 5 }, (_, i) => (participant.links && participant.links[i]) ? participant.links[i] : ''),
+                links: paddedLinks.slice(0, 5), // Ensure exactly 5
             });
         }
     }, [participant]);
@@ -52,14 +58,14 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         setError(null);
         
         try {
-            // Filter out empty links before sending to server
+            // Prepare clean data
             const cleanLinks = wishlist.links.filter(link => link && link.trim() !== '');
-
+            
             const finalWishlistData = {
                 interests: wishlist.interests,
                 likes: wishlist.likes,
                 dislikes: wishlist.dislikes,
-                links: cleanLinks,
+                links: cleanLinks
             };
 
             const payload = {
@@ -68,6 +74,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 wishlist: finalWishlistData
             };
 
+            // Send to server
             const response = await fetch('/.netlify/functions/update-wishlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -75,21 +82,20 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to save wishlist.');
+                const text = await response.text(); // Get raw text in case JSON fails
+                console.error("Server Error Response:", text);
+                throw new Error(`Server error: ${response.status}. Please try again.`);
             }
             
+            // If successful, update UI immediately
             trackEvent('wishlist_save_success');
-            
-            // Pass the updated data back to the parent to update the UI immediately
-            // This avoids the race condition of fetching stale data from the server
-            onSaveSuccess(finalWishlistData);
-            
-            onClose();
+            onSaveSuccess(finalWishlistData); // Update parent state instantly
+            onClose(); // Close modal
 
         } catch (err) {
-            const message = err instanceof Error ? err.message : 'An unknown error occurred.';
-            setError(`Save failed: ${message}`);
+            console.error("Save Error:", err);
+            const message = err instanceof Error ? err.message : 'Connection failed. Please check your internet.';
+            setError(message);
             trackEvent('wishlist_save_fail', { error: message });
         } finally {
             setIsLoading(false);
@@ -108,13 +114,9 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 </header>
                 
                 <main className="p-6 space-y-6 overflow-y-auto">
-                    <p className="text-center text-slate-600 text-base -mt-2">
-                        Help your Secret Santa find you the perfect gift! Fill out the details below.
-                    </p>
-                    
                     {error && (
-                        <div className="p-3 bg-red-100 text-red-800 rounded-lg border border-red-200 text-sm">
-                            {error} Please try again.
+                        <div className="p-3 bg-red-100 text-red-800 rounded-lg border border-red-200 text-sm font-bold">
+                            {error}
                         </div>
                     )}
 
@@ -125,9 +127,8 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                             placeholder="e.g., coffee, gardening, sci-fi books"
                             value={wishlist.interests}
                             onChange={(e) => handleChange('interests', e.target.value)}
-                            className="w-full p-2 border border-slate-300 rounded-md"
+                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
                         />
-                        <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My Likes</label>
@@ -136,9 +137,8 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                             placeholder="e.g., dark roast coffee, fuzzy socks"
                             value={wishlist.likes}
                             onChange={(e) => handleChange('likes', e.target.value)}
-                            className="w-full p-2 border border-slate-300 rounded-md"
+                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
                         />
-                         <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My Dislikes & No-Go's</label>
@@ -146,10 +146,9 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                             placeholder="e.g., dislikes horror movies, allergic to wool..."
                             value={wishlist.dislikes}
                             onChange={(e) => handleChange('dislikes', e.target.value)}
-                            className="w-full p-2 border border-slate-300 rounded-md"
+                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
                             rows={2}
                         />
-                         <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My 5 Wishlist Links</label>
@@ -158,10 +157,10 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                                 <input
                                     key={i}
                                     type="text"
-                                    placeholder={`e.g., https://www.amazon.com/wishlist/...`}
+                                    placeholder={`Link #${i + 1} (e.g. Amazon)`}
                                     value={link}
                                     onChange={(e) => handleLinkChange(i, e.target.value)}
-                                    className="w-full p-2 border border-slate-300 rounded-md"
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition text-sm"
                                 />
                             ))}
                         </div>
@@ -176,7 +175,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     <button 
                         onClick={handleSave}
                         disabled={isLoading}
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-wait"
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50"
                     >
                         {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
                         {isLoading ? 'Saving...' : 'Save Changes'}
