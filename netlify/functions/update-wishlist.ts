@@ -3,8 +3,6 @@ import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 
 export default async (req: Request, context: Context) => {
-    console.log(`[update-wishlist] Function invoked. Method: ${req.method}`);
-
     const headers = {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
@@ -12,6 +10,7 @@ export default async (req: Request, context: Context) => {
         "Access-Control-Allow-Methods": "POST, OPTIONS"
     };
 
+    // Handle Preflight
     if (req.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers });
     }
@@ -28,38 +27,24 @@ export default async (req: Request, context: Context) => {
              return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400, headers });
         }
 
-        // Use strong consistency to reduce race conditions
-        const store = getStore({ name: "wishlists", consistency: "strong" });
+        // Connect to store
+        const store = getStore("wishlists");
         
-        // 1. Fetch existing data
-        // We use 'text' to handle raw JSON string manipulation safely
-        const rawData = await store.get(exchangeId, { type: 'text' });
+        // 1. Get existing data (or default to empty object if new)
+        // getJSON returns the object directly, or null if not found.
+        const currentData: Record<string, any> = (await store.get(exchangeId, { type: 'json' })) || {};
         
-        let data: Record<string, any> = {};
-        if (rawData) {
-            try {
-                data = JSON.parse(rawData);
-            } catch (e) {
-                console.warn("[update-wishlist] Failed to parse existing data, resetting:", e);
-                data = {};
-            }
-        }
+        // 2. Update the specific participant's data
+        currentData[participantId] = wishlist;
         
-        // 2. Update the specific participant
-        data[participantId] = wishlist;
+        // 3. Save back to Blob storage
+        // setJSON automatically stringifies the object
+        await store.setJSON(exchangeId, currentData);
         
-        // 3. Serialize
-        const stringifiedData = JSON.stringify(data);
+        console.log(`[update-wishlist] Saved data for ${participantId} in ${exchangeId}`);
 
-        // 4. Save (Trust the operation if it resolves)
-        await store.set(exchangeId, stringifiedData);
-        
-        console.log(`[update-wishlist] Successfully saved data for ${participantId} in exchange ${exchangeId}`);
-
-        // Return the saved data back to the client so it can update immediately
         return new Response(JSON.stringify({ 
             success: true, 
-            message: "Wishlist saved",
             data: wishlist 
         }), { 
             status: 200, 
@@ -67,7 +52,7 @@ export default async (req: Request, context: Context) => {
         });
 
     } catch (error: any) {
-        console.error("[update-wishlist] CRITICAL ERROR:", error);
+        console.error("[update-wishlist] Error:", error);
         return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { 
             status: 500,
             headers

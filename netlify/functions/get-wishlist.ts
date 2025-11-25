@@ -8,7 +8,7 @@ export default async (req: Request, context: Context) => {
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-store, no-cache, must-revalidate', // Disable caching
+        'Cache-Control': 'no-store, no-cache, must-revalidate', // Prevent browser caching
     };
 
     if (req.method === 'OPTIONS') {
@@ -26,20 +26,11 @@ export default async (req: Request, context: Context) => {
             });
         }
 
-        // Use strong consistency for reads as well
-        const store = getStore({ name: "wishlists", consistency: "strong" });
+        const store = getStore("wishlists");
         
-        // Get as text to manually parse
-        const rawData = await store.get(exchangeId, { type: 'text' });
-        
-        let data = {};
-        if (rawData) {
-            try {
-                data = JSON.parse(rawData);
-            } catch (e) {
-                console.error('[get-wishlist] JSON Parse Error:', e);
-            }
-        }
+        // Retrieve data as JSON directly
+        // If key doesn't exist, this returns null (or undefined depending on version), we default to {}
+        const data = await store.get(exchangeId, { type: 'json' }) || {};
 
         return new Response(JSON.stringify(data), {
             status: 200,
