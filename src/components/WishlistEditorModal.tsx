@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -82,9 +83,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
             });
 
             if (!response.ok) {
-                const text = await response.text(); // Get raw text in case JSON fails
-                console.error("Server Error Response:", text);
-                throw new Error(`Server error: ${response.status}. Please try again.`);
+                throw new Error('Failed to save. Please try again.');
             }
             
             // If successful, update UI immediately
