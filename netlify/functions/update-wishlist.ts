@@ -1,4 +1,3 @@
-
 import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 
@@ -43,22 +42,20 @@ export default async (req: Request, context: Context) => {
 
         const store = getStore('wishlists');
         
-        // FIX: Handle potential missing store gracefully
-        // Get the existing wishlists object for this exchange, or create a new one if it doesn't exist
-        let allWishlists = {};
+        // Robustly handle store retrieval
+        let allWishlists: Record<string, any> = {};
         try {
             const existingData = await store.get(exchangeId, { type: 'json' });
             if (existingData) {
-                allWishlists = existingData;
+                allWishlists = existingData as Record<string, any>;
             }
         } catch (e) {
             console.log("Store retrieval returned null or failed, creating new entry.", e);
-            // Proceed with empty object
+            // Proceed with empty object to initialize the store
         }
 
         // Update the specific participant's wishlist
-        // We cast to any here because we know the shape we want to enforce
-        (allWishlists as any)[participantId] = wishlist;
+        allWishlists[participantId] = wishlist;
 
         // Save the entire updated object back to the store
         await store.setJSON(exchangeId, allWishlists);
