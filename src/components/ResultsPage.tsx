@@ -500,7 +500,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
-        fetchWishlists();
+        // fetchWishlists(); // REMOVED to prevent race condition where server returns old data
     };
 
 
