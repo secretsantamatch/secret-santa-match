@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -284,15 +285,15 @@ const GiftCardPromo = () => (
         
         {/* Image Banner - Acts as Main CTA */}
         <a 
-            href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.910&subid=0&type=4" 
+            href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.798&subid=0&type=4" 
             target="_blank" 
             rel="noopener noreferrer sponsored"
-            onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Banner' })}
+            onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com BF/CM Banner' })}
             className="block w-full rounded-lg overflow-hidden transition-transform transform group-hover:scale-[1.01] bg-transparent min-h-[100px] flex items-center justify-center"
         >
             <img 
-                src="https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.910&subid=0&type=4&gridnum=0" 
-                alt="Giftcards.com Santa Hat Stocking Stuffer Xmas Christmas December Image Giftcards.com eGift Logo" 
+                src="https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.798&subid=0&type=4&gridnum=13" 
+                alt="Up to 15% Off - Black Friday + Cyber Monday Campaign: Gift More, Spend Less at Giftcards.com" 
                 className="w-auto h-auto max-h-[200px] object-contain"
                 loading="lazy"
                 onError={(e) => {
@@ -309,9 +310,6 @@ const GiftCardPromo = () => (
             />
         </a>
         
-        {/* Tracking Pixel */}
-        <img width={1} height={1} src="https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.462&type=4&subid=0" alt="" className="hidden" />
-        
         {/* Text Fallback / Extra Info */}
         <div className="text-center px-2 w-full">
              <p className="text-sm text-indigo-900 font-medium mb-3">
@@ -319,7 +317,7 @@ const GiftCardPromo = () => (
             </p>
             
             <a 
-                href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.910&subid=0&type=4" 
+                href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.798&subid=0&type=4" 
                 target="_blank" 
                 rel="noopener noreferrer sponsored"
                 onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Text Link' })}
