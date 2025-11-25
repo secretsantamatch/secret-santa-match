@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
