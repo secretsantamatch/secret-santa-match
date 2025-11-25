@@ -1,161 +1,176 @@
 
-    import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
-    import type { ExchangeData } from './types';
-    import { compressData, decompressData } from './services/urlService';
+import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import type { ExchangeData } from './types';
+import { compressData, decompressData } from './services/urlService';
 
-    const GeneratorPage = lazy(() => import('./components/GeneratorPage'));
-    const ResultsPage = lazy(() => import('./components/ResultsPage'));
+const GeneratorPage = lazy(() => import('./components/GeneratorPage'));
+const ResultsPage = lazy(() => import('./components/ResultsPage'));
 
-    const LoadingFallback = () => (
-        <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-                <img src="/logo_256.png" alt="Loading" className="w-24 h-24 mx-auto animate-pulse" />
-                <p className="text-slate-500 mt-4">Loading your exchange...</p>
-            </div>
+const LoadingFallback = () => (
+    <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+            <img src="/logo_256.png" alt="Loading" className="w-24 h-24 mx-auto animate-pulse" />
+            <p className="text-slate-500 mt-4">Loading your exchange...</p>
         </div>
-    );
+    </div>
+);
 
-    const ErrorDisplay = ({ message }: { message: string }) => (
-        <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="text-center bg-white p-8 rounded-2xl shadow-lg border max-w-lg">
-                <h2 className="text-2xl font-bold text-red-600">Oops! Something went wrong.</h2>
-                <p className="text-slate-600 mt-2">{message}</p>
-                <a href="/generator.html" className="mt-6 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">
-                    Start a New Game
-                </a>
-            </div>
+const ErrorDisplay = ({ message }: { message: string }) => (
+    <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="text-center bg-white p-8 rounded-2xl shadow-lg border max-w-lg">
+            <h2 className="text-2xl font-bold text-red-600">Oops! Something went wrong.</h2>
+            <p className="text-slate-600 mt-2">{message}</p>
+            <a href="/generator.html" className="mt-6 inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">
+                Start a New Game
+            </a>
         </div>
-    );
+    </div>
+);
 
-    const App: React.FC = () => {
-        const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
-        const [participantId, setParticipantId] = useState<string | null>(null);
-        const [isLoading, setIsLoading] = useState(true);
-        const [error, setError] = useState<string | null>(null);
+const App: React.FC = () => {
+    const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
+    const [participantId, setParticipantId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-        const loadDataFromHash = useCallback(async () => {
-            setIsLoading(true);
-            setError(null);
-            
-            const hash = window.location.hash.slice(1);
-            const [compressedData, queryString] = hash.split('?');
+    const loadDataFromHash = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        
+        const hash = window.location.hash.slice(1);
+        
+        // Handle empty hash (Home page)
+        if (!hash) {
+            setExchangeData(null);
+            setParticipantId(null);
+            setIsLoading(false);
+            return;
+        }
 
-            if (!compressedData) {
-                setExchangeData(null);
-                setParticipantId(null);
-                setIsLoading(false);
-                return;
+        const [compressedData, queryString] = hash.split('?');
+
+        if (!compressedData) {
+            setExchangeData(null);
+            setParticipantId(null);
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const decompressed = decompressData(compressedData);
+            if (!decompressed) {
+                throw new Error("Could not read the gift exchange data from the link. It might be corrupted or incomplete.");
             }
 
-            try {
-                const decompressed = decompressData(compressedData);
-                if (!decompressed) {
-                    throw new Error("Could not read the gift exchange data from the link. It might be corrupted or incomplete.");
-                }
-
-                // CRITICAL FIX: Ensure ID exists. If it's an old link without an ID, generate one.
-                // However, we must persist this ID to the URL immediately or the next reload will generate a NEW ID
-                // and lose connection to any saved wishlists.
-                let dataId = decompressed.id;
-                if (!dataId) {
-                    dataId = crypto.randomUUID();
-                    decompressed.id = dataId;
-                    // Note: We can't easily update the URL here without triggering a re-render loop, 
-                    // but the app should handle it gracefully on the next save/update.
-                }
-
-                // Load templates and merge them into the data
-                const templatesRes = await fetch('/templates.json');
-                if (!templatesRes.ok) throw new Error('Failed to load design templates.');
-                const backgroundOptions = await templatesRes.json();
+            // CRITICAL FIX: ID Persistence
+            // If the decompressed data is missing an ID (old link or fresh generation), create one.
+            // IMPORTANT: We must update the URL immediately so the user doesn't lose access to this ID on refresh.
+            if (!decompressed.id) {
+                console.log("Data missing ID. Generating and persisting new ID...");
+                const newId = crypto.randomUUID();
+                decompressed.id = newId;
                 
-                const fullData: ExchangeData = { ...decompressed, id: dataId, backgroundOptions } as ExchangeData;
-                setExchangeData(fullData);
-
-                const params = new URLSearchParams(queryString || '');
-                setParticipantId(params.get('id'));
-
-            } catch (err) {
-                console.error("Error loading exchange data:", err);
-                setError(err instanceof Error ? err.message : "An unknown error occurred.");
-                setExchangeData(null);
-            } finally {
-                setIsLoading(false);
+                // Re-compress with the new ID
+                const newCompressed = compressData(decompressed as ExchangeData);
+                const newHash = queryString ? `${newCompressed}?${queryString}` : newCompressed;
+                
+                // Replace current URL to lock in the ID. This will trigger hashchange again.
+                window.location.replace(`#${newHash}`);
+                return; // Stop processing, let the next event loop handle the reload with the valid ID
             }
-        }, []);
 
-        useEffect(() => {
-            window.addEventListener('hashchange', loadDataFromHash);
-            loadDataFromHash(); 
-
-            return () => {
-                window.removeEventListener('hashchange', loadDataFromHash);
-            };
-        }, [loadDataFromHash]);
-
-        const updateUrlHash = (data: Omit<ExchangeData, 'backgroundOptions'>) => {
-            const compressed = compressData(data);
-            const queryString = window.location.hash.split('?')[1];
-            const newHash = queryString ? `${compressed}?${queryString}` : compressed;
-            window.history.replaceState(null, '', `#${newHash}`);
-        };
-
-        const handleDataUpdate = (newMatches: { g: string; r: string }[]) => {
-            if (!exchangeData) return;
-
-            const newData: ExchangeData = {
-                ...exchangeData,
-                matches: newMatches
-            };
-
-            setExchangeData(newData);
+            // Load templates and merge them into the data
+            const templatesRes = await fetch('/templates.json');
+            if (!templatesRes.ok) throw new Error('Failed to load design templates.');
+            const backgroundOptions = await templatesRes.json();
             
-            const { backgroundOptions, ...dataToCompress } = newData;
-            updateUrlHash(dataToCompress);
+            const fullData: ExchangeData = { ...decompressed, backgroundOptions } as ExchangeData;
+            setExchangeData(fullData);
+
+            const params = new URLSearchParams(queryString || '');
+            setParticipantId(params.get('id'));
+
+        } catch (err) {
+            console.error("Error loading exchange data:", err);
+            setError(err instanceof Error ? err.message : "An unknown error occurred.");
+            setExchangeData(null);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        window.addEventListener('hashchange', loadDataFromHash);
+        loadDataFromHash(); 
+
+        return () => {
+            window.removeEventListener('hashchange', loadDataFromHash);
         };
-        
-        const handleCreationComplete = (newData: ExchangeData) => {
-            // CRITICAL: Ensure a persistent ID is generated at creation time.
-            if (!newData.id) {
-                newData.id = crypto.randomUUID();
-            }
-            
-            const { backgroundOptions, ...dataToCompress } = newData;
-            const compressed = compressData(dataToCompress);
-            if (compressed) {
-                setExchangeData(newData);
-                window.location.hash = compressed;
-            } else {
-                setError("There was an error creating your gift exchange link.");
-            }
-        };
+    }, [loadDataFromHash]);
 
-
-        if (isLoading) {
-            return <LoadingFallback />;
-        }
-        
-        if (error) {
-            return <ErrorDisplay message={error} />;
-        }
-
-        if (exchangeData) {
-            return (
-                <Suspense fallback={<LoadingFallback />}>
-                    <ResultsPage 
-                        data={exchangeData} 
-                        currentParticipantId={participantId} 
-                        onDataUpdated={handleDataUpdate}
-                    />
-                </Suspense>
-            );
-        }
-
-        return (
-            <Suspense fallback={<LoadingFallback />}>
-                <GeneratorPage onComplete={handleCreationComplete} />
-            </Suspense>
-        );
+    const updateUrlHash = (data: Omit<ExchangeData, 'backgroundOptions'>) => {
+        const compressed = compressData(data);
+        const queryString = window.location.hash.split('?')[1];
+        const newHash = queryString ? `${compressed}?${queryString}` : compressed;
+        window.history.replaceState(null, '', `#${newHash}`);
     };
 
-    export default App;
+    const handleDataUpdate = (newMatches: { g: string; r: string }[]) => {
+        if (!exchangeData) return;
+
+        const newData: ExchangeData = {
+            ...exchangeData,
+            matches: newMatches
+        };
+
+        setExchangeData(newData);
+        
+        const { backgroundOptions, ...dataToCompress } = newData;
+        updateUrlHash(dataToCompress);
+    };
+    
+    const handleCreationComplete = (newData: ExchangeData) => {
+        // Double check ID exists before saving
+        if (!newData.id) {
+            newData.id = crypto.randomUUID();
+        }
+        
+        const { backgroundOptions, ...dataToCompress } = newData;
+        const compressed = compressData(dataToCompress);
+        if (compressed) {
+            setExchangeData(newData);
+            window.location.hash = compressed;
+        } else {
+            setError("There was an error creating your gift exchange link.");
+        }
+    };
+
+
+    if (isLoading) {
+        return <LoadingFallback />;
+    }
+    
+    if (error) {
+        return <ErrorDisplay message={error} />;
+    }
+
+    if (exchangeData) {
+        return (
+            <Suspense fallback={<LoadingFallback />}>
+                <ResultsPage 
+                    data={exchangeData} 
+                    currentParticipantId={participantId} 
+                    onDataUpdated={handleDataUpdate}
+                />
+            </Suspense>
+        );
+    }
+
+    return (
+        <Suspense fallback={<LoadingFallback />}>
+            <GeneratorPage onComplete={handleCreationComplete} />
+        </Suspense>
+    );
+};
+
+export default App;

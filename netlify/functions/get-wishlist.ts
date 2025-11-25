@@ -3,7 +3,6 @@ import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 
 export default async (req: Request, context: Context) => {
-    // Handle CORS
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -19,6 +18,8 @@ export default async (req: Request, context: Context) => {
         const url = new URL(req.url);
         const exchangeId = url.searchParams.get('exchangeId');
 
+        console.log(`[get-wishlist] Invoked for exchangeId: ${exchangeId}`);
+
         if (!exchangeId) {
             return new Response(JSON.stringify({ error: 'exchangeId parameter is required.' }), { 
                 status: 400, 
@@ -30,6 +31,8 @@ export default async (req: Request, context: Context) => {
         
         // Retrieve the JSON object directly using the SDK helper
         const data = await store.get(exchangeId, { type: 'json' });
+        
+        console.log(`[get-wishlist] Data retrieved: ${data ? 'Found' : 'Null'}`);
 
         return new Response(JSON.stringify(data || {}), {
             status: 200,
@@ -37,7 +40,7 @@ export default async (req: Request, context: Context) => {
         });
 
     } catch (error: any) {
-        console.error('Get Wishlist Error:', error);
+        console.error('[get-wishlist] Error:', error);
         return new Response(JSON.stringify({ error: 'Failed to retrieve wishlist data.' }), {
             status: 500,
             headers
