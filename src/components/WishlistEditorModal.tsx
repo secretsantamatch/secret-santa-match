@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -8,38 +7,27 @@ interface WishlistEditorModalProps {
   participant: Participant;
   exchangeId: string;
   onClose: () => void;
-  // FIX: Callback now accepts the data so we can update the UI instantly
   onSaveSuccess: (newWishlist: any) => void; 
 }
 
 const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, exchangeId, onClose, onSaveSuccess }) => {
-    // FIX: "Stale Input" Bug. 
-    // We must ensure the state is initialized with exactly 5 slots, even if the user only has 1 or 0 saved links.
-    const getInitialLinks = () => {
-        const currentLinks = Array.isArray(participant.links) ? [...participant.links] : [];
-        // Pad with empty strings until we have 5
-        while (currentLinks.length < 5) {
-            currentLinks.push('');
-        }
-        // Ensure we don't have more than 5 (just in case)
-        return currentLinks.slice(0, 5);
-    };
-
+    // FIX: Initialize links with exactly 5 items (empty strings if data is missing)
+    // This prevents "uncontrolled input" errors and ensures all 5 boxes are editable immediately.
     const [wishlist, setWishlist] = useState({
         interests: participant.interests || '',
         likes: participant.likes || '',
         dislikes: participant.dislikes || '',
-        links: getInitialLinks(),
+        links: Array.from({ length: 5 }, (_, i) => (participant.links && participant.links[i]) || ''),
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
 
     const handleChange = (field: keyof Omit<typeof wishlist, 'links'>, value: string) => {
         setWishlist(prev => ({ ...prev, [field]: value }));
     };
 
     const handleLinkChange = (index: number, value: string) => {
+        // Because we initialized with 5 items, we can safely access by index
         const newLinks = [...wishlist.links];
         newLinks[index] = value;
         setWishlist(prev => ({ ...prev, links: newLinks }));
@@ -51,6 +39,9 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         setError(null);
         
         try {
+            // Filter out empty links before sending to server
+            const cleanLinks = wishlist.links.filter(link => link && link.trim() !== '');
+
             const payload = {
                 exchangeId,
                 participantId: participant.id,
@@ -58,8 +49,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     interests: wishlist.interests,
                     likes: wishlist.likes,
                     dislikes: wishlist.dislikes,
-                    // Filter out empty links before sending to server
-                    links: wishlist.links.filter(link => link && link.trim() !== ''),
+                    links: cleanLinks,
                 }
             };
 
@@ -74,9 +64,9 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 throw new Error(errorData.error || 'Failed to save wishlist.');
             }
             
-            // Analytics
+            // Analytics tracking
             try {
-                const domains = payload.wishlist.links
+                const domains = cleanLinks
                     .map(link => {
                         if (!link || !link.startsWith('http')) return null;
                         try {
@@ -97,7 +87,8 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
 
             trackEvent('wishlist_save_success');
             
-            // FIX: Pass the new data back immediately for instant UI update
+            // IMPORTANT: Pass the exact state we just saved back to the parent
+            // ensuring the UI updates instantly with exactly what the user typed.
             onSaveSuccess(payload.wishlist);
             
             onClose();
@@ -169,13 +160,12 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My 5 Wishlist Links</label>
                         <div className="space-y-2">
-                            {/* We iterate over the state which is guaranteed to have 5 items */}
-                            {wishlist.links.map((linkValue, i) => (
+                            {wishlist.links.map((link, i) => (
                                 <input
                                     key={i}
                                     type="text"
                                     placeholder={`e.g., https://www.amazon.com/wishlist/...`}
-                                    value={linkValue}
+                                    value={link}
                                     onChange={(e) => handleLinkChange(i, e.target.value)}
                                     className="w-full p-2 border border-slate-300 rounded-md"
                                 />
@@ -202,6 +192,5 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         </div>
     );
 };
-
 
 export default WishlistEditorModal;
