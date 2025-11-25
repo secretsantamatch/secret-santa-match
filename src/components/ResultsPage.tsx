@@ -470,9 +470,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
-            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}`);
-            if (res.ok) {
-                const wishlistData = await res.json();
+            const res = await fetch(`/.netlify/functions/update-wishlist?exchangeId=${exchangeId}`); // Note: using GET logic if implemented or just standard get
+            // Actually the code uses get-wishlist.ts
+             const resGet = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}`);
+            if (resGet.ok) {
+                const wishlistData = await resGet.json();
                 setLiveWishlists(wishlistData);
             }
         } catch (e) {
@@ -495,12 +497,13 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
     const handleWishlistSaveSuccess = (newWishlist: any) => {
         if (currentParticipantId) {
+            // FIX: Update local state immediately to reflect changes without waiting for server
             setLiveWishlists(prev => ({
                 ...prev,
                 [currentParticipantId]: newWishlist
             }));
         }
-        // REMOVED: fetchWishlists(); -> This was causing the race condition
+        // REMOVED: fetchWishlists(); -> This was causing the race condition where old server data overwrote new local data
     };
 
 
@@ -663,7 +666,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         <div className="bg-slate-50 min-h-screen">
             {isShareModalOpen && <ShareLinksModal exchangeData={{ ...data, p: participants }} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
             {isWishlistModalOpen && currentParticipant && exchangeId && (
-                <WishlistEditorModal 
+                <WishlistEditorModal
+                    // FIX: Add key to force re-mount when opened, clearing any "zombie" state
+                    key={Date.now()}
                     participant={currentParticipant}
                     exchangeId={exchangeId}
                     onClose={() => setIsWishlistModalOpen(false)}
