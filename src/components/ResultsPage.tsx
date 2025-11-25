@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -470,7 +471,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         setIsWishlistLoading(true);
         try {
             // Fetch wishlists using the correct endpoint
-             const resGet = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}`);
+            // Add timestamp to prevent caching
+            const timestamp = new Date().getTime();
+            const resGet = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${timestamp}`);
             if (resGet.ok) {
                 const wishlistData = await resGet.json();
                 setLiveWishlists(wishlistData);
@@ -824,7 +827,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     )}
                                                     
                                                     <p className="text-xs text-slate-400 text-center pt-4 border-t border-slate-200 mt-4">
-                                                        Affiliate Disclosure: We may earn a commission from qualifying purchases or actions made through links on this site.
+                                                        Affiliate Disclosure: We may earn a commission from qualifying purchases or actions made through links on this page.
                                                     </p>
                                                 </div>
                                                 
