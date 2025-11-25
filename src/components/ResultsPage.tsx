@@ -493,9 +493,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }));
     }, [participantsFromUrl, liveWishlists]);
 
+    // CRITICAL FIX: Update the local state instantly.
+    // Do NOT call fetchWishlists() here, as the server might still have old data.
+    // Trust the local update first to prevent "reverting" UI glitches.
     const handleWishlistSaveSuccess = (newWishlist: any) => {
         if (currentParticipantId) {
-            // Update local state immediately to reflect changes without waiting for server
             setLiveWishlists(prev => ({
                 ...prev,
                 [currentParticipantId]: newWishlist

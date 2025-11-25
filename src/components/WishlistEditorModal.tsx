@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
 import { Save, X, Loader2 } from 'lucide-react';
@@ -11,23 +11,34 @@ interface WishlistEditorModalProps {
 }
 
 const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, exchangeId, onClose, onSaveSuccess }) => {
-    // FIX: Initialize links with exactly 5 items (empty strings if data is missing)
-    // This prevents "uncontrolled input" errors and ensures all 5 boxes are editable immediately.
+    // Initialize state
     const [wishlist, setWishlist] = useState({
-        interests: participant.interests || '',
-        likes: participant.likes || '',
-        dislikes: participant.dislikes || '',
-        links: Array.from({ length: 5 }, (_, i) => (participant.links && participant.links[i]) || ''),
+        interests: '',
+        likes: '',
+        dislikes: '',
+        links: Array(5).fill(''),
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // SANITY CHECK FIX:
+    // Use useEffect to FORCE the internal state to match the passed participant prop.
+    // This ensures that when the modal opens, or if the parent updates, the inputs are correct.
+    useEffect(() => {
+        setWishlist({
+            interests: participant.interests || '',
+            likes: participant.likes || '',
+            dislikes: participant.dislikes || '',
+            // Always ensure we have exactly 5 slots for the inputs, even if data is missing or shorter
+            links: Array.from({ length: 5 }, (_, i) => (participant.links && participant.links[i]) || ''),
+        });
+    }, [participant]);
 
     const handleChange = (field: keyof Omit<typeof wishlist, 'links'>, value: string) => {
         setWishlist(prev => ({ ...prev, [field]: value }));
     };
 
     const handleLinkChange = (index: number, value: string) => {
-        // Because we initialized with 5 items, we can safely access by index
         const newLinks = [...wishlist.links];
         newLinks[index] = value;
         setWishlist(prev => ({ ...prev, links: newLinks }));
@@ -39,18 +50,21 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         setError(null);
         
         try {
-            // Filter out empty links before sending to server
+            // Filter out empty links for the database/storage
             const cleanLinks = wishlist.links.filter(link => link && link.trim() !== '');
+
+            // This is the exact object we want to save AND display immediately
+            const wishlistData = {
+                interests: wishlist.interests,
+                likes: wishlist.likes,
+                dislikes: wishlist.dislikes,
+                links: cleanLinks,
+            };
 
             const payload = {
                 exchangeId,
                 participantId: participant.id,
-                wishlist: {
-                    interests: wishlist.interests,
-                    likes: wishlist.likes,
-                    dislikes: wishlist.dislikes,
-                    links: cleanLinks,
-                }
+                wishlist: wishlistData
             };
 
             const response = await fetch('/.netlify/functions/update-wishlist', {
@@ -64,7 +78,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 throw new Error(errorData.error || 'Failed to save wishlist.');
             }
             
-            // Analytics tracking
+            // Analytics
             try {
                 const domains = cleanLinks
                     .map(link => {
@@ -87,9 +101,8 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
 
             trackEvent('wishlist_save_success');
             
-            // IMPORTANT: Pass the exact state we just saved back to the parent
-            // ensuring the UI updates instantly with exactly what the user typed.
-            onSaveSuccess(payload.wishlist);
+            // CRITICAL: Pass the data back to the parent so it updates the UI *instantly*
+            onSaveSuccess(wishlistData);
             
             onClose();
 
