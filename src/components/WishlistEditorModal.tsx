@@ -8,7 +8,8 @@ interface WishlistEditorModalProps {
   participant: Participant;
   exchangeId: string;
   onClose: () => void;
-  onSaveSuccess: (wishlist: any) => void;
+  // FIX: Callback now accepts the data so we can update the UI instantly
+  onSaveSuccess: (newWishlist: any) => void; 
 }
 
 const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, exchangeId, onClose, onSaveSuccess }) => {
@@ -16,9 +17,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         interests: participant.interests || '',
         likes: participant.likes || '',
         dislikes: participant.dislikes || '',
-        links: Array.isArray(participant.links) && participant.links.length > 0 
-            ? [...participant.links] 
-            : Array(5).fill(''),
+        links: Array.isArray(participant.links) && participant.links.length > 0 ? participant.links : Array(5).fill(''),
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -65,17 +64,15 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 throw new Error(errorData.error || 'Failed to save wishlist.');
             }
             
-            // Analytics for link domains, likes, and interests
+            // Analytics
             try {
                 const domains = payload.wishlist.links
                     .map(link => {
                         if (!link || !link.startsWith('http')) return null;
                         try {
                             const hostname = new URL(link).hostname;
-                            return hostname.replace(/^www\./, ''); // remove www.
-                        } catch (e) {
-                            return null;
-                        }
+                            return hostname.replace(/^www\./, ''); 
+                        } catch (e) { return null; }
                     })
                     .filter((domain): domain is string => domain !== null);
 
@@ -84,14 +81,15 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     wishlist_likes: wishlist.likes.trim() || 'none',
                     wishlist_interests: wishlist.interests.trim() || 'none'
                 });
-
             } catch (analyticsError) {
-                // Fail silently so it doesn't break the user experience
                 console.error("Failed to track wishlist details:", analyticsError);
             }
 
             trackEvent('wishlist_save_success');
+            
+            // FIX: Pass the new data back immediately for instant UI update
             onSaveSuccess(payload.wishlist);
+            
             onClose();
 
         } catch (err) {
@@ -193,5 +191,6 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         </div>
     );
 };
+
 
 export default WishlistEditorModal;
