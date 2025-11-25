@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -17,29 +16,77 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         interests: '',
         likes: '',
         dislikes: '',
-        links: ['', '', '', '', ''], // Fixed 5 empty slots
+        links: ['', '', '', '', ''],
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true); // NEW: Loading state for initial fetch
     const [error, setError] = useState<string | null>(null);
 
-    // Initialize on load
-    useEffect(() => {
-        if (participant) {
-            // Pad the links array to ensure we always have 5 slots
-            const incomingLinks = participant.links || [];
-            const paddedLinks = [...incomingLinks];
-            while (paddedLinks.length < 5) {
-                paddedLinks.push('');
-            }
+    // Helper to pad links array to 5 slots
+    const padLinks = (links: string[] = []) => {
+        const padded = [...links];
+        while (padded.length < 5) padded.push('');
+        return padded.slice(0, 5);
+    };
 
-            setWishlist({
-                interests: participant.interests || '',
-                likes: participant.likes || '',
-                dislikes: participant.dislikes || '',
-                links: paddedLinks.slice(0, 5), // Ensure exactly 5
-            });
+    // NEW: Fetch saved wishlist data from blob on modal open
+    useEffect(() => {
+        const fetchSavedWishlist = async () => {
+            setIsFetching(true);
+            try {
+                const response = await fetch(
+                    `/.netlify/functions/get-wishlist?exchangeId=${encodeURIComponent(exchangeId)}`
+                );
+                
+                if (response.ok) {
+                    const allWishlists = await response.json();
+                    const savedData = allWishlists[participant.id];
+                    
+                    if (savedData) {
+                        // Use saved blob data (participant's own edits)
+                        setWishlist({
+                            interests: savedData.interests || '',
+                            likes: savedData.likes || '',
+                            dislikes: savedData.dislikes || '',
+                            links: padLinks(savedData.links),
+                        });
+                    } else {
+                        // No saved edits yet — fall back to original participant data
+                        setWishlist({
+                            interests: participant.interests || '',
+                            likes: participant.likes || '',
+                            dislikes: participant.dislikes || '',
+                            links: padLinks(participant.links),
+                        });
+                    }
+                } else {
+                    // API error — fall back to participant prop
+                    console.warn('[WishlistModal] Could not fetch saved data, using defaults');
+                    setWishlist({
+                        interests: participant.interests || '',
+                        likes: participant.likes || '',
+                        dislikes: participant.dislikes || '',
+                        links: padLinks(participant.links),
+                    });
+                }
+            } catch (err) {
+                console.error('[WishlistModal] Fetch error:', err);
+                // Network error — fall back to participant prop
+                setWishlist({
+                    interests: participant.interests || '',
+                    likes: participant.likes || '',
+                    dislikes: participant.dislikes || '',
+                    links: padLinks(participant.links),
+                });
+            } finally {
+                setIsFetching(false);
+            }
+        };
+
+        if (participant && exchangeId) {
+            fetchSavedWishlist();
         }
-    }, [participant]);
+    }, [participant, exchangeId]);
 
     const handleChange = (field: keyof Omit<typeof wishlist, 'links'>, value: string) => {
         setWishlist(prev => ({ ...prev, [field]: value }));
@@ -59,7 +106,6 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         setError(null);
         
         try {
-            // Prepare clean data
             const cleanLinks = wishlist.links.filter(link => link && link.trim() !== '');
             
             const finalWishlistData = {
@@ -75,7 +121,6 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 wishlist: finalWishlistData
             };
 
-            // Send to server
             const response = await fetch('/.netlify/functions/update-wishlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -86,10 +131,9 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 throw new Error('Failed to save. Please try again.');
             }
             
-            // If successful, update UI immediately
             trackEvent('wishlist_save_success');
-            onSaveSuccess(finalWishlistData); // Update parent state instantly
-            onClose(); // Close modal
+            onSaveSuccess(finalWishlistData);
+            onClose();
 
         } catch (err) {
             console.error("Save Error:", err);
@@ -113,67 +157,82 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 </header>
                 
                 <main className="p-6 space-y-6 overflow-y-auto">
-                    {error && (
-                        <div className="p-3 bg-red-100 text-red-800 rounded-lg border border-red-200 text-sm font-bold">
-                            {error}
+                    {/* Show loading spinner while fetching saved data */}
+                    {isFetching ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader2 size={32} className="animate-spin text-green-600" />
+                            <span className="ml-3 text-slate-600">Loading your wishlist...</span>
                         </div>
-                    )}
+                    ) : (
+                        <>
+                            {error && (
+                                <div className="p-3 bg-red-100 text-red-800 rounded-lg border border-red-200 text-sm font-bold">
+                                    {error}
+                                </div>
+                            )}
 
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">My Interests & Hobbies</label>
-                        <input
-                            type="text"
-                            placeholder="e.g., coffee, gardening, sci-fi books"
-                            value={wishlist.interests}
-                            onChange={(e) => handleChange('interests', e.target.value)}
-                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">My Likes</label>
-                        <input
-                            type="text"
-                            placeholder="e.g., dark roast coffee, fuzzy socks"
-                            value={wishlist.likes}
-                            onChange={(e) => handleChange('likes', e.target.value)}
-                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">My Dislikes & No-Go's</label>
-                        <textarea
-                            placeholder="e.g., dislikes horror movies, allergic to wool..."
-                            value={wishlist.dislikes}
-                            onChange={(e) => handleChange('dislikes', e.target.value)}
-                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
-                            rows={2}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">My 5 Wishlist Links</label>
-                        <div className="space-y-2">
-                            {wishlist.links.map((link, i) => (
+                            <p className="text-center text-slate-600 text-sm">
+                                Help your Secret Santa find you the perfect gift! Fill out the details below.
+                            </p>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">My Interests & Hobbies</label>
                                 <input
-                                    key={i}
                                     type="text"
-                                    placeholder={`Link #${i + 1} (e.g. Amazon)`}
-                                    value={link}
-                                    onChange={(e) => handleLinkChange(i, e.target.value)}
-                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition text-sm"
+                                    placeholder="e.g., coffee, gardening, sci-fi books"
+                                    value={wishlist.interests}
+                                    onChange={(e) => handleChange('interests', e.target.value)}
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
                                 />
-                            ))}
-                        </div>
-                         <div className="text-xs text-slate-500 mt-1">
-                            <span>Paste one full link (starting with https://) per box.</span>
-                        </div>
-                    </div>
+                                <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">My Likes</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., dark roast coffee, fuzzy socks"
+                                    value={wishlist.likes}
+                                    onChange={(e) => handleChange('likes', e.target.value)}
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
+                                />
+                                <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">My Dislikes & No-Go's</label>
+                                <textarea
+                                    placeholder="e.g., dislikes horror movies, allergic to wool..."
+                                    value={wishlist.dislikes}
+                                    onChange={(e) => handleChange('dislikes', e.target.value)}
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
+                                    rows={2}
+                                />
+                                <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">My 5 Wishlist Links</label>
+                                <div className="space-y-2">
+                                    {wishlist.links.map((link, i) => (
+                                        <input
+                                            key={i}
+                                            type="url"
+                                            placeholder="e.g., https://www.amazon.com/wishlist/..."
+                                            value={link}
+                                            onChange={(e) => handleLinkChange(i, e.target.value)}
+                                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition text-sm"
+                                        />
+                                    ))}
+                                </div>
+                                <p className="text-xs text-slate-500 mt-1">Paste one full link (starting with https://) per box.</p>
+                            </div>
+                        </>
+                    )}
                 </main>
 
                 <footer className="p-4 bg-slate-50 border-t flex justify-end gap-3">
                     <button onClick={onClose} className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg">Cancel</button>
                     <button 
                         onClick={handleSave}
-                        disabled={isLoading}
+                        disabled={isLoading || isFetching}
                         className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50"
                     >
                         {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
