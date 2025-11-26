@@ -1,0 +1,3 @@
+# Ensure ads.txt is served as plain text for Google AdSense crawler
+/ads.txt
+  Content-Type: text/plain
