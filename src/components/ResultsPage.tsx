@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -85,7 +84,7 @@ const HolidayDealWidget: React.FC = () => {
                         <div className="flex items-center gap-2 mb-1">
                             <span className="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded animate-pulse">BLACK FRIDAY</span>
                         </div>
-                        <h4 className="font-black text-xl leading-tight tracking-tight">15% Off Gift Cards</h4>
+                        <h4 className="font-black text-xl leading-tight tracking-tight">15% Off Select Brands</h4>
                         <p className="text-xs text-slate-300 mt-1 font-medium">Use Code: <span className="font-mono bg-white/20 px-1.5 py-0.5 rounded text-white font-bold border border-white/30">FRIDAY15</span></p>
                         <p className="text-[10px] text-slate-400 mt-1 italic">Valid on select brands only. See site for details.</p>
                     </div>
@@ -658,7 +657,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
-            // Cache busting timestamp added here
             const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${Date.now()}`);
             if (res.ok) {
                 const wishlistData = await res.json();
@@ -689,7 +687,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
-        // Optimistic update: Do NOT call fetchWishlists() here to avoid race condition
+        // Optimistic update
     };
 
 
@@ -724,7 +722,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
         // 2. Keyword Matching for Specialized Partners (US Only)
         if (!isEu) {
-            // Bonheur Jewelry Trigger - Include 'jewellery' spelling
+            // Bonheur Jewelry Trigger
             if (combinedText.match(/jewelry|jewellery|necklace|earring|ring|bracelet|gold|silver|diamond|luxury|fashion|style|sparkle|wife|girlfriend|mom/)) {
                 return <BonheurPromo />;
             }
