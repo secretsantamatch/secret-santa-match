@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -31,7 +32,8 @@ const AFFILIATE_LINKS = {
     CREDIT_KARMA: "https://www.awin1.com/awclick.php?gid=580820&mid=66532&awinaffid=2612068&linkid=4507342&clickref=",
     GIFTCARDS_COM: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.925&subid=0&type=4",
     TEABOOK: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068",
-    BONHEUR_JEWELRY: "https://www.awin1.com/cread.php?s=4547920&v=90759&q=554223&r=2612068"
+    BONHEUR_JEWELRY: "https://www.awin1.com/cread.php?s=4547920&v=90759&q=554223&r=2612068",
+    PINETALES: "https://www.awin1.com/cread.php?s=4169669&v=91239&q=544185&r=2612068"
 };
 
 // --- DATE-SPECIFIC PROMO LOGIC ---
@@ -314,6 +316,39 @@ const STOCKING_STUFFERS = [
 ];
 
 // --- PROMO COMPONENTS ---
+
+const PineTalesPromo = () => (
+    <div className="group relative overflow-hidden rounded-xl border border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50 shadow-md hover:shadow-xl transition-all my-6 animate-fade-in max-w-md mx-auto">
+        <div className="flex p-5 items-start gap-5">
+            {/* Image */}
+            <div className="flex-shrink-0 w-28 h-28 bg-white rounded-lg border border-teal-100 overflow-hidden flex items-center justify-center shadow-sm">
+                 <img src="https://www.awin1.com/cshow.php?s=4169669&v=91239&q=544185&r=2612068" alt="PineTales Pillow" className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+            </div>
+            {/* Content */}
+            <div className="flex-grow">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                     <span className="bg-teal-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">50,000+ SOLD</span>
+                     <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">Japanese Design</span>
+                </div>
+                <h4 className="font-serif font-bold text-lg text-slate-800 leading-tight mb-2">
+                    The Pillow That Fixes Neck Pain
+                </h4>
+                <p className="text-sm text-slate-600 mb-3 leading-snug">
+                    Adjustable organic buckwheat & cool-touch bamboo. Give the gift of deep, pain-free sleep.
+                </p>
+                <a
+                    href={AFFILIATE_LINKS.PINETALES}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    className="inline-flex items-center gap-1.5 text-sm font-bold bg-white text-teal-700 px-4 py-2 rounded-lg border border-teal-200 hover:bg-teal-600 hover:text-white hover:border-teal-600 transition-all shadow-sm"
+                    onClick={() => trackEvent('affiliate_click', { partner: 'PineTales' })}
+                >
+                    Shop Now (Avg. $55) <ArrowRight size={14} />
+                </a>
+            </div>
+        </div>
+    </div>
+);
 
 const BonheurPromo = () => (
     <div className="group relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lg hover:shadow-2xl transition-all my-6 animate-fade-in max-w-md mx-auto">
@@ -657,6 +692,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
+            // Cache busting timestamp added here
             const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${Date.now()}`);
             if (res.ok) {
                 const wishlistData = await res.json();
@@ -687,7 +723,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
-        // Optimistic update
+        // Optimistic update: Do NOT call fetchWishlists() here to avoid race condition
     };
 
 
@@ -722,9 +758,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
         // 2. Keyword Matching for Specialized Partners (US Only)
         if (!isEu) {
-            // Bonheur Jewelry Trigger
+            // Bonheur Jewelry Trigger - Include 'jewellery' spelling
             if (combinedText.match(/jewelry|jewellery|necklace|earring|ring|bracelet|gold|silver|diamond|luxury|fashion|style|sparkle|wife|girlfriend|mom/)) {
                 return <BonheurPromo />;
+            }
+
+            // PineTales Trigger - Sleep/Wellness
+            if (combinedText.match(/sleep|pillow|bed|tired|insomnia|neck|pain|comfort|nap|rest|bamboo|organic|health|relax/)) {
+                return <PineTalesPromo />;
             }
 
             if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) return <MetPromo />;
