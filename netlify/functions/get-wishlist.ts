@@ -2,14 +2,18 @@ import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 
 export default async (req: Request, context: Context) => {
-    const corsHeaders = {
+    // Aggressive Cache-Control to ensure the browser never serves stale data
+    const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
     };
 
     if (req.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers: corsHeaders });
+        return new Response(null, { status: 204, headers });
     }
 
     try {
@@ -19,23 +23,25 @@ export default async (req: Request, context: Context) => {
         if (!exchangeId) {
             return new Response(JSON.stringify({ error: 'exchangeId parameter is required.' }), {
                 status: 400,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                headers: { ...headers, 'Content-Type': 'application/json' },
             });
         }
 
-        const store = getStore('wishlists');
+        // CRITICAL: 'consistency: strong' ensures we get the latest write immediately
+        const store = getStore({ name: 'wishlists', consistency: 'strong' });
+        
         const data = await store.get(exchangeId, { type: 'json' });
 
         return new Response(JSON.stringify(data || {}), {
             status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            headers: { ...headers, 'Content-Type': 'application/json' },
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Get Wishlist Error:', error);
-        return new Response(JSON.stringify({ error: 'Failed to retrieve wishlist data.' }), {
+        return new Response(JSON.stringify({ error: error.message || 'Failed to retrieve wishlist data.' }), {
             status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            headers: { ...headers, 'Content-Type': 'application/json' },
         });
     }
 };
