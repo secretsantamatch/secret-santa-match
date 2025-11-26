@@ -27,6 +27,8 @@ export default defineConfig({
         'digital-vs-physical-gift-cards': resolve(__dirname, 'digital-vs-physical-gift-cards.html'),
         'creative-ways-to-give-gift-cards': resolve(__dirname, 'creative-ways-to-give-gift-cards.html'),
         'gift-card-etiquette': resolve(__dirname, 'gift-card-etiquette.html'),
+        'ultimate-guide-buying-gift-cards': resolve(__dirname, 'ultimate-guide-buying-gift-cards.html'),
+
       }
     }
   },
