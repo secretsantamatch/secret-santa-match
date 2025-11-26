@@ -11,7 +11,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart, ArrowRight } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart, ArrowRight, Gem } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -31,7 +31,8 @@ const AFFILIATE_LINKS = {
     THE_MET: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1772143.347&type=3&subid=0",
     CREDIT_KARMA: "https://www.awin1.com/awclick.php?gid=580820&mid=66532&awinaffid=2612068&linkid=4507342&clickref=",
     GIFTCARDS_COM: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.925&subid=0&type=4",
-    TEABOOK: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068"
+    TEABOOK: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068",
+    BONHEUR_JEWELRY: "https://www.awin1.com/cread.php?s=4547920&v=90759&q=554223&r=2612068"
 };
 
 // TYPE DEFINITION for Sniper Deals
@@ -186,6 +187,65 @@ const STOCKING_STUFFERS = [
 ];
 
 // --- PROMO COMPONENTS ---
+
+const BonheurPromo = () => (
+    <div className="group relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lg hover:shadow-2xl transition-all my-6 animate-fade-in">
+        {/* Luxury Gold Top Bar */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500"></div>
+        
+        <div className="flex flex-col md:flex-row">
+            {/* Image Section - Using the Square Affiliate Image */}
+            <div className="md:w-2/5 relative min-h-[250px] bg-stone-50 flex items-center justify-center overflow-hidden">
+                <a 
+                    rel="sponsored" 
+                    href={AFFILIATE_LINKS.BONHEUR_JEWELRY} 
+                    target="_blank"
+                    onClick={() => trackEvent('affiliate_click', { partner: 'Bonheur Jewelry Image' })}
+                    className="block w-full h-full"
+                >
+                    {/* Using the provided 1500x1500 image as the main visual */}
+                    <img 
+                        src="https://www.awin1.com/cshow.php?s=4547920&v=90759&q=554223&r=2612068" 
+                        alt="Bonheur Jewelry - Celebrity Favorite NYC Brand" 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                    />
+                </a>
+                <div className="absolute top-3 left-3 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase">
+                    NYC • Eco-Friendly
+                </div>
+            </div>
+            
+            {/* Content Section */}
+            <div className="p-6 md:p-8 flex flex-col justify-center md:w-3/5">
+                <div className="flex items-center gap-2 mb-2">
+                    <Gem size={16} className="text-amber-500" />
+                    <span className="text-xs font-bold tracking-widest uppercase text-amber-600">Celebrity Favorite</span>
+                </div>
+                
+                <h4 className="font-serif text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+                    A Gift That Sparkles Forever
+                </h4>
+                
+                <p className="text-slate-600 text-sm md:text-base mb-6 leading-relaxed">
+                    Discover <strong>Bonheur Jewelry</strong>—the eco-friendly, NYC-based luxury brand adored by stars. From timeless gold pieces to statement accessories, find a gift as unique as they are.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-3 mt-auto">
+                    <a 
+                        href={AFFILIATE_LINKS.BONHEUR_JEWELRY}
+                        target="_blank" 
+                        rel="noopener noreferrer sponsored" 
+                        className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-slate-900 text-white px-6 py-3 rounded-none hover:bg-slate-800 transition-all tracking-wide shadow-md"
+                        onClick={() => trackEvent('affiliate_click', { partner: 'Bonheur Jewelry CTA' })}
+                    >
+                        Shop The Collection <ArrowRight size={14} />
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+);
 
 const HighCommissionPromo = ({ deal }: { deal: SniperDeal }) => (
     <div className={`p-4 bg-gradient-to-r ${deal.gradient} rounded-xl border-2 shadow-md animate-fade-in hover:shadow-lg transition-all transform hover:-translate-y-0.5`}>
@@ -470,7 +530,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
-            // Add timestamp to prevent caching - using exact logic from user provided file
             const timestamp = new Date().getTime();
             const resGet = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${timestamp}`);
             if (resGet.ok) {
@@ -534,8 +593,13 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             }
         }
 
-        // 2. Keyword Matching for Specialized Partners
+        // 2. Keyword Matching for Specialized Partners (US Only)
         if (!isEu) {
+            // High Commission Jewelry Partner - BONHEUR
+            if (combinedText.match(/jewelry|necklace|earring|ring|bracelet|gold|silver|diamond|luxury|fashion|style|sparkle|wife|girlfriend|mom/)) {
+                return <BonheurPromo />;
+            }
+
             if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) return <MetPromo />;
             if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) return <SugarRushPromo />;
             if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) return <TeaBookPromo />;
