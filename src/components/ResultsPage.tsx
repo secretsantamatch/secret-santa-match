@@ -191,33 +191,33 @@ const STOCKING_STUFFERS = [
 const BonheurPromo = () => (
     <div className="group relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lg hover:shadow-2xl transition-all my-6 animate-fade-in">
         {/* Luxury Gold Top Bar */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500"></div>
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 z-10"></div>
         
-        <div className="flex flex-col md:flex-row">
-            {/* Image Section - Using the Square Affiliate Image */}
-            <div className="md:w-2/5 relative min-h-[250px] bg-stone-50 flex items-center justify-center overflow-hidden">
+        <div className="flex flex-col md:flex-row h-full">
+            {/* Image Section - Fixed to show full square image */}
+            <div className="md:w-5/12 relative bg-stone-50 flex items-center justify-center overflow-hidden min-h-[300px] md:min-h-full">
                 <a 
                     rel="sponsored" 
                     href={AFFILIATE_LINKS.BONHEUR_JEWELRY} 
                     target="_blank"
                     onClick={() => trackEvent('affiliate_click', { partner: 'Bonheur Jewelry Image' })}
-                    className="block w-full h-full"
+                    className="block w-full h-full flex items-center justify-center"
                 >
-                    {/* Using the provided 1500x1500 image as the main visual */}
+                    {/* Using object-contain to ensure the full square image is visible */}
                     <img 
                         src="https://www.awin1.com/cshow.php?s=4547920&v=90759&q=554223&r=2612068" 
                         alt="Bonheur Jewelry - Celebrity Favorite NYC Brand" 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                         loading="lazy"
                     />
                 </a>
-                <div className="absolute top-3 left-3 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase">
+                <div className="absolute top-3 left-3 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase z-20 shadow-sm">
                     NYC • Eco-Friendly
                 </div>
             </div>
             
             {/* Content Section */}
-            <div className="p-6 md:p-8 flex flex-col justify-center md:w-3/5">
+            <div className="p-6 md:p-8 flex flex-col justify-center md:w-7/12">
                 <div className="flex items-center gap-2 mb-2">
                     <Gem size={16} className="text-amber-500" />
                     <span className="text-xs font-bold tracking-widest uppercase text-amber-600">Celebrity Favorite</span>
