@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -10,7 +11,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -434,7 +435,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
-            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}`);
+            const timestamp = new Date().getTime();
+            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${timestamp}`);
             if (res.ok) {
                 const wishlistData = await res.json();
                 setLiveWishlists(wishlistData);
@@ -458,13 +460,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     }, [participantsFromUrl, liveWishlists]);
 
     const handleWishlistSaveSuccess = (newWishlist: any) => {
+        // Optimistic UI update: Update local state immediately
         if (currentParticipantId) {
             setLiveWishlists(prev => ({
                 ...prev,
                 [currentParticipantId]: newWishlist
             }));
         }
-        fetchWishlists();
+        // Do NOT call fetchWishlists() immediately to avoid eventual consistency race conditions
     };
 
 
