@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -343,7 +342,7 @@ const PineTalesPromo = () => (
                     className="inline-flex items-center gap-1.5 text-sm font-bold bg-white text-teal-700 px-4 py-2 rounded-lg border border-teal-200 hover:bg-teal-600 hover:text-white hover:border-teal-600 transition-all shadow-sm"
                     onClick={() => trackEvent('affiliate_click', { partner: 'PineTales' })}
                 >
-                    Shop Now (Avg. $55) <ArrowRight size={14} />
+                    Shop Now <ArrowRight size={14} />
                 </a>
             </div>
         </div>
@@ -692,7 +691,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
-            // Cache busting timestamp added here
             const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${Date.now()}`);
             if (res.ok) {
                 const wishlistData = await res.json();
@@ -723,7 +721,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
-        // Optimistic update: Do NOT call fetchWishlists() here to avoid race condition
+        // We are intentionally NOT calling fetchWishlists() here to rely on optimistic update
+        // as per user instructions to fix the "saving" race condition.
     };
 
 
@@ -758,7 +757,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
         // 2. Keyword Matching for Specialized Partners (US Only)
         if (!isEu) {
-            // Bonheur Jewelry Trigger - Include 'jewellery' spelling
+            // Bonheur Jewelry Trigger
             if (combinedText.match(/jewelry|jewellery|necklace|earring|ring|bracelet|gold|silver|diamond|luxury|fashion|style|sparkle|wife|girlfriend|mom/)) {
                 return <BonheurPromo />;
             }
