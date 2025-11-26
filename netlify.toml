@@ -17,8 +17,10 @@
   to = "/index.html"
   status = 200
 
-# Explicitly set the Content-Type for ads.txt for Google AdSense verification.
+# CRITICAL FIX: Explicitly force ads.txt to be served as plain text.
+# This overrides any default MIME type sniffing by Netlify or the browser.
 [[headers]]
   for = "/ads.txt"
   [headers.values]
-    Content-Type = "text/plain"
+    Content-Type = "text/plain; charset=utf-8"
+    X-Content-Type-Options = "nosniff"
