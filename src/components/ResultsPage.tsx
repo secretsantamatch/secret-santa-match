@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -189,13 +188,13 @@ const STOCKING_STUFFERS = [
 // --- PROMO COMPONENTS ---
 
 const BonheurPromo = () => (
-    <div className="group relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lg hover:shadow-2xl transition-all my-6 animate-fade-in">
+    <div className="group relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lg hover:shadow-2xl transition-all my-6 animate-fade-in max-w-md mx-auto">
         {/* Luxury Gold Top Bar */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 z-10"></div>
         
-        <div className="flex flex-col md:flex-row h-full">
-            {/* Image Section - Fixed to show full square image */}
-            <div className="md:w-5/12 relative bg-stone-50 flex items-center justify-center overflow-hidden min-h-[300px] md:min-h-full">
+        <div className="flex flex-col">
+            {/* Image Section - Full Square */}
+            <div className="relative bg-stone-50 w-full aspect-square flex items-center justify-center overflow-hidden p-4">
                 <a 
                     rel="sponsored" 
                     href={AFFILIATE_LINKS.BONHEUR_JEWELRY} 
@@ -207,7 +206,7 @@ const BonheurPromo = () => (
                     <img 
                         src="https://www.awin1.com/cshow.php?s=4547920&v=90759&q=554223&r=2612068" 
                         alt="Bonheur Jewelry - Celebrity Favorite NYC Brand" 
-                        className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                        className="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
                         loading="lazy"
                     />
                 </a>
@@ -217,26 +216,26 @@ const BonheurPromo = () => (
             </div>
             
             {/* Content Section */}
-            <div className="p-6 md:p-8 flex flex-col justify-center md:w-7/12">
-                <div className="flex items-center gap-2 mb-2">
+            <div className="p-6 text-center border-t border-stone-100">
+                <div className="flex items-center justify-center gap-2 mb-3">
                     <Gem size={16} className="text-amber-500" />
                     <span className="text-xs font-bold tracking-widest uppercase text-amber-600">Celebrity Favorite</span>
                 </div>
                 
-                <h4 className="font-serif text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+                <h4 className="font-serif text-2xl font-bold text-slate-900 mb-3">
                     A Gift That Sparkles Forever
                 </h4>
                 
-                <p className="text-slate-600 text-sm md:text-base mb-6 leading-relaxed">
+                <p className="text-slate-600 text-sm mb-6 leading-relaxed">
                     Discover <strong>Bonheur Jewelry</strong>—the eco-friendly, NYC-based luxury brand adored by stars. From timeless gold pieces to statement accessories, find a gift as unique as they are.
                 </p>
                 
-                <div className="flex flex-col sm:flex-row gap-3 mt-auto">
+                <div className="flex justify-center mt-auto">
                     <a 
                         href={AFFILIATE_LINKS.BONHEUR_JEWELRY}
                         target="_blank" 
                         rel="noopener noreferrer sponsored" 
-                        className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-slate-900 text-white px-6 py-3 rounded-none hover:bg-slate-800 transition-all tracking-wide shadow-md"
+                        className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-slate-900 text-white px-8 py-3 rounded-sm hover:bg-slate-800 transition-all tracking-wide shadow-md w-full"
                         onClick={() => trackEvent('affiliate_click', { partner: 'Bonheur Jewelry CTA' })}
                     >
                         Shop The Collection <ArrowRight size={14} />
@@ -530,10 +529,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
-            const timestamp = new Date().getTime();
-            const resGet = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${timestamp}`);
-            if (resGet.ok) {
-                const wishlistData = await resGet.json();
+            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}`);
+            if (res.ok) {
+                const wishlistData = await res.json();
                 setLiveWishlists(wishlistData);
             }
         } catch (e) {
@@ -561,6 +559,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
+        // We are intentionally NOT calling fetchWishlists() here to rely on optimistic update
+        // as per user instructions to fix the "saving" race condition.
     };
 
 
@@ -595,8 +595,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
         // 2. Keyword Matching for Specialized Partners (US Only)
         if (!isEu) {
-            // High Commission Jewelry Partner - BONHEUR
-            if (combinedText.match(/jewelry|necklace|earring|ring|bracelet|gold|silver|diamond|luxury|fashion|style|sparkle|wife|girlfriend|mom/)) {
+            // Bonheur Jewelry Trigger
+            if (combinedText.match(/jewelry|jewellery|necklace|earring|ring|bracelet|gold|silver|diamond|luxury|fashion|style|sparkle|wife|girlfriend|mom/)) {
                 return <BonheurPromo />;
             }
 
@@ -888,7 +888,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     )}
                                                     
                                                     <p className="text-xs text-slate-400 text-center pt-4 border-t border-slate-200 mt-4">
-                                                        Affiliate Disclosure: We may earn a commission from qualifying purchases or actions made through links on this site.
+                                                        Affiliate Disclosure: We may earn a commission from qualifying purchases or actions made through links on this page.
                                                     </p>
                                                 </div>
                                                 
