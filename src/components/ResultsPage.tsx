@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -10,7 +11,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart, ArrowRight } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -280,25 +281,58 @@ const TeaBookPromo = () => (
 );
 
 const GiftCardPromo = () => (
-    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl border-2 border-indigo-300 shadow-md animate-fade-in hover:shadow-lg transition-all">
-        <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-white rounded-full h-14 w-14 flex items-center justify-center shadow-sm border border-indigo-100">
-                <CreditCard size={28} className="text-indigo-600" />
-            </div>
-            <div className="flex-grow">
-                <h4 className="font-extrabold text-lg text-indigo-900">The Ultimate Safe Bet</h4>
-                <p className="text-sm text-indigo-700 font-medium">Not sure what to get? You can't go wrong here.</p>
-                <p className="text-xs text-indigo-600 font-bold mt-0.5">🏷️ Up to 15% Off (Black Friday)</p>
-                <a 
-                    href={AFFILIATE_LINKS.GIFTCARDS_COM} 
-                    target="_blank" 
-                    rel="noopener noreferrer sponsored" 
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition-colors shadow-sm"
-                    onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com' })}
-                >
-                    Buy a Gift Card <ExternalLink size={14} />
-                </a>
-            </div>
+    <div className="flex flex-col items-center gap-3 my-6 animate-fade-in w-full p-4 rounded-xl bg-gradient-to-br from-indigo-100 via-blue-100 to-violet-100 border border-indigo-300 shadow-md hover:shadow-lg transition-all group">
+        
+        {/* Image Banner - Acts as Main CTA */}
+        <a 
+            href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.798&subid=0&type=4" 
+            target="_blank" 
+            rel="noopener noreferrer sponsored"
+            onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com BF/CM Banner' })}
+            className="block w-full rounded-lg overflow-hidden transition-transform transform group-hover:scale-[1.01] bg-transparent min-h-[100px] flex items-center justify-center"
+        >
+            <img 
+                src="https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.798&subid=0&type=4&gridnum=13" 
+                alt="Up to 15% Off - Black Friday + Cyber Monday Campaign: Gift More, Spend Less at Giftcards.com" 
+                className="w-auto h-auto max-h-[200px] object-contain"
+                loading="lazy"
+                onError={(e) => {
+                    // Fallback if image fails (e.g., AdBlock)
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement!.innerHTML = `
+                        <div class="p-6 text-center bg-white/80 rounded-lg border border-indigo-200">
+                            <h4 class="text-lg font-bold text-indigo-900 mb-2">The Ultimate Safe Bet</h4>
+                            <p class="text-indigo-700 mb-3">Deals on 450+ brands of physical/digital gift cards, customizable Visa & Mastercards and more.</p>
+                            <span class="inline-block bg-indigo-600 text-white font-bold py-2 px-6 rounded-full">Browse Now</span>
+                        </div>
+                    `;
+                }}
+            />
+        </a>
+        
+        {/* Text Fallback / Extra Info */}
+        <div className="text-center px-2 w-full">
+             <p className="text-sm text-indigo-900 font-medium mb-3">
+                Not sure what to get? Get a digital or physical gift card or a personalized Visa or Mastercard.
+            </p>
+            
+            <a 
+                href="https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.798&subid=0&type=4" 
+                target="_blank" 
+                rel="noopener noreferrer sponsored"
+                onClick={() => trackEvent('affiliate_click', { partner: 'Giftcards.com Text Link' })}
+                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-8 rounded-full shadow transition-colors mb-3"
+            >
+                Browse Now
+            </a>
+
+            <a 
+                href="/creative-ways-to-give-gift-cards.html" 
+                target="_blank" 
+                className="block text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline mt-1"
+            >
+                💡 Think giving a gift card is impersonal? Click here for 15 creative ideas &rarr;
+            </a>
         </div>
     </div>
 );
@@ -338,14 +372,15 @@ const StockingStufferRow = () => {
     return (
         <div className="mt-8 pt-6 border-t-2 border-slate-100">
             <div className="flex items-center justify-center gap-2 mb-4">
-                <div className="h-px w-8 bg-slate-300"></div>
-                <h5 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Add a Little Something Extra?</h5>
-                <div className="h-px w-8 bg-slate-300"></div>
+                <div className="h-px w-8 bg-red-200"></div>
+                <h5 className="text-xs font-extrabold text-red-600 uppercase tracking-widest flex items-center gap-1">
+                    <Flame size={12} className="animate-pulse" /> Trending Add-ons on Amazon (Selling Out Fast!)
+                </h5>
+                <div className="h-px w-8 bg-red-200"></div>
             </div>
             
-            {/* GOLD PREMIUM CONTAINER */}
-            <div className="bg-gradient-to-br from-amber-100 to-orange-50 rounded-xl p-4 border-2 border-amber-200 shadow-inner">
-                <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-amber-50 to-orange-100 rounded-xl p-4 border border-amber-200 shadow-sm">
+                <div className="grid grid-cols-2 gap-3">
                     {randomStuffers.map((item, idx) => (
                         <a 
                             key={idx}
@@ -353,14 +388,15 @@ const StockingStufferRow = () => {
                             target="_blank" 
                             rel="noopener noreferrer sponsored"
                             onClick={() => trackEvent('affiliate_click', { partner: `Stuffer: ${item.name}` })}
-                            className={`flex flex-col items-center text-center p-3 rounded-xl bg-gradient-to-br ${item.gradient} border-2 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden shadow-sm h-full`}
+                            className={`flex flex-col items-center text-center p-3 rounded-xl bg-gradient-to-br ${item.gradient} border-2 border-white/50 hover:border-red-300 shadow-sm hover:shadow-md transition-all group h-full relative overflow-hidden`}
                         >
-                            <div className="w-12 h-12 rounded-full bg-white/60 flex items-center justify-center shadow-sm mb-2 border border-white/50">
-                                <item.icon size={20} className="text-slate-700" />
+                            <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-sm">
+                                <item.icon size={18} className="text-slate-700" />
                             </div>
-                            <p className="text-xs font-bold text-slate-800 group-hover:text-red-700 leading-tight">{item.name}</p>
-                            <p className="text-[10px] text-slate-600 mt-1 opacity-90">{item.desc}</p>
-                             <div className="mt-auto pt-2 text-[10px] font-bold text-white bg-slate-800 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-xs font-bold text-slate-800 leading-tight mb-1">{item.name}</p>
+                            <p className="text-[10px] text-slate-600 mb-3 line-clamp-1 opacity-90">{item.desc}</p>
+                            
+                            <div className="mt-auto bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-full group-hover:bg-red-600 transition-colors w-full">
                                 Shop Now
                             </div>
                         </a>
@@ -434,9 +470,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
-            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}`);
-            if (res.ok) {
-                const wishlistData = await res.json();
+            // Add timestamp to prevent caching - using exact logic from user provided file
+            const timestamp = new Date().getTime();
+            const resGet = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${timestamp}`);
+            if (resGet.ok) {
+                const wishlistData = await resGet.json();
                 setLiveWishlists(wishlistData);
             }
         } catch (e) {
@@ -464,7 +502,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
-        fetchWishlists();
     };
 
 
@@ -487,24 +524,25 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         const combinedText = `${currentMatch.receiver.interests?.toLowerCase() || ''} ${currentMatch.receiver.likes?.toLowerCase() || ''}`;
         const isEu = isEuVisitor();
         
-        if (isEu) return null;
-
-        const matchedDeal = SNIPER_DEALS.find(deal => 
-            deal.keywords.some(k => combinedText.includes(k))
-        );
-        if (matchedDeal) {
-            return <HighCommissionPromo deal={matchedDeal} />;
+        // 1. Sniper Deals (High Priority, Exact Match) - US Only
+        if (!isEu) {
+            const matchedDeal = SNIPER_DEALS.find(deal => 
+                deal.keywords.some(k => combinedText.includes(k))
+            );
+            if (matchedDeal) {
+                return <HighCommissionPromo deal={matchedDeal} />;
+            }
         }
 
-        if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) return <MetPromo />;
-        if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) return <SugarRushPromo />;
-        if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) return <TeaBookPromo />;
-
-        if (combinedText.trim().length < 4 || combinedText.match(/idk|anything|money|cash|gift card|shopping|mall|dining|restaurant|sure|whatever/)) {
-            return <GiftCardPromo />;
+        // 2. Keyword Matching for Specialized Partners
+        if (!isEu) {
+            if (combinedText.match(/art|museum|history|painting|draw|sketch|sculpture|gogh|monet|fashion|scarf|jewelry|culture/)) return <MetPromo />;
+            if (combinedText.match(/candy|chocolate|sweet|snack|dessert|sugar|treat|food|cookie/)) return <SugarRushPromo />;
+            if (combinedText.match(/tea|chai|drink|beverage|cozy|book/)) return <TeaBookPromo />;
         }
 
-        return <AmazonGeneralPromo budget={currentMatch.receiver.budget} />;
+        // 3. Fallback Logic - Gift Cards for everyone (including EU)
+        return <GiftCardPromo />;
 
     }, [currentMatch]);
 
@@ -685,7 +723,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     match={currentMatch} 
                                     eventDetails={data.eventDetails} 
                                     isNameRevealed={isNameRevealed} 
-                                    backgroundOptions={data.backgroundOptions} 
+                                    backgroundOptions={data.backgroundOptions || []} 
                                     bgId={data.bgId} 
                                     bgImg={data.customBackground} 
                                     txtColor={data.textColor} 
