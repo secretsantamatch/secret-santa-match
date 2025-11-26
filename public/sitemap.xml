@@ -51,7 +51,12 @@
   <loc>https://secretsantamatch.com/white-elephant-gifts-under-20.html</loc>
   <lastmod>2025-10-29T00:00:00+00:00</lastmod>
   <priority>0.80</priority>
-</url>        
+</url>   
+ <url>
+    <loc>https://secretsantamatch.com/white-elephant-gifts-that-get-stolen.html</loc>
+    <lastmod>2025-11-23</lastmod>
+    <priority>0.80</priority>
+  </url>        
 <url>
   <loc>https://secretsantamatch.com/free-nice-list-certificates.html</loc>
   <lastmod>2025-10-25T00:00:00+00:00</lastmod>
@@ -192,5 +197,7 @@
   <lastmod>2025-10-17T00:00:00+00:00</lastmod>
   <priority>0.80</priority>
 </url>
+
+        
 
 </urlset>
