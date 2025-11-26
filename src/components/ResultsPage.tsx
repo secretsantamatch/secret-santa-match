@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -10,7 +11,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart, ArrowRight, Gem } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart, ArrowRight, Gem, Tag, Calendar, Percent, Zap } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -32,6 +33,134 @@ const AFFILIATE_LINKS = {
     GIFTCARDS_COM: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.925&subid=0&type=4",
     TEABOOK: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068",
     BONHEUR_JEWELRY: "https://www.awin1.com/cread.php?s=4547920&v=90759&q=554223&r=2612068"
+};
+
+// --- DATE-SPECIFIC PROMO LOGIC ---
+const HolidayDealWidget: React.FC = () => {
+    const isEu = isEuVisitor();
+    // Only show to non-EU (proxy for US/Canada/Global)
+    if (isEu) return null;
+
+    const today = new Date();
+    const month = today.getMonth(); // 0-indexed (10 = Nov, 11 = Dec)
+    const day = today.getDate();
+
+    // 1. TeaBook Specific Days (Image Banners)
+    let teabookBanner = null;
+    if (month === 10 && day === 28) { // Nov 28
+        teabookBanner = (
+            <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4604955&v=88557&q=557672&r=2612068" target="_blank" onClick={() => trackEvent('affiliate_click', { partner: 'TeaBook 11/28' })} className="block w-full rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 mt-3">
+                <img src="https://www.awin1.com/cshow.php?s=4604955&v=88557&q=557672&r=2612068" alt="The TeaBook Deal" className="w-full h-auto rounded-xl" />
+            </a>
+        );
+    } else if (month === 10 && day === 29) { // Nov 29
+        teabookBanner = (
+            <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4604957&v=88557&q=557672&r=2612068" target="_blank" onClick={() => trackEvent('affiliate_click', { partner: 'TeaBook 11/29' })} className="block w-full rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 mt-3">
+                <img src="https://www.awin1.com/cshow.php?s=4604957&v=88557&q=557672&r=2612068" alt="The TeaBook Deal" className="w-full h-auto rounded-xl" />
+            </a>
+        );
+    } else if (month === 11 && day === 1) { // Dec 01
+        teabookBanner = (
+            <a rel="sponsored" href="https://www.awin1.com/cread.php?s=4604956&v=88557&q=557672&r=2612068" target="_blank" onClick={() => trackEvent('affiliate_click', { partner: 'TeaBook 12/01' })} className="block w-full rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 mt-3">
+                <img src="https://www.awin1.com/cshow.php?s=4604956&v=88557&q=557672&r=2612068" alt="The TeaBook Deal" className="w-full h-auto rounded-xl" />
+            </a>
+        );
+    }
+
+    // 2. GiftCards.com Windows
+    let giftCardsBanner = null;
+
+    // Scenario A: Black Friday (Nov 27 - Nov 30)
+    if (month === 10 && day >= 27 && day <= 30) {
+        giftCardsBanner = (
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-5 rounded-xl shadow-xl border border-slate-700 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-lg z-10">
+                    ENDING SOON
+                </div>
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm border border-white/20">
+                        <Percent size={32} className="text-red-500" />
+                    </div>
+                    <div className="flex-grow">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded animate-pulse">BLACK FRIDAY</span>
+                        </div>
+                        <h4 className="font-black text-xl leading-tight tracking-tight">15% Off Gift Cards</h4>
+                        <p className="text-xs text-slate-300 mt-1 font-medium">Use Code: <span className="font-mono bg-white/20 px-1.5 py-0.5 rounded text-white font-bold border border-white/30">FRIDAY15</span></p>
+                        <p className="text-[10px] text-slate-400 mt-1 italic">Valid on select brands only. See site for details.</p>
+                    </div>
+                </div>
+                <a href={AFFILIATE_LINKS.GIFTCARDS_COM} target="_blank" rel="sponsored" onClick={() => trackEvent('affiliate_click', { partner: 'GiftCards BF' })} className="mt-4 flex items-center justify-center w-full bg-white text-slate-900 font-bold py-3 rounded-lg hover:bg-red-50 transition-all transform group-hover:scale-[1.02] shadow-lg text-sm">
+                    Shop Sale (Select Brands) <ArrowRight size={16} className="ml-2" />
+                </a>
+            </div>
+        );
+    }
+    // Scenario B: Cyber Week (Dec 1 - Dec 6)
+    else if (month === 11 && day >= 1 && day <= 6) {
+        giftCardsBanner = (
+            <div className="bg-gradient-to-br from-indigo-900 via-violet-900 to-purple-900 text-white p-5 rounded-xl shadow-xl border border-indigo-500/30 relative overflow-hidden group">
+                <div className="absolute -right-6 -top-6 w-24 h-24 bg-cyan-500/20 rounded-full blur-xl"></div>
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm border border-white/20">
+                        <Zap size={32} className="text-cyan-400" fill="currentColor" />
+                    </div>
+                    <div className="flex-grow">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="bg-cyan-500 text-white text-[10px] font-black px-2 py-0.5 rounded animate-pulse shadow-lg shadow-cyan-500/50">CYBER WEEK</span>
+                        </div>
+                        <h4 className="font-black text-xl leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-cyan-200">10% Off Gift Cards</h4>
+                        <p className="text-xs text-indigo-200 mt-1 font-medium">Use Code: <span className="font-mono bg-white/20 px-1.5 py-0.5 rounded text-white font-bold border border-white/30">CYBER10</span></p>
+                        <p className="text-[10px] text-indigo-300 mt-1 italic">Valid on select brands only. See site for details.</p>
+                    </div>
+                </div>
+                <a href={AFFILIATE_LINKS.GIFTCARDS_COM} target="_blank" rel="sponsored" onClick={() => trackEvent('affiliate_click', { partner: 'GiftCards CM' })} className="mt-4 flex items-center justify-center w-full bg-white text-indigo-900 font-bold py-3 rounded-lg hover:bg-cyan-50 transition-all transform group-hover:scale-[1.02] shadow-lg text-sm">
+                    Shop Sale (Select Brands) <ArrowRight size={16} className="ml-2" />
+                </a>
+            </div>
+        );
+    }
+    // Scenario C: Default "Beat the Rush" (Nov 25-26 & gaps)
+    else {
+        giftCardsBanner = (
+            <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-5 rounded-xl shadow-xl border border-emerald-500/30 relative overflow-hidden group">
+                {/* Snowflakes decor */}
+                <div className="absolute top-2 right-4 text-emerald-400/30 animate-pulse">❄️</div>
+                <div className="absolute bottom-2 left-4 text-emerald-400/30">❄️</div>
+                
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm border border-white/20 shadow-sm">
+                        <Gift size={28} className="text-white" />
+                    </div>
+                    <div className="flex-grow">
+                        <h4 className="font-bold text-lg leading-tight mb-1">Beat the Holiday Rush!</h4>
+                        <p className="text-xs text-emerald-100 font-medium leading-snug">
+                            Instant delivery on 350+ brands. The perfect last-minute gift that looks planned.
+                        </p>
+                    </div>
+                </div>
+                <a href={AFFILIATE_LINKS.GIFTCARDS_COM} target="_blank" rel="sponsored" onClick={() => trackEvent('affiliate_click', { partner: 'GiftCards General' })} className="mt-4 flex items-center justify-center w-full bg-white text-emerald-800 font-bold py-3 rounded-lg hover:bg-emerald-50 transition-all transform group-hover:scale-[1.02] shadow-lg text-sm">
+                    Shop Gift Cards <ArrowRight size={16} className="ml-2" />
+                </a>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mt-8 mb-4 animate-fade-in w-full max-w-md mx-auto">
+            <div className="flex items-center gap-2 justify-center mb-3">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Limited Time Offers</span>
+            </div>
+            <div className="space-y-3">
+                {giftCardsBanner}
+                {teabookBanner}
+            </div>
+        </div>
+    );
 };
 
 // TYPE DEFINITION for Sniper Deals
@@ -529,7 +658,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
-            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}`);
+            // Cache busting timestamp added here
+            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${Date.now()}`);
             if (res.ok) {
                 const wishlistData = await res.json();
                 setLiveWishlists(wishlistData);
@@ -559,8 +689,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
-        // We are intentionally NOT calling fetchWishlists() here to rely on optimistic update
-        // as per user instructions to fix the "saving" race condition.
+        // Optimistic update: Do NOT call fetchWishlists() here to avoid race condition
     };
 
 
@@ -595,7 +724,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
         // 2. Keyword Matching for Specialized Partners (US Only)
         if (!isEu) {
-            // Bonheur Jewelry Trigger
+            // Bonheur Jewelry Trigger - Include 'jewellery' spelling
             if (combinedText.match(/jewelry|jewellery|necklace|earring|ring|bracelet|gold|silver|diamond|luxury|fashion|style|sparkle|wife|girlfriend|mom/)) {
                 return <BonheurPromo />;
             }
@@ -820,6 +949,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                         <button onClick={handleReveal} className="mt-8 w-full py-4 px-8 bg-red-600 hover:bg-red-700 text-white font-bold text-xl rounded-lg transition-transform transform hover:scale-105 shadow-lg">
                                             Click to Continue
                                         </button>
+                                        
+                                        {/* NEW: Holiday Deal Widget (Inserted Here) */}
+                                        <HolidayDealWidget />
+
                                         <div className="mt-8">
                                             <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
                                         </div>
