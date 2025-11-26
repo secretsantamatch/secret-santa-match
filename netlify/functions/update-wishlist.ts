@@ -1,34 +1,32 @@
 import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 
-interface WishlistData {
-    interests: string;
-    likes: string;
-    dislikes: string;
-    links: string[];
-}
-
 interface UpdatePayload {
     exchangeId: string;
     participantId: string;
-    wishlist: WishlistData;
+    wishlist: {
+        interests: string;
+        likes: string;
+        dislikes: string;
+        links: string[];
+    };
 }
 
 export default async (req: Request, context: Context) => {
-    const headers = {
+    const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
     };
 
     if (req.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers });
+        return new Response(null, { status: 204, headers: corsHeaders });
     }
 
     if (req.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
             status: 405,
-            headers: { ...headers, 'Content-Type': 'application/json' },
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
     }
 
@@ -38,17 +36,14 @@ export default async (req: Request, context: Context) => {
         if (!exchangeId || !participantId || !wishlist) {
             return new Response(JSON.stringify({ error: 'Missing required fields.' }), {
                 status: 400,
-                headers: { ...headers, 'Content-Type': 'application/json' },
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
         }
 
-        // CRITICAL: 'consistency: strong' ensures we read the absolute latest data
-        // This prevents overwriting data if two people update at the exact same time
-        const store = getStore({ name: 'wishlists', consistency: 'strong' });
+        const store = getStore('wishlists');
         
-        // Get the existing wishlists object, or initialize a new one
-        const rawData = await store.get(exchangeId, { type: 'json' });
-        const allWishlists: Record<string, WishlistData> = rawData ? (rawData as Record<string, WishlistData>) : {};
+        // Get the existing wishlists object for this exchange, or create a new one
+        const allWishlists = await store.get(exchangeId, { type: 'json' }) || {};
 
         // Update the specific participant's wishlist
         allWishlists[participantId] = wishlist;
@@ -58,14 +53,14 @@ export default async (req: Request, context: Context) => {
 
         return new Response(JSON.stringify({ success: true }), {
             status: 200,
-            headers: { ...headers, 'Content-Type': 'application/json' },
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Update Wishlist Error:', error);
-        return new Response(JSON.stringify({ error: error.message || 'Failed to save wishlist data.' }), {
+        return new Response(JSON.stringify({ error: 'Failed to save wishlist data.' }), {
             status: 500,
-            headers: { ...headers, 'Content-Type': 'application/json' },
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
     }
 };
