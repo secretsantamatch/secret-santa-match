@@ -8,7 +8,14 @@ export const createPool = async (data: {
     theme: string; 
     registryLink: string; 
     diaperFundLink: string;
-    knowGender?: boolean;
+    includeFields?: {
+        time: boolean;
+        weight: boolean;
+        length: boolean;
+        hair: boolean;
+        eye: boolean;
+        gender: boolean;
+    };
     customQuestions?: string[];
 }) => {
     const res = await fetch('/.netlify/functions/bp-create', {

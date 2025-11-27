@@ -184,7 +184,15 @@ export interface BabyPool {
     theme: string;
     registryLink: string;
     diaperFundLink?: string;
-    knowGender?: boolean; // If true, gender guess is hidden
+    // includeFields controls which inputs are shown to guests
+    includeFields?: {
+        time: boolean;
+        weight: boolean;
+        length: boolean;
+        hair: boolean;
+        eye: boolean;
+        gender: boolean;
+    };
     customQuestions?: string[]; // Up to 3 custom questions
     guesses: BabyGuess[];
     status: 'active' | 'completed';

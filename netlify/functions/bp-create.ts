@@ -20,7 +20,15 @@ export default async (req: Request, context: Context) => {
             theme: data.theme || 'sage',
             registryLink: data.registryLink || '',
             diaperFundLink: data.diaperFundLink || '',
-            knowGender: !!data.knowGender,
+            // Default fields if not provided (backward compatibility)
+            includeFields: data.includeFields || {
+                time: true,
+                weight: true,
+                length: true,
+                hair: true,
+                eye: true,
+                gender: true
+            },
             customQuestions: Array.isArray(data.customQuestions) ? data.customQuestions.filter((q: string) => q.trim() !== '').slice(0, 3) : [],
             guesses: [],
             status: 'active', // 'active' or 'completed'

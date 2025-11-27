@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, Scale, Clock, User, Trophy, Share2, Copy, Baby, ExternalLink, PlusCircle, CheckCircle, Instagram, Palette, Gift, Loader2, Lock, AlertCircle, MessageCircle, Trash2, Link as LinkIcon, Heart, DollarSign, Ruler, Scissors, Eye, HelpCircle, List } from 'lucide-react';
+import { Calendar, Scale, Clock, User, Trophy, Share2, Copy, Baby, ExternalLink, PlusCircle, CheckCircle, Instagram, Palette, Gift, Loader2, Lock, AlertCircle, MessageCircle, Trash2, Link as LinkIcon, Heart, DollarSign, Ruler, Scissors, Eye, HelpCircle, List, CheckSquare, Square } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
@@ -9,24 +9,28 @@ import { createPool, getPool, submitGuess, declareBirth } from '../services/baby
 import type { BabyPool, BabyGuess } from '../types';
 import confetti from 'canvas-confetti';
 
-type ThemeKey = 'sage' | 'ocean' | 'blush' | 'lavender' | 'roseGold' | 'midnight' | 'teddy';
+type ThemeKey = 'sage' | 'ocean' | 'blush' | 'lavender' | 'roseGold' | 'midnight' | 'teddy' | 'cotton' | 'confetti';
 
 const THEMES: Record<ThemeKey, { name: string, bg: string, primary: string, secondary: string, accent: string, text: string, border: string, gradient: string, previewColor: string }> = {
     sage: { name: 'Sage & Sand', bg: 'bg-[#f0fdf4]', primary: 'bg-emerald-600', secondary: 'bg-emerald-100', accent: 'text-emerald-700', text: 'text-emerald-900', border: 'border-emerald-200', gradient: 'from-emerald-50 to-stone-50', previewColor: '#059669' },
     ocean: { name: 'Ocean Breeze', bg: 'bg-[#f0f9ff]', primary: 'bg-sky-600', secondary: 'bg-sky-100', accent: 'text-sky-700', text: 'text-sky-900', border: 'border-sky-200', gradient: 'from-sky-50 to-blue-50', previewColor: '#0284c7' },
     blush: { name: 'Sweet Blush', bg: 'bg-[#fff1f2]', primary: 'bg-rose-400', secondary: 'bg-rose-100', accent: 'text-rose-600', text: 'text-rose-900', border: 'border-rose-200', gradient: 'from-rose-50 to-pink-50', previewColor: '#fb7185' },
+    cotton: { name: 'Cotton Candy', bg: 'bg-pink-50', primary: 'bg-pink-500', secondary: 'bg-pink-100', accent: 'text-pink-600', text: 'text-pink-900', border: 'border-pink-200', gradient: 'from-pink-50 to-purple-50', previewColor: '#ec4899' },
     lavender: { name: 'Lavender Dream', bg: 'bg-[#faf5ff]', primary: 'bg-violet-500', secondary: 'bg-violet-100', accent: 'text-violet-700', text: 'text-violet-900', border: 'border-violet-200', gradient: 'from-violet-50 to-purple-50', previewColor: '#8b5cf6' },
     roseGold: { name: 'Rose Gold', bg: 'bg-gradient-to-br from-rose-50 via-white to-orange-50', primary: 'bg-gradient-to-r from-rose-400 to-orange-300', secondary: 'bg-rose-50', accent: 'text-rose-500', text: 'text-slate-800', border: 'border-orange-100', gradient: 'from-rose-100 to-orange-50', previewColor: '#fb7185' },
     midnight: { name: 'Midnight Star', bg: 'bg-gradient-to-b from-slate-900 to-indigo-900', primary: 'bg-indigo-500', secondary: 'bg-indigo-800/50', accent: 'text-yellow-400', text: 'text-white', border: 'border-indigo-800', gradient: 'from-indigo-900 to-slate-900', previewColor: '#6366f1' },
-    teddy: { name: 'Classic Teddy', bg: 'bg-[#fffbeb]', primary: 'bg-amber-700', secondary: 'bg-amber-100', accent: 'text-amber-800', text: 'text-amber-900', border: 'border-amber-200', gradient: 'from-amber-50 to-orange-50', previewColor: '#b45309' }
+    teddy: { name: 'Classic Teddy', bg: 'bg-[#fffbeb]', primary: 'bg-amber-700', secondary: 'bg-amber-100', accent: 'text-amber-800', text: 'text-amber-900', border: 'border-amber-200', gradient: 'from-amber-50 to-orange-50', previewColor: '#b45309' },
+    confetti: { name: 'Confetti Party', bg: 'bg-white', primary: 'bg-gradient-to-r from-red-400 via-yellow-400 to-blue-400', secondary: 'bg-slate-100', accent: 'text-blue-600', text: 'text-slate-900', border: 'border-slate-200', gradient: 'from-white to-slate-50', previewColor: '#3b82f6' }
 };
 
 const HAIR_COLORS = ['Bald/None', 'Blonde', 'Brown', 'Black', 'Red', 'Strawberry Blonde'];
 const EYE_COLORS = ['Blue', 'Brown', 'Green', 'Hazel', 'Grey', 'Violet'];
 
 // Scoring logic
-const calculateScore = (guess: BabyGuess, actual: NonNullable<BabyPool['result']>) => {
+const calculateScore = (guess: BabyGuess, actual: NonNullable<BabyPool['result']>, pool: BabyPool) => {
     let score = 0;
+    const fields = pool.includeFields || { time: true, weight: true, length: true, hair: true, eye: true, gender: true };
+
     // Date: 50 pts max, -2 per day off
     const gDate = new Date(guess.date).getTime();
     const aDate = new Date(actual.date).getTime();
@@ -34,13 +38,15 @@ const calculateScore = (guess: BabyGuess, actual: NonNullable<BabyPool['result']
     score += Math.max(0, 50 - (daysDiff * 2)); 
 
     // Weight: 50 pts max, -3 per oz off
-    const gTotalOz = (guess.weightLbs * 16) + guess.weightOz;
-    const aTotalOz = (actual.weightLbs * 16) + actual.weightOz;
-    const ozDiff = Math.abs(gTotalOz - aTotalOz);
-    score += Math.max(0, 50 - (ozDiff * 3)); 
+    if (fields.weight) {
+        const gTotalOz = (guess.weightLbs * 16) + guess.weightOz;
+        const aTotalOz = (actual.weightLbs * 16) + actual.weightOz;
+        const ozDiff = Math.abs(gTotalOz - aTotalOz);
+        score += Math.max(0, 50 - (ozDiff * 3)); 
+    }
 
     // Time: 30 pts max, -1 per 10 mins off
-    if (guess.time && actual.time) {
+    if (fields.time && guess.time && actual.time) {
         const gTime = new Date(`2000-01-01T${guess.time}`).getTime();
         const aTime = new Date(`2000-01-01T${actual.time}`).getTime();
         const minsDiff = Math.abs(gTime - aTime) / (1000 * 60);
@@ -48,13 +54,13 @@ const calculateScore = (guess: BabyGuess, actual: NonNullable<BabyPool['result']
     }
 
     // Length: 30 pts max, -5 per inch off
-    if (guess.length && actual.length) {
+    if (fields.length && guess.length && actual.length) {
         score += Math.max(0, 30 - (Math.abs(guess.length - actual.length) * 5));
     }
 
-    if (guess.gender === actual.gender) score += 15;
-    if (guess.hairColor && actual.hairColor && guess.hairColor === actual.hairColor) score += 10;
-    if (guess.eyeColor && actual.eyeColor && guess.eyeColor === actual.eyeColor) score += 10;
+    if (fields.gender && guess.gender === actual.gender) score += 15;
+    if (fields.hair && guess.hairColor && actual.hairColor && guess.hairColor === actual.hairColor) score += 10;
+    if (fields.eye && guess.eyeColor && actual.eyeColor && guess.eyeColor === actual.eyeColor) score += 10;
     
     // Name Match (Fuzzyish)
     if (actual.actualName && guess.suggestedName && actual.actualName.toLowerCase().trim() === guess.suggestedName.toLowerCase().trim()) score += 50;
@@ -117,7 +123,14 @@ const BabyPoolGenerator: React.FC = () => {
         theme: 'sage' as ThemeKey, 
         registryLink: '',
         diaperFundLink: '',
-        knowGender: false,
+        includeFields: {
+            time: true,
+            weight: true,
+            length: true,
+            hair: true,
+            eye: true,
+            gender: true
+        },
         customQuestions: ['', '', ''] 
     });
     const [activeTab, setActiveTab] = useState<'details' | 'style' | 'registry'>('details');
@@ -216,11 +229,7 @@ const BabyPoolGenerator: React.FC = () => {
         if (!pool || !newGuess.guesserName || !newGuess.date) return alert("Please fill in required fields!");
         setIsSubmitting(true);
         try {
-            // Filter gender if unknown
             const submission = { ...newGuess };
-            if (pool.knowGender) {
-                delete (submission as any).gender;
-            }
             await submitGuess(pool.poolId, submission);
             await loadPool(pool.poolId);
             setHasGuessed(true);
@@ -268,6 +277,16 @@ const BabyPoolGenerator: React.FC = () => {
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     };
 
+    const toggleField = (field: keyof typeof setupData.includeFields) => {
+        setSetupData(prev => ({
+            ...prev,
+            includeFields: {
+                ...prev.includeFields,
+                [field]: !prev.includeFields[field]
+            }
+        }));
+    };
+
     if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-10 h-10 text-emerald-600"/></div>;
 
     // -------------------- SETUP WIZARD VIEW --------------------
@@ -296,7 +315,7 @@ const BabyPoolGenerator: React.FC = () => {
                             {/* Tabs */}
                             <div className="flex border-b border-slate-100 overflow-x-auto">
                                 <button onClick={() => setActiveTab('details')} className={`flex-1 py-4 px-4 font-bold text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'details' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>1. Details</button>
-                                <button onClick={() => setActiveTab('style')} className={`flex-1 py-4 px-4 font-bold text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'style' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>2. Style</button>
+                                <button onClick={() => setActiveTab('style')} className={`flex-1 py-4 px-4 font-bold text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'style' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>2. Game & Style</button>
                                 <button onClick={() => setActiveTab('registry')} className={`flex-1 py-4 px-4 font-bold text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'registry' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>3. Registry & More</button>
                             </div>
 
@@ -317,23 +336,41 @@ const BabyPoolGenerator: React.FC = () => {
                                             <label className="font-bold text-slate-700 block mb-2">Due Date</label>
                                             <input type="date" value={setupData.dueDate} onChange={e => setSetupData({...setupData, dueDate: e.target.value})} className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition"/>
                                         </div>
-                                        
-                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                            <label className="flex items-center gap-3 font-bold text-slate-700 cursor-pointer">
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={setupData.knowGender} 
-                                                    onChange={e => setSetupData({...setupData, knowGender: e.target.checked})}
-                                                    className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 border-gray-300"
-                                                />
-                                                <span>We already know the gender</span>
-                                            </label>
-                                            <p className="text-xs text-slate-500 mt-1 ml-8">If checked, the "Guess Gender" option will be hidden for guests.</p>
-                                        </div>
+                                        <button onClick={() => setActiveTab('style')} className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors mt-4">Next: Game & Style</button>
+                                    </div>
+                                )}
 
-                                        <div>
-                                            <label className="font-bold text-slate-700 block mb-2">Custom Questions (Optional)</label>
-                                            <p className="text-xs text-slate-500 mb-3">Add up to 3 fun questions (e.g., "Mom's nose or Dad's?").</p>
+                                {/* TAB 2: GAME & STYLE */}
+                                {activeTab === 'style' && (
+                                    <div className="space-y-8 animate-fade-in">
+                                        
+                                        {/* Field Toggles */}
+                                        <section>
+                                            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><List size={18}/> What do guests guess?</h3>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {[
+                                                    { id: 'time', label: 'Time of Birth' },
+                                                    { id: 'weight', label: 'Weight' },
+                                                    { id: 'length', label: 'Length' },
+                                                    { id: 'hair', label: 'Hair Color' },
+                                                    { id: 'eye', label: 'Eye Color' },
+                                                    { id: 'gender', label: 'Gender' },
+                                                ].map(field => (
+                                                    <button 
+                                                        key={field.id} 
+                                                        onClick={() => toggleField(field.id as keyof typeof setupData.includeFields)}
+                                                        className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${setupData.includeFields[field.id as keyof typeof setupData.includeFields] ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : 'bg-white border-slate-100 text-slate-400'}`}
+                                                    >
+                                                        {setupData.includeFields[field.id as keyof typeof setupData.includeFields] ? <CheckSquare size={20}/> : <Square size={20}/>}
+                                                        <span className="font-bold text-sm">{field.label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </section>
+
+                                        {/* Bonus Questions */}
+                                        <section>
+                                            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><HelpCircle size={18}/> Bonus Questions (Optional)</h3>
                                             <div className="space-y-3">
                                                 {setupData.customQuestions.map((q, i) => (
                                                     <input 
@@ -346,34 +383,31 @@ const BabyPoolGenerator: React.FC = () => {
                                                             setSetupData({...setupData, customQuestions: newQs});
                                                         }} 
                                                         className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:border-slate-800 outline-none transition" 
-                                                        placeholder={`Question #${i+1} (e.g. Will baby arrive early?)`}
+                                                        placeholder={`e.g. "Mom's nose or Dad's?"`}
                                                     />
                                                 ))}
                                             </div>
-                                        </div>
+                                        </section>
 
-                                        <button onClick={() => setActiveTab('style')} className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors mt-4">Next: Choose Style</button>
-                                    </div>
-                                )}
+                                        {/* Themes */}
+                                        <section>
+                                            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Palette size={18}/> Choose a Theme</h3>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                {Object.entries(THEMES).map(([k, v]) => (
+                                                    <button 
+                                                        key={k} 
+                                                        onClick={() => setSetupData({...setupData, theme: k as ThemeKey})} 
+                                                        className={`relative p-2 rounded-xl border-2 transition-all text-left group overflow-hidden ${setupData.theme === k ? 'border-slate-900 ring-1 ring-slate-900' : 'border-slate-100 hover:border-slate-300'}`}
+                                                    >
+                                                        <div className={`h-10 w-full rounded-lg mb-2 ${v.bg} border border-slate-100`}></div>
+                                                        <span className="text-xs font-bold text-slate-700 block truncate">{v.name}</span>
+                                                        {setupData.theme === k && <div className="absolute top-1 right-1 bg-slate-900 text-white rounded-full p-0.5"><CheckCircle size={10}/></div>}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </section>
 
-                                {/* TAB 2: STYLE */}
-                                {activeTab === 'style' && (
-                                    <div className="space-y-6 animate-fade-in">
-                                        <h3 className="font-bold text-slate-700">Choose a Theme</h3>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {Object.entries(THEMES).map(([k, v]) => (
-                                                <button 
-                                                    key={k} 
-                                                    onClick={() => setSetupData({...setupData, theme: k as ThemeKey})} 
-                                                    className={`relative p-3 rounded-xl border-2 transition-all text-left group overflow-hidden ${setupData.theme === k ? 'border-slate-900 ring-1 ring-slate-900' : 'border-slate-100 hover:border-slate-300'}`}
-                                                >
-                                                    <div className={`h-16 w-full rounded-lg mb-2 ${v.bg} border border-slate-100`}></div>
-                                                    <span className="text-sm font-bold text-slate-700">{v.name}</span>
-                                                    {setupData.theme === k && <div className="absolute top-2 right-2 bg-slate-900 text-white rounded-full p-1"><CheckCircle size={12}/></div>}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button onClick={() => setActiveTab('registry')} className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors mt-4">Next: Registry & More</button>
+                                        <button onClick={() => setActiveTab('registry')} className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors">Next: Registry & More</button>
                                     </div>
                                 )}
 
@@ -414,7 +448,7 @@ const BabyPoolGenerator: React.FC = () => {
                         </div>
 
                         {/* RIGHT COLUMN: LIVE PREVIEW */}
-                        <div className="sticky top-8">
+                        <div className="sticky top-8 hidden lg:block">
                             <div className="text-center mb-4">
                                 <span className="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Live Preview</span>
                             </div>
@@ -442,33 +476,30 @@ const BabyPoolGenerator: React.FC = () => {
 
                                     {/* Preview Body */}
                                     <div className="p-4 space-y-4">
-                                        {/* Guess Stats Mockup */}
-                                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-                                            <div>
-                                                <p className="text-xs font-bold text-slate-400 uppercase">Total Guesses</p>
-                                                <p className="text-xl font-black text-slate-800">0</p>
+                                        {/* Guess Form Preview */}
+                                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3 opacity-80">
+                                            <div className="h-8 bg-slate-100 rounded-lg w-full"></div>
+                                            <div className="flex gap-2">
+                                                {setupData.includeFields.time && <div className="h-8 bg-slate-100 rounded-lg flex-1"></div>}
+                                                {setupData.includeFields.weight && <div className="h-8 bg-slate-100 rounded-lg flex-1"></div>}
                                             </div>
-                                            <div className={`h-10 w-10 rounded-full ${previewTheme.secondary} flex items-center justify-center ${previewTheme.accent}`}>
-                                                <User size={20}/>
-                                            </div>
-                                        </div>
-
-                                        {/* Registry Preview */}
-                                        {(setupData.registryLink || setupData.diaperFundLink) && (
-                                            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                                                <h4 className="font-bold text-slate-700 text-sm mb-3 flex items-center gap-2"><Gift size={14}/> Registry & Gifts</h4>
-                                                <div className="space-y-2">
-                                                    {setupData.registryLink && <div className="h-8 w-full bg-slate-100 rounded-lg animate-pulse"></div>}
-                                                    {setupData.diaperFundLink && <div className="h-8 w-full bg-slate-100 rounded-lg animate-pulse"></div>}
+                                            {(setupData.includeFields.length || setupData.includeFields.hair || setupData.includeFields.eye) && (
+                                                <div className="h-8 bg-slate-100 rounded-lg w-full"></div>
+                                            )}
+                                            {setupData.includeFields.gender && (
+                                                <div className="flex gap-2">
+                                                    <div className="h-8 bg-blue-50 rounded-lg flex-1"></div>
+                                                    <div className="h-8 bg-pink-50 rounded-lg flex-1"></div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
 
                                         {/* Custom Question Preview */}
                                         {setupData.customQuestions[0] && (
                                             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                                                <h4 className="font-bold text-slate-700 text-sm mb-2 flex items-center gap-2"><HelpCircle size={14}/> Fun Predictions</h4>
+                                                <h4 className="font-bold text-slate-700 text-sm mb-2 flex items-center gap-2"><HelpCircle size={14}/> Bonus Questions</h4>
                                                 <p className="text-xs text-slate-500 italic">{setupData.customQuestions[0]}</p>
+                                                <div className="h-8 bg-slate-50 rounded-lg mt-2 border border-slate-100"></div>
                                             </div>
                                         )}
 
@@ -502,12 +533,14 @@ const BabyPoolGenerator: React.FC = () => {
         );
     }
 
-    // -------------------- POOL DASHBOARD (Existing Logic Refined) --------------------
+    // -------------------- POOL DASHBOARD --------------------
     const t = THEMES[pool.theme as ThemeKey] || THEMES.sage;
     const isCompleted = pool.status === 'completed';
     const sortedGuesses = isCompleted && pool.result 
-        ? [...pool.guesses].map(g => ({ ...g, score: calculateScore(g, pool.result!) })).sort((a,b) => (b.score || 0) - (a.score || 0))
+        ? [...pool.guesses].map(g => ({ ...g, score: calculateScore(g, pool.result!, pool) })).sort((a,b) => (b.score || 0) - (a.score || 0))
         : [...pool.guesses].reverse(); 
+    
+    const fields = pool.includeFields || { time: true, weight: true, length: true, hair: true, eye: true, gender: true };
 
     return (
         <div className={`min-h-screen font-sans ${t.bg}`}>
@@ -518,6 +551,7 @@ const BabyPoolGenerator: React.FC = () => {
                 <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-6 border-b-8 ${t.border.replace('border', 'border-b')}`} style={{ borderColor: 'currentColor' }}>
                     <div className={`${t.primary} p-8 text-center text-white relative overflow-hidden`}>
                         {pool.theme === 'midnight' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30"></div>}
+                        {pool.theme === 'confetti' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/confetti.png')] opacity-20"></div>}
                         <div className="relative z-10">
                             <h1 className="text-4xl md:text-6xl font-black font-serif mb-2 drop-shadow-md">{pool.babyName}</h1>
                             {pool.parentNames && <p className="text-white/80 font-medium text-lg mb-4">Celebrating {pool.parentNames}</p>}
@@ -623,43 +657,53 @@ const BabyPoolGenerator: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div className="relative">
-                                <Clock className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                <input type="time" value={newGuess.time} onChange={e => setNewGuess({...newGuess, time: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50"/>
-                            </div>
-                            <div className="flex gap-2 items-center">
-                                <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
-                                    <Scale size={18} className="text-slate-400 mr-2"/>
-                                    <input type="number" value={newGuess.weightLbs} onChange={e => setNewGuess({...newGuess, weightLbs: parseInt(e.target.value)})} className="w-full p-3 bg-transparent outline-none" placeholder="Lbs"/>
-                                    <span className="text-xs font-bold text-slate-400">lbs</span>
+                            {fields.time && (
+                                <div className="relative">
+                                    <Clock className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                    <input type="time" value={newGuess.time} onChange={e => setNewGuess({...newGuess, time: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50"/>
                                 </div>
-                                <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
-                                    <input type="number" value={newGuess.weightOz} onChange={e => setNewGuess({...newGuess, weightOz: parseInt(e.target.value)})} className="w-full p-3 bg-transparent outline-none" placeholder="Oz"/>
-                                    <span className="text-xs font-bold text-slate-400">oz</span>
+                            )}
+                            {fields.weight && (
+                                <div className="flex gap-2 items-center">
+                                    <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
+                                        <Scale size={18} className="text-slate-400 mr-2"/>
+                                        <input type="number" value={newGuess.weightLbs} onChange={e => setNewGuess({...newGuess, weightLbs: parseInt(e.target.value)})} className="w-full p-3 bg-transparent outline-none" placeholder="Lbs"/>
+                                        <span className="text-xs font-bold text-slate-400">lbs</span>
+                                    </div>
+                                    <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
+                                        <input type="number" value={newGuess.weightOz} onChange={e => setNewGuess({...newGuess, weightOz: parseInt(e.target.value)})} className="w-full p-3 bg-transparent outline-none" placeholder="Oz"/>
+                                        <span className="text-xs font-bold text-slate-400">oz</span>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div className="relative">
-                                <Ruler className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                <input type="number" value={newGuess.length} onChange={e => setNewGuess({...newGuess, length: parseFloat(e.target.value)})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50" placeholder="Length (inches)"/>
-                            </div>
-                            <div className="relative">
-                                <Scissors className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                <select value={newGuess.hairColor} onChange={e => setNewGuess({...newGuess, hairColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none">
-                                    {HAIR_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            </div>
-                            <div className="relative">
-                                <Eye className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                <select value={newGuess.eyeColor} onChange={e => setNewGuess({...newGuess, eyeColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none">
-                                    {EYE_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            </div>
+                            {fields.length && (
+                                <div className="relative">
+                                    <Ruler className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                    <input type="number" value={newGuess.length} onChange={e => setNewGuess({...newGuess, length: parseFloat(e.target.value)})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50" placeholder="Length (inches)"/>
+                                </div>
+                            )}
+                            {fields.hair && (
+                                <div className="relative">
+                                    <Scissors className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                    <select value={newGuess.hairColor} onChange={e => setNewGuess({...newGuess, hairColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none">
+                                        {HAIR_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                            {fields.eye && (
+                                <div className="relative">
+                                    <Eye className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                    <select value={newGuess.eyeColor} onChange={e => setNewGuess({...newGuess, eyeColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none">
+                                        {EYE_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                            )}
                         </div>
 
-                        {!pool.knowGender && (
+                        {fields.gender && (
                             <div className="mb-4">
                                 <label className="text-xs font-bold text-slate-400 block mb-1">Gender Guess</label>
                                 <div className="flex gap-3">
@@ -714,9 +758,9 @@ const BabyPoolGenerator: React.FC = () => {
                                     </div>
                                     <div className="text-xs text-slate-500 flex flex-wrap gap-2 mt-1">
                                         <span className="bg-slate-100 px-2 py-0.5 rounded">{g.date}</span>
-                                        <span className="bg-slate-100 px-2 py-0.5 rounded">{g.weightLbs}lb {g.weightOz}oz</span>
+                                        {fields.weight && <span className="bg-slate-100 px-2 py-0.5 rounded">{g.weightLbs}lb {g.weightOz}oz</span>}
                                         {g.suggestedName && <span className="bg-slate-100 px-2 py-0.5 rounded">"{g.suggestedName}"</span>}
-                                        {!pool.knowGender && <span className="bg-slate-100 px-2 py-0.5 rounded">{g.gender}</span>}
+                                        {fields.gender && <span className="bg-slate-100 px-2 py-0.5 rounded">{g.gender}</span>}
                                     </div>
                                 </div>
                             </div>
