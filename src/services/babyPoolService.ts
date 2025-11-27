@@ -1,7 +1,7 @@
 
 import type { BabyPool, BabyGuess } from '../types';
 
-export const createPool = async (data: { babyName: string, dueDate: string, theme: string, registryLink: string }) => {
+export const createPool = async (data: { babyName: string, parentNames: string, dueDate: string, theme: string, registryLink: string, diaperFundLink: string }) => {
     const res = await fetch('/.netlify/functions/bp-create', {
         method: 'POST',
         body: JSON.stringify(data)

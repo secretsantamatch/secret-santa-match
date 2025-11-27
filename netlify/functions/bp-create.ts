@@ -15,9 +15,11 @@ export default async (req: Request, context: Context) => {
             adminKey,
             createdAt: new Date().toISOString(),
             babyName: data.babyName,
+            parentNames: data.parentNames || '',
             dueDate: data.dueDate,
             theme: data.theme || 'sage',
             registryLink: data.registryLink || '',
+            diaperFundLink: data.diaperFundLink || '',
             guesses: [],
             status: 'active', // 'active' or 'completed'
         };

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, Scale, Clock, User, Trophy, Share2, Copy, Baby, ExternalLink, PlusCircle, CheckCircle, Instagram, Palette, Gift, Loader2, Lock, AlertCircle, MessageCircle, Trash2, Link as LinkIcon } from 'lucide-react';
+import { Calendar, Scale, Clock, User, Trophy, Share2, Copy, Baby, ExternalLink, PlusCircle, CheckCircle, Instagram, Palette, Gift, Loader2, Lock, AlertCircle, MessageCircle, Trash2, Link as LinkIcon, Heart, DollarSign } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
@@ -9,13 +9,16 @@ import { createPool, getPool, submitGuess, declareBirth } from '../services/baby
 import type { BabyPool, BabyGuess } from '../types';
 import confetti from 'canvas-confetti';
 
-type ThemeKey = 'sage' | 'ocean' | 'blush' | 'lavender';
+type ThemeKey = 'sage' | 'ocean' | 'blush' | 'lavender' | 'roseGold' | 'midnight' | 'teddy';
 
-const THEMES: Record<ThemeKey, { name: string, bg: string, primary: string, secondary: string, accent: string, text: string, border: string, gradient: string }> = {
-    sage: { name: 'Sage & Sand', bg: 'bg-[#f0fdf4]', primary: 'bg-emerald-600', secondary: 'bg-emerald-100', accent: 'text-emerald-700', text: 'text-emerald-900', border: 'border-emerald-200', gradient: 'from-emerald-50 to-stone-50' },
-    ocean: { name: 'Ocean Breeze', bg: 'bg-[#f0f9ff]', primary: 'bg-sky-600', secondary: 'bg-sky-100', accent: 'text-sky-700', text: 'text-sky-900', border: 'border-sky-200', gradient: 'from-sky-50 to-blue-50' },
-    blush: { name: 'Sweet Blush', bg: 'bg-[#fff1f2]', primary: 'bg-rose-500', secondary: 'bg-rose-100', accent: 'text-rose-700', text: 'text-rose-900', border: 'border-rose-200', gradient: 'from-rose-50 to-pink-50' },
-    lavender: { name: 'Lavender Dream', bg: 'bg-[#faf5ff]', primary: 'bg-violet-500', secondary: 'bg-violet-100', accent: 'text-violet-700', text: 'text-violet-900', border: 'border-violet-200', gradient: 'from-violet-50 to-purple-50' }
+const THEMES: Record<ThemeKey, { name: string, bg: string, primary: string, secondary: string, accent: string, text: string, border: string, gradient: string, previewColor: string }> = {
+    sage: { name: 'Sage & Sand', bg: 'bg-[#f0fdf4]', primary: 'bg-emerald-600', secondary: 'bg-emerald-100', accent: 'text-emerald-700', text: 'text-emerald-900', border: 'border-emerald-200', gradient: 'from-emerald-50 to-stone-50', previewColor: '#059669' },
+    ocean: { name: 'Ocean Breeze', bg: 'bg-[#f0f9ff]', primary: 'bg-sky-600', secondary: 'bg-sky-100', accent: 'text-sky-700', text: 'text-sky-900', border: 'border-sky-200', gradient: 'from-sky-50 to-blue-50', previewColor: '#0284c7' },
+    blush: { name: 'Sweet Blush', bg: 'bg-[#fff1f2]', primary: 'bg-rose-400', secondary: 'bg-rose-100', accent: 'text-rose-600', text: 'text-rose-900', border: 'border-rose-200', gradient: 'from-rose-50 to-pink-50', previewColor: '#fb7185' },
+    lavender: { name: 'Lavender Dream', bg: 'bg-[#faf5ff]', primary: 'bg-violet-500', secondary: 'bg-violet-100', accent: 'text-violet-700', text: 'text-violet-900', border: 'border-violet-200', gradient: 'from-violet-50 to-purple-50', previewColor: '#8b5cf6' },
+    roseGold: { name: 'Rose Gold', bg: 'bg-gradient-to-br from-rose-50 via-white to-orange-50', primary: 'bg-gradient-to-r from-rose-400 to-orange-300', secondary: 'bg-rose-50', accent: 'text-rose-500', text: 'text-slate-800', border: 'border-orange-100', gradient: 'from-rose-100 to-orange-50', previewColor: '#fb7185' },
+    midnight: { name: 'Midnight Star', bg: 'bg-gradient-to-b from-slate-900 to-indigo-900', primary: 'bg-indigo-500', secondary: 'bg-indigo-800/50', accent: 'text-yellow-400', text: 'text-white', border: 'border-indigo-800', gradient: 'from-indigo-900 to-slate-900', previewColor: '#6366f1' },
+    teddy: { name: 'Classic Teddy', bg: 'bg-[#fffbeb]', primary: 'bg-amber-700', secondary: 'bg-amber-100', accent: 'text-amber-800', text: 'text-amber-900', border: 'border-amber-200', gradient: 'from-amber-50 to-orange-50', previewColor: '#b45309' }
 };
 
 // Scoring: Date (50), Weight (50), Gender (15), Name (25)
@@ -48,7 +51,15 @@ const BabyPoolGenerator: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     
     // Setup State
-    const [setupData, setSetupData] = useState({ babyName: '', dueDate: '', theme: 'sage' as ThemeKey, registryLink: '' });
+    const [setupData, setSetupData] = useState({ 
+        babyName: '', 
+        parentNames: '',
+        dueDate: '', 
+        theme: 'sage' as ThemeKey, 
+        registryLink: '',
+        diaperFundLink: '' 
+    });
+    const [activeTab, setActiveTab] = useState<'details' | 'style' | 'registry'>('details');
     const [isCreating, setIsCreating] = useState(false);
 
     // Guest State
@@ -74,7 +85,6 @@ const BabyPoolGenerator: React.FC = () => {
             loadPool(poolId, adminKey);
             if (adminKey) {
                 setAdminMode(true);
-                // Load saved invitees for this pool
                 const savedInvitees = localStorage.getItem(`bp_invitees_${poolId}`);
                 if (savedInvitees) {
                     try {
@@ -86,11 +96,10 @@ const BabyPoolGenerator: React.FC = () => {
                 setNewGuess(prev => ({ ...prev, guesserName: decodeURIComponent(guestName) }));
             }
         } else {
-            setLoading(false); // Show setup screen
+            setLoading(false);
         }
     }, []);
 
-    // Save invitees when they change
     useEffect(() => {
         if (pool && adminMode) {
             localStorage.setItem(`bp_invitees_${pool.poolId}`, JSON.stringify(invitees));
@@ -102,7 +111,6 @@ const BabyPoolGenerator: React.FC = () => {
             const data = await getPool(id, key);
             setPool(data);
             if (data.result) {
-                // Trigger confetti if just loaded and completed
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#f59e0b', '#3b82f6'] });
             }
         } catch (err) {
@@ -113,7 +121,11 @@ const BabyPoolGenerator: React.FC = () => {
     };
 
     const handleCreate = async () => {
-        if (!setupData.babyName || !setupData.dueDate) return alert("Please enter a name and due date!");
+        if (!setupData.babyName || !setupData.dueDate) {
+            alert("Please enter a name and due date in the Details tab!");
+            setActiveTab('details');
+            return;
+        }
         setIsCreating(true);
         try {
             const { poolId, adminKey } = await createPool(setupData);
@@ -130,7 +142,7 @@ const BabyPoolGenerator: React.FC = () => {
         setIsSubmitting(true);
         try {
             await submitGuess(pool.poolId, newGuess);
-            await loadPool(pool.poolId); // Reload to see new guess
+            await loadPool(pool.poolId);
             setHasGuessed(true);
             setNewGuess({ guesserName: '', date: '', time: '', weightLbs: 7, weightOz: 0, gender: 'Surprise', suggestedName: '' });
         } catch (err) {
@@ -152,7 +164,6 @@ const BabyPoolGenerator: React.FC = () => {
         }
     };
 
-    // Admin Invite Helpers
     const addInvitee = () => {
         if (!newInviteeName.trim()) return;
         setInvitees([...invitees, { id: crypto.randomUUID(), name: newInviteeName.trim() }]);
@@ -180,47 +191,188 @@ const BabyPoolGenerator: React.FC = () => {
 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-10 h-10 text-emerald-600"/></div>;
 
-    // -------------------- SETUP VIEW --------------------
+    // -------------------- SETUP WIZARD VIEW --------------------
     if (!pool) {
+        const previewTheme = THEMES[setupData.theme];
+        
         return (
-            <div className="min-h-screen bg-emerald-50 font-sans">
+            <div className="min-h-screen bg-slate-50 font-sans">
                 <Header />
-                <div className="max-w-2xl mx-auto p-4 py-12">
-                    <div className="bg-white rounded-3xl shadow-xl p-8 border-b-8 border-emerald-200">
-                        <div className="text-center mb-8">
-                            <h1 className="text-3xl md:text-4xl font-black text-slate-800 font-serif mb-2">Create a Baby Pool</h1>
-                            <p className="text-slate-500">Free, frictionless, and fun. No signup required.</p>
+                
+                <div className="bg-white border-b border-slate-200 py-12 px-4 text-center">
+                    <h1 className="text-3xl md:text-5xl font-black text-slate-800 font-serif mb-3">
+                        The #1 Free Baby Pool Generator
+                    </h1>
+                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                        Host a stylish, fun, and private guessing game for your due date, weight, and more. 
+                        <span className="block mt-1 font-semibold text-emerald-600">No apps to download, just a link to share.</span>
+                    </p>
+                </div>
+
+                <div className="max-w-6xl mx-auto p-4 md:p-8">
+                    <div className="grid lg:grid-cols-2 gap-8 items-start">
+                        
+                        {/* LEFT COLUMN: CONFIGURATION */}
+                        <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+                            {/* Tabs */}
+                            <div className="flex border-b border-slate-100">
+                                <button onClick={() => setActiveTab('details')} className={`flex-1 py-4 font-bold text-sm md:text-base transition-colors ${activeTab === 'details' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>1. Details</button>
+                                <button onClick={() => setActiveTab('style')} className={`flex-1 py-4 font-bold text-sm md:text-base transition-colors ${activeTab === 'style' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>2. Style</button>
+                                <button onClick={() => setActiveTab('registry')} className={`flex-1 py-4 font-bold text-sm md:text-base transition-colors ${activeTab === 'registry' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>3. Gifts & Extras</button>
+                            </div>
+
+                            <div className="p-6 md:p-8 min-h-[400px]">
+                                {/* TAB 1: DETAILS */}
+                                {activeTab === 'details' && (
+                                    <div className="space-y-6 animate-fade-in">
+                                        <div>
+                                            <label className="font-bold text-slate-700 block mb-2">Baby Name (or Placeholder)</label>
+                                            <input type="text" value={setupData.babyName} onChange={e => setSetupData({...setupData, babyName: e.target.value})} className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition" placeholder="e.g. Baby Smith"/>
+                                        </div>
+                                        <div>
+                                            <label className="font-bold text-slate-700 block mb-2">Parent Name(s)</label>
+                                            <input type="text" value={setupData.parentNames} onChange={e => setSetupData({...setupData, parentNames: e.target.value})} className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition" placeholder="e.g. Mary & Joe"/>
+                                            <p className="text-xs text-slate-400 mt-1">Shown on the invite link.</p>
+                                        </div>
+                                        <div>
+                                            <label className="font-bold text-slate-700 block mb-2">Due Date</label>
+                                            <input type="date" value={setupData.dueDate} onChange={e => setSetupData({...setupData, dueDate: e.target.value})} className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition"/>
+                                        </div>
+                                        <button onClick={() => setActiveTab('style')} className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors mt-4">Next: Choose Style</button>
+                                    </div>
+                                )}
+
+                                {/* TAB 2: STYLE */}
+                                {activeTab === 'style' && (
+                                    <div className="space-y-6 animate-fade-in">
+                                        <h3 className="font-bold text-slate-700">Choose a Theme</h3>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {Object.entries(THEMES).map(([k, v]) => (
+                                                <button 
+                                                    key={k} 
+                                                    onClick={() => setSetupData({...setupData, theme: k as ThemeKey})} 
+                                                    className={`relative p-3 rounded-xl border-2 transition-all text-left group overflow-hidden ${setupData.theme === k ? 'border-slate-900 ring-1 ring-slate-900' : 'border-slate-100 hover:border-slate-300'}`}
+                                                >
+                                                    <div className={`h-16 w-full rounded-lg mb-2 ${v.bg} border border-slate-100`}></div>
+                                                    <span className="text-sm font-bold text-slate-700">{v.name}</span>
+                                                    {setupData.theme === k && <div className="absolute top-2 right-2 bg-slate-900 text-white rounded-full p-1"><CheckCircle size={12}/></div>}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button onClick={() => setActiveTab('registry')} className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors mt-4">Next: Gifts & Extras</button>
+                                    </div>
+                                )}
+
+                                {/* TAB 3: REGISTRY & EXTRAS */}
+                                {activeTab === 'registry' && (
+                                    <div className="space-y-8 animate-fade-in">
+                                        {/* Amazon Promo Block */}
+                                        <div className="bg-orange-50 p-5 rounded-xl border border-orange-100 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 bg-orange-200 text-orange-800 text-[10px] font-bold px-2 py-1 rounded-bl">SPONSORED</div>
+                                            <h3 className="font-bold text-orange-900 flex items-center gap-2 mb-2"><Gift size={18}/> Need a Registry?</h3>
+                                            <p className="text-sm text-orange-800 mb-3">Prime members get a <strong>Free Welcome Box ($35 value)</strong> + 15% completion discount.</p>
+                                            <a href="https://www.amazon.com/baby-reg?tag=secretsanmat-20" target="_blank" className="block w-full py-2 bg-orange-500 hover:bg-orange-600 text-white text-center rounded-lg text-sm font-bold transition-colors">Create Free Amazon Registry</a>
+                                        </div>
+
+                                        <div>
+                                            <label className="font-bold text-slate-700 block mb-2">Registry Link (Optional)</label>
+                                            <input type="text" value={setupData.registryLink} onChange={e => setSetupData({...setupData, registryLink: e.target.value})} className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition" placeholder="Paste your registry link here..."/>
+                                        </div>
+
+                                        <div>
+                                            <label className="font-bold text-slate-700 block mb-2">Diaper Fund Link (Optional)</label>
+                                            <div className="relative">
+                                                <DollarSign className="absolute left-4 top-4 text-slate-400" size={18}/>
+                                                <input type="text" value={setupData.diaperFundLink} onChange={e => setSetupData({...setupData, diaperFundLink: e.target.value})} className="w-full p-4 pl-10 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition" placeholder="Venmo, CashApp, or PayPal link"/>
+                                            </div>
+                                            <p className="text-xs text-slate-400 mt-1">Guests can click this to send cash gifts directly.</p>
+                                        </div>
+
+                                        <div className="pt-4 border-t border-slate-100">
+                                            <p className="text-xs text-slate-400 mb-4 text-center">By creating a pool, you agree to our Terms. We may earn a commission from affiliate links.</p>
+                                            <button onClick={handleCreate} disabled={isCreating} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-100 transition-all transform hover:-translate-y-1 flex justify-center gap-2">
+                                                {isCreating ? <Loader2 className="animate-spin"/> : <PlusCircle />} Create My Baby Pool
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="space-y-6">
-                            <div>
-                                <label className="font-bold text-slate-700 block mb-2">Baby Name (or Placeholder)</label>
-                                <input type="text" value={setupData.babyName} onChange={e => setSetupData({...setupData, babyName: e.target.value})} className="w-full p-4 bg-slate-50 rounded-xl border-2 border-slate-100 focus:border-emerald-500 outline-none transition" placeholder="e.g. Baby Smith"/>
+                        {/* RIGHT COLUMN: LIVE PREVIEW */}
+                        <div className="sticky top-8">
+                            <div className="text-center mb-4">
+                                <span className="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Live Preview</span>
                             </div>
-                            <div>
-                                <label className="font-bold text-slate-700 block mb-2">Due Date</label>
-                                <input type="date" value={setupData.dueDate} onChange={e => setSetupData({...setupData, dueDate: e.target.value})} className="w-full p-4 bg-slate-50 rounded-xl border-2 border-slate-100 focus:border-emerald-500 outline-none transition"/>
-                            </div>
-                            <div>
-                                <label className="font-bold text-slate-700 block mb-2">Theme</label>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    {Object.entries(THEMES).map(([k, v]) => (
-                                        <button key={k} onClick={() => setSetupData({...setupData, theme: k as ThemeKey})} className={`p-2 rounded-xl border-2 transition text-left ${setupData.theme === k ? 'border-slate-800 ring-1 ring-slate-800' : 'border-transparent hover:bg-slate-50'}`}>
-                                            <div className={`h-6 w-full ${v.primary} rounded mb-1`}></div>
-                                            <span className="text-xs font-bold text-slate-600">{v.name}</span>
-                                        </button>
-                                    ))}
+                            
+                            {/* Phone Frame */}
+                            <div className={`relative mx-auto max-w-[360px] rounded-[2.5rem] border-8 border-slate-900 bg-slate-900 shadow-2xl overflow-hidden`}>
+                                {/* Phone Notch */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-slate-900 rounded-b-xl z-20"></div>
+                                
+                                {/* Screen Content */}
+                                <div className={`h-[650px] w-full bg-white overflow-y-auto no-scrollbar ${previewTheme.bg} relative`}>
+                                    
+                                    {/* Theme Header */}
+                                    <div className={`${previewTheme.primary} pt-12 pb-8 px-6 text-center text-white relative rounded-b-[2rem] shadow-sm`}>
+                                        <h2 className="text-2xl font-black font-serif leading-tight mb-1">
+                                            {setupData.babyName || "Baby Name"}
+                                        </h2>
+                                        {setupData.parentNames && (
+                                            <p className="text-xs font-medium opacity-90 mb-3">Celebrating {setupData.parentNames}</p>
+                                        )}
+                                        <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold">
+                                            <Calendar size={12}/> Due: {setupData.dueDate || "Dec 25"}
+                                        </div>
+                                    </div>
+
+                                    {/* Preview Body */}
+                                    <div className="p-4 space-y-4">
+                                        {/* Guess Stats Mockup */}
+                                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-400 uppercase">Total Guesses</p>
+                                                <p className="text-xl font-black text-slate-800">0</p>
+                                            </div>
+                                            <div className={`h-10 w-10 rounded-full ${previewTheme.secondary} flex items-center justify-center ${previewTheme.accent}`}>
+                                                <User size={20}/>
+                                            </div>
+                                        </div>
+
+                                        {/* Registry Preview */}
+                                        {(setupData.registryLink || setupData.diaperFundLink) && (
+                                            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                                                <h4 className="font-bold text-slate-700 text-sm mb-3 flex items-center gap-2"><Gift size={14}/> Registry & Gifts</h4>
+                                                <div className="space-y-2">
+                                                    {setupData.registryLink && <div className="h-8 w-full bg-slate-100 rounded-lg animate-pulse"></div>}
+                                                    {setupData.diaperFundLink && <div className="h-8 w-full bg-slate-100 rounded-lg animate-pulse"></div>}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Leaderboard Placeholder */}
+                                        <div className="space-y-2">
+                                            <h4 className={`text-xs font-bold uppercase tracking-wider ${previewTheme.text}`}>Recent Guesses</h4>
+                                            {[1, 2, 3].map(i => (
+                                                <div key={i} className="bg-white/60 p-3 rounded-xl border border-white/50 flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-full ${previewTheme.secondary} flex items-center justify-center text-xs font-bold ${previewTheme.accent}`}>{String.fromCharCode(64+i)}</div>
+                                                    <div className="flex-1 space-y-1">
+                                                        <div className="h-3 w-20 bg-slate-200 rounded-full"></div>
+                                                        <div className="h-2 w-12 bg-slate-100 rounded-full"></div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Fab Button Mockup */}
+                                    <div className={`absolute bottom-6 right-6 h-14 w-14 rounded-full shadow-lg ${previewTheme.primary} flex items-center justify-center text-white`}>
+                                        <PlusCircle size={24} />
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="font-bold text-slate-700 block mb-2">Registry Link (Optional)</label>
-                                <input type="text" value={setupData.registryLink} onChange={e => setSetupData({...setupData, registryLink: e.target.value})} className="w-full p-4 bg-slate-50 rounded-xl border-2 border-slate-100 focus:border-emerald-500 outline-none transition" placeholder="https://www.amazon.com/..."/>
-                            </div>
-
-                            <button onClick={handleCreate} disabled={isCreating} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex justify-center gap-2">
-                                {isCreating ? <Loader2 className="animate-spin"/> : <PlusCircle />} Create Pool
-                            </button>
                         </div>
+
                     </div>
                 </div>
                 <Footer />
@@ -228,12 +380,12 @@ const BabyPoolGenerator: React.FC = () => {
         );
     }
 
-    // -------------------- POOL DASHBOARD --------------------
+    // -------------------- POOL DASHBOARD (Existing Logic Refined) --------------------
     const t = THEMES[pool.theme as ThemeKey] || THEMES.sage;
     const isCompleted = pool.status === 'completed';
     const sortedGuesses = isCompleted && pool.result 
         ? [...pool.guesses].map(g => ({ ...g, score: calculateScore(g, pool.result!) })).sort((a,b) => (b.score || 0) - (a.score || 0))
-        : [...pool.guesses].reverse(); // Newest first if active
+        : [...pool.guesses].reverse(); 
 
     return (
         <div className={`min-h-screen font-sans ${t.bg}`}>
@@ -243,8 +395,11 @@ const BabyPoolGenerator: React.FC = () => {
                 {/* HERO HEADER */}
                 <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-6 border-b-8 ${t.border.replace('border', 'border-b')}`} style={{ borderColor: 'currentColor' }}>
                     <div className={`${t.primary} p-8 text-center text-white relative overflow-hidden`}>
+                        {pool.theme === 'midnight' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30"></div>}
                         <div className="relative z-10">
                             <h1 className="text-4xl md:text-6xl font-black font-serif mb-2 drop-shadow-md">{pool.babyName}</h1>
+                            {pool.parentNames && <p className="text-white/80 font-medium text-lg mb-4">Celebrating {pool.parentNames}</p>}
+                            
                             <div className="flex flex-wrap justify-center gap-3 mt-4">
                                 <span className="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md flex items-center gap-1 text-sm font-bold"><Calendar size={14}/> Due: {pool.dueDate}</span>
                                 <span className="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md flex items-center gap-1 text-sm font-bold"><User size={14}/> {pool.guesses.length} Guesses</span>
@@ -252,7 +407,7 @@ const BabyPoolGenerator: React.FC = () => {
                         </div>
                     </div>
                     
-                    {/* ADMIN PANEL - GENERAL */}
+                    {/* ADMIN PANEL */}
                     {adminMode && !isCompleted && (
                         <div className="bg-amber-50 border-b border-amber-100 p-4">
                             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -276,16 +431,12 @@ const BabyPoolGenerator: React.FC = () => {
                     )}
                 </div>
 
-                {/* ADMIN - PERSONAL LINKS GENERATOR */}
+                {/* ADMIN - PERSONAL LINKS GENERATOR (Existing code kept) */}
                 {adminMode && !isCompleted && (
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 animate-fade-in">
                         <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <Share2 size={20} className={t.accent}/> Invite Guests with Personal Links
                         </h3>
-                        <p className="text-sm text-slate-500 mb-4">
-                            Want to make it easier for Grandma? Generate a unique link that pre-fills their name!
-                        </p>
-                        
                         <div className="flex gap-2 mb-6">
                             <input 
                                 type="text" 
@@ -295,38 +446,19 @@ const BabyPoolGenerator: React.FC = () => {
                                 onKeyDown={e => e.key === 'Enter' && addInvitee()}
                                 className="flex-1 p-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
                             />
-                            <button onClick={addInvitee} className="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold hover:bg-slate-900">
-                                Add
-                            </button>
+                            <button onClick={addInvitee} className="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold hover:bg-slate-900">Add</button>
                         </div>
-
                         <div className="space-y-2">
                             {invitees.map(invitee => (
                                 <div key={invitee.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${t.primary}`}>
-                                            {invitee.name.charAt(0).toUpperCase()}
-                                        </div>
-                                        <span className="font-bold text-slate-700">{invitee.name}</span>
-                                    </div>
+                                    <span className="font-bold text-slate-700">{invitee.name}</span>
                                     <div className="flex gap-2">
-                                        <button onClick={() => copyLink(getPersonalLink(invitee.name))} className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600" title="Copy Link">
-                                            <Copy size={16} />
-                                        </button>
-                                        <button onClick={() => shareWhatsApp(invitee.name)} className="p-2 bg-green-500 hover:bg-green-600 rounded text-white" title="Send via WhatsApp">
-                                            <MessageCircle size={16} />
-                                        </button>
-                                        <button onClick={() => removeInvitee(invitee.id)} className="p-2 text-slate-400 hover:text-red-500" title="Remove">
-                                            <Trash2 size={16} />
-                                        </button>
+                                        <button onClick={() => copyLink(getPersonalLink(invitee.name))} className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600"><Copy size={16} /></button>
+                                        <button onClick={() => shareWhatsApp(invitee.name)} className="p-2 bg-green-500 hover:bg-green-600 rounded text-white"><MessageCircle size={16} /></button>
+                                        <button onClick={() => removeInvitee(invitee.id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={16} /></button>
                                     </div>
                                 </div>
                             ))}
-                            {invitees.length === 0 && (
-                                <div className="text-center text-slate-400 text-sm py-2 italic">
-                                    No personalized links generated yet. Add a name above!
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
@@ -399,34 +531,31 @@ const BabyPoolGenerator: React.FC = () => {
                     {sortedGuesses.length === 0 && <div className="text-center text-slate-400 py-8">No guesses yet. Be the first!</div>}
                 </div>
 
-                {/* AMAZON PROMO (Affiliate) */}
-                <div className={`mt-12 p-6 bg-white rounded-2xl border-2 ${t.border} shadow-sm`}>
-                    <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2"><Gift size={20} className="text-orange-500"/> Registry & Gifts</h3>
-                    <p className="text-slate-600 text-sm mb-4">Need a gift? Check their registry or grab a Prime perk.</p>
-                    
-                    {pool.registryLink && (
-                        <a href={pool.registryLink} target="_blank" className="block w-full text-center bg-slate-800 text-white font-bold py-3 rounded-xl mb-3 hover:bg-slate-900">
-                            View {pool.babyName}'s Registry
-                        </a>
-                    )}
-                    
-                    <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-                        <h4 className="font-bold text-orange-800 text-sm mb-1">Amazon Baby Registry Benefits</h4>
-                        <ul className="text-xs text-orange-700 space-y-1 mb-3 list-disc pl-4">
-                            <li>Free Welcome Box ($35 value)</li>
-                            <li>15% Completion Discount</li>
-                            <li>365-Day Returns</li>
-                        </ul>
-                        <a href="https://www.amazon.com/baby-reg?tag=secretsanmat-20" target="_blank" className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 rounded-lg text-sm">
-                            Create Free Registry
-                        </a>
+                {/* GIFTS & REGISTRY (IF CONFIGURED) */}
+                {(pool.registryLink || pool.diaperFundLink) && (
+                    <div className={`mt-12 p-6 bg-white rounded-2xl border-2 ${t.border} shadow-sm`}>
+                        <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2"><Gift size={20} className="text-orange-500"/> Registry & Gifts</h3>
+                        <p className="text-slate-600 text-sm mb-4">Want to send a gift?</p>
+                        
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            {pool.registryLink && (
+                                <a href={pool.registryLink} target="_blank" className="flex items-center justify-center gap-2 bg-slate-800 text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-900 transition-colors text-sm">
+                                    <Gift size={16}/> View Registry
+                                </a>
+                            )}
+                            {pool.diaperFundLink && (
+                                <a href={pool.diaperFundLink} target="_blank" className="flex items-center justify-center gap-2 bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-emerald-600 transition-colors text-sm">
+                                    <DollarSign size={16}/> Diaper Fund
+                                </a>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
             </div>
 
-            {/* ADMIN MODAL */}
+            {/* ADMIN BIRTH DECLARATION MODAL */}
             {showAdminModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl p-6 max-w-md w-full">

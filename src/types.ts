@@ -1,9 +1,10 @@
+
 import type React from 'react';
 
 declare global {
   interface Window {
     gtag: (command: 'event', eventName: string, eventParams?: Record<string, any>) => void;
-    dataLayer: unknown[];
+    dataLayer: any[];
   }
 }
 
@@ -51,7 +52,7 @@ export interface BackgroundOption {
 }
 
 export interface ExchangeData {
-  id?: string;
+  id: string; // Unique UUID for the exchange (used as Blob Key)
   p: Participant[];
   matches: { g: string; r: string }[];
   exclusions: Exclusion[];
@@ -155,7 +156,6 @@ export interface WEGame {
     createdAt: string;
 }
 
-
 // --- BABY POOL TYPES ---
 
 export interface BabyGuess {
@@ -175,9 +175,11 @@ export interface BabyPool {
     poolId: string;
     adminKey?: string;
     babyName: string;
+    parentNames?: string; // NEW
     dueDate: string;
     theme: string;
     registryLink: string;
+    diaperFundLink?: string; // NEW
     guesses: BabyGuess[];
     status: 'active' | 'completed';
     result?: {
