@@ -12,7 +12,7 @@
     <link rel="canonical" href="https://secretsantamatch.com/generator.html" />
     <link rel="manifest" href="/manifest.json" />
     
-    <!-- Open Graph / Social Media -->
+      <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://secretsantamatch.com/generator.html">
     <meta property="og:title" content="The Easiest Free Secret Santa Generator (No Email Required!)">
@@ -51,14 +51,30 @@
     </script>
     <script type="application/ld+json">
     {
-     "@context": "https://schema.org",
-      "@type": "VideoObject",
-      "name": "How to Organize Secret Santa in 2 Minutes (2025 Guide)",
-      "description": "A complete 2-minute tutorial on using SecretSantaMatch.com. This guide covers all the new features including participant-editable wishlists, the downloads hub (printable cards, master list, free Party Pack!), and the simple, private link-sharing system. See why it's the easiest way to organize your gift exchange with no emails or sign-ups required.",
-      "thumbnailUrl": "https://i.ytimg.com/vi/I1_70eIGwPE/maxresdefault.jpg",
-      "uploadDate": "2025-11-19T08:00:00+00:00",
-      "duration": "PT2M23S",
-      "embedUrl": "https://www.youtube.com/embed/I1_70eIGwPE"
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": "How do I do Secret Santa without emails?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Use SecretSantaMatch.com. Our tool generates a unique link for each participant. You simply copy and paste these links to your friends via text, WhatsApp, or Slack. No email addresses are collected or stored."
+        }
+      }, {
+        "@type": "Question",
+        "name": "Can I prevent spouses from drawing each other?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Use the 'Exclusions' feature in Step 2. You can set specific rules so that couples, siblings, or specific pairs cannot draw one another."
+        }
+      }, {
+        "@type": "Question",
+        "name": "Is there a Secret Santa questionnaire included?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! When participants open their private link, they can fill out a wishlist profile including their likes, dislikes, clothing sizes, and hobbies."
+        }
+      }]
     }
     </script>
 
@@ -74,67 +90,46 @@
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap"></noscript>
     
     <style>
-      /* Critical CSS */
+      /* Critical CSS for Static SEO Content */
       :root { --primary-color: #c62828; }
-      body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #334155; margin: 0; }
+      body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #334155; margin: 0; line-height: 1.6; }
       .container-critical { max-width: 64rem; margin-left: auto; margin-right: auto; padding: 1rem; }
       @media (min-width: 640px) { .container-critical { padding: 1.5rem; } }
       @media (min-width: 768px) { .container-critical { padding: 2rem; } }
       
-      .header-critical { text-align: center; padding-top: 1rem; padding-bottom: 1rem; }
-      .header-critical img { width: 4rem; height: 4rem; display: inline-block; margin-bottom: 1rem; }
-      .header-critical h1 { font-family: 'Playfair Display', serif; font-size: 2.25rem; font-weight: 700; color: #f97316; margin: 0; }
-      .header-critical h2 { font-size: 1.25rem; font-weight: 700; color: #334155; margin-top: 0.5rem; }
-      .header-critical p { margin-top: 1rem; max-width: 48rem; margin-left: auto; margin-right: auto; color: #4b5563; font-size: 1rem; }
+      .header-critical { text-align: center; padding-top: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #e2e8f0; background: white; }
+      .header-critical img { width: 5rem; height: 5rem; display: inline-block; margin-bottom: 1rem; }
+      .header-critical h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 900; color: #c62828; margin: 0; line-height: 1.2; }
+      .header-critical h2 { font-size: 1.25rem; font-weight: 700; color: #64748b; margin-top: 0.5rem; }
+      .header-critical p { margin-top: 1rem; max-width: 48rem; margin-left: auto; margin-right: auto; color: #475569; font-size: 1.1rem; }
 
-      .how-it-works-critical { margin-top: 2.5rem; margin-bottom: 2.5rem; }
-      .how-it-works-critical h2 { text-align: center; font-family: 'Playfair Display', serif; font-size: 1.875rem; font-weight: 700; color: #1e293b; margin-bottom: 2rem; }
-      .steps-container-critical { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; }
-      .step-card-critical { background-color: #fff; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); border: 1px solid #e5e7eb; padding: 1.5rem; width: 100%; text-align: center; }
-      .step-card-critical img { height: 3rem; width: 3rem; margin-left: auto; margin-right: auto; margin-bottom: 1rem; }
-      .step-card-critical h3 { font-size: 1.25rem; font-weight: 700; color: #c62828; margin: 0; }
-      .step-card-critical p { color: #475569; margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.6; }
-      .chevron-critical { display: none; }
+      .section-critical { margin: 4rem 0; }
+      .section-critical h2 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 800; color: #1e293b; text-align: center; margin-bottom: 2rem; }
+      .section-critical h3 { font-size: 1.25rem; font-weight: 700; color: #c62828; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+      
+      .steps-container-critical { display: flex; flex-direction: column; gap: 2rem; }
+      .step-card-critical { background-color: #fff; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; padding: 2rem; text-align: center; }
+      
+      .content-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+      .text-block { background: white; padding: 2rem; border-radius: 1rem; border: 1px solid #e2e8f0; }
+      .text-block ul { list-style-type: disc; padding-left: 1.5rem; margin-top: 1rem; }
+      .text-block li { margin-bottom: 0.5rem; color: #475569; }
+
+      .faq-item-critical { border-bottom: 1px solid #e2e8f0; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+      .faq-item-critical:last-child { border-bottom: none; }
+
+      .footer-critical { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.875rem; border-top: 1px solid #e2e8f0; margin-top: 4rem; }
 
       @media (min-width: 768px) {
-          .header-critical h1 { font-size: 3rem; }
-          .header-critical h2 { font-size: 1.5rem; }
-          .how-it-works-critical { margin-top: 4rem; margin-bottom: 4rem; }
-          .steps-container-critical { flex-direction: row; gap: 1.5rem; }
-          .chevron-critical { display: block; color: #cbd5e0; }
+          .header-critical h1 { font-size: 3.5rem; }
+          .steps-container-critical { flex-direction: row; }
+          .content-grid { grid-template-columns: 1fr 1fr; }
       }
       
       /* Inlined src/index.css */
       @tailwind base;
       @tailwind components;
       @tailwind utilities;
-
-      :root, :root[data-theme="default"], :root[data-theme="christmas"] {
-          --primary-color: #c62828; /* A nice Christmas red */
-          --primary-color-hover: #a52121;
-          --accent-color: #2e7d32; /* A festive green */
-          --accent-color-hover: #266a2a;
-      }
-      :root[data-theme="halloween"] {
-          --primary-color: #f97316; /* Orange */
-          --primary-color-hover: #ea580c;
-          --accent-color: #4f46e5; /* Indigo */
-          --accent-color-hover: #4338ca;
-      }
-      :root[data-theme="valentines"] {
-          --primary-color: #dc2626; /* Red */
-          --primary-color-hover: #b91c1c;
-          --accent-color: #ec4899; /* Pink */
-          --accent-color-hover: #db2777;
-      }
-
-      body {
-          font-family: 'Montserrat', sans-serif;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          background-color: #f8fafc; /* A light slate/gray color */
-          color: #334155;
-      }
     </style>
     
     <!-- Google Analytics (GA4) -->
@@ -144,7 +139,7 @@
       // Explicitly define gtag on window to ensure availability
       window.gtag = function(){window.dataLayer.push(arguments);}
       window.gtag('js', new Date());
-      window.gtag('config', 'G-HG140X6CQ6');
+      gtag('config', 'G-HG140X6CQ6');
     </script>
 
     <!-- Google AdSense -->
@@ -176,64 +171,128 @@
 </head>
   <body>
     <div id="root">
+      <!-- STATIC CONTENT PAYLOAD FOR SEO BOTS (Replaced by React on Load) -->
       <div class="bg-slate-50">
+        
+        <!-- HEADER -->
+        <header class="header-critical">
+            <div class="container-critical">
+                <img src="/logo_256.png" alt="Secret Santa Generator Logo" width="80" height="80" />
+                <h1>Free Secret Santa Generator</h1>
+                <h2>The #1 Privacy-First Tool for 2025</h2>
+                <p>
+                  Organize your holiday gift exchange in less than 2 minutes. 
+                  Instantly draw names, add exclusions, and share private reveal links via WhatsApp, Text, or Email. 
+                  No sign-up required.
+                </p>
+            </div>
+        </header>
+
         <div class="container-critical">
-          <header class="header-critical">
-            <img src="/logo_256.png" alt="Secret Santa Generator Logo" width="64" height="64" />
-            <h1>Free Secret Santa Generator (No Email or Sign-Up Required)</h1>
-            <h2>The Easiest Way to Draw Names Online</h2>
-            <p>
-              The best free Secret Santa generator for your gift exchange! Instantly draw names,
-              add exclusions, download printable cards, and share private links with each
-              participant—all with no sign-ups or emails required. Perfect for office, family, and friends.
-            </p>
-          </header>
-          <section class="how-it-works-critical">
+          
+          <!-- HOW IT WORKS -->
+          <section class="section-critical">
             <h2>How It Works</h2>
             <div class="steps-container-critical">
               <div class="step-card-critical">
-                <img src="/step_1.webp" alt="Add Names" width="48" height="48" />
-                <h3>1. Add Names</h3>
-                <p>Easily enter participant names one by one or use the bulk add feature. It's fast, free, and requires no sign-ups or apps.</p>
-              </div>
-              <div class="chevron-critical">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                <img src="/step_1.webp" alt="Add Names" width="64" height="64" style="margin: 0 auto 1rem auto;" />
+                <h3>1. Add Participants</h3>
+                <p>Enter names manually or use our Bulk Add feature to paste a list. You can add as many people as you need—it's completely free.</p>
               </div>
               <div class="step-card-critical">
-                <img src="/step_2.webp" alt="Set Rules & Styles" width="48" height="48" />
-                <h3>2. Set Rules &amp; Styles</h3>
-                <p>Add exclusions to prevent people from drawing each other, then customize beautiful, printable cards for a personal touch.</p>
-              </div>
-              <div class="chevron-critical">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                <img src="/step_2.webp" alt="Set Rules & Styles" width="64" height="64" style="margin: 0 auto 1rem auto;" />
+                <h3>2. Set Rules & Exclusions</h3>
+                <p>Prevent spouses from drawing each other or ensure specific matches happen. Customize your budget, date, and card theme.</p>
               </div>
               <div class="step-card-critical">
-                <img src="/step_3.webp" alt="Share Links & Cards" width="48" height="48" />
-                <h3>3. Share Links &amp; Cards</h3>
-                <p>Instantly share private links so everyone can see their match online, or download the styled cards for your in-person party.</p>
+                <img src="/step_3.webp" alt="Share Links & Cards" width="64" height="64" style="margin: 0 auto 1rem auto;" />
+                <h3>3. Share & Reveal</h3>
+                <p>We generate a unique, private link for every person. Copy and send it to them directly. No accounts needed!</p>
               </div>
+            </div>
+          </section>
+
+          <!-- KEYWORD TARGETING: "No Email" & "Elfster Alternative" -->
+          <section class="section-critical">
+            <h2>Why Choose SecretSantaMatch Over Apps Like Elfster?</h2>
+            <div class="content-grid">
+                <div class="text-block">
+                    <h3>🚫 No Email or Sign-Up Required</h3>
+                    <p>Unlike Elfster or DrawNames, we don't force your guests to create an account or download an app. We believe a Secret Santa generator should be instant and private.</p>
+                </div>
+                <div class="text-block">
+                    <h3>🔒 Privacy First</h3>
+                    <p>We do not collect or store your email address. All match data is encrypted directly into the shareable links. This makes us the safest choice for work gift exchanges and privacy-conscious families.</p>
+                </div>
+                <div class="text-block">
+                    <h3>✍️ Built-in Secret Santa Questionnaire</h3>
+                    <p>Stop guessing sizes! Our tool includes a built-in wishlist and questionnaire where participants can list their hobbies, likes, and dislikes. It's the perfect way to get ideas without spoiling the surprise.</p>
+                </div>
+                <div class="text-block">
+                    <h3>🏢 Perfect for Work Gift Exchanges</h3>
+                    <p>Office firewalls often block external email services. Since our tool works via simple links, it's the ideal solution for corporate and office Secret Santa parties.</p>
+                </div>
+            </div>
+          </section>
+
+          <!-- KEYWORD TARGETING: "Rules" & "Variations" -->
+          <section class="section-critical">
+            <h2>Secret Santa Rules & Etiquette (2025 Guide)</h2>
+            <div class="text-block" style="max-width: 800px; margin: 0 auto;">
+                <h3>The Official Rules</h3>
+                <ol style="margin-left: 1.5rem; margin-top: 1rem;">
+                    <li><strong>Set a Budget:</strong> Common limits are $20, $25, or $50. Ensure everyone knows this upfront.</li>
+                    <li><strong>Draw Names Randomly:</strong> Use our generator to ensure fairness and anonymity.</li>
+                    <li><strong>No Telling:</strong> The identity of the giver must remain a secret until the gift is opened.</li>
+                    <li><strong>Wishlists Help:</strong> Encourage participants to fill out their profile so they receive something they actually want.</li>
+                </ol>
+                
+                <h3>Popular Variations</h3>
+                <ul>
+                    <li><strong>White Elephant / Yankee Swap:</strong> Instead of assigned names, everyone brings a generic gift and players can "steal" from each other. Use our <a href="/white-elephant-generator.html">White Elephant Tool</a> for this!</li>
+                    <li><strong>Secret Santa Conspiracy:</strong> Everyone teams up to buy one huge gift for one person.</li>
+                    <li><strong>Thrift Store Challenge:</strong> All gifts must be second-hand or upcycled.</li>
+                </ul>
             </div>
           </section>
           
-          <section class="faq-section-critical">
-            <h2>Your Questions, Answered</h2>
+          <!-- EXTENSIVE FAQ for SEO -->
+          <section class="section-critical">
+            <h2>Frequently Asked Questions</h2>
              <div class="faq-item-critical">
-                <h3>Do I need to create an account or provide my email?</h3>
-                <p>Nope! SecretSantaMatch.com is completely free with zero sign-ups, no accounts, and no email required. Just come to the site, create your exchange, and you're done in minutes.</p>
+                <h3>Is there a Secret Santa generator that doesn't require email?</h3>
+                <p>Yes! SecretSantaMatch.com is specifically designed to work without emails. We generate unique links that you can text, Slack, or WhatsApp to your group.</p>
             </div>
              <div class="faq-item-critical">
-                <h3>How do participants find out who they got?</h3>
-                <p>After you generate matches, you'll receive unique private reveal links for each participant. You share these links however you want—text message, WhatsApp, Messenger, Slack, etc. Each person clicks their link to see who they're buying for. It's that simple!</p>
+                <h3>How do I organize a Secret Santa for an odd number of people?</h3>
+                <p>Our algorithm handles odd numbers automatically. It ensures that everyone gives one gift and receives one gift, creating a perfect loop (A gives to B, B gives to C, C gives to A).</p>
             </div>
              <div class="faq-item-critical">
-                <h3>Is my information private and secure?</h3>
-                <p>Completely! We don't store ANY of your information on our servers. All match details are encoded in the private links themselves, which means your Secret Santa data stays between you and your participants—we never see or store it.</p>
+                <h3>Can I add exclusions so couples don't pick each other?</h3>
+                <p>Absolutely. In Step 2 of the generator, use the "Exclusions" feature. You can select "Person A cannot draw Person B" to prevent spouses, partners, or siblings from matching.</p>
             </div>
              <div class="faq-item-critical">
-                <h3>Can I prevent certain people from being matched together?</h3>
-                <p>Absolutely. In the "Add Details & Rules" section, you'll find an "Exclusions" feature. This allows you to create rules to prevent specific people (like couples or family members in the same household) from being matched together.</p>
+                <h3>Is this tool free?</h3>
+                <p>Yes, 100% free. We are supported by ads and affiliate links, so you never have to pay to organize your party.</p>
             </div>
+            <div class="faq-item-critical">
+         <h3>What questions should I include in a Secret Santa questionnaire?</h3>
+         <p>Good questionnaire questions include: favorite colors, hobbies, clothing sizes, favorite stores, foods they love/hate, and "this or that" preferences. Our built-in wishlist feature handles all of this automatically—participants can update their own profile after receiving their link.</p>
+        </div>
           </section>
+
+          <footer class="footer-critical">
+            <p>&copy; 2025 SecretSantaMatch.com. All rights reserved.</p>
+            <p>
+                <a href="/privacy-policy.html">Privacy Policy</a> | 
+                <a href="/terms-of-service.html">Terms of Service</a> | 
+                <a href="/contact.html">Contact Us</a> |
+                <a href="/white-elephant-generator.html">White Elephant Tool</a> |
+                <a href="/baby-pool.html">Baby Pool</a> |
+                <a href="/blog.html">Holiday Blog</a>
+            </p>
+          </footer>
+
         </div>
       </div>
     </div>
