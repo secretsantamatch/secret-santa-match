@@ -6,135 +6,234 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Secret Santa Match | Holiday Guides, Free Printables & Generator</title>
     <meta name="description" content="Your go-to resource for gift exchange ideas, party planning guides, holiday tips, and fun games, plus the easiest free Secret Santa Generator on the web.">
+    <meta name="keywords" content="free secret santa generator, free white elephant online, free baby pool generator, holiday party games, free printables, gift exchange rules">
     <link rel="canonical" href="https://secretsantamatch.com" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#c62828">
     
+   <!-- Social Media / Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://secretsantamatch.com/">
+    <meta property="og:title" content="Secret Santa Match | Free Party Tools & Guides">
+    <meta property="og:description" content="Plan the perfect party with our free, privacy-first generators and guides. No emails, no accounts, just fun.">
+    <meta property="og:image" content="https://secretsantamatch.com/logo_512.png">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://secretsantamatch.com/">
+    <meta name="twitter:title" content="Secret Santa Match">
+    <meta name="twitter:description" content="Free tools for Secret Santa, White Elephant, and Baby Pools.">
+    <meta name="twitter:image" content="https://secretsantamatch.com/logo_512.png">
+
     <!-- Pinterest Verification -->
     <meta name="p:domain_verify" content="bc322d28f428cbc03973572de2259667"/>
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Secret Santa Match",
+      "url": "https://secretsantamatch.com/",
+      "description": "Free tools and resources for organizing Secret Santa gift exchanges, White Elephant games, and Baby Pools.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://secretsantamatch.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Secret Santa Match",
+      "url": "https://secretsantamatch.com",
+      "logo": "https://secretsantamatch.com/logo_512.png",
+      "sameAs": [
+        "https://pinterest.com/SecretSantaMatch/",
+        "https://www.youtube.com/@SecretSantaMatch",
+        "https://www.tiktok.com/@secretsantamatch"
+      ]
+    }
+    </script>
 
     <!-- Optimized Font Loading Strategy -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Load ALL fonts NON-BLOCKING -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap" media="print" onload="this.media='all'">
-    
-    <!-- Fallback for browsers that don't support JS-based loading -->
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700&family=Patrick+Hand&family=Cormorant+Garamond:wght@400;700&display=swap"></noscript>
     
     <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-HG140X6CQ6"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      // Explicitly define gtag on window to ensure availability
-      window.gtag = function(){window.dataLayer.push(arguments);}
-      window.gtag('js', new Date());
-      window.gtag('config', 'G-HG140X6CQ6');
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-HG140X6CQ6');
     </script>
 
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3037944530219260"
      crossorigin="anonymous"></script>
 
-    <style>
-      /* Inlined src/index.css */
-      @tailwind base;
-      @tailwind components;
-      @tailwind utilities;
-
-      :root, :root[data-theme="default"], :root[data-theme="christmas"] {
-          --primary-color: #c62828; /* A nice Christmas red */
-          --primary-color-hover: #a52121;
-          --accent-color: #2e7d32; /* A festive green */
-          --accent-color-hover: #266a2a;
-      }
-      :root[data-theme="halloween"] {
-          --primary-color: #f97316; /* Orange */
-          --primary-color-hover: #ea580c;
-          --accent-color: #4f46e5; /* Indigo */
-          --accent-color-hover: #4338ca;
-      }
-      :root[data-theme="valentines"] {
-          --primary-color: #dc2626; /* Red */
-          --primary-color-hover: #b91c1c;
-          --accent-color: #ec4899; /* Pink */
-          --accent-color-hover: #db2777;
-      }
-
-      body {
-          font-family: 'Montserrat', sans-serif;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          background-color: #f8fafc; /* A light slate/gray color */
-          color: #334155;
-      }
-
-      /* Custom styles for Driver.js tour */
-      :root {
-        --driver-bg-color: #ffffff;
-        --driver-popover-bg-color: #ffffff;
-        --driver-popover-arrow-color: #ffffff;
-        --driver-popover-title-color: var(--primary-color);
-        --driver-popover-description-color: #334155;
-        --driver-popover-close-btn-bg-color: #e5e7eb;
-        --driver-popover-close-btn-color: #4b5563;
-        --driver-nav-btn-bg-color: var(--primary-color);
-        --driver-nav-btn-color: #ffffff;
-        --driver-nav-btn-hover-bg-color: var(--primary-color-hover);
-        --driver-progress-text-color: #4b5563;
-        --driver-overlay-color: #0f172a;
-        --driver-popover-border-radius: 12px;
-        --driver-popover-padding: 24px;
-        --driver-popover-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      }
-
-      .driver-popover-title {
-        font-family: 'Playfair Display', serif !important;
-        font-size: 1.5rem !important;
-        font-weight: 700 !important;
-      }
-
-      .driver-popover-description {
-        font-family: 'Montserrat', sans-serif !important;
-        font-size: 1rem !important;
-        line-height: 1.6 !important;
-      }
-
-      .driver-popover-progress-text {
-          font-family: 'Montserrat', sans-serif !important;
-      }
-
-      .driver-popover-navigation-btns {
-          font-family: 'Montserrat', sans-serif !important;
-      }
-    </style>
-  <script type="importmap">
+    <link rel="stylesheet" href="/src/index.css" />
+<script type="importmap">
 {
   "imports": {
-    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.0",
+    "vite": "https://aistudiocdn.com/vite@^7.2.2",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
     "path": "https://aistudiocdn.com/path@^0.12.7",
     "url": "https://aistudiocdn.com/url@^0.11.4",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.553.0",
     "jspdf": "https://aistudiocdn.com/jspdf@^3.0.3",
     "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
-    "vite": "https://aistudiocdn.com/vite@^7.1.12",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.548.0",
-    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^5.0.2",
-    "driver.js": "https://aistudiocdn.com/driver.js@^1.3.6",
-    "pako": "https://aistudiocdn.com/pako@^2.1.0",
     "immer": "https://aistudiocdn.com/immer@^10.2.0",
+    "react-qr-code": "https://aistudiocdn.com/react-qr-code@^2.0.18",
+    "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
     "firebase-admin": "https://aistudiocdn.com/firebase-admin@^13.6.0",
-    "react-qr-code": "https://aistudiocdn.com/react-qr-code@^2.0.18"
+    "pako": "https://aistudiocdn.com/pako@^2.1.0",
+    "@netlify/functions": "https://aistudiocdn.com/@netlify/functions@^5.1.0",
+    "@netlify/blobs": "https://aistudiocdn.com/@netlify/blobs@^10.3.3",
+    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^5.0.2",
+    "faunadb": "https://aistudiocdn.com/faunadb@^4.8.2",
+    "canvas-confetti": "https://aistudiocdn.com/canvas-confetti@^1.9.4"
   }
 }
 </script>
+<style>
+    /* Critical CSS for Bot Rendering - Ensures layout looks good without JS */
+    body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; margin: 0; color: #334155; }
+    
+    .header-bar-critical { background: #0f172a; padding: 1rem; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; }
+    .brand-critical { font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    
+    /* Beautiful Tool Bar Critical CSS */
+    .tools-nav-critical { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; align-items: center; }
+    .tool-btn-critical { 
+        display: inline-flex; 
+        align-items: center; 
+        gap: 0.5rem; 
+        padding: 0.5rem 1rem; 
+        border-radius: 9999px; 
+        font-weight: 700; 
+        font-size: 0.875rem; 
+        text-decoration: none; 
+        color: white; 
+        transition: transform 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .tool-btn-critical:hover { transform: translateY(-2px); }
+    .btn-santa { background-color: #dc2626; border: 1px solid #b91c1c; }
+    .btn-elephant { background-color: #2563eb; border: 1px solid #1d4ed8; }
+    .btn-print { background-color: #059669; border: 1px solid #047857; }
+
+    .hero-critical { text-align: center; padding: 4rem 1rem; background: white; border-bottom: 1px solid #e2e8f0; }
+    .hero-critical h1 { font-family: 'Playfair Display', serif; font-size: 3rem; margin: 0 0 1rem 0; font-weight: 800; color: #f97316; }
+    .hero-critical p { font-size: 1.25rem; color: #475569; max-width: 40rem; margin: 0 auto; line-height: 1.6; }
+
+    .content-section { max-width: 64rem; margin: 4rem auto; padding: 0 1.5rem; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 2rem; color: #1e293b; text-align: center; margin-bottom: 2rem; font-weight: 800; }
+    
+    .articles-grid-critical { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+    .article-card-critical { background: white; border-radius: 1rem; overflow: hidden; border: 1px solid #e2e8f0; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .article-content-critical { padding: 1.5rem; flex-grow: 1; }
+    .article-card-critical h3 { margin-top: 0; font-size: 1.25rem; color: #1e293b; font-weight: 700; }
+    .article-card-critical p { color: #64748b; font-size: 0.95rem; line-height: 1.6; }
+    .read-more-btn { display: inline-block; margin-top: 1rem; color: #c62828; font-weight: 700; text-decoration: none; }
+
+    .seo-text-block { background: #f1f5f9; padding: 2.5rem; border-radius: 1rem; margin-top: 4rem; color: #475569; }
+    .seo-text-block h2 { color: #334155; font-family: 'Playfair Display', serif; margin-top: 0; }
+    .seo-text-block p { line-height: 1.7; margin-bottom: 1rem; }
+
+    .static-footer { margin-top: 4rem; padding: 3rem 1rem; background: #1e293b; color: #94a3b8; text-align: center; font-size: 0.875rem; }
+    .static-footer a { color: #cbd5e1; text-decoration: none; margin: 0 0.75rem; }
+    .static-footer a:hover { color: white; }
+</style>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+        <!-- Static Content for SEO Bots & Instant Loading -->
+        
+        <!-- Header with Beautiful Toolbar -->
+        <div class="header-bar-critical">
+            <div class="brand-critical">
+                <img src="/logo_256.png" alt="Logo" width="32" height="32" style="border-radius: 50%; background: white; padding: 2px;" />
+                <span>SecretSantaMatch</span>
+            </div>
+            <nav class="tools-nav-critical">
+                <a href="/generator.html" class="tool-btn-critical btn-santa">
+                    🎅 Secret Santa
+                </a>
+                <a href="/white-elephant-generator.html" class="tool-btn-critical btn-elephant">
+                    🐘 White Elephant
+                </a>
+                <a href="/free-printables.html" class="tool-btn-critical btn-print">
+                    🖨️ Free Printables
+                </a>
+            </nav>
+        </div>
+
+        <header class="hero-critical">
+            <h1>The Secret Santa Blog</h1>
+            <p>Your go-to resource for gift exchange ideas, party planning guides, holiday tips, free printables, and fun games for any occasion.</p>
+        </header>
+
+        <div class="content-section">
+            <h2 class="section-title">Latest Holiday Guides</h2>
+            <div class="articles-grid-critical">
+                <div class="article-card-critical">
+                    <div class="article-content-critical">
+                        <h3>Gift Card Etiquette 2025</h3>
+                        <p>Is $25 enough? Is it rude to give cash? We break down the social rules for every relationship.</p>
+                        <a href="/gift-card-etiquette.html" class="read-more-btn">Read Guide →</a>
+                    </div>
+                </div>
+                <div class="article-card-critical">
+                    <div class="article-content-critical">
+                        <h3>White Elephant Rules</h3>
+                        <p>The complete guide to Yankee Swap and Dirty Santa rules. Learn stealing limits and variations.</p>
+                        <a href="/white-elephant-rules.html" class="read-more-btn">Read Rules →</a>
+                    </div>
+                </div>
+                <div class="article-card-critical">
+                    <div class="article-content-critical">
+                        <h3>Paper vs. Apps Comparison</h3>
+                        <p>Should you use paper slips or an app? We compare the privacy and ease of use for 2025.</p>
+                        <a href="/complete-secret-santa-comparison.html" class="read-more-btn">See Comparison →</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEO Rich Text Block for "Low Value Content" Prevention -->
+            <div class="seo-text-block">
+                <h2>Why Use Secret Santa Match?</h2>
+                <p>
+                    In an era of data collection, <strong>Secret Santa Match</strong> stands out as a privacy-first alternative to traditional gift exchange apps. Unlike other platforms that require every participant to download an app or hand over their email address, our tools work entirely in the browser.
+                </p>
+                <p>
+                    We use a unique URL-based data system. When you create a Secret Santa group or White Elephant game, the data is encrypted into the link itself. This means we never store your personal family or office data on our servers. It's the safest, fastest way to organize an office party or family gathering in 2025.
+                </p>
+                <p>
+                    Whether you are hosting a <strong>virtual baby shower</strong>, a <strong>remote team building event</strong>, or a traditional <strong>family Christmas party</strong>, our suite of free tools handles the logistics so you can focus on the fun.
+                </p>
+            </div>
+        </div>
+        
+        <footer class="static-footer">
+            <p>&copy; 2025 SecretSantaMatch.com. All Rights Reserved.</p>
+            <p>
+                <a href="/privacy-policy.html">Privacy Policy</a> | 
+                <a href="/terms-of-service.html">Terms of Service</a> | 
+                <a href="/about-us.html">About Us</a> |
+                <a href="/contact.html">Contact</a>
+            </p>
+        </footer>
+    </div>
     <script type="module" defer src="/src/blog.tsx"></script>
   </body>
 </html>
