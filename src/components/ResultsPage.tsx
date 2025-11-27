@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -342,7 +343,7 @@ const PineTalesPromo = () => (
                     className="inline-flex items-center gap-1.5 text-sm font-bold bg-white text-teal-700 px-4 py-2 rounded-lg border border-teal-200 hover:bg-teal-600 hover:text-white hover:border-teal-600 transition-all shadow-sm"
                     onClick={() => trackEvent('affiliate_click', { partner: 'PineTales' })}
                 >
-                    Shop Now <ArrowRight size={14} />
+                    Shop Now (Avg. $55) <ArrowRight size={14} />
                 </a>
             </div>
         </div>
@@ -681,6 +682,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const [isWishlistLoading, setIsWishlistLoading] = useState(true);
 
     const isOrganizer = !currentParticipantId;
+    const pagePath = isOrganizer ? '/secret-santa/organizer-dashboard' : '/secret-santa/reveal';
 
     const { p: participantsFromUrl, matches: matchIds, exclusions, assignments, id: exchangeId } = data;
     
@@ -691,6 +693,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         };
         setIsWishlistLoading(true);
         try {
+            // Cache busting timestamp added here
             const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${Date.now()}`);
             if (res.ok) {
                 const wishlistData = await res.json();
@@ -721,8 +724,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
-        // We are intentionally NOT calling fetchWishlists() here to rely on optimistic update
-        // as per user instructions to fix the "saving" race condition.
+        // Optimistic update: Do NOT call fetchWishlists() here to avoid race condition
     };
 
 
@@ -757,7 +759,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
         // 2. Keyword Matching for Specialized Partners (US Only)
         if (!isEu) {
-            // Bonheur Jewelry Trigger
+            // Bonheur Jewelry Trigger - Include 'jewellery' spelling
             if (combinedText.match(/jewelry|jewellery|necklace|earring|ring|bracelet|gold|silver|diamond|luxury|fashion|style|sparkle|wife|girlfriend|mom/)) {
                 return <BonheurPromo />;
             }
@@ -785,18 +787,19 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         }
         
         if (shouldTrackByDefault()) {
-             trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId });
+             trackEvent('view_results_page', { is_organizer: isOrganizer, participant_id: currentParticipantId, page_path: pagePath });
              
              trackEvent('page_view', {
                 page_title: isOrganizer ? 'Secret Santa Organizer Dashboard' : 'Secret Santa Reveal Page',
                 page_location: window.location.href,
-                page_path: isOrganizer ? '/secret-santa/organizer-dashboard' : '/secret-santa/reveal'
+                page_path: pagePath
              });
 
              if (isOrganizer) {
                  trackEvent('organizer_dashboard_loaded', {
                      participant_count: matches.length,
-                     has_budget: matches.some(m => m.receiver.budget)
+                     has_budget: matches.some(m => m.receiver.budget),
+                     page_path: pagePath
                  });
              }
         }
@@ -830,27 +833,28 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
     const handleReveal = () => {
         setIsNameRevealed(true);
-        trackEvent('reveal_name');
+        trackEvent('reveal_name', { page_path: pagePath });
         setTimeout(() => {
             setDetailsVisible(true);
+            trackEvent('reveal_complete', { page_path: pagePath });
         }, 2500);
     };
 
     const openShareModal = (view: 'links' | 'print') => {
         setShareModalInitialView(view);
         setIsShareModalOpen(true);
-        trackEvent('open_share_modal', { initial_view: view });
+        trackEvent('open_share_modal', { initial_view: view, page_path: pagePath });
     };
     
     const openWishlistModal = () => {
         setIsWishlistModalOpen(true);
-        trackEvent('open_wishlist_editor');
+        trackEvent('open_wishlist_editor', { page_path: pagePath });
     };
 
     const executeShuffle = async () => {
         if (!isOrganizer) return;
         setIsShuffling(true);
-        trackEvent('shuffle_again_confirmed');
+        trackEvent('shuffle_again_confirmed', { page_path: pagePath });
         try {
             await new Promise(resolve => setTimeout(resolve, 300));
             const result = generateMatches(participants, exclusions || [], assignments || []);
@@ -858,11 +862,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             
             const newRawMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
             onDataUpdated(newRawMatches);
-            trackEvent('shuffle_again_success');
+            trackEvent('shuffle_again_success', { page_path: pagePath });
         } catch (error) {
             console.error("Shuffle Error:", error);
             alert(`Could not shuffle matches: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            trackEvent('shuffle_again_fail', { error: error instanceof Error ? error.message : 'unknown' });
+            trackEvent('shuffle_again_fail', { error: error instanceof Error ? error.message : 'unknown', page_path: pagePath });
         } finally {
             setIsShuffling(false);
         }
@@ -873,7 +877,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         navigator.clipboard.writeText(shortOrganizerLink).then(() => {
             setOrganizerLinkCopied(true);
             setTimeout(() => setOrganizerLinkCopied(false), 2500);
-            trackEvent('copy_link', { link_type: 'organizer_master_link' });
+            trackEvent('copy_link', { link_type: 'organizer_master_link', page_path: pagePath });
         });
     };
     
@@ -923,7 +927,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                 <button onClick={() => openShareModal('links')} className="py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg">
                                     <Share2 size={20} /> Share & Download Hub
                                 </button>
-                                <button onClick={() => { trackEvent('shuffle_again_click'); setIsShuffleModalOpen(true); }} disabled={isShuffling} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait">
+                                <button onClick={() => { trackEvent('shuffle_again_click', { page_path: pagePath }); setIsShuffleModalOpen(true); }} disabled={isShuffling} className="py-3 px-6 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait">
                                     {isShuffling ? <Loader2 size={20} className="animate-spin" /> : <Shuffle size={20} />}
                                     {isShuffling ? 'Shuffling...' : 'Shuffle'}
                                 </button>
