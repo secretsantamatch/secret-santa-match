@@ -1,12 +1,14 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Resource } from '../types';
 import ResourceCard from './ResourceCard';
 import Footer from './Footer';
 import BackToTopButton from './BackToTopButton';
 import FeaturedResources from './FeaturedResources';
+import { Search } from 'lucide-react';
 
 const parseDate = (dateStr?: string): Date => {
-  if (!dateStr) return new Date(0); // Return a very old date for items without one
+  if (!dateStr) return new Date(0);
   return new Date(dateStr);
 };
 
@@ -27,7 +29,7 @@ const BlogPage: React.FC = () => {
         return response.json();
       })
       .then(data => {
-        setResources(data);
+        setResources(data.resources);
         setStatus('success');
       })
       .catch(err => {
@@ -207,17 +209,31 @@ const BlogPage: React.FC = () => {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-       <div className="bg-gradient-to-r from-green-600 to-red-600 p-4 text-white text-center shadow-md sticky top-0 z-50">
-        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-4">
-          <p className="font-bold text-lg flex-grow text-center sm:text-left">
-            Ready to organize your gift exchange? 
-            <span className="hidden sm:inline"> Our free Secret Santa Generator is just a click away!</span>
-          </p>
-          <a href="/generator.html" className="flex-shrink-0 bg-white text-red-600 font-bold py-2 px-6 rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out">
-            Start Drawing Names &rarr;
-          </a>
+       {/* Beautiful Top Navigation Bar */}
+       <div className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 shadow-xl">
+            <div className="container mx-auto px-4 py-3">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+                    {/* Brand */}
+                    <div className="flex items-center gap-2 text-white/90">
+                        <img src="/logo_256.png" alt="Secret Santa Match" className="w-8 h-8 rounded-full bg-white p-0.5 shadow-sm" />
+                        <span className="font-bold text-lg font-serif tracking-wide hidden sm:block text-white">SecretSantaMatch</span>
+                    </div>
+                    
+                    {/* Tool Links - Using standard anchor tags to prevent Router crashes */}
+                    <nav className="flex flex-wrap justify-center items-center gap-3 w-full md:w-auto">
+                        <a href="/generator" className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-lg border border-red-500 hover:border-red-400 no-underline">
+                            🎅 Secret Santa
+                        </a>
+                        <a href="/white-elephant-generator" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-lg border border-blue-500 hover:border-blue-400 no-underline">
+                            🐘 White Elephant
+                        </a>
+                        <a href="/free-printables" className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-lg border border-emerald-500 hover:border-emerald-400 no-underline">
+                            🖨️ Free Printables
+                        </a>
+                    </nav>
+                </div>
+            </div>
         </div>
-      </div>
 
       <div className="bg-white border-b">
         <div className="container mx-auto p-4 sm:p-6 md:py-12 max-w-5xl text-center">
@@ -238,9 +254,7 @@ const BlogPage: React.FC = () => {
                   className="w-full p-4 pl-12 border-2 border-slate-200 rounded-full focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] transition"
                   aria-label="Search blog posts"
                 />
-                <svg className="h-6 w-6 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <Search className="h-6 w-6 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
               </div>
             </div>
             <div className="mt-6 p-4 bg-slate-100 rounded-2xl flex flex-col sm:flex-row flex-wrap items-center justify-center gap-x-4 gap-y-3">
