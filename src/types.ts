@@ -154,3 +154,40 @@ export interface WEGame {
     giftState: Record<string, string>; // Maps Participant ID -> Gift Description
     createdAt: string;
 }
+
+
+// --- BABY POOL TYPES ---
+
+export interface BabyGuess {
+    id: string;
+    guesserName: string;
+    date: string;
+    time: string;
+    weightLbs: number;
+    weightOz: number;
+    gender: string;
+    suggestedName: string;
+    score?: number;
+    submittedAt?: string;
+}
+
+export interface BabyPool {
+    poolId: string;
+    adminKey?: string;
+    babyName: string;
+    dueDate: string;
+    theme: string;
+    registryLink: string;
+    guesses: BabyGuess[];
+    status: 'active' | 'completed';
+    result?: {
+        date: string;
+        time: string;
+        weightLbs: number;
+        weightOz: number;
+        gender: string;
+        actualName: string;
+        photoLink?: string;
+    };
+    createdAt: string;
+}
