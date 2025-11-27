@@ -165,8 +165,12 @@ export interface BabyGuess {
     time: string;
     weightLbs: number;
     weightOz: number;
+    length?: number; // Inches
+    hairColor?: string;
+    eyeColor?: string;
     gender: string;
     suggestedName: string;
+    customAnswers?: Record<string, string>; // Key is question index/ID
     score?: number;
     submittedAt?: string;
 }
@@ -175,11 +179,13 @@ export interface BabyPool {
     poolId: string;
     adminKey?: string;
     babyName: string;
-    parentNames?: string; // NEW
+    parentNames?: string;
     dueDate: string;
     theme: string;
     registryLink: string;
-    diaperFundLink?: string; // NEW
+    diaperFundLink?: string;
+    knowGender?: boolean; // If true, gender guess is hidden
+    customQuestions?: string[]; // Up to 3 custom questions
     guesses: BabyGuess[];
     status: 'active' | 'completed';
     result?: {
@@ -187,9 +193,13 @@ export interface BabyPool {
         time: string;
         weightLbs: number;
         weightOz: number;
+        length?: number;
+        hairColor?: string;
+        eyeColor?: string;
         gender: string;
         actualName: string;
         photoLink?: string;
+        customAnswers?: Record<string, string>;
     };
     createdAt: string;
 }

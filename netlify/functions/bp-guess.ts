@@ -16,6 +16,7 @@ export default async (req: Request, context: Context) => {
         if (pool.status === 'completed') return new Response('Pool is closed', { status: 403 });
 
         // Add ID and Timestamp to guess
+        // We explicitly allow the new fields (length, hair, eye, customAnswers) to pass through via ...guess
         const newGuess = {
             ...guess,
             id: crypto.randomUUID(),

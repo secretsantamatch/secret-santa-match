@@ -20,6 +20,8 @@ export default async (req: Request, context: Context) => {
             theme: data.theme || 'sage',
             registryLink: data.registryLink || '',
             diaperFundLink: data.diaperFundLink || '',
+            knowGender: !!data.knowGender,
+            customQuestions: Array.isArray(data.customQuestions) ? data.customQuestions.filter((q: string) => q.trim() !== '').slice(0, 3) : [],
             guesses: [],
             status: 'active', // 'active' or 'completed'
         };
