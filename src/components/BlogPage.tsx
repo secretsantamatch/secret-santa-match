@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Resource } from '../types';
 import ResourceCard from './ResourceCard';
@@ -27,7 +28,7 @@ const BlogPage: React.FC = () => {
         return response.json();
       })
       .then(data => {
-        setResources(data);
+        setResources(data.resources);
         setStatus('success');
       })
       .catch(err => {
@@ -207,17 +208,31 @@ const BlogPage: React.FC = () => {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-       <div className="bg-gradient-to-r from-green-600 to-red-600 p-4 text-white text-center shadow-md sticky top-0 z-50">
-        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-4">
-          <p className="font-bold text-lg flex-grow text-center sm:text-left">
-            Ready to organize your gift exchange? 
-            <span className="hidden sm:inline"> Our free Secret Santa Generator is just a click away!</span>
-          </p>
-          <a href="/generator.html" className="flex-shrink-0 bg-white text-red-600 font-bold py-2 px-6 rounded-full shadow-md transform hover:scale-105 transition-transform duration-200 ease-in-out">
-            Start Drawing Names &rarr;
-          </a>
+        {/* Tools Navigation Bar */}
+       <div className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 shadow-xl">
+            <div className="container mx-auto px-4 py-3">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+                    {/* Brand / Label */}
+                    <div className="flex items-center gap-2 text-white/90">
+                        <img src="/logo_256.png" alt="Secret Santa Match" className="w-8 h-8 rounded-full bg-white p-0.5 shadow-sm" />
+                        <span className="font-bold text-lg font-serif tracking-wide hidden sm:block text-white">SecretSantaMatch</span>
+                    </div>
+                    
+                    {/* Tool Links */}
+                    <nav className="flex flex-wrap justify-center items-center gap-3 w-full md:w-auto">
+                        <a href="/generator.html" className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-lg border border-red-500 hover:border-red-400">
+                            🎅 Secret Santa
+                        </a>
+                        <a href="/white-elephant-generator.html" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-lg border border-blue-500 hover:border-blue-400">
+                            🐘 White Elephant
+                        </a>
+                        <a href="/free-printables.html" className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-lg border border-emerald-500 hover:border-emerald-400">
+                            🖨️ Free Printables
+                        </a>
+                    </nav>
+                </div>
+            </div>
         </div>
-      </div>
 
       <div className="bg-white border-b">
         <div className="container mx-auto p-4 sm:p-6 md:py-12 max-w-5xl text-center">
