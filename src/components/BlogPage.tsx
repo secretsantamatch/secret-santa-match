@@ -216,7 +216,7 @@ const BlogPage: React.FC = () => {
            Sticky top navigation for tools.
            Uses standard <a> tags to avoid React Router crashes in non-router environments.
        */}
-       <div className="bg-[#0f172a] text-white border-b border-slate-800 sticky top-0 z-[100] shadow-lg">
+       <div className="bg-gradient-to-r from-green-700 to-red-700 text-white border-b border-red-800 sticky top-0 z-[100] shadow-lg">
             <div className="max-w-6xl mx-auto px-4 py-3">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     {/* Brand */}
@@ -226,26 +226,26 @@ const BlogPage: React.FC = () => {
                             alt="Logo" 
                             className="w-8 h-8 rounded-full bg-white p-0.5 transition-transform group-hover:scale-110" 
                         />
-                        <span className="font-bold text-lg font-serif tracking-wide">SecretSantaMatch</span>
+                        <span className="font-bold text-lg font-serif tracking-wide shadow-black drop-shadow-md">SecretSantaMatch</span>
                     </a>
                     
                     {/* Navigation Buttons */}
                     <nav className="flex flex-wrap justify-center items-center gap-3">
                         <a 
                             href="/generator" 
-                            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-md border border-red-500 no-underline"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-white text-red-700 hover:bg-slate-100 rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-md border-2 border-transparent hover:border-red-200 no-underline"
                         >
-                            <span className="text-lg">🎅</span> Secret Santa
+                            <span className="text-lg">🎅</span> Secret Santa Generator
                         </a>
                         <a 
                             href="/white-elephant-generator" 
-                            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-md border border-blue-500 no-underline"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 hover:bg-slate-100 rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-md border-2 border-transparent hover:border-blue-200 no-underline"
                         >
-                            <span className="text-lg">🐘</span> White Elephant
+                            <span className="text-lg">🐘</span> White Elephant Generator
                         </a>
                         <a 
                             href="/free-printables" 
-                            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-md border border-emerald-500 no-underline"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-white text-emerald-700 hover:bg-slate-100 rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-md border-2 border-transparent hover:border-emerald-200 no-underline"
                         >
                             <span className="text-lg">🖨️</span> Free Printables
                         </a>
