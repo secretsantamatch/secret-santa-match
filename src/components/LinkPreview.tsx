@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, Loader2, ShoppingCart } from 'lucide-react';
+import { trackEvent } from '../services/analyticsService';
 
 interface LinkPreviewProps {
   url: string;
@@ -101,6 +103,21 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
     fetchData();
   }, [url, isForPdf, detectedRetailer]);
 
+  const handleLinkClick = () => {
+      // Track the click
+      try {
+          const domain = new URL(url).hostname.replace(/^www\./, '');
+          trackEvent('wishlist_click', {
+              url: url,
+              domain: domain,
+              is_retailer_detected: !!detectedRetailer,
+              retailer_name: detectedRetailer?.name || 'Unknown'
+          });
+      } catch (e) {
+          trackEvent('wishlist_click', { url: url });
+      }
+  };
+
   if (isForPdf) {
       return (
         <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer sponsored" className="text-blue-600 underline truncate block">
@@ -115,6 +132,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
           href={affiliatedUrl}
           target="_blank"
           rel="noopener noreferrer sponsored"
+          onClick={handleLinkClick}
           className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
         >
           <div className={`flex-shrink-0 h-10 w-10 flex items-center justify-center ${detectedRetailer.color} rounded-md text-white`}>
@@ -143,6 +161,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
           href={affiliatedUrl}
           target="_blank"
           rel="noopener noreferrer sponsored"
+          onClick={handleLinkClick}
           className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
         >
           <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-green-100 rounded-md text-green-700">
@@ -162,6 +181,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
           href={affiliatedUrl}
           target="_blank"
           rel="noopener noreferrer sponsored"
+          onClick={handleLinkClick}
           className="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group"
         >
           <div className="w-20 h-16 flex-shrink-0 bg-cover bg-center rounded" style={{ backgroundImage: `url(${data.image})` }}></div>
@@ -174,7 +194,7 @@ const LinkPreview: React.FC<LinkPreviewProps> = ({ url, isForPdf = false }) => {
   }
 
   return (
-    <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer sponsored" className="block p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group">
+    <a href={affiliatedUrl} target="_blank" rel="noopener noreferrer sponsored" onClick={handleLinkClick} className="block p-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors no-underline group">
         <div className="overflow-hidden min-w-0">
             <p className="font-semibold text-sm truncate m-0 text-slate-800 group-hover:text-indigo-600">{data.title}</p>
             {data.description && <p className="text-xs text-slate-500 m-0 mt-1 line-clamp-2">{data.description}</p>}
