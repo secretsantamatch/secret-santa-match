@@ -53,27 +53,22 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
       setIsAnimationComplete(false); // Reset on new reveal
       const finalName = receiver.name;
       
-      // Start countdown
-      setAnimatedName('3');
+      // Start countdown from 5
+      setAnimatedName('5');
       
-      const timeout1 = setTimeout(() => {
-        setAnimatedName('2');
-      }, 800);
-
-      const timeout2 = setTimeout(() => {
-        setAnimatedName('1');
-      }, 1600);
+      const t1 = setTimeout(() => setAnimatedName('4'), 800);
+      const t2 = setTimeout(() => setAnimatedName('3'), 1600);
+      const t3 = setTimeout(() => setAnimatedName('2'), 2400);
+      const t4 = setTimeout(() => setAnimatedName('1'), 3200);
       
-      const timeout3 = setTimeout(() => {
+      const t5 = setTimeout(() => {
         setAnimatedName(finalName);
         setIsAnimationComplete(true);
-      }, 2400);
+      }, 4000);
 
       // Cleanup function
       return () => {
-        clearTimeout(timeout1);
-        clearTimeout(timeout2);
-        clearTimeout(timeout3);
+        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5);
       };
 
     } else if (!isNameRevealed) {
@@ -134,9 +129,14 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
   };
 
   const animatedNameContent = isForPdf ? (isNameRevealed ? receiver.name : '??????????') : animatedName;
-  const dynamicNameSize = typeof animatedNameContent === 'string' 
-    ? calculateNameFontSize(animatedNameContent, baseSizes.name) 
-    : baseSizes.name;
+  
+  // Dynamic font sizing: Numbers are huge, Name is calculated, '???' is standard
+  let currentFontSize = baseSizes.name;
+  if (!isAnimationComplete && isNameRevealed && !isForPdf) {
+      currentFontSize = '5rem'; // Huge numbers
+  } else if (typeof animatedNameContent === 'string') {
+      currentFontSize = calculateNameFontSize(animatedNameContent, baseSizes.name);
+  }
 
   const renderWishlistItem = (label: string, value: string | undefined) => {
     if (!value || value.trim() === '') return null;
@@ -177,23 +177,26 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
                 </p>
             </div>
 
-            {/* Receiver Name */}
-            <h1
-                className="font-bold my-1 break-words break-all"
-                style={{
-                    ...commonTextStyle,
-                    fontFamily: fontFamilies.classic,
-                    fontSize: dynamicNameSize,
-                    lineHeight: 1.1,
-                    letterSpacing: isNameRevealed ? 'normal' : '0.2em'
-                }}
-            >
-                {animatedNameContent}
-            </h1>
+            {/* Receiver Name / Countdown */}
+            <div className="my-2 relative flex justify-center items-center">
+                <h1
+                    key={String(animatedNameContent)} // Force re-render for animation reset
+                    className={`font-bold break-words break-all ${!isAnimationComplete && isNameRevealed && !isForPdf ? 'animate-bounce' : 'animate-fade-in'}`}
+                    style={{
+                        ...commonTextStyle,
+                        fontFamily: fontFamilies.classic,
+                        fontSize: currentFontSize,
+                        lineHeight: 1.1,
+                        letterSpacing: isNameRevealed ? 'normal' : '0.2em'
+                    }}
+                >
+                    {animatedNameContent}
+                </h1>
+            </div>
             
             {/* Wishlist and Event Details */}
             {showWishlistDetails && (
-              <div className="w-full mt-4">
+              <div className="w-full mt-4 animate-fade-in">
                 <h3 className="font-bold" style={{ ...commonTextStyle, fontSize: baseSizes.header, marginBottom: '0.25em' }}>{wish}</h3>
                 
                 <ul className="list-none space-y-0 p-0 m-0 text-left max-w-[70%] mx-auto" style={{ ...commonTextStyle, fontSize: baseSizes.wishlist, lineHeight: 1.3 }}>
@@ -222,6 +225,10 @@ const PrintableCard: React.FC<PrintableCardProps> = ({
             }
         </div>
       </div>
+      <style>{`
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+      `}</style>
     </div>
   );
 };
