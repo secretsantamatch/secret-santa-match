@@ -154,3 +154,60 @@ export interface WEGame {
     giftState: Record<string, string>; // Maps Participant ID -> Gift Description
     createdAt: string;
 }
+
+
+// --- BABY POOL TYPES ---
+
+export interface BabyGuess {
+    id: string;
+    guesserName: string;
+    date: string;
+    time: string;
+    weightLbs: number;
+    weightOz: number;
+    length?: number; // Inches
+    hairColor?: string;
+    eyeColor?: string;
+    gender: string;
+    suggestedName: string;
+    customAnswers?: Record<string, string>; // Key is question index/ID
+    score?: number;
+    submittedAt?: string;
+}
+
+export interface BabyPool {
+    poolId: string;
+    adminKey?: string;
+    babyName: string;
+    parentNames?: string;
+    dueDate: string;
+    theme: string;
+    registryLink: string;
+    diaperFundLink?: string;
+    // includeFields controls which inputs are shown to guests
+    includeFields?: {
+        time: boolean;
+        weight: boolean;
+        length: boolean;
+        hair: boolean;
+        eye: boolean;
+        gender: boolean;
+    };
+    customQuestions?: string[]; // Up to 3 custom questions
+    guesses: BabyGuess[];
+    status: 'active' | 'completed';
+    result?: {
+        date: string;
+        time: string;
+        weightLbs: number;
+        weightOz: number;
+        length?: number;
+        hairColor?: string;
+        eyeColor?: string;
+        gender: string;
+        actualName: string;
+        photoLink?: string;
+        customAnswers?: Record<string, string>;
+    };
+    createdAt: string;
+}
