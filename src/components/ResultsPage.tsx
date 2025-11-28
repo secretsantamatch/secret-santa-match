@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
 import ResultsDisplay from './ResultsDisplay';
@@ -11,7 +11,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart, ArrowRight, Gem, Tag, Calendar, Percent, Zap } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, Eye, EyeOff, MessageCircle, Bookmark, Star, PawPrint, TrendingUp, Sparkles, Martini, Palette, CreditCard, ShoppingBag, Flame, Headphones, Coffee, Utensils, Droplet, Smile, Car, Cookie, Moon, Thermometer, ExternalLink, HelpCircle, ShoppingCart, ArrowRight, Gem, Tag, Calendar, Percent, Zap, ChevronDown, RefreshCw } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -680,21 +680,26 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const [showCookieBanner, setShowCookieBanner] = useState(false);
     const [liveWishlists, setLiveWishlists] = useState<LiveWishlists>({});
     const [isWishlistLoading, setIsWishlistLoading] = useState(true);
+    
+    const detailsRef = useRef<HTMLDivElement>(null);
 
     const isOrganizer = !currentParticipantId;
     const pagePath = isOrganizer ? '/secret-santa/organizer-dashboard' : '/secret-santa/reveal';
 
     const { p: participantsFromUrl, matches: matchIds, exclusions, assignments, id: exchangeId } = data;
     
-    const fetchWishlists = useCallback(async () => {
+    // UPDATED: Added isBackground parameter for polling logic
+    const fetchWishlists = useCallback(async (isBackground = false) => {
         if (!exchangeId) {
             setIsWishlistLoading(false);
             return;
         };
-        setIsWishlistLoading(true);
+        if (!isBackground) setIsWishlistLoading(true);
         try {
-            // Cache busting timestamp added here
-            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${Date.now()}`);
+            // Added explicit cache busting headers
+            const res = await fetch(`/.netlify/functions/get-wishlist?exchangeId=${exchangeId}&t=${Date.now()}`, {
+                headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+            });
             if (res.ok) {
                 const wishlistData = await res.json();
                 setLiveWishlists(wishlistData);
@@ -702,12 +707,22 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         } catch (e) {
             console.error("Failed to fetch wishlists", e);
         } finally {
-            setIsWishlistLoading(false);
+            if (!isBackground) setIsWishlistLoading(false);
         }
     }, [exchangeId]);
 
+    // UPDATED: Added polling effect
     useEffect(() => {
-        fetchWishlists();
+        fetchWishlists(); // Initial load
+
+        // Poll every 15 seconds to keep wishlists fresh
+        const intervalId = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                fetchWishlists(true); // Background fetch
+            }
+        }, 15000);
+
+        return () => clearInterval(intervalId);
     }, [fetchWishlists]);
     
     const participants = useMemo(() => {
@@ -724,9 +739,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 [currentParticipantId]: newWishlist
             }));
         }
-        // Optimistic update: Do NOT call fetchWishlists() here to avoid race condition
     };
-
 
     const matches: Match[] = useMemo(() => matchIds.map(m => ({
         giver: participants.find(p => p.id === m.g)!,
@@ -837,7 +850,16 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         setTimeout(() => {
             setDetailsVisible(true);
             trackEvent('reveal_complete', { page_path: pagePath });
+            if (detailsRef.current) {
+                detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }, 2500);
+    };
+
+    const scrollToDetails = () => {
+        if (detailsRef.current) {
+            detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     };
 
     const openShareModal = (view: 'links' | 'print') => {
@@ -879,6 +901,11 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             setTimeout(() => setOrganizerLinkCopied(false), 2500);
             trackEvent('copy_link', { link_type: 'organizer_master_link', page_path: pagePath });
         });
+    };
+    
+    // Manual refresh handler for UI button
+    const handleManualRefresh = () => {
+        fetchWishlists(false); // Show loading spinner
     };
     
     const isEu = isEuVisitor();
@@ -948,7 +975,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                         </div>
 
                         <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
-                        {exchangeId && <ResultsDisplay matches={matches} exchangeId={exchangeId} liveWishlists={liveWishlists} />}
+                        {exchangeId && <ResultsDisplay matches={matches} exchangeId={exchangeId} liveWishlists={liveWishlists} onRefresh={handleManualRefresh} isRefreshing={isWishlistLoading} />}
                     </div>
                 ) : (
                     currentMatch && (
@@ -1001,65 +1028,84 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                     </div>
                                 ) : (
                                     <div className="mt-4 space-y-6">
-                                        <p className="text-lg text-slate-600">
-                                            <span className="font-bold text-green-700">{currentMatch.giver.name}</span>, you are the Secret Santa for...
-                                        </p>
+                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                                            <p className="text-lg text-slate-600">
+                                                <span className="font-bold text-green-700">{currentMatch.giver.name}</span>, you are the Secret Santa for...
+                                            </p>
+                                            <p className="text-2xl font-bold text-red-600 mt-2">{currentMatch.receiver.name}</p>
+                                        </div>
                                         
-                                        <button onClick={openWishlistModal} className="w-full md:w-auto py-3 px-6 bg-slate-700 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors">
-                                            Edit My Wishlist for My Santa
+                                        <button 
+                                            onClick={scrollToDetails}
+                                            className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
+                                        >
+                                            <Gift size={24} /> View {currentMatch.receiver.name}'s Wishlist
+                                        </button>
+
+                                        <button onClick={openWishlistModal} className="w-full py-3 px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-colors">
+                                            Edit My Own Wishlist
                                         </button>
                                         
                                         {detailsVisible && (
-                                            <div className="bg-slate-100 rounded-2xl p-6 border text-left shadow-inner space-y-6 animate-fade-in">
+                                            <div ref={detailsRef} className="bg-slate-100 rounded-2xl p-6 border text-left shadow-inner space-y-6 animate-fade-in scroll-mt-24">
                                                 
-                                                {/* Save Link Banner - ADMIN COLOR (Blue) */}
-                                                <div className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white p-4 rounded-xl shadow-md flex items-center gap-4 border border-indigo-400">
-                                                    <div className="bg-white/20 p-2 rounded-full">
-                                                        <Bookmark className="h-6 w-6 text-white" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-lg">Save Your Link!</p>
-                                                        <p className="text-sm text-indigo-100">Bookmark this page to easily come back and check your person's wishlist.</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="bg-white rounded-lg p-6 border text-left shadow-md space-y-4">
-                                                    <div className="text-center border-b pb-4">
-                                                        <h3 className="font-bold text-lg text-slate-700">Your Person is:</h3>
-                                                        <p className="text-4xl font-bold text-red-600">{currentMatch.receiver.name}</p>
+                                                <div className="bg-white rounded-lg p-6 border text-left shadow-md space-y-4 relative">
+                                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-1 rounded-full text-sm font-bold shadow-sm flex items-center gap-1">
+                                                        <ChevronDown size={14}/> {currentMatch.receiver.name}'s Wishlist <ChevronDown size={14}/>
                                                     </div>
 
-                                                    {hasDetails && (
-                                                        <div>
-                                                            <h4 className="font-bold text-slate-700 mb-1">Their Gift Ideas</h4>
-                                                            <p className="text-xs font-bold text-amber-700 mb-3 flex items-center gap-1 bg-amber-50 w-fit px-2 py-1 rounded-md">
-                                                                🎁 Tip: Tap any highlighted interest to find it on Amazon.
-                                                            </p>
+                                                    {/* Added explicit Refresh button for guests too */}
+                                                    <div className="absolute top-2 right-2">
+                                                        <button 
+                                                            onClick={handleManualRefresh}
+                                                            className={`p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors ${isWishlistLoading ? 'animate-spin text-blue-500' : ''}`}
+                                                            title="Refresh Wishlist"
+                                                        >
+                                                            <RefreshCw size={14} />
+                                                        </button>
+                                                    </div>
+
+                                                    {isWishlistLoading ? (
+                                                        <div className="flex flex-col items-center justify-center py-10 space-y-3">
+                                                            <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+                                                            <p className="text-sm text-slate-500 font-medium">Syncing latest wishlist...</p>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            {hasDetails ? (
+                                                                <div>
+                                                                    <h4 className="font-bold text-slate-700 mb-3 mt-2">Their Gift Ideas</h4>
+                                                                    <div className="space-y-2 text-slate-600 text-sm pl-2 break-all">
+                                                                        <AmazonLinker items={currentMatch.receiver.interests} label="Interests" />
+                                                                        <AmazonLinker items={currentMatch.receiver.likes} label="Likes" />
+                                                                        {currentMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {currentMatch.receiver.dislikes}</p>}
+                                                                        {currentMatch.receiver.budget && <p><strong className="font-semibold text-slate-800">Budget:</strong> {currentMatch.receiver.budget}</p>}
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="text-center py-8 bg-slate-50 rounded-lg border border-slate-100 border-dashed">
+                                                                    <p className="text-slate-500 italic mb-2">No specific gift ideas added yet.</p>
+                                                                    <p className="text-xs text-slate-400">Check back later! {currentMatch.receiver.name} might update this soon.</p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* SMART RECOMMENDATION ENGINE (Affiliate) */}
+                                                            {SmartPromoComponent}
                                                             
-                                                            <div className="space-y-2 text-slate-600 text-sm pl-2 break-all">
-                                                                <AmazonLinker items={currentMatch.receiver.interests} label="Interests" />
-                                                                <AmazonLinker items={currentMatch.receiver.likes} label="Likes" />
-                                                                {currentMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {currentMatch.receiver.dislikes}</p>}
-                                                                {currentMatch.receiver.budget && <p><strong className="font-semibold text-slate-800">Budget:</strong> {currentMatch.receiver.budget}</p>}
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                            {/* STOCKING STUFFER ADD-ONS (New Revenue Stream) */}
+                                                            {!isEu && <StockingStufferRow />}
 
-                                                    {/* SMART RECOMMENDATION ENGINE (Affiliate) */}
-                                                    {SmartPromoComponent}
-                                                    
-                                                    {/* STOCKING STUFFER ADD-ONS (New Revenue Stream) */}
-                                                    {!isEu && <StockingStufferRow />}
-
-                                                    {hasLinks && (
-                                                        <div>
-                                                            <h4 className="font-bold text-slate-700 mb-3">Their Wishlist Links</h4>
-                                                            <div className="grid grid-cols-1 gap-3">
-                                                                {currentMatch.receiver.links.map((link, index) => (
-                                                                    link.trim() ? <LinkPreview key={index} url={link} /> : null
-                                                                ))}
-                                                            </div>
-                                                        </div>
+                                                            {hasLinks && (
+                                                                <div>
+                                                                    <h4 className="font-bold text-slate-700 mb-3">Their Wishlist Links</h4>
+                                                                    <div className="grid grid-cols-1 gap-3">
+                                                                        {currentMatch.receiver.links.map((link, index) => (
+                                                                            link.trim() ? <LinkPreview key={index} url={link} /> : null
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </>
                                                     )}
                                                     
                                                     <p className="text-xs text-slate-400 text-center pt-4 border-t border-slate-200 mt-4">
