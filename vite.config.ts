@@ -15,6 +15,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'), // Blog is now the main entry
         generator: resolve(__dirname, 'generator.html'), // Generator has its own page
         'white-elephant-generator': resolve(__dirname, 'white-elephant-generator.html'), // New White Elephant page
+        'baby-pool': resolve(__dirname, 'baby-pool.html'), // Baby Pool page
         contact: resolve(__dirname, 'contact.html'),
         'about-us': resolve(__dirname, 'public/about-us.html'),
         'advertise': resolve(__dirname, 'public/advertise.html'),
