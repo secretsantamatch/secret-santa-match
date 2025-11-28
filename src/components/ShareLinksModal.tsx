@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -301,7 +302,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
           return;
       }
       const link = getLinkForParticipant(participant);
-      const message = `Hi ${participant.name}, here's your private link for our Secret Santa game! 🎁\n${link}`;
+      const message = `Hi ${participant.name}, here is your private link to reveal who you are the Secret Santa for! 🤫\n${link}`;
       const smsUrl = `sms:?&body=${encodeURIComponent(message)}`;
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
       
