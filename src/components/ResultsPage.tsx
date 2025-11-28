@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -821,10 +822,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             const fetchShortLink = async () => {
                 const fullLink = getFullOrganizerLink();
                 try {
-                    const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullLink)}`);
+                    const res = await fetch('/.netlify/functions/create-short-link', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fullUrl: fullLink })
+                    });
                     if (res.ok) {
-                        const shortUrl = await res.text();
-                        setShortOrganizerLink(shortUrl && !shortUrl.toLowerCase().includes('error') ? shortUrl : fullLink);
+                        const data = await res.json();
+                        setShortOrganizerLink(data.shortUrl);
                     } else { setShortOrganizerLink(fullLink); }
                 } catch (e) { setShortOrganizerLink(fullLink); }
             };
