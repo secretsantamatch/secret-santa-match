@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -853,7 +852,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
             if (detailsRef.current) {
                 detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        }, 2500);
+        }, 4500); // Updated to 4.5s to match new countdown
     };
 
     const scrollToDetails = () => {
