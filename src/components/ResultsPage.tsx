@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -1046,7 +1045,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     <Gift size={24} /> View {currentMatch.receiver.name}'s Wishlist
                                                 </button>
 
-                                                <button onClick={openWishlistModal} className="w-full py-3 px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-colors">
+                                                <button onClick={openWishlistModal} className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-md">
                                                     Edit My Own Wishlist
                                                 </button>
                                             </>
