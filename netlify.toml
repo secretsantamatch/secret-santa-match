@@ -1,4 +1,3 @@
-# This file provides explicit build instructions for Netlify.
 [build]
   command = "npm run build"
   publish = "dist"
@@ -6,7 +5,15 @@
 [functions]
   directory = "netlify/functions"
 
-# Your existing redirect rules for the blog.
+# 1. Short Link Redirect Rule (MUST come first)
+# This sends any link starting with /s/ to the resolver function
+[[redirects]]
+  from = "/s/*"
+  to = "/.netlify/functions/resolve-short-link"
+  status = 200
+  force = true
+
+# 2. Existing Blog Redirects
 [[redirects]]
   from = "/blog"
   to = "/index.html"
@@ -17,8 +24,7 @@
   to = "/index.html"
   status = 200
 
-# CRITICAL FIX: Explicitly force ads.txt to be served as plain text.
-# This overrides any default MIME type sniffing by Netlify or the browser.
+# 3. Headers for Ads.txt
 [[headers]]
   for = "/ads.txt"
   [headers.values]
