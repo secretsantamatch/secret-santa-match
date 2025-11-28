@@ -66,7 +66,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ matches, liveWishlists,
                 {activeTab === 'matches' ? (
                     /* MATCHES VIEW */
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold text-slate-700 text-center mb-6">Who Got Who</h2>
+                        <h2 className="text-2xl font-bold text-slate-700 text-center mb-6">Who Got Whom</h2>
                         {matches.map(({ giver, receiver }) => {
                             const isExpanded = expandedId === receiver.id;
                             const details = { ...receiver, ...(liveWishlists[receiver.id] || {}) };
