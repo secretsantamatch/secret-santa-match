@@ -1,38 +1,47 @@
+
 import React, { useState } from 'react';
 import type { Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
-import { Save, X, Loader2 } from 'lucide-react';
+import { Save, X, Loader2, CheckCircle } from 'lucide-react';
 
 interface WishlistEditorModalProps {
   participant: Participant;
   exchangeId: string;
   onClose: () => void;
-  // FIX: Callback now accepts the data so we can update the UI instantly
   onSaveSuccess: (newWishlist: any) => void; 
 }
 
 const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, exchangeId, onClose, onSaveSuccess }) => {
-    const [wishlist, setWishlist] = useState({
-        interests: participant.interests || '',
-        likes: participant.likes || '',
-        dislikes: participant.dislikes || '',
-        links: Array.isArray(participant.links) && participant.links.length > 0 ? participant.links : Array(5).fill(''),
+    // Initialize state ONCE from props. Do not use useEffect to sync prop changes to state
+    // because that would overwrite user input if the background poller fetches new data while they are typing.
+    const [wishlist, setWishlist] = useState(() => {
+        const incomingLinks = participant.links || [];
+        const paddedLinks = [...incomingLinks];
+        while (paddedLinks.length < 5) {
+            paddedLinks.push('');
+        }
+        return {
+            interests: participant.interests || '',
+            likes: participant.likes || '',
+            dislikes: participant.dislikes || '',
+            links: paddedLinks.slice(0, 5), // Ensure exactly 5
+        };
     });
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleChange = (field: keyof Omit<typeof wishlist, 'links'>, value: string) => {
         setWishlist(prev => ({ ...prev, [field]: value }));
     };
 
     const handleLinkChange = (index: number, value: string) => {
-        const newLinks = [...wishlist.links];
-        while (newLinks.length <= index) {
-            newLinks.push('');
-        }
-        newLinks[index] = value;
-        setWishlist(prev => ({ ...prev, links: newLinks }));
+        setWishlist(prev => {
+            const newLinks = [...prev.links];
+            newLinks[index] = value;
+            return { ...prev, links: newLinks };
+        });
     };
 
     const handleSave = async () => {
@@ -41,17 +50,23 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         setError(null);
         
         try {
-            const payload = {
-                exchangeId,
-                participantId: participant.id,
-                wishlist: {
-                    interests: wishlist.interests,
-                    likes: wishlist.likes,
-                    dislikes: wishlist.dislikes,
-                    links: wishlist.links.filter(link => link && link.trim() !== ''),
-                }
+            // Prepare clean data
+            const cleanLinks = wishlist.links.filter(link => link && link.trim() !== '');
+            
+            const finalWishlistData = {
+                interests: wishlist.interests,
+                likes: wishlist.likes,
+                dislikes: wishlist.dislikes,
+                links: cleanLinks
             };
 
+            const payload = {
+                exchangeId: exchangeId,
+                participantId: participant.id,
+                wishlist: finalWishlistData
+            };
+
+            // Send to server
             const response = await fetch('/.netlify/functions/update-wishlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -59,51 +74,58 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to save wishlist.');
+                throw new Error('Failed to save. Please try again.');
             }
             
-            // Analytics
-            try {
-                const domains = payload.wishlist.links
-                    .map(link => {
-                        if (!link || !link.startsWith('http')) return null;
-                        try {
-                            const hostname = new URL(link).hostname;
-                            return hostname.replace(/^www\./, ''); 
-                        } catch (e) { return null; }
-                    })
-                    .filter((domain): domain is string => domain !== null);
-
-                trackEvent('wishlist_details_saved', {
-                    link_domain: domains.length > 0 ? [...new Set(domains)].join(', ') : 'none',
-                    wishlist_likes: wishlist.likes.trim() || 'none',
-                    wishlist_interests: wishlist.interests.trim() || 'none'
-                });
-            } catch (analyticsError) {
-                console.error("Failed to track wishlist details:", analyticsError);
-            }
-
+            // If successful, show success state then close
             trackEvent('wishlist_save_success');
+            setShowSuccess(true);
             
-            // FIX: Pass the new data back immediately for instant UI update
-            onSaveSuccess(payload.wishlist);
-            
-            onClose();
+            setTimeout(() => {
+                onSaveSuccess(finalWishlistData); 
+                onClose(); 
+            }, 1500);
 
         } catch (err) {
-            const message = err instanceof Error ? err.message : 'An unknown error occurred.';
-            setError(`Save failed: ${message}`);
+            console.error("Save Error:", err);
+            const message = err instanceof Error ? err.message : 'Connection failed. Please check your internet.';
+            setError(message);
             trackEvent('wishlist_save_fail', { error: message });
-        } finally {
             setIsLoading(false);
         }
     };
 
+    // Render Success View
+    if (showSuccess) {
+        return (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center shadow-2xl animate-fade-in text-center max-w-sm w-full">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                        <CheckCircle size={40} className="text-green-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Wishlist Updated!</h3>
+                    <p className="text-slate-600">Your changes have been saved.</p>
+                </div>
+                <style>{`
+                    @keyframes fade-in {
+                        from { opacity: 0; transform: scale(0.9); }
+                        to { opacity: 1; transform: scale(1); }
+                    }
+                    .animate-fade-in {
+                        animation: fade-in 0.2s ease-out forwards;
+                    }
+                `}</style>
+            </div>
+        );
+    }
+
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col" onClick={e => e.stopPropagation()}>
-                <header className="p-6 flex justify-between items-center border-b rounded-t-2xl" style={{ backgroundColor: '#15803d' }}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-0 md:p-4" onClick={onClose}>
+            <div 
+                className="bg-white w-full h-full md:h-auto md:max-h-[90vh] md:max-w-lg md:rounded-2xl shadow-2xl flex flex-col" 
+                onClick={e => e.stopPropagation()}
+            >
+                <header className="p-6 flex justify-between items-center border-b md:rounded-t-2xl" style={{ backgroundColor: '#15803d' }}>
                     <div>
                         <h2 className="text-2xl font-bold text-white font-serif">Edit My Wishlist</h2>
                         <p className="text-sm text-white/80 mt-1">Your Santa will see these updates automatically!</p>
@@ -111,14 +133,10 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     <button onClick={onClose} className="p-2 text-white/70 hover:bg-white/20 rounded-full"><X size={24} /></button>
                 </header>
                 
-                <main className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-                    <p className="text-center text-slate-600 text-base -mt-2">
-                        Help your Secret Santa find you the perfect gift! Fill out the details below.
-                    </p>
-                    
+                <main className="p-6 space-y-6 overflow-y-auto flex-grow">
                     {error && (
-                        <div className="p-3 bg-red-100 text-red-800 rounded-lg border border-red-200 text-sm">
-                            {error} Please try again.
+                        <div className="p-3 bg-red-100 text-red-800 rounded-lg border border-red-200 text-sm font-bold">
+                            {error}
                         </div>
                     )}
 
@@ -127,45 +145,42 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                         <input
                             type="text"
                             placeholder="e.g., coffee, gardening, sci-fi books"
-                            value={wishlist.interests}
+                            value={wishlist.interests || ''}
                             onChange={(e) => handleChange('interests', e.target.value)}
-                            className="w-full p-2 border border-slate-300 rounded-md"
+                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
                         />
-                        <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My Likes</label>
                         <input
                             type="text"
                             placeholder="e.g., dark roast coffee, fuzzy socks"
-                            value={wishlist.likes}
+                            value={wishlist.likes || ''}
                             onChange={(e) => handleChange('likes', e.target.value)}
-                            className="w-full p-2 border border-slate-300 rounded-md"
+                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
                         />
-                         <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My Dislikes & No-Go's</label>
                         <textarea
                             placeholder="e.g., dislikes horror movies, allergic to wool..."
-                            value={wishlist.dislikes}
+                            value={wishlist.dislikes || ''}
                             onChange={(e) => handleChange('dislikes', e.target.value)}
-                            className="w-full p-2 border border-slate-300 rounded-md"
+                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition"
                             rows={2}
                         />
-                         <p className="text-xs text-slate-500 mt-1">Separate items with a comma.</p>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">My 5 Wishlist Links</label>
                         <div className="space-y-2">
-                            {Array.from({ length: 5 }).map((_, i) => (
+                            {wishlist.links.map((link, i) => (
                                 <input
                                     key={i}
                                     type="text"
-                                    placeholder={`e.g., https://www.amazon.com/wishlist/...`}
-                                    value={wishlist.links[i] || ''}
+                                    placeholder={`Link #${i + 1} (e.g. Amazon)`}
+                                    value={link || ''}
                                     onChange={(e) => handleLinkChange(i, e.target.value)}
-                                    className="w-full p-2 border border-slate-300 rounded-md"
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition text-sm"
                                 />
                             ))}
                         </div>
@@ -175,12 +190,12 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                     </div>
                 </main>
 
-                <footer className="p-4 bg-slate-50 border-t flex justify-end gap-3">
+                <footer className="p-4 bg-slate-50 border-t flex justify-end gap-3 md:rounded-b-2xl">
                     <button onClick={onClose} className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg">Cancel</button>
                     <button 
                         onClick={handleSave}
                         disabled={isLoading}
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-wait"
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50"
                     >
                         {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
                         {isLoading ? 'Saving...' : 'Save Changes'}
@@ -190,6 +205,5 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
         </div>
     );
 };
-
 
 export default WishlistEditorModal;
