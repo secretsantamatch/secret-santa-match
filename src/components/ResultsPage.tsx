@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -35,10 +34,6 @@ const AFFILIATE_LINKS = {
     BONHEUR_JEWELRY: "https://www.awin1.com/cread.php?s=4547920&v=90759&q=554223&r=2612068",
     PINETALES: "https://www.awin1.com/cread.php?s=4169669&v=91239&q=544185&r=2612068"
 };
-
-// ... (PROMO COMPONENTS REMAIN UNCHANGED - REMOVED FOR BREVITY) ...
-// Assuming the user doesn't want me to repost 500 lines of existing promo components if they haven't changed.
-// However, the instructions say "Full content". I will provide the FULL content to be safe.
 
 // --- DATE-SPECIFIC PROMO LOGIC ---
 const HolidayDealWidget: React.FC = () => {
@@ -319,10 +314,7 @@ const STOCKING_STUFFERS = [
     { name: 'Candy Cane Candle', url: `https://www.amazon.com/dp/B0FJY2X6XG?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2495YJ1VCSZTC&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2495YJ1VCSZTC_1763776723320`, icon: Flame, desc: 'Holiday Scent', gradient: 'from-red-50 to-rose-100 border-red-200' }
 ];
 
-// --- PROMO COMPONENTS (Same as before) ---
-// Note: To keep the file concise, I'm reusing the exact same promo components 
-// (PineTalesPromo, BonheurPromo, HighCommissionPromo, etc.) as defined in the previous version of ResultsPage.tsx
-// I will just declare them here for completeness.
+// --- PROMO COMPONENTS ---
 
 const PineTalesPromo = () => (
     <div className="group relative overflow-hidden rounded-xl border border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50 shadow-md hover:shadow-xl transition-all my-6 animate-fade-in max-w-md mx-auto">
@@ -359,8 +351,11 @@ const PineTalesPromo = () => (
 
 const BonheurPromo = () => (
     <div className="group relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lg hover:shadow-2xl transition-all my-6 animate-fade-in max-w-md mx-auto">
+        {/* Luxury Gold Top Bar */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 z-10"></div>
+        
         <div className="flex flex-col">
+            {/* Image Section - Full Square */}
             <div className="relative bg-stone-50 w-full aspect-square flex items-center justify-center overflow-hidden p-4">
                 <a 
                     rel="sponsored" 
@@ -369,6 +364,7 @@ const BonheurPromo = () => (
                     onClick={() => trackEvent('affiliate_click', { partner: 'Bonheur Jewelry Image' })}
                     className="block w-full h-full flex items-center justify-center"
                 >
+                    {/* Using object-contain to ensure the full square image is visible */}
                     <img 
                         src="https://www.awin1.com/cshow.php?s=4547920&v=90759&q=554223&r=2612068" 
                         alt="Bonheur Jewelry - Celebrity Favorite NYC Brand" 
@@ -380,17 +376,22 @@ const BonheurPromo = () => (
                     NYC • Eco-Friendly
                 </div>
             </div>
+            
+            {/* Content Section */}
             <div className="p-6 text-center border-t border-stone-100">
                 <div className="flex items-center justify-center gap-2 mb-3">
                     <Gem size={16} className="text-amber-500" />
                     <span className="text-xs font-bold tracking-widest uppercase text-amber-600">Celebrity Favorite</span>
                 </div>
+                
                 <h4 className="font-serif text-2xl font-bold text-slate-900 mb-3">
                     A Gift That Sparkles Forever
                 </h4>
+                
                 <p className="text-slate-600 text-sm mb-6 leading-relaxed">
                     Discover <strong>Bonheur Jewelry</strong>—the eco-friendly, NYC-based luxury brand adored by stars. From timeless gold pieces to statement accessories, find a gift as unique as they are.
                 </p>
+                
                 <div className="flex justify-center mt-auto">
                     <a 
                         href={AFFILIATE_LINKS.BONHEUR_JEWELRY}
@@ -582,6 +583,7 @@ const AmazonGeneralPromo = ({ budget }: { budget?: string }) => (
     </div>
 );
 
+// --- STOCKING STUFFER ROW ---
 const StockingStufferRow = () => {
     const randomStuffers = useMemo(() => {
         const shuffled = [...STOCKING_STUFFERS].sort(() => 0.5 - Math.random());
@@ -797,99 +799,46 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                 if (fullLink === lastFetchedUrlRef.current) return;
 
                 try {
+                    // UDPATE: Pass uniqueKey for stable link generation
                     const res = await fetch('/.netlify/functions/create-short-link', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fullUrl: fullLink })
+                        body: JSON.stringify({ 
+                            fullUrl: fullLink,
+                            uniqueKey: `organizer_${exchangeId}` // STABLE KEY
+                        })
                     });
                     if (res.ok) {
                         const data = await res.json();
                         setShortOrganizerLink(data.shortUrl);
-                        lastFetchedUrlRef.current = fullLink; // Update cache
+                        lastFetchedUrlRef.current = fullLink; 
+                        
+                        // Optional: Cache locally as backup
+                        try {
+                            localStorage.setItem(`short_${exchangeId}_organizer`, data.shortUrl);
+                        } catch(e) {}
                     } else { setShortOrganizerLink(fullLink); }
                 } catch (e) { setShortOrganizerLink(fullLink); }
             };
+            
+            // Try local storage first for instant render
+            const cached = localStorage.getItem(`short_${exchangeId}_organizer`);
+            if (cached) setShortOrganizerLink(cached);
+            
             fetchShortLink();
         }
-    }, [isOrganizer, currentParticipantId, matches.length]);
+    }, [isOrganizer, currentParticipantId, matches.length, exchangeId]);
     
-    // ... (REST OF THE COMPONENT REMAINS UNCHANGED - REMOVED FOR BREVITY)
-    // Please assume the remaining render logic is identical to the provided file content
-    // as no changes were requested there. I will include the full return block below.
-
-    const handleCookieAccept = () => {
-        localStorage.setItem('cookie_consent', 'true');
-        setShowCookieBanner(false);
-        trackEvent('cookie_consent_accept');
-    };
-
-    const handleCookieDecline = () => {
-        localStorage.setItem('cookie_consent', 'false');
-        setShowCookieBanner(false);
-    };
-
-    const handleReveal = () => {
-        setIsNameRevealed(true);
-        trackEvent('reveal_name', { page_path: pagePath });
-        setTimeout(() => {
-            setDetailsVisible(true);
-            trackEvent('reveal_complete', { page_path: pagePath });
-            if (detailsRef.current) {
-                detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }, 4500);
-    };
-
-    const scrollToDetails = () => {
-        if (detailsRef.current) {
-            detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    };
-
-    const openShareModal = (view: 'links' | 'print') => {
-        setShareModalInitialView(view);
-        setIsShareModalOpen(true);
-        trackEvent('open_share_modal', { initial_view: view, page_path: pagePath });
-    };
-    
-    const openWishlistModal = () => {
-        setIsWishlistModalOpen(true);
-        trackEvent('open_wishlist_editor', { page_path: pagePath });
-    };
-
-    const executeShuffle = async () => {
-        if (!isOrganizer) return;
-        setIsShuffling(true);
-        trackEvent('shuffle_again_confirmed', { page_path: pagePath });
-        try {
-            await new Promise(resolve => setTimeout(resolve, 300));
-            const result = generateMatches(participants, exclusions || [], assignments || []);
-            if (!result.matches) throw new Error(result.error || "Failed to generate new matches.");
-            
-            const newRawMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id }));
-            onDataUpdated(newRawMatches);
-            trackEvent('shuffle_again_success', { page_path: pagePath });
-        } catch (error) {
-            console.error("Shuffle Error:", error);
-            alert(`Could not shuffle matches: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            trackEvent('shuffle_again_fail', { error: error instanceof Error ? error.message : 'unknown', page_path: pagePath });
-        } finally {
-            setIsShuffling(false);
-        }
-    };
-    
-    const handleCopyOrganizerLink = () => {
-        if (!shortOrganizerLink) return;
-        navigator.clipboard.writeText(shortOrganizerLink).then(() => {
-            setOrganizerLinkCopied(true);
-            setTimeout(() => setOrganizerLinkCopied(false), 2500);
-            trackEvent('copy_link', { link_type: 'organizer_master_link', page_path: pagePath });
-        });
-    };
-    
-    const handleManualRefresh = () => {
-        fetchWishlists(false);
-    };
+    // ... [KEEP ALL REMAINING EVENT HANDLERS AND RENDER LOGIC UNCHANGED] ...
+    const handleCookieAccept = () => { localStorage.setItem('cookie_consent', 'true'); setShowCookieBanner(false); trackEvent('cookie_consent_accept'); };
+    const handleCookieDecline = () => { localStorage.setItem('cookie_consent', 'false'); setShowCookieBanner(false); };
+    const handleReveal = () => { setIsNameRevealed(true); trackEvent('reveal_name', { page_path: pagePath }); setTimeout(() => { setDetailsVisible(true); trackEvent('reveal_complete', { page_path: pagePath }); if (detailsRef.current) detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 4500); };
+    const scrollToDetails = () => { if (detailsRef.current) detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    const openShareModal = (view: 'links' | 'print') => { setShareModalInitialView(view); setIsShareModalOpen(true); trackEvent('open_share_modal', { initial_view: view, page_path: pagePath }); };
+    const openWishlistModal = () => { setIsWishlistModalOpen(true); trackEvent('open_wishlist_editor', { page_path: pagePath }); };
+    const executeShuffle = async () => { if (!isOrganizer) return; setIsShuffling(true); trackEvent('shuffle_again_confirmed', { page_path: pagePath }); try { await new Promise(resolve => setTimeout(resolve, 300)); const result = generateMatches(participants, exclusions || [], assignments || []); if (!result.matches) throw new Error(result.error || "Failed to generate new matches."); const newRawMatches = result.matches.map(m => ({ g: m.giver.id, r: m.receiver.id })); onDataUpdated(newRawMatches); trackEvent('shuffle_again_success', { page_path: pagePath }); } catch (error) { console.error("Shuffle Error:", error); alert(`Could not shuffle matches: ${error instanceof Error ? error.message : 'Unknown error'}`); trackEvent('shuffle_again_fail', { error: error instanceof Error ? error.message : 'unknown', page_path: pagePath }); } finally { setIsShuffling(false); } };
+    const handleCopyOrganizerLink = () => { if (!shortOrganizerLink) return; navigator.clipboard.writeText(shortOrganizerLink).then(() => { setOrganizerLinkCopied(true); setTimeout(() => setOrganizerLinkCopied(false), 2500); trackEvent('copy_link', { link_type: 'organizer_master_link', page_path: pagePath }); }); };
+    const handleManualRefresh = () => { fetchWishlists(false); };
     
     const isEu = isEuVisitor();
 
@@ -905,6 +854,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const hasLinks = currentMatch && Array.isArray(currentMatch.receiver.links) && currentMatch.receiver.links.some(link => link && link.trim() !== '');
     const hasDetails = currentMatch && (currentMatch.receiver.interests || currentMatch.receiver.likes || currentMatch.receiver.dislikes || currentMatch.receiver.budget);
 
+    // ... [RETURN JSX UNCHANGED] ...
     return (
         <div className="bg-slate-50 min-h-screen">
             {isShareModalOpen && <ShareLinksModal exchangeData={{ ...data, p: participants }} onClose={() => setIsShareModalOpen(false)} initialView={shareModalInitialView as string} />}
@@ -961,6 +911,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                         {exchangeId && <ResultsDisplay matches={matches} exchangeId={exchangeId} liveWishlists={liveWishlists} onRefresh={handleManualRefresh} isRefreshing={isWishlistLoading} />}
                     </div>
                 ) : (
+                    // ... [Existing Player View JSX] ...
                     currentMatch && (
                         <div className="flex flex-col md:flex-row gap-8 items-start justify-center">
                             <div className="w-full max-w-sm mx-auto md:flex-shrink-0">
