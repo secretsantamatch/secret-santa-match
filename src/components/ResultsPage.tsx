@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import PrintableCard from './PrintableCard';
@@ -1031,19 +1032,31 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                             <p className="text-lg text-slate-600">
                                                 <span className="font-bold text-green-700">{currentMatch.giver.name}</span>, you are the Secret Santa for...
                                             </p>
-                                            <p className="text-2xl font-bold text-red-600 mt-2">{currentMatch.receiver.name}</p>
+                                            <p className="text-2xl font-bold text-red-600 mt-2 min-h-[2rem]">
+                                                {detailsVisible ? currentMatch.receiver.name : <span className="animate-bounce inline-block text-3xl">...</span>}
+                                            </p>
                                         </div>
                                         
-                                        <button 
-                                            onClick={scrollToDetails}
-                                            className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
-                                        >
-                                            <Gift size={24} /> View {currentMatch.receiver.name}'s Wishlist
-                                        </button>
+                                        {detailsVisible && (
+                                            <>
+                                                <button 
+                                                    onClick={scrollToDetails}
+                                                    className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
+                                                >
+                                                    <Gift size={24} /> View {currentMatch.receiver.name}'s Wishlist
+                                                </button>
 
-                                        <button onClick={openWishlistModal} className="w-full py-3 px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-colors">
-                                            Edit My Own Wishlist
-                                        </button>
+                                                <button onClick={openWishlistModal} className="w-full py-3 px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-colors">
+                                                    Edit My Own Wishlist
+                                                </button>
+                                            </>
+                                        )}
+                                        
+                                        {!detailsVisible && (
+                                            <div className="w-full py-4 text-center text-slate-400 font-semibold animate-pulse">
+                                                Drumroll please... 🥁
+                                            </div>
+                                        )}
                                         
                                         {detailsVisible && (
                                             <div ref={detailsRef} className="bg-slate-100 rounded-2xl p-6 border text-left shadow-inner space-y-6 animate-fade-in scroll-mt-24">
