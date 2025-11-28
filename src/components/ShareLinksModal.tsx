@@ -226,9 +226,28 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
   const [loadingPdf, setLoadingPdf] = useState<'cards' | 'master' | 'party' | 'all-links' | null>(null);
   
   const { p: participants, matches: matchIds } = exchangeData;
+  
+  // SANITIZE DATA FOR URL HASH
+  // We strip out mutable fields (interests, likes, dislikes, links, budget)
+  // so the URL hash remains stable even if the user updates their wishlist in the background.
   const compressedHash = useMemo(() => {
-      const { backgroundOptions, ...dataToCompress } = exchangeData;
-      return compressData(dataToCompress);
+      const { backgroundOptions, ...baseData } = exchangeData;
+      
+      const stableData = {
+          ...baseData,
+          p: baseData.p.map(p => ({
+              id: p.id,
+              name: p.name,
+              // Empty mutable fields to ensure stable URL generation
+              interests: '',
+              likes: '',
+              dislikes: '',
+              links: [],
+              budget: ''
+          }))
+      };
+      
+      return compressData(stableData);
   }, [exchangeData]);
 
   const matches: Match[] = useMemo(() => matchIds.map(m => ({
@@ -255,12 +274,16 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
   useEffect(() => {
     const shortenUrl = async (url: string) => {
         try {
-            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+            const res = await fetch('/.netlify/functions/create-short-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullUrl: url })
+            });
             if (res.ok) {
-                const shortUrl = await res.text();
-                return shortUrl && !shortUrl.toLowerCase().includes('error') ? shortUrl : url;
+                const data = await res.json();
+                return data.shortUrl || url;
             }
-        } catch (e) { console.error("TinyURL error:", e); }
+        } catch (e) { console.error("Shortener error:", e); }
         return url;
     };
 
@@ -277,7 +300,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
     };
 
     fetchAllShortLinks();
-  }, [matches, compressedHash]);
+  }, [compressedHash]); // Only re-run if compressedHash changes (which is now stable)
 
   const getLinkForParticipant = (participant: Participant) => !showFullLinks ? (shortLinks[participant.id] || getFullLink(participant.id)) : getFullLink(participant.id);
   
