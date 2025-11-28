@@ -98,7 +98,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
     // Render Success View
     if (showSuccess) {
         return (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
                 <div className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center shadow-2xl animate-fade-in text-center max-w-sm w-full">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                         <CheckCircle size={40} className="text-green-600" />
@@ -120,7 +120,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
     }
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-0 md:p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-0 md:p-4" onClick={onClose}>
             <div 
                 className="bg-white w-full h-full md:h-auto md:max-h-[90vh] md:max-w-lg md:rounded-2xl shadow-2xl flex flex-col" 
                 onClick={e => e.stopPropagation()}
@@ -128,7 +128,7 @@ const WishlistEditorModal: React.FC<WishlistEditorModalProps> = ({ participant, 
                 <header className="p-6 flex justify-between items-center border-b md:rounded-t-2xl" style={{ backgroundColor: '#15803d' }}>
                     <div>
                         <h2 className="text-2xl font-bold text-white font-serif">Edit My Wishlist</h2>
-                        <p className="text-sm text-white/80 mt-1">Your Santa will see these updates automatically!</p>
+                        <p className="text-sm text-white/90 mt-1">Enter your details below, then click 'Save Changes' so your Santa sees them!</p>
                     </div>
                     <button onClick={onClose} className="p-2 text-white/70 hover:bg-white/20 rounded-full"><X size={24} /></button>
                 </header>
