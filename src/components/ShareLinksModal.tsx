@@ -255,12 +255,16 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
   useEffect(() => {
     const shortenUrl = async (url: string) => {
         try {
-            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+            const res = await fetch('/.netlify/functions/create-short-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullUrl: url })
+            });
             if (res.ok) {
-                const shortUrl = await res.text();
-                return shortUrl && !shortUrl.toLowerCase().includes('error') ? shortUrl : url;
+                const data = await res.json();
+                return data.shortUrl || url;
             }
-        } catch (e) { console.error("TinyURL error:", e); }
+        } catch (e) { console.error("Shortener error:", e); }
         return url;
     };
 
