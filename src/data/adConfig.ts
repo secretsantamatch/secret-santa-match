@@ -278,7 +278,6 @@ export const PARTNERS: Partner[] = [
         name: 'Sugarwish',
         priority: 80,
         geo: 'US_CA',
-        // Added alcohol-related keywords to trigger the "Cheers" creative
         keywords: ['candy', 'sweet', 'chocolate', 'food', 'snack', 'cookie', 'popcorn', 'treat', 'yum', 'wine', 'cocktail', 'drink', 'spa', 'relax', 'bath', 'beer', 'alcohol', 'booze', 'champagne'],
         affiliateLink: "https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=",
         icon: Gift,
@@ -303,7 +302,6 @@ export const PARTNERS: Partner[] = [
                 cta: 'Send a Drink',
                 themeColor: 'rose',
                 weight: 90,
-                // STRICT MATCHING: Only shows for alcohol-related keywords
                 matchKeywords: ['wine', 'cocktail', 'alcohol', 'beer', 'champagne', 'booze'],
                 linkOverride: "https://www.awin1.com/cread.php?s=4572305&v=33495&q=586780&r=2612068",
                 imageUrl: "https://www.awin1.com/cshow.php?s=4572305&v=33495&q=586780&r=2612068"
@@ -346,6 +344,75 @@ export const PARTNERS: Partner[] = [
         ]
     },
     {
+        id: 'teabook',
+        name: 'The TeaBook',
+        priority: 85, // Increased priority
+        geo: 'US_CA',
+        keywords: ['tea', 'drink', 'beverage', 'book', 'reading', 'cozy', 'mug', 'chai', 'fred', 'agatha', 'pun', 'funny', 'mystery', 'science', 'history', 'music'],
+        affiliateLink: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068",
+        icon: Coffee,
+        creatives: [
+            {
+                id: 'teabook-agatha',
+                type: 'standard',
+                headline: 'Agatha ChrisTEA',
+                body: 'Solve the mystery of the perfect gift. Delicious organic tea in fun, collectible packaging. Millions of teabags gifted! Free US Shipping $50+.',
+                cta: 'Shop Agatha ChrisTEA',
+                themeColor: 'emerald',
+                weight: 100,
+                matchKeywords: ['mystery', 'book', 'reading', 'agatha'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4276839&v=88557&q=557671&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276839&v=88557&q=557671&r=2612068"
+            },
+            {
+                id: 'teabook-marie',
+                type: 'standard',
+                headline: 'Marie Curie Radiant Tea',
+                body: 'Celebrate historical icons with this glowing organic blend. Eco-friendly and plastic-free. A gift that educates and delights.',
+                cta: 'Shop Radiant Tea',
+                themeColor: 'emerald',
+                weight: 90,
+                matchKeywords: ['science', 'history', 'smart'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4276838&v=88557&q=557671&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276838&v=88557&q=557671&r=2612068"
+            },
+            {
+                id: 'teabook-chaikovsky',
+                type: 'standard',
+                headline: 'Chaikovsky Chai Tea',
+                body: 'Sip on a symphony of flavor. One of 28+ designs drawn by diverse artists. The perfect punny gift for music lovers.',
+                cta: 'Shop Chaikovsky',
+                themeColor: 'emerald',
+                weight: 90,
+                matchKeywords: ['music', 'chai', 'symphony'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4276818&v=88557&q=557671&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276818&v=88557&q=557671&r=2612068"
+            },
+            {
+                id: 'teabook-fred',
+                type: 'standard',
+                headline: 'Fred Tea (Limited Edition)',
+                body: 'Brings harmony to your mug. Our artistic teas educate and bring joy through puns. Organic, Non-GMO, and family-run.',
+                cta: 'Shop Fred Tea',
+                themeColor: 'emerald',
+                weight: 90,
+                matchKeywords: ['fred', 'music', 'rock'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4276847&v=88557&q=557671&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276847&v=88557&q=557671&r=2612068"
+            },
+            {
+                id: 'teabook-general',
+                type: 'standard',
+                headline: 'The TeaBook Sampler',
+                body: 'Founded by best friends to bring joy through punny, organic tea. Store your collection in the signature TeaBook. Free US Shipping $50+.',
+                cta: 'Explore The TeaBook',
+                themeColor: 'emerald',
+                weight: 60,
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276843&v=88557&q=557671&r=2612068"
+            }
+        ]
+    },
+    {
         id: 'pinetales',
         name: 'PineTales',
         priority: 75,
@@ -363,37 +430,6 @@ export const PARTNERS: Partner[] = [
                 themeColor: 'teal',
                 weight: 100,
                 imageUrl: "https://www.awin1.com/cshow.php?s=4169669&v=91239&q=544185&r=2612068"
-            }
-        ]
-    },
-    {
-        id: 'teabook',
-        name: 'The TeaBook',
-        priority: 70,
-        geo: 'US_CA',
-        keywords: ['tea', 'drink', 'beverage', 'book', 'reading', 'cozy', 'mug', 'chai'],
-        affiliateLink: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068",
-        icon: Coffee,
-        creatives: [
-            {
-                id: 'teabook-bf-1',
-                type: 'urgency',
-                headline: 'Black Friday Tea Deal',
-                body: 'Huge savings on organic teas in fun, collectable packaging.',
-                cta: 'Shop The Sale',
-                startDate: '2025-11-28',
-                endDate: '2025-11-28',
-                themeColor: 'emerald',
-                weight: 100
-            },
-            {
-                id: 'teabook-general',
-                type: 'standard',
-                headline: 'For The Tea Lover',
-                body: 'Innovative tea books that store tea while looking great on a shelf. Organic and delicious.',
-                cta: 'Shop The TeaBook',
-                themeColor: 'emerald',
-                weight: 100
             }
         ]
     },
