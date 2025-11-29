@@ -2,7 +2,7 @@
 import React from 'react';
 import type { Partner, AdCreative } from '../data/adConfig';
 import { trackEvent } from '../services/analyticsService';
-import { ArrowRight, ExternalLink, Gem, Clock, Star, ShieldCheck, Lock, CheckCircle, Globe } from 'lucide-react';
+import { ArrowRight, ExternalLink, Gem, Clock, Star, ShieldCheck, Lock, CheckCircle, Globe, Heart, Gift } from 'lucide-react';
 
 interface AdProps {
     partner: Partner;
@@ -102,28 +102,74 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
     );
 };
 
-// 2. Fun Card (Sugarwish) - Colorful/Pop
+// 2. Fun Card (Sugarwish) - Colorful/Pop/Dynamic
 const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
     const targetLink = creative.linkOverride || partner.affiliateLink;
+    const isFemaleFounded = partner.id === 'sugarwish'; // Specific badge for Sugarwish story
 
     return (
-    <div className={`p-5 rounded-2xl border-2 shadow-md animate-fade-in hover:shadow-lg transition-all transform hover:-translate-y-0.5 bg-gradient-to-r from-${creative.themeColor || 'pink'}-50 to-white border-${creative.themeColor || 'pink'}-200`}>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className={`flex-shrink-0 bg-white rounded-full h-16 w-16 flex items-center justify-center shadow-sm border-2 border-${creative.themeColor || 'pink'}-100 mx-auto sm:mx-0`}>
-                <partner.icon size={32} className={`text-${creative.themeColor || 'pink'}-500`} />
-            </div>
-            <div className="flex-grow text-center sm:text-left">
-                <h4 className={`font-extrabold text-lg text-${creative.themeColor || 'pink'}-900 leading-tight`}>{creative.headline}</h4>
-                <p className={`text-sm text-${creative.themeColor || 'pink'}-800 font-medium opacity-90 mt-2 leading-relaxed`}>{creative.body}</p>
-                <a 
-                    href={targetLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer sponsored" 
-                    className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-6 py-3 rounded-xl border border-${creative.themeColor || 'pink'}-200 text-${creative.themeColor || 'pink'}-600 hover:bg-${creative.themeColor || 'pink'}-50 transition-colors shadow-sm w-full sm:w-auto justify-center`}
-                    onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
-                >
-                    {creative.cta} <ExternalLink size={16} />
-                </a>
+    <div className={`group relative overflow-hidden rounded-2xl border-2 shadow-lg animate-fade-in hover:shadow-xl transition-all transform hover:-translate-y-1 bg-gradient-to-br from-${creative.themeColor || 'pink'}-50 via-white to-${creative.themeColor || 'pink'}-50 border-${creative.themeColor || 'pink'}-200 my-6`}>
+        {/* Background Decor */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-50 -mr-10 -mt-10"></div>
+        
+        <div className="relative z-10 flex flex-col sm:flex-row">
+            {/* Image Side (If Image Exists) */}
+            {creative.imageUrl ? (
+                <div className="sm:w-2/5 relative min-h-[180px] sm:min-h-full">
+                    <div className="absolute inset-0 bg-white flex items-center justify-center p-4">
+                         <a href={targetLink} target="_blank" rel="noopener noreferrer sponsored" onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)} className="block w-full h-full">
+                            <img 
+                                src={creative.imageUrl} 
+                                alt={creative.headline} 
+                                className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500" 
+                                loading="lazy"
+                            />
+                        </a>
+                    </div>
+                    {/* Badge Overlay */}
+                    {isFemaleFounded && (
+                        <div className="absolute bottom-2 left-2 bg-pink-100 text-pink-800 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm border border-pink-200">
+                            👩‍💼 Female Founded
+                        </div>
+                    )}
+                </div>
+            ) : (
+                // Fallback Icon if no image
+                <div className="p-6 flex items-center justify-center sm:w-auto">
+                    <div className={`flex-shrink-0 bg-white rounded-full h-20 w-20 flex items-center justify-center shadow-md border-2 border-${creative.themeColor || 'pink'}-100`}>
+                        <partner.icon size={36} className={`text-${creative.themeColor || 'pink'}-500`} />
+                    </div>
+                </div>
+            )}
+
+            {/* Content Side */}
+            <div className={`p-6 flex flex-col justify-center ${creative.imageUrl ? 'sm:w-3/5 sm:border-l border-slate-100' : 'flex-grow'}`}>
+                
+                {!creative.imageUrl && isFemaleFounded && (
+                     <div className="mb-3">
+                        <span className="inline-block bg-pink-100 text-pink-800 text-[10px] font-bold px-2 py-1 rounded-full">👩‍💼 Female Founded</span>
+                    </div>
+                )}
+
+                <h4 className={`font-black text-xl text-${creative.themeColor || 'pink'}-900 leading-tight mb-2 group-hover:text-${creative.themeColor || 'pink'}-700 transition-colors`}>
+                    {creative.headline}
+                </h4>
+                
+                <p className={`text-sm text-slate-600 font-medium leading-relaxed mb-5`}>
+                    {creative.body}
+                </p>
+                
+                <div className="mt-auto">
+                    <a 
+                        href={targetLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer sponsored" 
+                        className={`inline-flex items-center justify-center gap-2 text-sm font-bold bg-${creative.themeColor || 'pink'}-500 text-white px-6 py-3 rounded-xl shadow-md hover:bg-${creative.themeColor || 'pink'}-600 transition-all hover:shadow-lg w-full sm:w-auto transform active:scale-95`}
+                        onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
+                    >
+                        <Gift size={16} /> {creative.cta}
+                    </a>
+                </div>
             </div>
         </div>
     </div>

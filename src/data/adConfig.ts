@@ -16,6 +16,7 @@ export interface AdCreative {
     themeColor?: string; // Tailwind color class base (e.g. 'amber', 'rose')
     linkOverride?: string; // Optional: Specific product deep link
     weight?: number; // Optional: For A/B testing (default 1). Higher = more frequent.
+    matchKeywords?: string[]; // Optional: Specific keywords to trigger this creative within the partner
 }
 
 export interface Partner {
@@ -95,7 +96,7 @@ export const PARTNERS: Partner[] = [
     {
         id: 'bonheur',
         name: 'Bonheur Jewelry',
-        priority: 95, // High priority for jewelry keywords
+        priority: 95, 
         geo: 'GLOBAL',
         keywords: ['jewelry', 'jewellery', 'gold', 'silver', 'ring', 'necklace', 'earring', 'bracelet', 'fashion', 'wife', 'girlfriend', 'mom', 'luxury', 'sparkle', 'accessories', 'diamond', 'woman', 'women', 'style'],
         affiliateLink: "https://www.awin1.com/cread.php?s=4547931&v=90759&q=554223&r=2612068",
@@ -274,6 +275,76 @@ export const PARTNERS: Partner[] = [
 
     // --- STANDARD PARTNERS ---
     {
+        id: 'sugarwish',
+        name: 'Sugarwish',
+        priority: 80,
+        geo: 'US_CA',
+        keywords: ['candy', 'sweet', 'chocolate', 'food', 'snack', 'cookie', 'popcorn', 'treat', 'yum', 'wine', 'cocktail', 'drink', 'spa', 'relax', 'bath'],
+        affiliateLink: "https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=",
+        icon: Gift,
+        creatives: [
+            {
+                id: 'sugarwish-cookies',
+                type: 'fun',
+                headline: 'Holiday Cookies',
+                body: 'Delightful Cookies! From Iced Chocolate Peppermint to traditional Chocolate Chip, let them choose their favorite flavors.',
+                cta: 'Send Cookies',
+                themeColor: 'pink',
+                weight: 100,
+                matchKeywords: ['cookie', 'baking', 'dessert'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4599375&v=33495&q=589105&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4599375&v=33495&q=589105&r=2612068"
+            },
+            {
+                id: 'sugarwish-cheers',
+                type: 'fun',
+                headline: 'Holiday Cheers!',
+                body: 'We\'ve thought of everything with this spectacular holiday gift! Exquisite wine, specialty cocktails, and even festive non-alcoholic mixers.',
+                cta: 'Send a Drink',
+                themeColor: 'rose',
+                weight: 90,
+                matchKeywords: ['wine', 'cocktail', 'drink', 'alcohol', 'party'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4572305&v=33495&q=586780&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4572305&v=33495&q=586780&r=2612068"
+            },
+            {
+                id: 'sugarwish-lifestyle',
+                type: 'fun',
+                headline: 'Holiday Lifestyle Gifts',
+                body: 'Sugarwish lets your recipients choose between Spa, Gourmet Pantry, Candles, Jewelry or Gift Sets, and then select their favorites.',
+                cta: 'Let Them Choose',
+                themeColor: 'purple',
+                weight: 90,
+                matchKeywords: ['spa', 'relax', 'candle', 'bath'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4572308&v=33495&q=586782&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4572308&v=33495&q=586782&r=2612068"
+            },
+            {
+                id: 'sugarwish-candy',
+                type: 'fun',
+                headline: 'Candy & Snacks',
+                body: 'Let your recipients experience the joy of being a kid in a (virtual) candy and snack shoppe! They choose from tons of mouthwatering options.',
+                cta: 'Send Candy',
+                themeColor: 'blue',
+                weight: 80,
+                matchKeywords: ['candy', 'sugar', 'gummy', 'snack'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4516534&v=33495&q=581688&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4516534&v=33495&q=581688&r=2612068"
+            },
+            {
+                id: 'sugarwish-giftsets',
+                type: 'fun',
+                headline: 'Curated Gift Sets',
+                body: 'Say goodbye to boring gift baskets - send them a gift set the Sugarwish way! We\'ve curated delightful collections of the BEST stuff.',
+                cta: 'Send a Sugarwish',
+                themeColor: 'emerald',
+                weight: 50,
+                linkOverride: "https://www.awin1.com/cread.php?s=4516535&v=33495&q=581689&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4516535&v=33495&q=581689&r=2612068"
+            }
+        ]
+    },
+    {
         id: 'pinetales',
         name: 'PineTales',
         priority: 75,
@@ -291,26 +362,6 @@ export const PARTNERS: Partner[] = [
                 themeColor: 'teal',
                 weight: 100,
                 imageUrl: "https://www.awin1.com/cshow.php?s=4169669&v=91239&q=544185&r=2612068"
-            }
-        ]
-    },
-    {
-        id: 'sugarwish',
-        name: 'Sugarwish',
-        priority: 80,
-        geo: 'US_CA',
-        keywords: ['candy', 'sweet', 'chocolate', 'food', 'snack', 'cookie', 'popcorn', 'treat', 'yum'],
-        affiliateLink: "https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=",
-        icon: Gift,
-        creatives: [
-            {
-                id: 'sugarwish-general',
-                type: 'fun',
-                headline: 'Let Them Choose Their Own Treats!',
-                body: 'Send a Sugarwish and let them pick their favorite candies, cookies, or popcorn. Delivered instantly via text or email.',
-                cta: 'Send a Sweet Gift',
-                themeColor: 'pink',
-                weight: 100
             }
         ]
     },
