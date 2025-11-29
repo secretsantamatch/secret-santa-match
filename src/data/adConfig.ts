@@ -1,4 +1,4 @@
-import { Globe, Clock, Gift, Star, Gem, Coffee, Sparkles, ShoppingBag, Hammer, Smile, Zap } from 'lucide-react';
+import { Globe, Clock, Gift, Star, Gem, Coffee, Sparkles, ShoppingBag, Hammer, Smile, Zap, Moon } from 'lucide-react';
 
 export type AdType = 'luxury' | 'fun' | 'standard' | 'urgency';
 
@@ -274,6 +274,52 @@ export const PARTNERS: Partner[] = [
 
     // --- STANDARD PARTNERS ---
     {
+        id: 'pinetales',
+        name: 'PineTales',
+        priority: 75,
+        geo: 'US_ONLY',
+        keywords: ['sleep', 'pillow', 'bed', 'comfort', 'neck', 'pain', 'relax', 'home', 'cozy', 'health', 'wellness', 'organic', 'back', 'spine'],
+        affiliateLink: "https://www.awin1.com/cread.php?s=4169669&v=91239&q=544185&r=2612068",
+        icon: Moon,
+        creatives: [
+            {
+                id: 'pinetales-designer',
+                type: 'standard',
+                headline: 'Designer Buckwheat Pillow',
+                body: 'Handcrafted in the USA. 100% organic, toxin-free buckwheat hulls adapt to your neck for perfect spinal alignment. Helping 50,000+ sleepers wake up pain-free.',
+                cta: 'Shop Better Sleep',
+                themeColor: 'teal',
+                weight: 100,
+                matchKeywords: ['pain', 'neck', 'sleep', 'back'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4170045&v=91239&q=544185&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4170045&v=91239&q=544185&r=2612068"
+            },
+            {
+                id: 'pinetales-cooling',
+                type: 'standard',
+                headline: 'Cooling Buckwheat Pillow',
+                body: 'Naturally breathable hulls allow heat to escape. Combine ancient Sobakawa craftsmanship with modern cooling comfort. 100% Vegan & Hypoallergenic.',
+                cta: 'Stay Cool',
+                themeColor: 'blue',
+                weight: 90,
+                matchKeywords: ['cool', 'sweat', 'hot', 'summer'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4170088&v=91239&q=544185&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4170088&v=91239&q=544185&r=2612068"
+            },
+            {
+                id: 'pinetales-premium',
+                type: 'standard',
+                headline: 'The Gift of Deep Sleep',
+                body: 'Give the gift of health. Designed with top sleep specialists to relieve tension naturally. Dust-free, 99.9% pure premium hulls.',
+                cta: 'Shop PineTales',
+                themeColor: 'emerald',
+                weight: 80,
+                linkOverride: "https://www.awin1.com/cread.php?s=4170043&v=91239&q=544198&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4170043&v=91239&q=544198&r=2612068"
+            }
+        ]
+    },
+    {
         id: 'sugarwish',
         name: 'Sugarwish',
         priority: 80,
@@ -409,27 +455,6 @@ export const PARTNERS: Partner[] = [
                 themeColor: 'emerald',
                 weight: 60,
                 imageUrl: "https://www.awin1.com/cshow.php?s=4276843&v=88557&q=557671&r=2612068"
-            }
-        ]
-    },
-    {
-        id: 'pinetales',
-        name: 'PineTales',
-        priority: 75,
-        geo: 'US_ONLY',
-        keywords: ['sleep', 'pillow', 'bed', 'comfort', 'neck', 'pain', 'relax', 'home', 'cozy'],
-        affiliateLink: "https://www.awin1.com/cread.php?s=4169669&v=91239&q=544185&r=2612068",
-        icon: Sparkles,
-        creatives: [
-            {
-                id: 'pinetales-pillow',
-                type: 'standard',
-                headline: 'The Pillow That Fixes Neck Pain',
-                body: 'Adjustable organic buckwheat & cool-touch bamboo. The gift of deep, pain-free sleep.',
-                cta: 'Shop PineTales',
-                themeColor: 'teal',
-                weight: 100,
-                imageUrl: "https://www.awin1.com/cshow.php?s=4169669&v=91239&q=544185&r=2612068"
             }
         ]
     },
