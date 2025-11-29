@@ -5,6 +5,8 @@ import { isEuVisitor } from '../utils/privacy';
 interface PromoMatch {
     partner: Partner;
     creative: AdCreative;
+    isFallback: boolean;
+    matchedKeyword?: string;
 }
 
 export const getBestPromo = (contextText: string): PromoMatch | null => {
@@ -16,8 +18,6 @@ export const getBestPromo = (contextText: string): PromoMatch | null => {
     // 1. Filter Partners by Geo
     const geoFilteredPartners = PARTNERS.filter(p => {
         if (p.geo === 'US_ONLY' && isEu) return false;
-        // If Geo is GLOBAL, everyone sees it.
-        // If Geo is US_CA, we assume non-EU is close enough proxy for now or add specific logic.
         return true; 
     });
 
@@ -27,15 +27,18 @@ export const getBestPromo = (contextText: string): PromoMatch | null => {
     for (const partner of geoFilteredPartners) {
         // 2. Score based on Keywords
         let score = 0;
+        let currentMatchedKeyword: string | undefined = undefined;
         
         // Direct keyword match
         if (partner.keywords.includes('*')) {
             score = 1; // Base score for fallback
         } else {
-            const matches = partner.keywords.filter(k => normalizedText.includes(k));
-            if (matches.length > 0) {
+            // Find specific keyword matches
+            const foundKeyword = partner.keywords.find(k => normalizedText.includes(k.toLowerCase()));
+            if (foundKeyword) {
                 // Priority heavily weighs the score
-                score = partner.priority + (matches.length * 10); 
+                score = partner.priority + 100; 
+                currentMatchedKeyword = foundKeyword;
             }
         }
 
@@ -52,7 +55,12 @@ export const getBestPromo = (contextText: string): PromoMatch | null => {
         // If we found a valid creative and this score is higher than previous best
         if (validCreative && score > highestScore) {
             highestScore = score;
-            bestMatch = { partner, creative: validCreative };
+            bestMatch = { 
+                partner, 
+                creative: validCreative,
+                isFallback: partner.keywords.includes('*'),
+                matchedKeyword: currentMatchedKeyword
+            };
         }
     }
 
@@ -73,5 +81,5 @@ export const getPromoById = (id: string): PromoMatch | null => {
     });
 
     if (!creative) return null;
-    return { partner, creative };
+    return { partner, creative, isFallback: false };
 }

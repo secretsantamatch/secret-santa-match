@@ -11,11 +11,11 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, Sparkles, Calendar, Clock } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
-import { getBestPromo, getPromoById } from '../services/promoEngine';
+import { getBestPromo } from '../services/promoEngine';
 import { SmartAd } from './AdWidgets';
 
 interface ResultsPageProps {
@@ -25,6 +25,33 @@ interface ResultsPageProps {
 }
 
 type LiveWishlists = Record<string, Partial<Omit<Participant, 'id' | 'name'>>>;
+
+// --- PERSONAL NUDGE COMPONENT ---
+const PersonalNudge: React.FC<{ giverName: string }> = ({ giverName }) => {
+    const today = new Date();
+    // Only show before Dec 26th
+    if (today.getMonth() === 11 && today.getDate() > 25) return null; 
+    
+    const dateStr = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
+    
+    return (
+        <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r-lg shadow-sm animate-fade-in">
+           <div className="flex items-start gap-3">
+               <div className="bg-indigo-100 p-2 rounded-full text-indigo-600 mt-0.5">
+                   <Clock size={18} />
+               </div>
+               <div>
+                   <p className="text-indigo-900 text-sm font-medium">
+                      <strong>Hi {giverName}, it's {dateStr}.</strong>
+                   </p>
+                   <p className="text-indigo-800 text-sm mt-1">
+                      Are you all set for your gift exchange? Based on your match, we found a few ideas below.
+                   </p>
+               </div>
+           </div>
+        </div>
+    );
+};
 
 const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, onDataUpdated }) => {
     const [isNameRevealed, setIsNameRevealed] = useState(false);
@@ -110,28 +137,18 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
     // --- AD LOGIC ---
     
-    // 1. Pre-Reveal Deal (Usually GiftCards or TeaBook based on date)
+    // 1. Pre-Reveal Deal (Broad appeal)
     const PreRevealPromo = useMemo(() => {
         const match = getBestPromo(''); 
         return match ? <SmartAd partner={match.partner} creative={match.creative} placement="pre-reveal" /> : null;
     }, []);
 
     // 2. Post-Reveal Contextual Deal
-    const ContextualPromo = useMemo(() => {
+    const ContextualPromoData = useMemo(() => {
         if (!currentMatch) return null;
         const combinedText = `${currentMatch.receiver.interests || ''} ${currentMatch.receiver.likes || ''}`;
-        const match = getBestPromo(combinedText);
-        return match ? <SmartAd partner={match.partner} creative={match.creative} placement="reveal-context" /> : null;
+        return getBestPromo(combinedText);
     }, [currentMatch]);
-
-    // 3. Budget Widget (Credit Karma) - Specific ID
-    const BudgetPromo = useMemo(() => {
-        const match = getPromoById('credit-karma');
-        const isEu = isEuVisitor();
-        if (!match || isEu) return null; // Credit Karma is US only
-        return <SmartAd partner={match.partner} creative={match.creative} placement="budget-footer" />;
-    }, []);
-
 
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
@@ -209,6 +226,16 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     
     const hasLinks = currentMatch && Array.isArray(currentMatch.receiver.links) && currentMatch.receiver.links.some(link => link && link.trim() !== '');
     const hasDetails = currentMatch && (currentMatch.receiver.interests || currentMatch.receiver.likes || currentMatch.receiver.dislikes || currentMatch.receiver.budget);
+
+    // Determine specific header text based on match type
+    let promoHeader = "🏆 Trending Gift Idea";
+    if (ContextualPromoData && !ContextualPromoData.isFallback && ContextualPromoData.matchedKeyword) {
+        // Capitalize first letter of keyword
+        const kw = ContextualPromoData.matchedKeyword.charAt(0).toUpperCase() + ContextualPromoData.matchedKeyword.slice(1);
+        promoHeader = `✨ Because they like ${kw}`;
+    } else if (ContextualPromoData && ContextualPromoData.isFallback) {
+        promoHeader = "🎁 The Ultimate Safe Bet";
+    }
 
     return (
         <div className="bg-slate-50 min-h-screen">
@@ -371,6 +398,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         </div>
                                                     ) : (
                                                         <>
+                                                            <PersonalNudge giverName={currentMatch.giver.name} />
+
                                                             {hasDetails ? (
                                                                 <div>
                                                                     <h4 className="font-bold text-slate-700 mb-3 mt-2">Their Gift Ideas</h4>
@@ -395,17 +424,16 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                             )}
 
                                                             {/* Dynamic Ad: Contextual Match */}
-                                                            {ContextualPromo && (
+                                                            {ContextualPromoData && (
                                                                 <div className="mt-8 mb-6 animate-fade-in">
                                                                     <div className="flex items-center gap-4 mb-4">
                                                                         <div className="h-px bg-slate-200 flex-1"></div>
                                                                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                                            <span className="text-amber-400 text-base">✨</span> 
-                                                                            We think they might like
+                                                                            {promoHeader}
                                                                         </span>
                                                                         <div className="h-px bg-slate-200 flex-1"></div>
                                                                     </div>
-                                                                    {ContextualPromo}
+                                                                    <SmartAd partner={ContextualPromoData.partner} creative={ContextualPromoData.creative} placement="reveal-context" />
                                                                 </div>
                                                             )}
 
@@ -433,9 +461,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         <p className="text-sm text-slate-700">{data.eventDetails}</p>
                                                     </div>
                                                 )}
-
-                                                {/* Dynamic Ad: Budget (Credit Karma) */}
-                                                {BudgetPromo}
                                             </div>
                                         )}
                                     </div>
