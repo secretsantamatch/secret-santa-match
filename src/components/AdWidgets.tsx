@@ -2,7 +2,7 @@
 import React from 'react';
 import type { Partner, AdCreative } from '../data/adConfig';
 import { trackEvent } from '../services/analyticsService';
-import { ArrowRight, ExternalLink, Gem, Clock, Star } from 'lucide-react';
+import { ArrowRight, ExternalLink, Gem, Clock, Star, ShieldCheck, Lock, CheckCircle } from 'lucide-react';
 
 interface AdProps {
     partner: Partner;
@@ -24,48 +24,76 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
     const targetLink = creative.linkOverride || partner.affiliateLink;
     
     return (
-    <div className="group relative overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-lg hover:shadow-xl transition-all my-6 animate-fade-in w-full max-w-md mx-auto">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 z-10"></div>
-        <div className="flex flex-col">
-            {creative.imageUrl && (
-                <div className="relative bg-stone-50 w-full aspect-[4/3] flex items-center justify-center overflow-hidden p-6">
-                    <a 
-                        href={targetLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer sponsored"
-                        onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
-                        className="block w-full h-full flex items-center justify-center relative z-10"
-                    >
-                        <img 
-                            src={creative.imageUrl} 
-                            alt={creative.headline} 
-                            className="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-105" 
-                            loading="lazy"
-                        />
-                    </a>
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#444_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                    
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur text-slate-800 border border-slate-200 text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase z-20 shadow-sm flex items-center gap-1">
-                        <Gem size={10} className="text-amber-500" /> Premium
-                    </div>
-                </div>
-            )}
-            <div className="p-6 text-center border-t border-stone-100">
-                <h4 className="font-serif text-2xl font-bold text-slate-900 mb-3 leading-tight">{creative.headline}</h4>
-                <p className="text-slate-600 text-sm mb-6 leading-relaxed px-2">{creative.body}</p>
-                <div className="flex justify-center">
-                    <a 
-                        href={targetLink}
-                        target="_blank" 
-                        rel="noopener noreferrer sponsored" 
-                        className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-slate-900 text-white px-8 py-3.5 rounded-lg hover:bg-slate-800 transition-all tracking-wide shadow-md w-full sm:w-auto hover:-translate-y-0.5"
-                        onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
-                    >
-                        {creative.cta} <ArrowRight size={16} />
-                    </a>
+    <div className="group relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-xl hover:shadow-2xl transition-all my-6 animate-fade-in w-full max-w-md mx-auto flex flex-col">
+        {/* CSS for Shimmer Effect */}
+        <style>{`
+            @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+            .animate-shimmer {
+                animation: shimmer 2.5s infinite;
+            }
+        `}</style>
+
+        {/* Gold Top Bar */}
+        <div className="relative h-1.5 w-full overflow-hidden bg-stone-100">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 animate-shimmer" style={{ width: '200%' }}></div>
+        </div>
+
+        {/* Image Section */}
+        {creative.imageUrl && (
+            <div className="relative bg-stone-50 w-full aspect-[4/3] flex items-center justify-center overflow-hidden p-6 border-b border-stone-100">
+                <a 
+                    href={targetLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer sponsored"
+                    onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
+                    className="block w-full h-full flex items-center justify-center relative z-10"
+                >
+                    <img 
+                        src={creative.imageUrl} 
+                        alt={creative.headline} 
+                        className="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-105" 
+                        loading="lazy"
+                    />
+                </a>
+                
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#444_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                
+                {/* Verified Badge */}
+                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur text-slate-900 border border-stone-200 text-[10px] font-bold px-3 py-1.5 rounded-sm tracking-widest uppercase z-20 shadow-sm flex items-center gap-1.5">
+                    <ShieldCheck size={12} className="text-emerald-600" /> Verified Partner
                 </div>
             </div>
+        )}
+
+        {/* Content Section */}
+        <div className="p-6 text-center flex-grow flex flex-col">
+            <div className="mb-1 flex justify-center">
+                <span className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase">Premium Selection</span>
+            </div>
+            <h4 className="font-serif text-2xl font-bold text-slate-900 mb-3 leading-tight">{creative.headline}</h4>
+            <p className="text-slate-600 text-sm mb-6 leading-relaxed px-2 font-light">{creative.body}</p>
+            
+            <div className="mt-auto flex justify-center">
+                <a 
+                    href={targetLink}
+                    target="_blank" 
+                    rel="noopener noreferrer sponsored" 
+                    className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-slate-900 text-white px-8 py-4 rounded-sm hover:bg-slate-800 transition-all tracking-wide shadow-md w-full sm:w-auto hover:-translate-y-0.5 group-hover:shadow-lg"
+                    onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
+                >
+                    {creative.cta} <ArrowRight size={16} />
+                </a>
+            </div>
+        </div>
+
+        {/* Trust Footer Strip */}
+        <div className="bg-stone-100 border-t border-stone-200 py-2.5 px-4 flex items-center justify-center gap-6 text-[10px] text-stone-500 font-medium uppercase tracking-wider">
+            <span className="flex items-center gap-1.5"><Lock size={10} /> Secure Checkout</span>
+            <span className="flex items-center gap-1.5"><CheckCircle size={10} /> Official Retailer</span>
         </div>
     </div>
     );

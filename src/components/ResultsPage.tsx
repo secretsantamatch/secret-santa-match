@@ -232,10 +232,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
     // Dynamic Header Text for the Ad
     let promoHeader = "🏆 Trending Gift Idea";
-    if (ContextualPromoData && !ContextualPromoData.isFallback && ContextualPromoData.matchedKeyword) {
-        // Capitalize first letter of keyword
-        const kw = ContextualPromoData.matchedKeyword.charAt(0).toUpperCase() + ContextualPromoData.matchedKeyword.slice(1);
-        promoHeader = `✨ Because they like ${kw}`;
+    if (ContextualPromoData && !ContextualPromoData.isFallback && currentMatch) {
+        // High-end personalized text
+        promoHeader = `💎 A Curated Find for ${currentMatch.receiver.name}`;
     } else if (ContextualPromoData && ContextualPromoData.isFallback) {
         promoHeader = "💳 Most Popular Choice";
     }
@@ -453,7 +452,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                                 <div className="mt-8 mb-6 animate-fade-in">
                                                                     <div className="flex items-center gap-4 mb-4">
                                                                         <div className="h-px bg-slate-200 flex-1"></div>
-                                                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 text-center">
                                                                             {promoHeader}
                                                                         </span>
                                                                         <div className="h-px bg-slate-200 flex-1"></div>
