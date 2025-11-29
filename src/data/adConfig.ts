@@ -1,4 +1,3 @@
-
 import { Globe, Clock, Gift, Star, Gem, Coffee, Sparkles, ShoppingBag, Hammer, Smile, Zap } from 'lucide-react';
 
 export type AdType = 'luxury' | 'fun' | 'standard' | 'urgency';
@@ -287,7 +286,7 @@ export const PARTNERS: Partner[] = [
                 id: 'sugarwish-cookies',
                 type: 'fun',
                 headline: 'Holiday Cookies',
-                body: 'Delightful Cookies! From Iced Chocolate Peppermint to traditional Chocolate Chip, let them choose their favorite flavors.',
+                body: 'From Iced Chocolate Peppermint to traditional Chocolate Chip. Delivered in a signature awning box after they choose their favorites.',
                 cta: 'Send Cookies',
                 themeColor: 'pink',
                 weight: 100,
@@ -299,7 +298,7 @@ export const PARTNERS: Partner[] = [
                 id: 'sugarwish-cheers',
                 type: 'fun',
                 headline: 'Holiday Cheers!',
-                body: 'We\'ve thought of everything with this spectacular holiday gift! Exquisite wine, specialty cocktails, and even festive non-alcoholic mixers.',
+                body: 'Exquisite wine, specialty cocktails, or non-alcoholic mixers. You send the link, they pick the drink. Ships to US & Canada.',
                 cta: 'Send a Drink',
                 themeColor: 'rose',
                 weight: 90,
@@ -311,7 +310,7 @@ export const PARTNERS: Partner[] = [
                 id: 'sugarwish-lifestyle',
                 type: 'fun',
                 headline: 'Holiday Lifestyle Gifts',
-                body: 'Sugarwish lets your recipients choose between Spa, Gourmet Pantry, Candles, Jewelry or Gift Sets, and then select their favorites.',
+                body: 'Let them choose between Spa, Gourmet Pantry, Candles, or Gift Sets. The ultimate "safe bet" gift that feels personal.',
                 cta: 'Let Them Choose',
                 themeColor: 'purple',
                 weight: 90,
@@ -323,7 +322,7 @@ export const PARTNERS: Partner[] = [
                 id: 'sugarwish-candy',
                 type: 'fun',
                 headline: 'Candy & Snacks',
-                body: 'Let your recipients experience the joy of being a kid in a (virtual) candy and snack shoppe! They choose from tons of mouthwatering options.',
+                body: 'The joy of a kid in a candy store! They pick their favorite treats from 50+ options. Packed in a beautiful gift box.',
                 cta: 'Send Candy',
                 themeColor: 'blue',
                 weight: 80,
@@ -335,7 +334,7 @@ export const PARTNERS: Partner[] = [
                 id: 'sugarwish-giftsets',
                 type: 'fun',
                 headline: 'Curated Gift Sets',
-                body: 'Say goodbye to boring gift baskets - send them a gift set the Sugarwish way! We\'ve curated delightful collections of the BEST stuff.',
+                body: 'Say goodbye to boring gift baskets. Send a curated collection and let THEM choose which one they want shipped to their door.',
                 cta: 'Send a Sugarwish',
                 themeColor: 'emerald',
                 weight: 50,

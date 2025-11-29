@@ -1,7 +1,8 @@
+
 import React from 'react';
 import type { Partner, AdCreative } from '../data/adConfig';
 import { trackEvent } from '../services/analyticsService';
-import { ArrowRight, ExternalLink, Gem, Clock, Star, ShieldCheck, Lock, CheckCircle, Globe, Heart, Gift } from 'lucide-react';
+import { ArrowRight, ExternalLink, Gem, Clock, Star, ShieldCheck, Lock, CheckCircle, Globe, Heart, Gift, Sparkles, Mail } from 'lucide-react';
 
 interface AdProps {
     partner: Partner;
@@ -102,20 +103,62 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
 };
 
 // 2. Fun Card (Sugarwish) - Colorful/Pop/Dynamic
+const FUN_THEMES: Record<string, { bg: string, border: string, text: string, btn: string, icon: string }> = {
+    pink: { 
+        bg: 'from-pink-50 via-white to-pink-50', 
+        border: 'border-pink-200', 
+        text: 'text-pink-900', 
+        btn: 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600', 
+        icon: 'text-pink-500' 
+    },
+    blue: { 
+        bg: 'from-sky-50 via-white to-blue-50', 
+        border: 'border-sky-200', 
+        text: 'text-sky-900', 
+        btn: 'bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700', 
+        icon: 'text-sky-500' 
+    },
+    purple: { 
+        bg: 'from-purple-50 via-white to-violet-50', 
+        border: 'border-purple-200', 
+        text: 'text-purple-900', 
+        btn: 'bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700', 
+        icon: 'text-purple-500' 
+    },
+    rose: { 
+        bg: 'from-rose-50 via-white to-red-50', 
+        border: 'border-rose-200', 
+        text: 'text-rose-900', 
+        btn: 'bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600', 
+        icon: 'text-rose-500' 
+    },
+    emerald: { 
+        bg: 'from-emerald-50 via-white to-green-50', 
+        border: 'border-emerald-200', 
+        text: 'text-emerald-900', 
+        btn: 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700', 
+        icon: 'text-emerald-500' 
+    },
+};
+
 const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
     const targetLink = creative.linkOverride || partner.affiliateLink;
-    const isFemaleFounded = partner.id === 'sugarwish'; // Specific badge for Sugarwish story
+    const isSugarwish = partner.id === 'sugarwish'; 
+    
+    // Default to pink if themeColor is missing or invalid
+    const themeColor = creative.themeColor || 'pink';
+    const theme = FUN_THEMES[themeColor] || FUN_THEMES.pink;
 
     return (
-    <div className={`group relative overflow-hidden rounded-2xl border-2 shadow-lg animate-fade-in hover:shadow-xl transition-all transform hover:-translate-y-1 bg-gradient-to-br from-${creative.themeColor || 'pink'}-50 via-white to-${creative.themeColor || 'pink'}-50 border-${creative.themeColor || 'pink'}-200 my-6`}>
+    <div className={`group relative overflow-hidden rounded-2xl border-2 shadow-lg animate-fade-in hover:shadow-xl transition-all transform hover:-translate-y-1 bg-gradient-to-br ${theme.bg} ${theme.border} my-6`}>
         {/* Background Decor */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-50 -mr-10 -mt-10"></div>
         
-        <div className="relative z-10 flex flex-col sm:flex-row">
-            {/* Image Side (If Image Exists) */}
+        <div className="relative z-10 flex flex-col sm:flex-row h-full">
+            {/* Image Side */}
             {creative.imageUrl ? (
-                <div className="sm:w-2/5 relative min-h-[180px] sm:min-h-full">
-                    <div className="absolute inset-0 bg-white flex items-center justify-center p-4">
+                <div className="sm:w-2/5 relative min-h-[200px] sm:min-h-full bg-white border-b sm:border-b-0 sm:border-r border-slate-100">
+                    <div className="absolute inset-0 flex items-center justify-center p-4">
                          <a href={targetLink} target="_blank" rel="noopener noreferrer sponsored" onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)} className="block w-full h-full">
                             <img 
                                 src={creative.imageUrl} 
@@ -125,36 +168,29 @@ const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
                             />
                         </a>
                     </div>
-                    {/* Badge Overlay */}
-                    {isFemaleFounded && (
-                        <div className="absolute bottom-2 left-2 bg-pink-100 text-pink-800 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm border border-pink-200">
-                            👩‍💼 Female Founded
+                    {/* Benefit Badge */}
+                    {isSugarwish && (
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 sm:left-2 sm:translate-x-0 bg-white/90 backdrop-blur text-slate-800 text-[10px] font-bold px-3 py-1 rounded-full shadow-sm border border-slate-200 whitespace-nowrap flex items-center gap-1">
+                            <Mail size={10} className="text-blue-500" /> Delivered Instantly via Email/Text
                         </div>
                     )}
                 </div>
             ) : (
-                // Fallback Icon if no image
-                <div className="p-6 flex items-center justify-center sm:w-auto">
-                    <div className={`flex-shrink-0 bg-white rounded-full h-20 w-20 flex items-center justify-center shadow-md border-2 border-${creative.themeColor || 'pink'}-100`}>
-                        <partner.icon size={36} className={`text-${creative.themeColor || 'pink'}-500`} />
+                // Fallback Icon
+                <div className="p-6 flex items-center justify-center sm:w-auto bg-white/50">
+                    <div className={`flex-shrink-0 bg-white rounded-full h-20 w-20 flex items-center justify-center shadow-md border-2 ${theme.border}`}>
+                        <partner.icon size={36} className={theme.icon} />
                     </div>
                 </div>
             )}
 
             {/* Content Side */}
-            <div className={`p-6 flex flex-col justify-center ${creative.imageUrl ? 'sm:w-3/5 sm:border-l border-slate-100' : 'flex-grow'}`}>
-                
-                {!creative.imageUrl && isFemaleFounded && (
-                     <div className="mb-3">
-                        <span className="inline-block bg-pink-100 text-pink-800 text-[10px] font-bold px-2 py-1 rounded-full">👩‍💼 Female Founded</span>
-                    </div>
-                )}
-
-                <h4 className={`font-black text-xl text-${creative.themeColor || 'pink'}-900 leading-tight mb-2 group-hover:text-${creative.themeColor || 'pink'}-700 transition-colors`}>
+            <div className="p-6 flex flex-col justify-center flex-grow text-center sm:text-left">
+                <h4 className={`font-black text-xl ${theme.text} leading-tight mb-2`}>
                     {creative.headline}
                 </h4>
                 
-                <p className={`text-sm text-slate-600 font-medium leading-relaxed mb-5`}>
+                <p className="text-sm text-slate-600 font-medium leading-relaxed mb-5">
                     {creative.body}
                 </p>
                 
@@ -163,10 +199,10 @@ const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
                         href={targetLink} 
                         target="_blank" 
                         rel="noopener noreferrer sponsored" 
-                        className={`inline-flex items-center justify-center gap-2 text-sm font-bold bg-gradient-to-r from-${creative.themeColor || 'pink'}-500 to-purple-500 text-white px-6 py-3 rounded-xl shadow-md hover:opacity-90 transition-all hover:shadow-lg w-full sm:w-auto transform active:scale-95`}
+                        className={`inline-flex items-center justify-center gap-2 text-sm font-bold text-white px-6 py-3.5 rounded-xl shadow-md hover:opacity-95 transition-all hover:shadow-lg w-full ${theme.btn} transform active:scale-95`}
                         onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
                     >
-                        <Gift size={16} /> {creative.cta}
+                        <Gift size={18} /> {creative.cta}
                     </a>
                 </div>
             </div>
