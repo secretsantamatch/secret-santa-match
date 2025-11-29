@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Partner, AdCreative } from '../data/adConfig';
 import { trackEvent } from '../services/analyticsService';
@@ -164,7 +163,7 @@ const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
                         href={targetLink} 
                         target="_blank" 
                         rel="noopener noreferrer sponsored" 
-                        className={`inline-flex items-center justify-center gap-2 text-sm font-bold bg-${creative.themeColor || 'pink'}-500 text-white px-6 py-3 rounded-xl shadow-md hover:bg-${creative.themeColor || 'pink'}-600 transition-all hover:shadow-lg w-full sm:w-auto transform active:scale-95`}
+                        className={`inline-flex items-center justify-center gap-2 text-sm font-bold bg-gradient-to-r from-${creative.themeColor || 'pink'}-500 to-purple-500 text-white px-6 py-3 rounded-xl shadow-md hover:opacity-90 transition-all hover:shadow-lg w-full sm:w-auto transform active:scale-95`}
                         onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
                     >
                         <Gift size={16} /> {creative.cta}
