@@ -11,7 +11,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, Sparkles, Calendar, Clock } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, Clock, ShieldCheck, ExternalLink } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -27,6 +27,7 @@ interface ResultsPageProps {
 type LiveWishlists = Record<string, Partial<Omit<Participant, 'id' | 'name'>>>;
 
 // --- PERSONAL NUDGE COMPONENT ---
+// Shows a helpful context message based on the date
 const PersonalNudge: React.FC<{ giverName: string }> = ({ giverName }) => {
     const today = new Date();
     // Only show before Dec 26th
@@ -135,18 +136,20 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         currentParticipant ? matches.find(m => m.giver.id === currentParticipant.id) : null,
     [matches, currentParticipant]);
 
-    // --- AD LOGIC ---
+    // --- SMART AD ENGINE INTEGRATION ---
     
-    // 1. Pre-Reveal Deal (Broad appeal)
+    // 1. Pre-Reveal Deal: Broad appeal (usually GiftCards.com or Seasonal)
     const PreRevealPromo = useMemo(() => {
-        const match = getBestPromo(''); 
+        // Passing 'gift cards' hints the engine to look for general deals if no dates override it
+        const match = getBestPromo('gift cards'); 
         return match ? <SmartAd partner={match.partner} creative={match.creative} placement="pre-reveal" /> : null;
     }, []);
 
-    // 2. Post-Reveal Contextual Deal
+    // 2. Post-Reveal Deal: Contextually matched to the receiver's interests
     const ContextualPromoData = useMemo(() => {
         if (!currentMatch) return null;
         const combinedText = `${currentMatch.receiver.interests || ''} ${currentMatch.receiver.likes || ''}`;
+        // If empty, the engine will return the high-converting fallback (Personalized Visa)
         return getBestPromo(combinedText);
     }, [currentMatch]);
 
@@ -227,7 +230,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     const hasLinks = currentMatch && Array.isArray(currentMatch.receiver.links) && currentMatch.receiver.links.some(link => link && link.trim() !== '');
     const hasDetails = currentMatch && (currentMatch.receiver.interests || currentMatch.receiver.likes || currentMatch.receiver.dislikes || currentMatch.receiver.budget);
 
-    // Determine specific header text based on match type
+    // Dynamic Header Text for the Ad
     let promoHeader = "🏆 Trending Gift Idea";
     if (ContextualPromoData && !ContextualPromoData.isFallback && ContextualPromoData.matchedKeyword) {
         // Capitalize first letter of keyword
@@ -334,8 +337,30 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                             Click to Continue
                                         </button>
                                         
-                                        {/* Dynamic Ad: Pre-Reveal */}
-                                        {PreRevealPromo}
+                                        {/* Dynamic Ad: Pre-Reveal with Trusted Partner Wrapper */}
+                                        {PreRevealPromo && (
+                                            <div className="mt-12 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
+                                                <div className="bg-slate-50 p-3 border-b border-slate-100 flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShieldCheck className="text-green-600" size={18} />
+                                                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Trusted Partner</span>
+                                                    </div>
+                                                    <span className="text-[10px] text-slate-400 font-medium">Sponsored</span>
+                                                </div>
+                                                <div className="p-4">
+                                                    <div className="flex items-center gap-3 mb-4">
+                                                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                                                            <Gift size={20} />
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <h4 className="font-bold text-slate-800 text-sm leading-tight">GiftCards.com</h4>
+                                                            <p className="text-xs text-slate-500">The safe, instant way to send gifts from 350+ top brands.</p>
+                                                        </div>
+                                                    </div>
+                                                    {PreRevealPromo}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <div className="mt-8">
                                             <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="3456789012" data-ad-format="auto" data-full-width-responsive="true" />
