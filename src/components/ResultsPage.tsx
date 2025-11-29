@@ -11,7 +11,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -381,7 +381,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                                         {currentMatch.receiver.likes && (
                                                                             <p><strong className="font-semibold text-slate-800">Likes:</strong> {currentMatch.receiver.likes}</p>
                                                                         )}
-                                                                        {currentMatch.receiver.dislikes && <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {currentMatch.receiver.dislikes}</p>}
+                                                                        {currentMatch.receiver.dislikes && (
+                                                                            <p><strong className="font-semibold text-slate-800">Dislikes:</strong> {currentMatch.receiver.dislikes}</p>
+                                                                        )}
                                                                         {currentMatch.receiver.budget && <p><strong className="font-semibold text-slate-800">Budget:</strong> {currentMatch.receiver.budget}</p>}
                                                                     </div>
                                                                 </div>
@@ -393,7 +395,19 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                             )}
 
                                                             {/* Dynamic Ad: Contextual Match */}
-                                                            {ContextualPromo}
+                                                            {ContextualPromo && (
+                                                                <div className="mt-8 mb-6 animate-fade-in">
+                                                                    <div className="flex items-center gap-4 mb-4">
+                                                                        <div className="h-px bg-slate-200 flex-1"></div>
+                                                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                                            <span className="text-amber-400 text-base">✨</span> 
+                                                                            We think they might like
+                                                                        </span>
+                                                                        <div className="h-px bg-slate-200 flex-1"></div>
+                                                                    </div>
+                                                                    {ContextualPromo}
+                                                                </div>
+                                                            )}
 
                                                             {hasLinks && (
                                                                 <div>

@@ -23,7 +23,8 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
                 <div className="relative bg-stone-50 w-full aspect-square flex items-center justify-center overflow-hidden p-4">
                     <a 
                         href={partner.affiliateLink} 
-                        target="_blank" rel="sponsored"
+                        target="_blank" 
+                        rel="noopener noreferrer sponsored"
                         onClick={() => handleAdClick(partner.name, placement)}
                         className="block w-full h-full"
                     >
@@ -49,7 +50,8 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
                 <div className="flex justify-center">
                     <a 
                         href={partner.affiliateLink}
-                        target="_blank" rel="noopener noreferrer sponsored" 
+                        target="_blank" 
+                        rel="noopener noreferrer sponsored" 
                         className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-slate-900 text-white px-8 py-3 rounded-sm hover:bg-slate-800 transition-all tracking-wide shadow-md w-full"
                         onClick={() => handleAdClick(partner.name, placement)}
                     >
@@ -73,7 +75,8 @@ const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
                 <p className={`text-sm text-${creative.themeColor || 'pink'}-800 font-medium opacity-90 mt-1`}>{creative.body}</p>
                 <a 
                     href={partner.affiliateLink} 
-                    target="_blank" rel="noopener noreferrer sponsored" 
+                    target="_blank" 
+                    rel="noopener noreferrer sponsored" 
                     className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-5 py-2.5 rounded-xl border border-${creative.themeColor || 'pink'}-200 text-${creative.themeColor || 'pink'}-600 hover:bg-${creative.themeColor || 'pink'}-50 transition-colors shadow-sm`}
                     onClick={() => handleAdClick(partner.name, placement)}
                 >
@@ -107,7 +110,8 @@ const UrgencyBanner: React.FC<AdProps> = ({ partner, creative, placement }) => (
         </div>
         <a 
             href={partner.affiliateLink} 
-            target="_blank" rel="sponsored" 
+            target="_blank" 
+            rel="noopener noreferrer sponsored" 
             onClick={() => handleAdClick(partner.name, placement)} 
             className="mt-4 flex items-center justify-center w-full bg-white text-slate-900 font-bold py-3 rounded-lg hover:bg-red-50 transition-all transform group-hover:scale-[1.02] shadow-lg text-sm"
         >
