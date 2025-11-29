@@ -10,8 +10,13 @@ interface AdProps {
     placement: string;
 }
 
-const handleAdClick = (partnerName: string, placement: string) => {
-    trackEvent('affiliate_click', { partner: partnerName, placement });
+const handleAdClick = (partnerName: string, placement: string, creativeId: string, creativeType: string) => {
+    trackEvent('affiliate_click', { 
+        partner: partnerName, 
+        placement,
+        creative_id: creativeId,
+        creative_type: creativeType
+    });
 };
 
 // 1. Luxury Card (Bonheur / Visa) - Gold/High-end feel
@@ -28,7 +33,7 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
                         href={targetLink} 
                         target="_blank" 
                         rel="noopener noreferrer sponsored"
-                        onClick={() => handleAdClick(partner.name, placement)}
+                        onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
                         className="block w-full h-full flex items-center justify-center relative z-10"
                     >
                         <img 
@@ -55,7 +60,7 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
                         target="_blank" 
                         rel="noopener noreferrer sponsored" 
                         className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-slate-900 text-white px-8 py-3.5 rounded-lg hover:bg-slate-800 transition-all tracking-wide shadow-md w-full sm:w-auto hover:-translate-y-0.5"
-                        onClick={() => handleAdClick(partner.name, placement)}
+                        onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
                     >
                         {creative.cta} <ArrowRight size={16} />
                     </a>
@@ -84,7 +89,7 @@ const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
                     className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-6 py-3 rounded-xl border border-${creative.themeColor || 'pink'}-200 text-${creative.themeColor || 'pink'}-600 hover:bg-${creative.themeColor || 'pink'}-50 transition-colors shadow-sm w-full sm:w-auto justify-center`}
-                    onClick={() => handleAdClick(partner.name, placement)}
+                    onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
                 >
                     {creative.cta} <ExternalLink size={16} />
                 </a>
@@ -157,7 +162,7 @@ const UrgencyBanner: React.FC<AdProps> = ({ partner, creative, placement }) => {
                         href={targetLink} 
                         target="_blank" 
                         rel="noopener noreferrer sponsored" 
-                        onClick={() => handleAdClick(partner.name, placement)} 
+                        onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)} 
                         className={`flex items-center justify-center gap-2 w-full bg-white ${theme.btnText} font-bold py-3.5 rounded-xl hover:bg-opacity-90 transition-all transform active:scale-95 shadow-lg text-sm`}
                     >
                         {creative.cta} <ArrowRight size={16} />
@@ -196,7 +201,7 @@ const StandardCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
                     target="_blank"
                     rel="noopener noreferrer sponsored"
                     className={`inline-flex items-center justify-center gap-1.5 text-sm font-bold bg-white text-${creative.themeColor || 'slate'}-700 px-5 py-2.5 rounded-lg border border-${creative.themeColor || 'slate'}-200 hover:bg-${creative.themeColor || 'slate'}-600 hover:text-white hover:border-${creative.themeColor || 'slate'}-600 transition-all shadow-sm w-full sm:w-auto`}
-                    onClick={() => handleAdClick(partner.name, placement)}
+                    onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)}
                 >
                     {creative.cta} <ArrowRight size={14} />
                 </a>

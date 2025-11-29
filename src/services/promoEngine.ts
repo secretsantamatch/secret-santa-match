@@ -9,6 +9,28 @@ interface PromoMatch {
     matchedKeyword?: string;
 }
 
+// Helper: Weighted Random Selection
+const selectWeightedCreative = (creatives: AdCreative[]): AdCreative | undefined => {
+    if (creatives.length === 0) return undefined;
+    if (creatives.length === 1) return creatives[0];
+
+    // Calculate total weight (default to 1 if missing)
+    const totalWeight = creatives.reduce((sum, c) => sum + (c.weight || 1), 0);
+    
+    // Pick random number
+    let random = Math.random() * totalWeight;
+    
+    // Find the creative
+    for (const creative of creatives) {
+        random -= (creative.weight || 1);
+        if (random <= 0) {
+            return creative;
+        }
+    }
+    
+    return creatives[0]; // Fallback
+};
+
 export const getBestPromo = (contextText: string): PromoMatch | null => {
     const isEu = isEuVisitor();
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
@@ -45,19 +67,22 @@ export const getBestPromo = (contextText: string): PromoMatch | null => {
         // If no keywords matched and not a wildcard, skip
         if (score === 0) continue;
 
-        // 3. Find Valid Creative (Date Check)
-        const validCreative = partner.creatives.find(c => {
+        // 3. Find ALL Valid Creatives (Date Check)
+        const validCreatives = partner.creatives.filter(c => {
             if (c.startDate && c.startDate > today) return false;
             if (c.endDate && c.endDate < today) return false;
             return true;
         });
 
+        // 4. Perform Weighted Selection on Valid Creatives
+        const selectedCreative = selectWeightedCreative(validCreatives);
+
         // If we found a valid creative and this score is higher than previous best
-        if (validCreative && score > highestScore) {
+        if (selectedCreative && score > highestScore) {
             highestScore = score;
             bestMatch = { 
                 partner, 
-                creative: validCreative,
+                creative: selectedCreative,
                 isFallback: partner.keywords.includes('*'),
                 matchedKeyword: currentMatchedKeyword
             };
@@ -72,14 +97,15 @@ export const getPromoById = (id: string): PromoMatch | null => {
     const partner = PARTNERS.find(p => p.id === id);
     if (!partner) return null;
     
-    // Just return the first valid creative found
     const today = new Date().toISOString().split('T')[0];
-    const creative = partner.creatives.find(c => {
+    const validCreatives = partner.creatives.filter(c => {
         if (c.startDate && c.startDate > today) return false;
         if (c.endDate && c.endDate < today) return false;
         return true;
     });
 
-    if (!creative) return null;
-    return { partner, creative, isFallback: false };
+    const selectedCreative = selectWeightedCreative(validCreatives);
+
+    if (!selectedCreative) return null;
+    return { partner, creative: selectedCreative, isFallback: false };
 }
