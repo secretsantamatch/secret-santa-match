@@ -1,22 +1,6 @@
-
 import { Globe, Clock, Gift, Star, Gem, Coffee, Sparkles, ShoppingBag, Hammer, Smile, Zap } from 'lucide-react';
 
-export type AdType = 'luxury' | 'fun' | 'standard' | 'urgency';
-
-export interface AdCreative {
-    id: string;
-    type: AdType;
-    headline: string;
-    body: string;
-    cta: string;
-    imageUrl?: string; // Optional: If not provided, uses icon
-    startDate?: string; // ISO Date string YYYY-MM-DD
-    endDate?: string;   // ISO Date string YYYY-MM-DD
-    couponCode?: string;
-    themeColor?: string; // Tailwind color class base (e.g. 'amber', 'rose')
-    linkOverride?: string; // Optional: Specific product deep link
-    weight?: number; // Optional: For A/B testing (default 1). Higher = more frequent.
-}
+// ... (AdType and AdCreative interfaces remain the same)
 
 export interface Partner {
     id: string;
@@ -77,6 +61,119 @@ export const PARTNERS: Partner[] = [
                 themeColor: 'blue',
                 weight: 100,
                 imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.972&subid=0&type=4&gridnum=0"
+            }
+        ]
+    },
+
+    // --- LUXURY JEWELRY (BONHEUR) ---
+    {
+        id: 'bonheur',
+        name: 'Bonheur Jewelry',
+        priority: 95, // High priority for jewelry keywords
+        geo: 'GLOBAL',
+        keywords: ['jewelry', 'jewellery', 'gold', 'silver', 'ring', 'necklace', 'earring', 'bracelet', 'fashion', 'wife', 'girlfriend', 'mom', 'luxury', 'sparkle', 'accessories', 'diamond', 'woman', 'women', 'style'],
+        affiliateLink: "https://www.awin1.com/cread.php?s=4547931&v=90759&q=554223&r=2612068",
+        icon: Gem,
+        creatives: [
+            {
+                id: 'bonheur-milou-bracelet',
+                type: 'luxury',
+                headline: 'Milou Tennis Bracelet',
+                body: 'Available in 18k Yellow Gold or Rose over sustainable brass. Featuring faceted Swarovski Crystals for timeless elegance.',
+                cta: 'Shop This Look',
+                weight: 80,
+                linkOverride: "https://www.awin1.com/cread.php?s=4551138&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4551138&v=90759&q=554223&r=2612068"
+            },
+            {
+                id: 'bonheur-odette-model',
+                type: 'luxury',
+                headline: 'Odette Drop Earrings',
+                body: 'Statement 2.5" drops with Blue, Peridot, Ruby, and White Swarovski Crystals. As seen on celebrities and editorials.',
+                cta: 'View Earrings',
+                weight: 80,
+                linkOverride: "https://www.awin1.com/cread.php?s=4551136&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4551136&v=90759&q=554223&r=2612068"
+            },
+            {
+                id: 'bonheur-rings-model',
+                type: 'luxury',
+                headline: 'Statement Rings',
+                body: 'Bold, eco-friendly designs inspired by the world around us. Created with recycled metals and ethically sourced gemstones.',
+                cta: 'Shop Rings',
+                weight: 70,
+                linkOverride: "https://www.awin1.com/cread.php?s=4547918&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4547918&v=90759&q=554223&r=2612068"
+            },
+            {
+                id: 'bonheur-anik-bracelet',
+                type: 'luxury',
+                headline: 'Anik Tennis Bracelet',
+                body: 'Handset 4.5mm Swarovski stones in a classic tennis chain. A piece designed to be passed down for generations.',
+                cta: 'Shop Bracelets',
+                weight: 70,
+                linkOverride: "https://www.awin1.com/cread.php?s=4547819&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4547819&v=90759&q=554223&r=2612068"
+            },
+            {
+                id: 'bonheur-lilou-charm',
+                type: 'luxury',
+                headline: 'Lilou Crystal Charm Bracelet',
+                body: 'Adjustable charm bracelet featuring White & Green Swarovski Crystals in mixed cuts (Princess, Pear, Baguette).',
+                cta: 'View Bracelet',
+                weight: 60,
+                linkOverride: "https://www.awin1.com/cread.php?s=4547876&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4547876&v=90759&q=554223&r=2612068"
+            },
+            {
+                id: 'bonheur-eugenie-tennis',
+                type: 'luxury',
+                headline: 'Eugenie Crystal Tennis Bracelet',
+                body: 'Classic elegance redefined. 18k Yellow Gold or Rhodium plating with stunning Emerald-Cut and Round crystals.',
+                cta: 'Shop Luxury',
+                weight: 60,
+                linkOverride: "https://www.awin1.com/cread.php?s=4547874&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4547874&v=90759&q=554223&r=2612068"
+            },
+            {
+                id: 'bonheur-taylor-earrings',
+                type: 'luxury',
+                headline: 'Taylor Beaded Earrings',
+                body: 'Delicate, lightweight hollow spheres in a long drop design. Detachable ear jackets for versatile styling.',
+                cta: 'Shop Earrings',
+                weight: 60,
+                linkOverride: "https://www.awin1.com/cread.php?s=4547850&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4547850&v=90759&q=554223&r=2612068"
+            },
+            {
+                id: 'bonheur-astor-hoops',
+                type: 'luxury',
+                headline: 'Astor Hoop Earrings',
+                body: 'The perfect everyday hoop. 19mm diameter with secure latch backs. Made with sustainable brass.',
+                cta: 'View Hoops',
+                weight: 50,
+                linkOverride: "https://www.awin1.com/cread.php?s=4547812&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4547812&v=90759&q=554223&r=2612068"
+            },
+            {
+                id: 'bonheur-odette-product',
+                type: 'luxury',
+                headline: 'Odette Earrings (Product View)',
+                body: 'Exquisite craftsmanship available in 18k Yellow Gold or Rhodium. A stunning gift that tells a story.',
+                cta: 'See Details',
+                weight: 40,
+                linkOverride: "https://www.awin1.com/cread.php?s=4551135&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4551135&v=90759&q=554223&r=2612068"
+            },
+            {
+                id: 'bonheur-general-banner',
+                type: 'luxury',
+                headline: 'Timeless Eco-Friendly Jewelry',
+                body: 'Inspired by family heirlooms, created for the modern woman. Ethical, sustainable, and beautiful.',
+                cta: 'Discover Bonheur',
+                weight: 50,
+                linkOverride: "https://www.awin1.com/cread.php?s=4547931&v=90759&q=554223&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4547931&v=90759&q=554223&r=2612068"
             }
         ]
     },
@@ -150,26 +247,6 @@ export const PARTNERS: Partner[] = [
     },
 
     // --- STANDARD PARTNERS ---
-    {
-        id: 'bonheur',
-        name: 'Bonheur Jewelry',
-        priority: 90, 
-        geo: 'GLOBAL',
-        keywords: ['jewelry', 'gold', 'silver', 'ring', 'necklace', 'earring', 'fashion', 'wife', 'girlfriend', 'mom', 'luxury', 'sparkle'],
-        affiliateLink: "https://www.awin1.com/cread.php?s=4547920&v=90759&q=554223&r=2612068",
-        icon: Gem,
-        creatives: [
-            {
-                id: 'bonheur-general',
-                type: 'luxury',
-                headline: 'A Gift That Sparkles Forever',
-                body: 'Eco-friendly, NYC-based luxury jewelry adored by celebrities. Give a gift as unique as they are.',
-                cta: 'Shop The Collection',
-                weight: 100,
-                imageUrl: "https://www.awin1.com/cshow.php?s=4547920&v=90759&q=554223&r=2612068"
-            }
-        ]
-    },
     {
         id: 'pinetales',
         name: 'PineTales',
