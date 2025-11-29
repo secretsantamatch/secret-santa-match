@@ -1,6 +1,22 @@
+
 import { Globe, Clock, Gift, Star, Gem, Coffee, Sparkles, ShoppingBag, Hammer, Smile, Zap } from 'lucide-react';
 
-// ... (AdType and AdCreative interfaces remain the same)
+export type AdType = 'luxury' | 'fun' | 'standard' | 'urgency';
+
+export interface AdCreative {
+    id: string;
+    type: AdType;
+    headline: string;
+    body: string;
+    cta: string;
+    imageUrl?: string; // Optional: If not provided, uses icon
+    startDate?: string; // ISO Date string YYYY-MM-DD
+    endDate?: string;   // ISO Date string YYYY-MM-DD
+    couponCode?: string;
+    themeColor?: string; // Tailwind color class base (e.g. 'amber', 'rose')
+    linkOverride?: string; // Optional: Specific product deep link
+    weight?: number; // Optional: For A/B testing (default 1). Higher = more frequent.
+}
 
 export interface Partner {
     id: string;
@@ -65,7 +81,76 @@ export const PARTNERS: Partner[] = [
         ]
     },
 
-    // --- LUXURY JEWELRY (BONHEUR) ---
+    // --- CATEGORY SPECIFIC PARTNERS (VIA GIFTCARDS.COM) ---
+    {
+        id: 'gc-beauty',
+        name: 'Beauty Gifts',
+        priority: 85, 
+        geo: 'US_ONLY',
+        keywords: ['makeup', 'beauty', 'hair', 'skin', 'face', 'cosmetics', 'sephora', 'ulta', 'spa'],
+        affiliateLink: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.907&subid=0&type=4",
+        icon: Sparkles,
+        creatives: [
+            {
+                id: 'gc-sephora-holiday',
+                type: 'standard',
+                headline: 'Beauty for the Holidays',
+                body: 'The perfect gift for beauty lovers. Delivered instantly.',
+                cta: 'Shop Sephora Cards',
+                themeColor: 'rose',
+                startDate: '2025-11-13',
+                endDate: '2026-01-06',
+                weight: 50,
+                imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.907&subid=0&type=4&gridnum=0"
+            },
+            {
+                id: 'gc-ulta-holiday',
+                type: 'standard',
+                headline: 'Give the Gift of Glow',
+                body: 'Let them choose their favorite products with an Ulta Beauty card.',
+                cta: 'Shop Ulta Cards',
+                themeColor: 'orange',
+                startDate: '2025-11-13',
+                endDate: '2026-01-06',
+                weight: 50,
+                imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.905&subid=0&type=4&gridnum=0"
+            }
+        ]
+    },
+
+    // --- LUXURY / CUSTOM PRODUCTS ---
+    {
+        id: 'gc-custom-visa',
+        name: 'Custom Visa Gifts',
+        priority: 80,
+        geo: 'US_ONLY',
+        keywords: ['money', 'cash', 'flexible', 'visa', 'mastercard', 'choice', 'anything'],
+        affiliateLink: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.640&subid=0&type=4",
+        icon: Gift,
+        creatives: [
+            {
+                id: 'gc-visa-holiday',
+                type: 'luxury',
+                headline: 'The Gift of Everywhere',
+                body: 'A personalized Visa gift card they can spend anywhere. Choose a festive holiday design.',
+                cta: 'Personalize & Buy',
+                weight: 50,
+                linkOverride: "https://click.linksynergy.com/link?id=6AKK8tkf2k4&offerid=1469583.444323918390291691328604&type=2&murl=https%3a%2f%2fwww.giftcards.com%2fus%2fen%2fcatalog%2fproduct-details%2fopen-loop-gift-card%3fmode%3ddesign%26brand%3dvisa%26image-id%3d1de39cec-2760-4aa0-bccf-71b8f59820bb%26amount%3d50",
+                imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/636bce53be23.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
+            },
+            {
+                id: 'gc-mastercard-tree',
+                type: 'luxury',
+                headline: 'Make It Personal',
+                body: 'Upload a photo or choose a premium holiday design. Funds never expire.',
+                cta: 'Create Custom Card',
+                weight: 50,
+                imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/5627dfdb539a.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
+            }
+        ]
+    },
+
+    // --- STANDARD PARTNERS ---
     {
         id: 'bonheur',
         name: 'Bonheur Jewelry',
@@ -177,76 +262,6 @@ export const PARTNERS: Partner[] = [
             }
         ]
     },
-
-    // --- CATEGORY SPECIFIC PARTNERS (VIA GIFTCARDS.COM) ---
-    {
-        id: 'gc-beauty',
-        name: 'Beauty Gifts',
-        priority: 85, 
-        geo: 'US_ONLY',
-        keywords: ['makeup', 'beauty', 'hair', 'skin', 'face', 'cosmetics', 'sephora', 'ulta', 'spa'],
-        affiliateLink: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.907&subid=0&type=4",
-        icon: Sparkles,
-        creatives: [
-            {
-                id: 'gc-sephora-holiday',
-                type: 'standard',
-                headline: 'Beauty for the Holidays',
-                body: 'The perfect gift for beauty lovers. Delivered instantly.',
-                cta: 'Shop Sephora Cards',
-                themeColor: 'rose',
-                startDate: '2025-11-13',
-                endDate: '2026-01-06',
-                weight: 50,
-                imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.907&subid=0&type=4&gridnum=0"
-            },
-            {
-                id: 'gc-ulta-holiday',
-                type: 'standard',
-                headline: 'Give the Gift of Glow',
-                body: 'Let them choose their favorite products with an Ulta Beauty card.',
-                cta: 'Shop Ulta Cards',
-                themeColor: 'orange',
-                startDate: '2025-11-13',
-                endDate: '2026-01-06',
-                weight: 50,
-                imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.905&subid=0&type=4&gridnum=0"
-            }
-        ]
-    },
-
-    // --- LUXURY / CUSTOM PRODUCTS ---
-    {
-        id: 'gc-custom-visa',
-        name: 'Custom Visa Gifts',
-        priority: 80,
-        geo: 'US_ONLY',
-        keywords: ['money', 'cash', 'flexible', 'visa', 'mastercard', 'choice', 'anything'],
-        affiliateLink: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.640&subid=0&type=4",
-        icon: Gift,
-        creatives: [
-            {
-                id: 'gc-visa-holiday',
-                type: 'luxury',
-                headline: 'The Gift of Everywhere',
-                body: 'A personalized Visa gift card they can spend anywhere. Choose a festive holiday design.',
-                cta: 'Personalize & Buy',
-                weight: 50,
-                imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/59d2a1fb9bd4.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
-            },
-            {
-                id: 'gc-mastercard-tree',
-                type: 'luxury',
-                headline: 'Make It Personal',
-                body: 'Upload a photo or choose a premium holiday design. Funds never expire.',
-                cta: 'Create Custom Card',
-                weight: 50,
-                imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/5627dfdb539a.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
-            }
-        ]
-    },
-
-    // --- STANDARD PARTNERS ---
     {
         id: 'pinetales',
         name: 'PineTales',
