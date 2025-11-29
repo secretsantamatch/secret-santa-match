@@ -11,12 +11,13 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, Clock, ShieldCheck, ExternalLink } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, Clock, ShieldCheck, ExternalLink, Flame, Zap } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
 import { getBestPromo } from '../services/promoEngine';
 import { SmartAd } from './AdWidgets';
+import { URGENCY_CONFIG } from '../data/adConfig';
 
 interface ResultsPageProps {
     data: ExchangeData;
@@ -28,13 +29,55 @@ type LiveWishlists = Record<string, Partial<Omit<Participant, 'id' | 'name'>>>;
 
 // --- PERSONAL NUDGE COMPONENT ---
 // Shows a helpful context message based on the date
-const PersonalNudge: React.FC<{ giverName: string }> = ({ giverName }) => {
+const PersonalNudge: React.FC<{ giverName: string; partnerName?: string }> = ({ giverName, partnerName }) => {
     const today = new Date();
     // Only show before Dec 26th
     if (today.getMonth() === 11 && today.getDate() > 25) return null; 
     
+    // Format date key MM-DD for lookup
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const dateKey = `${month}-${day}`;
+    
+    // Hardcode dateKey for testing/demo if needed, e.g., '11-28'
+    // const dateKey = '11-28'; 
+
     const dateStr = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(today);
     
+    // Check if today has a special urgency message
+    const urgency = URGENCY_CONFIG[dateKey];
+
+    if (urgency) {
+        // Determine category context based on the ad shown
+        let category = 'gift';
+        if (partnerName?.toLowerCase().includes('jewelry') || partnerName?.toLowerCase().includes('bonheur')) {
+            category = 'jewelry';
+        } else if (partnerName?.toLowerCase().includes('giftcard')) {
+            category = 'gift card';
+        }
+
+        const message = urgency.template.replace('{category}', category);
+
+        return (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg shadow-sm animate-fade-in">
+                <div className="flex items-start gap-3">
+                    <div className="bg-red-100 p-2 rounded-full text-red-600 mt-0.5 animate-pulse">
+                        <Flame size={18} fill="currentColor" />
+                    </div>
+                    <div>
+                        <p className="text-red-900 text-sm font-bold uppercase tracking-wide">
+                            {urgency.title}
+                        </p>
+                        <p className="text-red-800 text-sm mt-1 font-medium">
+                            {message}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    // Default Non-Urgent Nudge
     return (
         <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r-lg shadow-sm animate-fade-in">
            <div className="flex items-start gap-3">
@@ -422,7 +465,10 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            <PersonalNudge giverName={currentMatch.giver.name} />
+                                                            <PersonalNudge 
+                                                                giverName={currentMatch.giver.name} 
+                                                                partnerName={ContextualPromoData?.partner.name}
+                                                            />
 
                                                             {hasDetails ? (
                                                                 <div>

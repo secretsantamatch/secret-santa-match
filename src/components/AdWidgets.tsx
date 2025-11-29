@@ -2,7 +2,7 @@
 import React from 'react';
 import type { Partner, AdCreative } from '../data/adConfig';
 import { trackEvent } from '../services/analyticsService';
-import { ArrowRight, ExternalLink, Gem, Clock, Star, ShieldCheck, Lock, CheckCircle } from 'lucide-react';
+import { ArrowRight, ExternalLink, Gem, Clock, Star, ShieldCheck, Lock, CheckCircle, Globe } from 'lucide-react';
 
 interface AdProps {
     partner: Partner;
@@ -91,8 +91,11 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
         </div>
 
         {/* Trust Footer Strip */}
-        <div className="bg-stone-100 border-t border-stone-200 py-2.5 px-4 flex items-center justify-center gap-6 text-[10px] text-stone-500 font-medium uppercase tracking-wider">
+        <div className="bg-stone-100 border-t border-stone-200 py-2.5 px-4 flex items-center justify-center gap-6 text-[10px] text-stone-500 font-medium uppercase tracking-wider flex-wrap">
             <span className="flex items-center gap-1.5"><Lock size={10} /> Secure Checkout</span>
+            {partner.geo === 'GLOBAL' && (
+                <span className="flex items-center gap-1.5 text-stone-600"><Globe size={10} /> Ships Worldwide</span>
+            )}
             <span className="flex items-center gap-1.5"><CheckCircle size={10} /> Official Retailer</span>
         </div>
     </div>
