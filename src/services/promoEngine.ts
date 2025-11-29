@@ -1,4 +1,3 @@
-
 import { PARTNERS, Partner, AdCreative } from '../data/adConfig';
 import { isEuVisitor } from '../utils/privacy';
 
@@ -74,8 +73,37 @@ export const getBestPromo = (contextText: string): PromoMatch | null => {
             return true;
         });
 
-        // 4. Perform Weighted Selection on Valid Creatives
-        const selectedCreative = selectWeightedCreative(validCreatives);
+        // 4. Creative Selection Strategy
+        // Strategy: 
+        // - If a creative has `matchKeywords` and one matches: HIGH PRIORITY
+        // - If a creative has `matchKeywords` and NONE match: EXCLUDE (Strict matching)
+        // - If a creative has NO `matchKeywords`: FALLBACK POOL
+
+        const specificMatches = validCreatives.filter(c => 
+            c.matchKeywords && c.matchKeywords.some(k => normalizedText.includes(k.toLowerCase()))
+        );
+
+        // Creatives that are allowed to run generally (no specific targeting required)
+        const generalPool = validCreatives.filter(c => !c.matchKeywords || c.matchKeywords.length === 0);
+
+        let selectedCreative: AdCreative | undefined;
+
+        if (specificMatches.length > 0) {
+            // A specific creative matched the user's text!
+            selectedCreative = selectWeightedCreative(specificMatches);
+            score += 500; // Massive boost for specific creative match
+            
+            // Update the matched keyword for the UI headline if possible
+            // Find which keyword matched this specific creative
+            if (selectedCreative && selectedCreative.matchKeywords) {
+                 const creativeKeyword = selectedCreative.matchKeywords.find(k => normalizedText.includes(k.toLowerCase()));
+                 if (creativeKeyword) currentMatchedKeyword = creativeKeyword;
+            }
+
+        } else if (generalPool.length > 0) {
+            // No specific creative matched, pick from the general pool
+            selectedCreative = selectWeightedCreative(generalPool);
+        }
 
         // If we found a valid creative and this score is higher than previous best
         if (selectedCreative && score > highestScore) {
