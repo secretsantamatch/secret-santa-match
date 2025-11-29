@@ -469,7 +469,7 @@ export const PARTNERS: Partner[] = [
                 type: 'standard',
                 headline: 'Personalize a Holiday Visa®',
                 body: 'Upload a photo or choose a festive design. The perfect gift they can spend anywhere.',
-                cta: 'Personalize & Buy ($50)',
+                cta: 'Personalize Now',
                 themeColor: 'emerald',
                 weight: 70, // 70% chance
                 linkOverride: "https://click.linksynergy.com/link?id=6AKK8tkf2k4&offerid=1469583.444323918390291691328604&type=2&murl=https%3a%2f%2fwww.giftcards.com%2fus%2fen%2fcatalog%2fproduct-details%2fopen-loop-gift-card%3fmode%3ddesign%26brand%3dvisa%26image-id%3d1de39cec-2760-4aa0-bccf-71b8f59820bb%26amount%3d50",
