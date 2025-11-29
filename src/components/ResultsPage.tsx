@@ -234,7 +234,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
         const kw = ContextualPromoData.matchedKeyword.charAt(0).toUpperCase() + ContextualPromoData.matchedKeyword.slice(1);
         promoHeader = `✨ Because they like ${kw}`;
     } else if (ContextualPromoData && ContextualPromoData.isFallback) {
-        promoHeader = "🎁 The Ultimate Safe Bet";
+        promoHeader = "💳 Most Popular Choice";
     }
 
     return (

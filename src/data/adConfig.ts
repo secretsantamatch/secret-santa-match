@@ -1,5 +1,5 @@
 
-import { Globe, Clock, Gift, Star, Gem, Coffee, Sparkles, ShoppingBag, Hammer, Smile } from 'lucide-react';
+import { Globe, Clock, Gift, Star, Gem, Coffee, Sparkles, ShoppingBag, Hammer, Smile, Zap } from 'lucide-react';
 
 export type AdType = 'luxury' | 'fun' | 'standard' | 'urgency';
 
@@ -247,25 +247,6 @@ export const PARTNERS: Partner[] = [
             }
         ]
     },
-    {
-        id: 'credit-karma',
-        name: 'Credit Karma',
-        priority: 50,
-        geo: 'US_ONLY',
-        keywords: ['budget', 'money', 'finance', 'saving', 'debt', 'credit'],
-        affiliateLink: "https://www.awin1.com/awclick.php?gid=580820&mid=66532&awinaffid=2612068&linkid=4507342&clickref=",
-        icon: Star,
-        creatives: [
-            {
-                id: 'ck-general',
-                type: 'standard',
-                headline: 'Keep Your Holiday Budget in Check',
-                body: 'Track your spending and monitor your credit score for free this holiday season.',
-                cta: 'Try Credit Karma',
-                themeColor: 'indigo'
-            }
-        ]
-    },
     // --- FALLBACK / GENERAL ---
     {
         id: 'giftcards-com-general',
@@ -290,13 +271,12 @@ export const PARTNERS: Partner[] = [
             {
                 id: 'gc-general-smart',
                 type: 'standard',
-                headline: 'Smart Gifting Made Simple',
-                body: 'A gift card lets them choose exactly what they want. The ultimate safe bet.',
-                cta: 'Shop Gift Cards',
+                headline: 'Design a Custom Visa Gift Card',
+                body: 'Upload a favorite photo or choose a festive design. The thoughtful way to give cash that they can spend anywhere.',
+                cta: 'Create Custom Card',
                 themeColor: 'blue',
                 imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.640&subid=0&type=4&gridnum=0"
             }
         ]
     }
 ];
-import { Zap } from 'lucide-react';
