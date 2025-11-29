@@ -2,7 +2,7 @@
 import React from 'react';
 import type { Partner, AdCreative } from '../data/adConfig';
 import { trackEvent } from '../services/analyticsService';
-import { ArrowRight, ExternalLink, Gem, Star, Tag } from 'lucide-react';
+import { ArrowRight, ExternalLink, Gem } from 'lucide-react';
 
 interface AdProps {
     partner: Partner;
