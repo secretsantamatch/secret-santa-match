@@ -14,6 +14,7 @@ export interface AdCreative {
     endDate?: string;   // ISO Date string YYYY-MM-DD
     couponCode?: string;
     themeColor?: string; // Tailwind color class base (e.g. 'amber', 'rose')
+    linkOverride?: string; // Optional: Specific product deep link
 }
 
 export interface Partner {
@@ -271,11 +272,12 @@ export const PARTNERS: Partner[] = [
             {
                 id: 'gc-general-smart',
                 type: 'standard',
-                headline: 'Design a Custom Visa Gift Card',
-                body: 'Upload a favorite photo or choose a festive design. The thoughtful way to give cash that they can spend anywhere.',
+                headline: 'Personalized Visa® Gift Card',
+                body: 'The perfect fit. Upload a photo or choose a festive design. Funds never expire.',
                 cta: 'Create Custom Card',
                 themeColor: 'blue',
-                imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.640&subid=0&type=4&gridnum=0"
+                imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/636bce53be23.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png",
+                linkOverride: "https://click.linksynergy.com/link?id=6AKK8tkf2k4&offerid=1469583.444323918390291691328604&type=2&murl=https%3a%2f%2fwww.giftcards.com%2fus%2fen%2fcatalog%2fproduct-details%2fopen-loop-gift-card%3fmode%3ddesign%26brand%3dvisa%26image-id%3d1de39cec-2760-4aa0-bccf-71b8f59820bb%26amount%3d50"
             }
         ]
     }

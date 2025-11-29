@@ -15,14 +15,17 @@ const handleAdClick = (partnerName: string, placement: string) => {
 };
 
 // 1. Luxury Card (Bonheur / Visa) - Gold/High-end feel
-const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
+const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
+    const targetLink = creative.linkOverride || partner.affiliateLink;
+    
+    return (
     <div className="group relative overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-lg hover:shadow-xl transition-all my-6 animate-fade-in w-full max-w-md mx-auto">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-500 z-10"></div>
         <div className="flex flex-col">
             {creative.imageUrl && (
                 <div className="relative bg-stone-50 w-full aspect-[4/3] flex items-center justify-center overflow-hidden p-6">
                     <a 
-                        href={partner.affiliateLink} 
+                        href={targetLink} 
                         target="_blank" 
                         rel="noopener noreferrer sponsored"
                         onClick={() => handleAdClick(partner.name, placement)}
@@ -48,7 +51,7 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
                 <p className="text-slate-600 text-sm mb-6 leading-relaxed px-2">{creative.body}</p>
                 <div className="flex justify-center">
                     <a 
-                        href={partner.affiliateLink}
+                        href={targetLink}
                         target="_blank" 
                         rel="noopener noreferrer sponsored" 
                         className="inline-flex items-center justify-center gap-2 text-sm font-bold bg-slate-900 text-white px-8 py-3.5 rounded-lg hover:bg-slate-800 transition-all tracking-wide shadow-md w-full sm:w-auto hover:-translate-y-0.5"
@@ -60,10 +63,14 @@ const LuxuryCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
             </div>
         </div>
     </div>
-);
+    );
+};
 
 // 2. Fun Card (Sugarwish) - Colorful/Pop
-const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
+const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
+    const targetLink = creative.linkOverride || partner.affiliateLink;
+
+    return (
     <div className={`p-5 rounded-2xl border-2 shadow-md animate-fade-in hover:shadow-lg transition-all transform hover:-translate-y-0.5 bg-gradient-to-r from-${creative.themeColor || 'pink'}-50 to-white border-${creative.themeColor || 'pink'}-200`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className={`flex-shrink-0 bg-white rounded-full h-16 w-16 flex items-center justify-center shadow-sm border-2 border-${creative.themeColor || 'pink'}-100 mx-auto sm:mx-0`}>
@@ -73,7 +80,7 @@ const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
                 <h4 className={`font-extrabold text-lg text-${creative.themeColor || 'pink'}-900 leading-tight`}>{creative.headline}</h4>
                 <p className={`text-sm text-${creative.themeColor || 'pink'}-800 font-medium opacity-90 mt-2 leading-relaxed`}>{creative.body}</p>
                 <a 
-                    href={partner.affiliateLink} 
+                    href={targetLink} 
                     target="_blank" 
                     rel="noopener noreferrer sponsored" 
                     className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold bg-white px-6 py-3 rounded-xl border border-${creative.themeColor || 'pink'}-200 text-${creative.themeColor || 'pink'}-600 hover:bg-${creative.themeColor || 'pink'}-50 transition-colors shadow-sm w-full sm:w-auto justify-center`}
@@ -84,10 +91,13 @@ const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
             </div>
         </div>
     </div>
-);
+    );
+};
 
 // 3. Urgency Banner (Black Friday/Dates)
 const UrgencyBanner: React.FC<AdProps> = ({ partner, creative, placement }) => {
+    const targetLink = creative.linkOverride || partner.affiliateLink;
+
     // Helper to map theme color to tailwind classes
     const getThemeClasses = (color: string) => {
         switch(color) {
@@ -144,7 +154,7 @@ const UrgencyBanner: React.FC<AdProps> = ({ partner, creative, placement }) => {
                     )}
 
                     <a 
-                        href={partner.affiliateLink} 
+                        href={targetLink} 
                         target="_blank" 
                         rel="noopener noreferrer sponsored" 
                         onClick={() => handleAdClick(partner.name, placement)} 
@@ -159,7 +169,10 @@ const UrgencyBanner: React.FC<AdProps> = ({ partner, creative, placement }) => {
 };
 
 // 4. Standard Card (PineTales, The Met)
-const StandardCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
+const StandardCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
+    const targetLink = creative.linkOverride || partner.affiliateLink;
+
+    return (
     <div className={`group relative overflow-hidden rounded-2xl border border-${creative.themeColor || 'slate'}-200 bg-gradient-to-r from-${creative.themeColor || 'slate'}-50 to-white shadow-md hover:shadow-xl transition-all my-6 animate-fade-in max-w-md mx-auto`}>
         <div className="flex flex-col sm:flex-row p-5 gap-5 items-center sm:items-start">
             {creative.imageUrl ? (
@@ -179,7 +192,7 @@ const StandardCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
                     {creative.body}
                 </p>
                 <a
-                    href={partner.affiliateLink}
+                    href={targetLink}
                     target="_blank"
                     rel="noopener noreferrer sponsored"
                     className={`inline-flex items-center justify-center gap-1.5 text-sm font-bold bg-white text-${creative.themeColor || 'slate'}-700 px-5 py-2.5 rounded-lg border border-${creative.themeColor || 'slate'}-200 hover:bg-${creative.themeColor || 'slate'}-600 hover:text-white hover:border-${creative.themeColor || 'slate'}-600 transition-all shadow-sm w-full sm:w-auto`}
@@ -190,7 +203,8 @@ const StandardCard: React.FC<AdProps> = ({ partner, creative, placement }) => (
             </div>
         </div>
     </div>
-);
+    );
+};
 
 // MAIN EXPORT
 export const SmartAd: React.FC<AdProps> = (props) => {
