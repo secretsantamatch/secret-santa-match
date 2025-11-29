@@ -11,7 +11,7 @@ import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
-import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, TrendingUp, ExternalLink, ShoppingCart } from 'lucide-react';
+import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
 import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
@@ -111,7 +111,6 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
     // --- AD LOGIC ---
     
     // 1. Pre-Reveal Deal (Usually GiftCards or TeaBook based on date)
-    // We pass empty text so it defaults to the best generic/dated promo
     const PreRevealPromo = useMemo(() => {
         const match = getBestPromo(''); 
         return match ? <SmartAd partner={match.partner} creative={match.creative} placement="pre-reveal" /> : null;
