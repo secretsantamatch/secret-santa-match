@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
@@ -18,6 +19,7 @@ const playAudio = (type: 'open' | 'steal' | 'turn' | 'win' | 'start') => {
         if (!AudioContext) return;
         const ctx = new AudioContext();
         
+        // Resume context if suspended (browser policy)
         if (ctx.state === 'suspended') ctx.resume();
 
         const osc = ctx.createOscillator();
@@ -137,6 +139,9 @@ const BigAnimationOverlay = ({ overlayMessage, onClose }: { overlayMessage: any,
 
 const WhiteElephantDashboard: React.FC = () => {
     const [game, setGame] = useState<WEGame | null>(null);
+    // Use a Ref to track the current game state inside the interval closure to solve stale state bugs
+    const gameRef = useRef<WEGame | null>(null);
+    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [gameId, setGameId] = useState<string | null>(null);
@@ -165,8 +170,10 @@ const WhiteElephantDashboard: React.FC = () => {
     // Refs for polling and diffing
     const lastReactionCount = useRef(0);
     const lastReactionTime = useRef(0);
+    const lastHistoryLen = useRef(0);
     const overlayTimeoutRef = useRef<number | null>(null);
     const hasCelebratedRef = useRef(false);
+    const hasStartedRef = useRef(false);
     const pollInterval = useRef<number | null>(null);
     const lastManualUpdate = useRef<number>(0);
     const isUpdatingRef = useRef(false);
@@ -220,6 +227,11 @@ const WhiteElephantDashboard: React.FC = () => {
         }
         return () => { if (pollInterval.current) window.clearInterval(pollInterval.current); };
     }, []);
+
+    // Sync game state to ref for access inside interval/async closures
+    useEffect(() => {
+        gameRef.current = game;
+    }, [game]);
 
     // --- GAME STATE MONITORING ---
     useEffect(() => {
@@ -336,6 +348,15 @@ const WhiteElephantDashboard: React.FC = () => {
                 // FIX #3: Always update state - let React handle diffing
                 // The previous logic was too restrictive and missed giftState updates
                 // ==========================================================================
+                // Use the REF to check the previous state, preventing stale closure issues
+                const prevGame = gameRef.current;
+
+                // Case 1: First load (prevGame is null). If game already started, silent sync.
+                if (!prevGame && data.isStarted) {
+                    hasStartedRef.current = true;
+                    prevIsStartedRef.current = true;
+                }
+                
                 setGame(data);
             }
             setLoading(false);
@@ -668,7 +689,7 @@ const WhiteElephantDashboard: React.FC = () => {
                             <div className="p-8 md:p-12 text-center relative">
                                 
                                 <div className="inline-block px-4 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">
-                                    {game.isFinished ? 'Game Over' : game.displacedPlayerId ? 'Steal in Progress!' : game.isStarted ? (game.finalRound ? 'Final Round' : 'Live Game') : 'Waiting Room'}
+                                    {game.isFinished ? 'Game Over' : game.finalRound ? 'FINAL ROUND' : game.displacedPlayerId ? 'Steal in Progress!' : `Turn ${game.currentPlayerIndex + 1}`}
                                 </div>
                                 
                                 <h2 className="text-slate-400 text-lg md:text-xl font-medium mb-2">
@@ -679,8 +700,32 @@ const WhiteElephantDashboard: React.FC = () => {
                                     {game.isFinished ? 'All Done!' : game.isStarted ? `${activePlayer?.name}'s Turn!` : 'Not Started'}
                                 </div>
 
+                                {/* Final Round Decision Box - Visible to ALL users */}
+                                {game.finalRound && !game.isFinished && (
+                                     <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6 mx-auto max-w-lg animate-fade-in-up">
+                                        <div className="flex items-center justify-center gap-2 text-purple-800 font-bold text-lg mb-2">
+                                            <Trophy size={20} /> The Final Decision
+                                        </div>
+                                        <p className="text-purple-700 text-sm mb-4">
+                                            {activePlayer?.name} has the advantage! They must choose:
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-3 text-sm">
+                                            <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm flex flex-col items-center justify-center">
+                                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Option 1</span>
+                                                <span className="font-bold text-slate-700">Keep Gift</span>
+                                                <span className="text-xs text-slate-500">Game Ends Immediately</span>
+                                            </div>
+                                            <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm flex flex-col items-center justify-center">
+                                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Option 2</span>
+                                                <span className="font-bold text-slate-700">Swap Gift</span>
+                                                <span className="text-xs text-slate-500">Trade with anyone</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Displaced Player Alert */}
-                                {game.displacedPlayerId && !game.isFinished && (
+                                {game.displacedPlayerId && !game.finalRound && !game.isFinished && (
                                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 border border-amber-300 rounded-full text-amber-800 font-bold text-sm mb-6 animate-pulse">
                                         <AlertTriangle size={16} />
                                         {activePlayer?.name} was stolen from and must act!
