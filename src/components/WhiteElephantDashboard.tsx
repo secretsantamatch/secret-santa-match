@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
@@ -139,6 +138,9 @@ const BigAnimationOverlay = ({ overlayMessage, onClose }: { overlayMessage: any,
 
 const WhiteElephantDashboard: React.FC = () => {
     const [game, setGame] = useState<WEGame | null>(null);
+    // Use a Ref to track the current game state inside the interval closure to solve stale state bugs
+    const gameRef = useRef<WEGame | null>(null);
+    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [gameId, setGameId] = useState<string | null>(null);
@@ -174,6 +176,11 @@ const WhiteElephantDashboard: React.FC = () => {
     const pollInterval = useRef<number | null>(null);
     const lastManualUpdate = useRef<number>(0);
     const isUpdatingRef = useRef(false);
+
+    // Sync game state to ref for access inside interval/async closures
+    useEffect(() => {
+        gameRef.current = game;
+    }, [game]);
 
     // --- INITIALIZATION ---
     useEffect(() => {
@@ -297,15 +304,15 @@ const WhiteElephantDashboard: React.FC = () => {
         try {
             const data = await getGameState(id);
             if (data) {
-                // BUG FIX: Viewers missed the start popup because we silently set the ref.
-                // Logic: 
-                // 1. If we don't have a game yet (first load) AND it's already started, mark as started silently (don't play horn).
-                // 2. If we DO have a game, and it transitions from !started to started, the useEffect will handle it.
-                if (!game && data.isStarted) {
+                // FIXED: Use the REF to check the previous state, preventing stale closure issues
+                const prevGame = gameRef.current;
+
+                // Case 1: First load (prevGame is null). If game already started, silent sync.
+                if (!prevGame && data.isStarted) {
                     hasStartedRef.current = true;
                 }
-
-                // Only update if history length changed or critical state changed (like finished)
+                
+                // Case 2: Update state if data changed
                 setGame(prev => {
                     if (!prev) return data;
                     if (data.history.length > prev.history.length || data.isFinished !== prev.isFinished || data.finalRound !== prev.finalRound || data.reactions.length > prev.reactions.length || data.isStarted !== prev.isStarted) {
@@ -390,15 +397,15 @@ const WhiteElephantDashboard: React.FC = () => {
         // Final Round: Player 1 can swap with ANYONE (except self)
         if (game.finalRound) return true;
 
-        // Regular Round: 
-        // 1. Check Freeze Limit (e.g. 3 steals)
+        // Regular Round Checks:
         const giftDesc = game.giftState[p.id];
         const steals = game.giftStealCounts[giftDesc] || 0;
+        
+        // 1. Freeze Limit (e.g. 3 steals)
         if (game.rules.stealLimit > 0 && steals >= game.rules.stealLimit) return false; 
 
-        // 2. Check "No Steal Back" Rule
-        // If displaced player (victim) is active, they cannot steal from the last thief.
-        // We check lastThiefId (who stole from the currently displaced player) against potential target P.
+        // 2. "No Steal Back" Rule
+        // If displaced player (active) was just stolen from by Person X, they cannot steal from Person X immediately.
         if (game.rules.noStealBack && game.displacedPlayerId && game.lastThiefId === p.id) {
             return false;
         }
