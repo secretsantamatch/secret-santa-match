@@ -1,4 +1,3 @@
-
 import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 import type { WEGame } from '../../src/types';
@@ -6,7 +5,7 @@ import type { WEGame } from '../../src/types';
 interface UpdatePayload {
     gameId: string;
     organizerKey: string;
-    action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game';
+    action: 'next_player' | 'log_steal' | 'log_open' | 'log_keep' | 'undo' | 'start_game' | 'end_game';
     payload?: any;
 }
 
@@ -39,6 +38,7 @@ export default async (req: Request, context: Context) => {
         if (!game.giftStealCounts) game.giftStealCounts = {};
         if (game.displacedPlayerId === undefined) game.displacedPlayerId = null;
         if (game.lastVictimId === undefined) game.lastVictimId = null;
+        if (game.finalRound === undefined) game.finalRound = false;
 
         switch (action) {
             case 'start_game':
@@ -49,8 +49,6 @@ export default async (req: Request, context: Context) => {
                 break;
 
             case 'log_open':
-                // Logic: A player opens a gift. This effectively "ends" the turn/chain and moves the game to the next person in line.
-                // Even if it was a displaced player opening, the "chain" of steals resolves here.
                 if (payload && payload.entry && payload.actorId && payload.gift) {
                     game.history.push(payload.entry);
                     
@@ -64,44 +62,75 @@ export default async (req: Request, context: Context) => {
                     game.lastVictimId = null;
 
                     // Advance the Turn Order
-                    // We only move to the next player index if the game isn't finished
                     if (game.currentPlayerIndex < game.turnOrder.length - 1) {
                         game.currentPlayerIndex++;
                         game.history.push(`It's now ${game.turnOrder[game.currentPlayerIndex].name}'s turn.`);
                     } else {
-                        // Everyone has had a chance to open a gift
-                        game.isFinished = true;
-                        game.history.push('All gifts have been opened! The game is over (unless you want to do a final swap)!');
+                        // Everyone has opened. Enter Final Round.
+                        // Player #1 (index 0) gets to go again.
+                        game.finalRound = true;
+                        game.displacedPlayerId = game.turnOrder[0].id; // Force Player 1 to act
+                        game.history.push('All gifts have been opened! Player 1 gets the final turn to Keep or Swap.');
                     }
                 }
                 break;
 
             case 'log_steal':
-                // Logic: Player steals a gift. They get the gift, the victim becomes "displaced" and must act next.
-                // The main turn counter (currentPlayerIndex) DOES NOT change.
                 if (payload && payload.entry) {
                     game.history.push(payload.entry);
                     
                     // Update gift ownership
                     if (payload.thiefId && payload.victimId && payload.gift) {
-                        game.giftState[payload.thiefId] = payload.gift;
-                        delete game.giftState[payload.victimId];
+                        // Logic: Thief takes Victim's gift.
+                        // Victim loses gift.
+                        // Thief's OLD gift (if any) is now floating? 
+                        // In standard rules, if you steal, you swap. Or if you have nothing (start of turn), you take.
                         
-                        // Increment Steal Count
+                        // Scenario A: Standard Steal (Thief has no gift, takes from Victim)
+                        // Scenario B: Swap (Thief has gift, swaps with Victim). 
+                        
+                        const thiefGift = game.giftState[payload.thiefId]; // Does thief have a gift?
+                        
+                        game.giftState[payload.thiefId] = payload.gift;
+                        
+                        if (thiefGift) {
+                            // It was a SWAP (likely Final Round)
+                            game.giftState[payload.victimId] = thiefGift;
+                        } else {
+                            // It was a STEAL (Victim has nothing now)
+                            delete game.giftState[payload.victimId];
+                        }
+                        
+                        // Increment Steal Count for the gift being taken
                         const currentSteals = game.giftStealCounts[payload.gift] || 0;
                         game.giftStealCounts[payload.gift] = currentSteals + 1;
 
-                        // Set the displaced player (the victim)
-                        game.displacedPlayerId = payload.victimId;
-                        
-                        // Track last victim to prevent immediate steal-back rules
-                        game.lastVictimId = payload.victimId; 
+                        if (game.finalRound) {
+                            // If it's the final round, the game ends after Player 1 acts
+                            game.isFinished = true;
+                            game.displacedPlayerId = null;
+                            game.history.push('The Final Swap is complete! The game is over.');
+                        } else {
+                            // Set the displaced player (the victim)
+                            game.displacedPlayerId = payload.victimId;
+                            // Track last victim to prevent immediate steal-back rules
+                            game.lastVictimId = payload.victimId; 
+                        }
                     }
+                }
+                break;
+            
+            case 'log_keep':
+                // Used in Final Round if Player 1 decides to keep their gift
+                if (game.finalRound) {
+                    game.history.push('Player 1 chose to keep their gift. The game is over!');
+                    game.isFinished = true;
+                    game.displacedPlayerId = null;
                 }
                 break;
 
             case 'next_player':
-                // Manual override to skip or force next
+                // Manual override
                 game.displacedPlayerId = null;
                 if (game.currentPlayerIndex < game.turnOrder.length - 1) {
                     game.currentPlayerIndex++;
@@ -113,9 +142,6 @@ export default async (req: Request, context: Context) => {
                 break;
 
             case 'undo':
-                // Simple undo: pops the last history entry. 
-                // Note: This simplistic undo doesn't revert complex state perfectly, 
-                // but it helps if an organizer just logged a text string wrong.
                 if (game.history.length > 1) { 
                     game.history.pop();
                 }

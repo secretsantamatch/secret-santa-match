@@ -17,6 +17,10 @@ const playAudio = (type: 'open' | 'steal' | 'turn' | 'win' | 'start') => {
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         if (!AudioContext) return;
         const ctx = new AudioContext();
+        
+        // Resume context if suspended (browser policy)
+        if (ctx.state === 'suspended') ctx.resume();
+
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
@@ -42,7 +46,6 @@ const playAudio = (type: 'open' | 'steal' | 'turn' | 'win' | 'start') => {
             osc.start(now);
             osc.stop(now + 0.4);
         } else if (type === 'start') {
-            // Rising chime
             osc.type = 'sine';
             osc.frequency.setValueAtTime(440, now);
             osc.frequency.linearRampToValueAtTime(880, now + 0.5);
@@ -97,14 +100,15 @@ const FloatingEmojis = ({ reactions }: { reactions: { id: string, emoji: string,
 );
 
 const EventBadge = ({ text }: { text: string }) => {
-    if (text.toLowerCase().includes('stole')) return <span className="inline-block bg-red-100 text-red-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-red-200">Steal</span>;
-    if (text.toLowerCase().includes('opened')) return <span className="inline-block bg-emerald-100 text-emerald-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-emerald-200">Open</span>;
-    if (text.toLowerCase().includes('turn')) return <span className="inline-block bg-blue-100 text-blue-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-blue-200">Turn</span>;
-    if (text.toLowerCase().includes('start')) return <span className="inline-block bg-purple-100 text-purple-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-purple-200">Start</span>;
+    const t = text.toLowerCase();
+    if (t.includes('stole')) return <span className="inline-block bg-red-100 text-red-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-red-200">Steal</span>;
+    if (t.includes('opened')) return <span className="inline-block bg-emerald-100 text-emerald-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-emerald-200">Open</span>;
+    if (t.includes('turn') || t.includes('round')) return <span className="inline-block bg-blue-100 text-blue-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-blue-200">Turn</span>;
+    if (t.includes('start')) return <span className="inline-block bg-purple-100 text-purple-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-purple-200">Start</span>;
     return <span className="inline-block bg-slate-100 text-slate-600 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-slate-200">Info</span>;
 };
 
-const BigAnimationOverlay = ({ overlayMessage }: { overlayMessage: any }) => {
+const BigAnimationOverlay = ({ overlayMessage, onClose }: { overlayMessage: any, onClose: () => void }) => {
     if (!overlayMessage) return null;
     
     let icon = '🎁';
@@ -119,7 +123,7 @@ const BigAnimationOverlay = ({ overlayMessage }: { overlayMessage: any }) => {
     }
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
+        <div onClick={onClose} className="fixed inset-0 z-[9999] flex items-center justify-center cursor-pointer">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in"></div>
             <div className={`relative bg-white p-8 md:p-12 rounded-3xl shadow-2xl border-4 text-center transform transition-all scale-100 animate-bounce-in ${colorClass}`}>
                 <div className="text-6xl md:text-8xl mb-4">{icon}</div>
@@ -188,7 +192,6 @@ const WhiteElephantDashboard: React.FC = () => {
             const currentBaseUrl = window.location.href.split('#')[0];
             const longPlayerLink = `${currentBaseUrl}#gameId=${gId}`;
             
-            // Attempt to get short link
             fetch('/.netlify/functions/create-short-link', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -248,7 +251,7 @@ const WhiteElephantDashboard: React.FC = () => {
                             subtitle: match ? `${match[1]} opened ${match[2]}` : latestEvent, 
                             type: 'open' 
                         });
-                    } else if (latestEvent.toLowerCase().includes('stole')) {
+                    } else if (latestEvent.toLowerCase().includes('stole') || latestEvent.toLowerCase().includes('swap')) {
                         if (soundEnabled) playAudio('steal');
                         const match = latestEvent.match(/^(.*) stole \[(.*)\] from (.*)!$/);
                         setOverlayMessage({ 
@@ -260,7 +263,6 @@ const WhiteElephantDashboard: React.FC = () => {
                         playAudio('turn');
                     }
                     
-                    // Clear old overlay timeout and set new one
                     if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
                     overlayTimeoutRef.current = window.setTimeout(() => { setOverlayMessage(null); overlayTimeoutRef.current = null; }, 4000);
                 }
@@ -282,7 +284,6 @@ const WhiteElephantDashboard: React.FC = () => {
                     const newReactions = reactions.slice(lastReactionCount.current);
                     const newVisible = newReactions.map(r => ({ id: r.id || crypto.randomUUID(), emoji: r.emoji, x: Math.random() * 80 + 10 }));
                     setVisibleReactions(prev => [...prev, ...newVisible]);
-                    // Clean up emojis after animation
                     setTimeout(() => setVisibleReactions(prev => prev.filter(p => !newVisible.find(n => n.id === p.id))), 3000);
                 }
                 lastReactionCount.current = reactions.length;
@@ -291,20 +292,25 @@ const WhiteElephantDashboard: React.FC = () => {
     }, [game, soundEnabled]);
 
     const fetchGame = async (id: string) => {
-        // Prevent polling if we just manually updated state to avoid flicker
         if (Date.now() - lastManualUpdate.current < 2000 || isUpdatingRef.current) return;
         try {
             const data = await getGameState(id);
-            // Only update if data changed and not finished state glitch
             if (data) {
-                setGame(prev => (prev && data.history.length < prev.history.length && !data.isFinished) ? prev : data);
-                if (data.isStarted) hasStartedRef.current = true; // Sync ref if loading mid-game
+                // Only update if history length changed or critical state changed (like finished)
+                setGame(prev => {
+                    if (!prev) return data;
+                    if (data.history.length > prev.history.length || data.isFinished !== prev.isFinished || data.finalRound !== prev.finalRound || data.reactions.length > prev.reactions.length) {
+                        return data;
+                    }
+                    return prev;
+                });
+                if (data.isStarted) hasStartedRef.current = true;
             }
             setLoading(false);
         } catch (err) { console.error("Failed to fetch game:", err); }
     };
 
-    const handleUpdate = async (action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
+    const handleUpdate = async (action: 'next_player' | 'log_steal' | 'log_open' | 'log_keep' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
         if (!gameId || !organizerKey) return;
         setIsActionLoading(true);
         isUpdatingRef.current = true;
@@ -322,7 +328,6 @@ const WhiteElephantDashboard: React.FC = () => {
         } finally {
             setIsActionLoading(false);
             isUpdatingRef.current = false;
-            // Reset modal states
             setShowStealModal(false);
             setShowOpenModal(false);
             setShowEndGameModal(false);
@@ -333,10 +338,9 @@ const WhiteElephantDashboard: React.FC = () => {
     };
 
     const handleReaction = (emoji: string) => {
-        if (!gameId || Date.now() - lastReactionTime.current < 2000) return; // Rate limit 2s
+        if (!gameId || Date.now() - lastReactionTime.current < 2000) return; 
         lastReactionTime.current = Date.now();
         
-        // Optimistic UI update
         const id = crypto.randomUUID();
         setVisibleReactions(prev => [...prev, { id, emoji, x: Math.random() * 80 + 10 }]);
         setTimeout(() => setVisibleReactions(prev => prev.filter(r => r.id !== id)), 3000);
@@ -349,7 +353,6 @@ const WhiteElephantDashboard: React.FC = () => {
         const element = document.getElementById('final-results-card');
         if (element) {
             try {
-                // Use html2canvas to screenshot the results
                 const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: null });
                 const link = document.createElement('a');
                 link.download = `White_Elephant_Recap.png`;
@@ -364,29 +367,24 @@ const WhiteElephantDashboard: React.FC = () => {
     const showToast = (msg: string) => { setToastMessage(msg); setTimeout(() => setToastMessage(null), 3000); };
     const copyToClipboard = (text: string) => { navigator.clipboard.writeText(text).then(() => showToast("Link copied!")); };
 
-    // --- GAME LOGIC HELPERS ---
     const isOrganizer = !!organizerKey;
     const displacedPlayer = game?.displacedPlayerId ? game.participants.find(p => p.id === game.displacedPlayerId) : null;
     const currentTurnPlayer = game?.turnOrder[game.currentPlayerIndex];
     
-    // Who is active? 
-    // If there is a displaced player (victim), they MUST act. 
-    // Otherwise, it's the person whose turn index it is.
+    // Who is active? If there is a displaced player (victim or Player 1 in final round), they MUST act.
     const activePlayer = displacedPlayer || currentTurnPlayer;
     
     // Who can be stolen from?
     const availableVictims = game ? game.participants.filter(p => {
-        // Can't steal from self
         if (p.id === activePlayer?.id) return false;
-        
-        // Must have a gift
         if (!game.giftState[p.id]) return false;
         
-        // Check Freeze Limit
+        // Final Round: Player 1 can swap with ANYONE (except self)
+        if (game.finalRound) return true;
+
+        // Regular Round: Check Freeze Limit
         const giftDesc = game.giftState[p.id];
         const steals = game.giftStealCounts[giftDesc] || 0;
-        
-        // If steal limit is set and met, gift is frozen
         if (game.rules.stealLimit > 0 && steals >= game.rules.stealLimit) return false; 
 
         return true;
@@ -419,6 +417,10 @@ const WhiteElephantDashboard: React.FC = () => {
         });
     };
 
+    const handleLogKeep = () => {
+        handleUpdate('log_keep');
+    };
+
     if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500 font-bold animate-pulse">Loading Game...</div>;
     if (!game) return <div className="min-h-screen flex items-center justify-center text-slate-500">Game not found.</div>;
 
@@ -444,7 +446,7 @@ const WhiteElephantDashboard: React.FC = () => {
             `}</style>
 
             {/* OVERLAYS */}
-            <BigAnimationOverlay overlayMessage={overlayMessage} />
+            <BigAnimationOverlay overlayMessage={overlayMessage} onClose={() => setOverlayMessage(null)} />
             <FloatingEmojis reactions={visibleReactions} />
             {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
             
@@ -452,7 +454,7 @@ const WhiteElephantDashboard: React.FC = () => {
             
             <main className="container mx-auto px-4 py-8 max-w-6xl">
                 
-                {/* ORGANIZER CONTROL PANEL (Only visible to Organizer) */}
+                {/* ORGANIZER CONTROL PANEL */}
                 {isOrganizer && (
                     <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
                         <div className="bg-amber-50 border-2 border-amber-200 border-dashed rounded-xl p-5 flex flex-col justify-between">
@@ -497,7 +499,7 @@ const WhiteElephantDashboard: React.FC = () => {
                             <h1 className="text-3xl font-bold text-slate-800 font-serif">{game.groupName || 'White Elephant Party'}</h1>
                             <div className="flex items-center gap-3 mt-2 text-sm">
                                 <span className={`px-3 py-1 rounded-full font-bold flex items-center gap-1.5 ${game.isFinished ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                    <span className={`w-2 h-2 rounded-full ${game.isFinished ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`}></span> {game.isFinished ? 'Game Over' : 'Live Game'}
+                                    <span className={`w-2 h-2 rounded-full ${game.isFinished ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`}></span> {game.isFinished ? 'Game Over' : game.finalRound ? 'Final Round' : 'Live Game'}
                                 </span>
                                 <button onClick={() => setSoundEnabled(!soundEnabled)} className={`flex items-center gap-1 px-3 py-1 rounded-full border ${soundEnabled ? 'bg-purple-100 text-purple-700' : 'bg-slate-50 text-slate-500'}`}>
                                     {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />} Sound
@@ -527,9 +529,8 @@ const WhiteElephantDashboard: React.FC = () => {
                             </div>
                             <div className="overflow-y-auto flex-1 p-2 space-y-1 custom-scrollbar">
                                 {game.turnOrder.map((p, i) => {
-                                    // Highlight Logic: Is this person the ACTIVE player?
+                                    // Highlight Logic
                                     const isActor = activePlayer?.id === p.id && !game.isFinished && game.isStarted;
-                                    const hasGift = !!game.giftState[p.id];
                                     
                                     return (
                                         <div key={p.id} className={`relative p-3 rounded-xl border transition-all ${isActor ? 'bg-blue-50 border-blue-400 shadow-md z-10 scale-[1.02]' : 'bg-white border-slate-100'}`}>
@@ -563,7 +564,7 @@ const WhiteElephantDashboard: React.FC = () => {
                             
                             <div className="p-8 md:p-12 text-center relative">
                                 <div className="inline-block px-4 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">
-                                    {game.isFinished ? 'Game Summary' : displacedPlayer ? 'Steal in Progress!' : `Turn ${game.currentPlayerIndex + 1}`}
+                                    {game.isFinished ? 'Game Summary' : game.finalRound ? 'FINAL ROUND' : displacedPlayer ? 'Steal in Progress!' : `Turn ${game.currentPlayerIndex + 1}`}
                                 </div>
                                 
                                 {game.isFinished ? (
@@ -578,7 +579,14 @@ const WhiteElephantDashboard: React.FC = () => {
                                         <div className={`text-5xl md:text-6xl font-black font-serif mb-6 tracking-tight ${displacedPlayer ? 'text-amber-600' : 'text-indigo-600'}`}>
                                             {activePlayer?.name}'s Turn
                                         </div>
-                                        {displacedPlayer && (
+                                        
+                                        {game.finalRound && (
+                                            <p className="text-purple-600 font-bold text-lg mb-6">
+                                                🏆 Player 1 Advantage: Swap with anyone or Keep your gift!
+                                            </p>
+                                        )}
+
+                                        {displacedPlayer && !game.finalRound && (
                                             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg inline-block mb-6 animate-pulse font-bold">
                                                 🚨 {displacedPlayer.name} was stolen from and must act!
                                             </div>
@@ -601,17 +609,30 @@ const WhiteElephantDashboard: React.FC = () => {
                                                     disabled={isActionLoading || !canSteal} 
                                                     className="py-3 px-8 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    <RefreshCw size={20} /> Steal Gift
+                                                    <RefreshCw size={20} /> {game.finalRound ? 'Swap Gift' : 'Steal Gift'}
                                                 </button>
                                                 
-                                                {/* OPEN BUTTON: Always available (ends displacement or turn) */}
-                                                <button 
-                                                    onClick={() => { setOpenGiftDescription(''); setShowOpenModal(true); }} 
-                                                    disabled={isActionLoading} 
-                                                    className="py-3 px-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2"
-                                                >
-                                                    <Gift size={20} /> Open New Gift
-                                                </button>
+                                                {/* FINAL ROUND KEEP BUTTON */}
+                                                {game.finalRound && (
+                                                    <button 
+                                                        onClick={() => handleUpdate('log_keep')} 
+                                                        disabled={isActionLoading} 
+                                                        className="py-3 px-8 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md flex items-center gap-2"
+                                                    >
+                                                        <CheckCircle size={20} /> Keep Gift (End Game)
+                                                    </button>
+                                                )}
+
+                                                {/* OPEN BUTTON: Available only if not final round (everyone has opened) */}
+                                                {!game.finalRound && (
+                                                    <button 
+                                                        onClick={() => { setOpenGiftDescription(''); setShowOpenModal(true); }} 
+                                                        disabled={isActionLoading} 
+                                                        className="py-3 px-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2"
+                                                    >
+                                                        <Gift size={20} /> Open New Gift
+                                                    </button>
+                                                )}
                                             </>
                                         )}
                                     </div>
@@ -680,7 +701,7 @@ const WhiteElephantDashboard: React.FC = () => {
                 </div>
             </main>
             
-            {/* REACTION BAR (Fixed Bottom) */}
+            {/* REACTION BAR (Fixed Bottom) - Visible to Everyone */}
             {!game.isFinished && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md shadow-2xl border border-slate-200 rounded-full px-6 py-3 flex gap-4 items-center z-[500] animate-slide-up transform transition-all hover:scale-105">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">React:</span>
@@ -727,7 +748,7 @@ const WhiteElephantDashboard: React.FC = () => {
              {showStealModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
                     <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md">
-                        <div className="flex items-center gap-3 mb-6 text-amber-600"><RefreshCw size={28} /><h3 className="text-2xl font-bold font-serif">Log a Steal</h3></div>
+                        <div className="flex items-center gap-3 mb-6 text-amber-600"><RefreshCw size={28} /><h3 className="text-2xl font-bold font-serif">{game.finalRound ? 'Final Swap' : 'Log a Steal'}</h3></div>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Who is stealing?</label>
@@ -761,7 +782,7 @@ const WhiteElephantDashboard: React.FC = () => {
                         )}
                         <div className="flex justify-end gap-3 mt-8">
                             <button onClick={() => setShowStealModal(false)} className="px-5 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-100 transition-colors">Cancel</button>
-                            <button onClick={handleLogSteal} disabled={!stealTargetId} className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold shadow-lg shadow-amber-200 disabled:opacity-50 disabled:shadow-none">Confirm Steal</button>
+                            <button onClick={handleLogSteal} disabled={!stealTargetId} className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold shadow-lg shadow-amber-200 disabled:opacity-50 disabled:shadow-none">Confirm {game.finalRound ? 'Swap' : 'Steal'}</button>
                         </div>
                     </div>
                 </div>
