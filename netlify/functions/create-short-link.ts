@@ -1,3 +1,4 @@
+
 import { getStore } from "@netlify/blobs";
 import type { Context } from "@netlify/functions";
 import { randomBytes } from "crypto";
@@ -27,7 +28,7 @@ export default async (req: Request, context: Context) => {
 
         // 1. Stable Link Logic: If a uniqueKey is provided, check if we already have a code for it.
         if (uniqueKey) {
-            const existingCode = await reverseStore.get(uniqueKey);
+            const existingCode = await reverseStore.get(uniqueKey, { type: 'text' });
             
             if (existingCode) {
                 // Found it! 
