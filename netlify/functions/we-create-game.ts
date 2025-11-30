@@ -34,15 +34,16 @@ export default async (req: Request, context: Context) => {
             rules,
             theme,
             currentPlayerIndex: 0,
-            displacedPlayerId: null,
-            lastVictimId: null,
             isStarted: false,
             isFinished: false,
             finalRound: false,
             history: [],
             reactions: [], // Initialize empty
             giftState: {}, // Initialize empty gift state
-            giftStealCounts: {}, // Initialize empty counts
+            displacedPlayerId: null,
+            lastVictimId: null,
+            lastThiefId: null,
+            giftStealCounts: {},
             createdAt: new Date().toISOString(),
         };
 

@@ -1,4 +1,3 @@
-
 import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 import type { WEGame } from '../../src/types';
@@ -39,6 +38,7 @@ export default async (req: Request, context: Context) => {
         if (!game.giftStealCounts) game.giftStealCounts = {};
         if (game.displacedPlayerId === undefined) game.displacedPlayerId = null;
         if (game.lastVictimId === undefined) game.lastVictimId = null;
+        if (game.lastThiefId === undefined) game.lastThiefId = null;
         if (game.finalRound === undefined) game.finalRound = false;
 
         switch (action) {
@@ -61,6 +61,7 @@ export default async (req: Request, context: Context) => {
                     // Clear steal chain state since a new gift was opened
                     game.displacedPlayerId = null;
                     game.lastVictimId = null;
+                    game.lastThiefId = null;
 
                     // Advance the Turn Order
                     if (game.currentPlayerIndex < game.turnOrder.length - 1) {
@@ -82,14 +83,6 @@ export default async (req: Request, context: Context) => {
                     
                     // Update gift ownership
                     if (payload.thiefId && payload.victimId && payload.gift) {
-                        // Logic: Thief takes Victim's gift.
-                        // Victim loses gift.
-                        // Thief's OLD gift (if any) is now floating? 
-                        // In standard rules, if you steal, you swap. Or if you have nothing (start of turn), you take.
-                        
-                        // Scenario A: Standard Steal (Thief has no gift, takes from Victim)
-                        // Scenario B: Swap (Thief has gift, swaps with Victim). 
-                        
                         const thiefGift = game.giftState[payload.thiefId]; // Does thief have a gift?
                         
                         game.giftState[payload.thiefId] = payload.gift;
@@ -114,7 +107,9 @@ export default async (req: Request, context: Context) => {
                         } else {
                             // Set the displaced player (the victim)
                             game.displacedPlayerId = payload.victimId;
-                            // Track last victim to prevent immediate steal-back rules
+                            // Track who stole it to prevent immediate steal-back
+                            game.lastThiefId = payload.thiefId;
+                            // Track last victim (informational)
                             game.lastVictimId = payload.victimId; 
                         }
                     }
@@ -133,6 +128,7 @@ export default async (req: Request, context: Context) => {
             case 'next_player':
                 // Manual override
                 game.displacedPlayerId = null;
+                game.lastThiefId = null;
                 if (game.currentPlayerIndex < game.turnOrder.length - 1) {
                     game.currentPlayerIndex++;
                     game.history.push(`Organized forced next turn: ${game.turnOrder[game.currentPlayerIndex].name}`);

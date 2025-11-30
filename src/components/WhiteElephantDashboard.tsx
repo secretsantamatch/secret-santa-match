@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
@@ -297,15 +296,20 @@ const WhiteElephantDashboard: React.FC = () => {
         try {
             const data = await getGameState(id);
             if (data) {
+                // If it's the very first load and game is already started, set the ref silently
+                // to avoid showing "Game Started" popup on refresh.
+                if (!game && data.isStarted) {
+                    hasStartedRef.current = true;
+                }
+
                 // Only update if history length changed or critical state changed (like finished)
                 setGame(prev => {
                     if (!prev) return data;
-                    if (data.history.length > prev.history.length || data.isFinished !== prev.isFinished || data.finalRound !== prev.finalRound || data.reactions.length > prev.reactions.length) {
+                    if (data.history.length > prev.history.length || data.isFinished !== prev.isFinished || data.finalRound !== prev.finalRound || data.reactions.length > prev.reactions.length || data.isStarted !== prev.isStarted) {
                         return data;
                     }
                     return prev;
                 });
-                if (data.isStarted) hasStartedRef.current = true;
             }
             setLoading(false);
         } catch (err) { console.error("Failed to fetch game:", err); }
@@ -383,10 +387,17 @@ const WhiteElephantDashboard: React.FC = () => {
         // Final Round: Player 1 can swap with ANYONE (except self)
         if (game.finalRound) return true;
 
-        // Regular Round: Check Freeze Limit
+        // Regular Round: 
+        // 1. Check Freeze Limit (e.g. 3 steals)
         const giftDesc = game.giftState[p.id];
         const steals = game.giftStealCounts[giftDesc] || 0;
         if (game.rules.stealLimit > 0 && steals >= game.rules.stealLimit) return false; 
+
+        // 2. Check "No Steal Back" Rule
+        // If displaced player (victim) is active, they cannot steal from the last thief.
+        if (game.rules.noStealBack && game.displacedPlayerId && game.lastThiefId === p.id) {
+            return false;
+        }
 
         return true;
     }) : [];

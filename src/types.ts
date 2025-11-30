@@ -153,8 +153,6 @@ export interface WEGame {
     rules: WERules;
     theme: WETheme;
     currentPlayerIndex: number;
-    displacedPlayerId: string | null; // ID of the player who was just stolen from and needs to act
-    lastVictimId: string | null;      // ID of the last victim (to prevent immediate steal-back)
     isStarted: boolean;
     isFinished: boolean;
     finalRound: boolean; 
@@ -163,6 +161,9 @@ export interface WEGame {
     giftState: Record<string, string>; // Maps Participant ID -> Gift Description
     giftStealCounts: Record<string, number>; // Maps Gift Description -> Number of times stolen
     createdAt: string;
+    displacedPlayerId: string | null;
+    lastVictimId: string | null;
+    lastThiefId: string | null; // Tracks who stole last to prevent immediate steal-back
 }
 
 // --- BABY POOL TYPES ---
