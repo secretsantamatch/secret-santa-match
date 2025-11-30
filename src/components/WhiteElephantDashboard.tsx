@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
@@ -78,6 +79,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const [organizerKey, setOrganizerKey] = useState<string | null>(null);
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [shortPlayerLink, setShortPlayerLink] = useState<string>('');
+    const [shortOrganizerLink, setShortOrganizerLink] = useState<string>('');
     
     // Sound & Animation State
     const [soundEnabled, setSoundEnabled] = useState(false);
@@ -113,29 +115,42 @@ const WhiteElephantDashboard: React.FC = () => {
             // Start Polling every 3 seconds using window.setInterval
             pollInterval.current = window.setInterval(() => fetchGame(gId), 3000);
 
-            // --- SHORT LINK LOGIC (WITH CACHING) ---
-            const storageKey = `ssm_we_link_${gId}`;
-            const cachedLink = localStorage.getItem(storageKey);
-            
-            if (cachedLink) {
-                setShortPlayerLink(cachedLink);
-            } else {
-                const longLink = `${window.location.href.split('#')[0]}#gameId=${gId}`;
+            const currentBaseUrl = window.location.href.split('#')[0];
+
+            // --- PLAYER SHORT LINK LOGIC (STABLE) ---
+            // We send a uniqueKey so the backend returns the SAME short link every time.
+            const longPlayerLink = `${currentBaseUrl}#gameId=${gId}`;
+            fetch('/.netlify/functions/create-short-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    fullUrl: longPlayerLink,
+                    uniqueKey: `we_player_${gId}` 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.shortUrl) setShortPlayerLink(data.shortUrl);
+                else setShortPlayerLink(longPlayerLink);
+            })
+            .catch(() => setShortPlayerLink(longPlayerLink));
+
+            // --- ORGANIZER SHORT LINK LOGIC (STABLE) ---
+            if (oKey) {
+                const longOrgLink = `${currentBaseUrl}#gameId=${gId}&organizerKey=${oKey}`;
                 fetch('/.netlify/functions/create-short-link', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fullUrl: longLink })
+                    body: JSON.stringify({ 
+                        fullUrl: longOrgLink,
+                        uniqueKey: `we_org_${gId}`
+                    })
                 })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.shortUrl) {
-                        setShortPlayerLink(data.shortUrl);
-                        localStorage.setItem(storageKey, data.shortUrl);
-                    } else {
-                        setShortPlayerLink(longLink);
-                    }
+                    if (data.shortUrl) setShortOrganizerLink(data.shortUrl);
                 })
-                .catch(() => setShortPlayerLink(longLink));
+                .catch(err => console.error("Org link gen failed", err));
             }
             
             // BOUNCE RATE FIX: Fire Virtual Page View
@@ -355,10 +370,10 @@ const WhiteElephantDashboard: React.FC = () => {
     if (error) return <div className="min-h-screen flex items-center justify-center text-red-600 font-bold text-xl">{error}</div>;
     if (!game) return <div className="min-h-screen flex items-center justify-center text-slate-500">Game not found.</div>;
 
-    // Calculate links
-    const currentUrl = window.location.href.split('#')[0];
-    const fullOrganizerLink = `${currentUrl}#gameId=${gameId}&organizerKey=${organizerKey}`;
-    const playerLink = shortPlayerLink || `${currentUrl}#gameId=${gameId}`;
+    // Links for display (use short links if available, else full)
+    const fullOrganizerLink = `${window.location.href.split('#')[0]}#gameId=${gameId}&organizerKey=${organizerKey}`;
+    const displayOrganizerLink = shortOrganizerLink || fullOrganizerLink;
+    const displayPlayerLink = shortPlayerLink || `${window.location.href.split('#')[0]}#gameId=${gameId}`;
 
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
@@ -381,8 +396,8 @@ const WhiteElephantDashboard: React.FC = () => {
                                 </p>
                             </div>
                             <div className="flex items-center gap-2 bg-white p-2 rounded border border-amber-200">
-                                <input type="text" readOnly value={fullOrganizerLink} className="flex-1 text-xs text-slate-500 truncate outline-none" />
-                                <button onClick={() => copyToClipboard(fullOrganizerLink)} className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded transition-colors text-xs font-bold flex items-center gap-1">
+                                <input type="text" readOnly value={displayOrganizerLink} className="flex-1 text-xs text-slate-500 truncate outline-none" />
+                                <button onClick={() => copyToClipboard(displayOrganizerLink)} className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded transition-colors text-xs font-bold flex items-center gap-1">
                                     <Copy size={14}/> Copy
                                 </button>
                             </div>
@@ -400,8 +415,8 @@ const WhiteElephantDashboard: React.FC = () => {
                                     Share your screen so everyone sees the animations, or send this link to participants so they can follow along on their own phones.
                                 </p>
                                 <div className="flex items-center gap-2 bg-indigo-800/50 p-2 rounded border border-indigo-400/30">
-                                    <input type="text" readOnly value={playerLink} className="flex-1 text-xs text-indigo-200 bg-transparent truncate outline-none font-mono" />
-                                    <button onClick={() => copyToClipboard(playerLink)} className="p-2 bg-white text-indigo-700 hover:bg-indigo-50 rounded transition-colors text-xs font-bold flex items-center gap-1 shadow-sm">
+                                    <input type="text" readOnly value={displayPlayerLink} className="flex-1 text-xs text-indigo-200 bg-transparent truncate outline-none font-mono" />
+                                    <button onClick={() => copyToClipboard(displayPlayerLink)} className="p-2 bg-white text-indigo-700 hover:bg-indigo-50 rounded transition-colors text-xs font-bold flex items-center gap-1 shadow-sm">
                                         <Share2 size={14}/> Copy Link
                                     </button>
                                 </div>
@@ -510,7 +525,7 @@ const WhiteElephantDashboard: React.FC = () => {
                             <div className="bg-white rounded-2xl shadow-sm border p-6 text-center">
                                 <h3 className="font-bold text-slate-700 mb-2 text-sm uppercase tracking-wider">Quick QR Join</h3>
                                 <div className="flex justify-center bg-white p-4 rounded-xl border border-slate-200 mb-3">
-                                    <QRCode value={playerLink} size={120} />
+                                    <QRCode value={displayPlayerLink} size={120} />
                                 </div>
                                 <p className="text-xs text-slate-400">Scan to open player view</p>
                             </div>
