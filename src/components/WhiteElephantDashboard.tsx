@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
@@ -25,7 +24,6 @@ const SOUNDS = {
 // Simple Audio Player Helper
 const playAudio = (type: 'open' | 'steal' | 'turn') => {
     try {
-        // In a real production app, these would be real mp3 file paths.
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         if (!AudioContext) return;
         
@@ -115,15 +113,30 @@ const WhiteElephantDashboard: React.FC = () => {
             // Start Polling every 3 seconds using window.setInterval
             pollInterval.current = window.setInterval(() => fetchGame(gId), 3000);
 
-            // Generate short link for player view
-            const longLink = `${window.location.href.split('#')[0]}#gameId=${gId}`;
-            fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longLink)}`)
-                .then(res => res.text())
-                .then(text => {
-                    if (!text.toLowerCase().includes('error')) setShortPlayerLink(text);
-                    else setShortPlayerLink(longLink);
+            // --- SHORT LINK LOGIC (WITH CACHING) ---
+            const storageKey = `ssm_we_link_${gId}`;
+            const cachedLink = localStorage.getItem(storageKey);
+            
+            if (cachedLink) {
+                setShortPlayerLink(cachedLink);
+            } else {
+                const longLink = `${window.location.href.split('#')[0]}#gameId=${gId}`;
+                fetch('/.netlify/functions/create-short-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullUrl: longLink })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.shortUrl) {
+                        setShortPlayerLink(data.shortUrl);
+                        localStorage.setItem(storageKey, data.shortUrl);
+                    } else {
+                        setShortPlayerLink(longLink);
+                    }
                 })
                 .catch(() => setShortPlayerLink(longLink));
+            }
             
             // BOUNCE RATE FIX: Fire Virtual Page View
             if (shouldTrackByDefault()) {
@@ -380,11 +393,11 @@ const WhiteElephantDashboard: React.FC = () => {
                             <div className="absolute top-0 right-0 bg-white/10 p-8 rounded-full -mr-10 -mt-10"></div>
                             <div className="relative z-10">
                                 <div className="flex items-center gap-2 mb-2 font-bold text-lg text-indigo-100">
-                                    <Smartphone size={22} /> Player Dashboard Link
+                                    <Smartphone size={22} /> Shareable Dashboard Link
                                 </div>
                                 <p className="text-indigo-100 text-sm mb-4 opacity-90 leading-relaxed">
                                     <span className="font-bold bg-indigo-500 px-1.5 py-0.5 rounded text-white text-xs mr-1 align-middle">FOR ZOOM/TEAMS</span> 
-                                    Share this view on your screen so everyone can see the animations! Send the link below to phones for individual updates.
+                                    Share your screen so everyone sees the animations, or send this link to participants so they can follow along on their own phones.
                                 </p>
                                 <div className="flex items-center gap-2 bg-indigo-800/50 p-2 rounded border border-indigo-400/30">
                                     <input type="text" readOnly value={playerLink} className="flex-1 text-xs text-indigo-200 bg-transparent truncate outline-none font-mono" />
