@@ -1,726 +1,641 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { trackEvent } from '../services/analyticsService';
-import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
-import type { WEGame, WEReaction } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { produce } from 'immer';
 import Header from './Header';
 import Footer from './Footer';
-import { generateWETurnNumbersPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy } from 'lucide-react';
-import ConfirmationModal from './ConfirmationModal';
-import confetti from 'canvas-confetti';
-import html2canvas from 'html2canvas';
+import AdBanner from './AdBanner';
+import { trackEvent } from '../services/analyticsService';
+import { createGame } from '../services/whiteElephantService';
+import type { WEParticipant, WERules, WETheme } from '../types';
+import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building, HelpCircle, BookOpen, MapPin, Video, Gamepad2, ShoppingBag } from 'lucide-react';
+import CookieConsentBanner from './CookieConsentBanner';
 import { shouldTrackByDefault } from '../utils/privacy';
 
-// --- AUDIO SYSTEM ---
-const playAudio = (type: 'open' | 'steal' | 'turn' | 'win') => {
-    try {
-        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        const now = ctx.currentTime;
-        
-        if (type === 'open') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(523.25, now);
-            osc.frequency.setValueAtTime(659.25, now + 0.1);
-            osc.frequency.setValueAtTime(783.99, now + 0.2);
-            osc.frequency.setValueAtTime(1046.50, now + 0.3);
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-            osc.start(now);
-            osc.stop(now + 1.5);
-        } else if (type === 'steal') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.exponentialRampToValueAtTime(100, now + 0.4);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.001, now + 0.4);
-            osc.start(now);
-            osc.stop(now + 0.4);
-        } else if (type === 'win') {
-            const freqs = [523.25, 659.25, 783.99, 1046.50];
-            freqs.forEach((f) => {
-                const o = ctx.createOscillator();
-                const g = ctx.createGain();
-                o.type = 'triangle';
-                o.frequency.value = f;
-                o.connect(g);
-                g.connect(ctx.destination);
-                g.gain.setValueAtTime(0.1, now);
-                g.gain.exponentialRampToValueAtTime(0.001, now + 2);
-                o.start(now);
-                o.stop(now + 2);
-            });
-            return;
-        } else {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(400, now);
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-            osc.start(now);
-            osc.stop(now + 0.1);
-        }
-    } catch (e) { console.error("Audio play failed", e); }
-};
-
-// --- SUB-COMPONENTS ---
-
-const Toast = ({ message, onClose }: { message: string, onClose: () => void }) => (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-3 animate-fade-in-up z-[10000]">
-        <CheckCircle size={18} className="text-green-400" />
-        <span className="font-medium text-sm">{message}</span>
-        <button onClick={onClose} className="ml-2 opacity-70 hover:opacity-100"><X size={16} /></button>
-    </div>
-);
-
-const FloatingEmojis = ({ reactions }: { reactions: { id: string, emoji: string, x: number }[] }) => (
-    <div className="fixed inset-0 pointer-events-none z-[9998] overflow-hidden">
-        {reactions.map(r => (
-            <div key={r.id} className="absolute bottom-20 text-4xl animate-float-up" style={{ left: `${r.x}%` }}>{r.emoji}</div>
-        ))}
-    </div>
-);
-
-const EventBadge = ({ text }: { text: string }) => {
-    if (text.toLowerCase().includes('stole')) return <span className="inline-block bg-red-100 text-red-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-red-200">Steal</span>;
-    if (text.toLowerCase().includes('opened')) return <span className="inline-block bg-emerald-100 text-emerald-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-emerald-200">Open</span>;
-    if (text.toLowerCase().includes('turn')) return <span className="inline-block bg-blue-100 text-blue-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-blue-200">Turn</span>;
-    if (text.toLowerCase().includes('start')) return <span className="inline-block bg-purple-100 text-purple-800 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-purple-200">Start</span>;
-    return <span className="inline-block bg-slate-100 text-slate-600 text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold mr-2 border border-slate-200">Info</span>;
-};
-
-const BigAnimationOverlay = ({ overlayMessage }: { overlayMessage: any }) => {
-    if (!overlayMessage) return null;
-    return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in"></div>
-            <div className={`relative bg-white p-8 md:p-12 rounded-3xl shadow-2xl border-4 text-center transform transition-all scale-100 animate-bounce-in ${overlayMessage.type === 'steal' ? 'border-red-500 text-red-600' : 'border-emerald-500 text-emerald-600'}`}>
-                <div className="text-6xl md:text-8xl mb-4">{overlayMessage.type === 'steal' ? '😈' : '🎁'}</div>
-                <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight mb-2 drop-shadow-sm">{overlayMessage.title}</h1>
-                <p className="text-xl md:text-3xl font-bold text-slate-700">{overlayMessage.subtitle}</p>
+const FaqItem: React.FC<{ question: string; children: React.ReactNode }> = ({ question, children }) => (
+    <div className="border-b border-slate-200 py-4">
+        <details className="group">
+            <summary className="flex justify-between items-center font-bold text-slate-800 cursor-pointer list-none text-lg hover:text-blue-700 transition-colors">
+                <span>{question}</span>
+                <span className="transition-transform transform group-open:rotate-180">
+                    <svg className="h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </span>
+            </summary>
+            <div className="text-slate-600 mt-3 leading-relaxed prose prose-slate max-w-none">
+                {children}
             </div>
-        </div>
-    );
-};
+        </details>
+    </div>
+);
 
-// --- MAIN DASHBOARD COMPONENT ---
-
-const WhiteElephantDashboard: React.FC = () => {
-    const [game, setGame] = useState<WEGame | null>(null);
-    const [loading, setLoading] = useState(true);
+const WhiteElephantGeneratorPage: React.FC = () => {
+    const [participants, setParticipants] = useState<WEParticipant[]>([
+        { id: crypto.randomUUID(), name: '' }, { id: crypto.randomUUID(), name: '' }, { id: crypto.randomUUID(), name: '' }
+    ]);
+    const [rules, setRules] = useState<WERules>({ stealLimit: 3, noStealBack: false });
+    const [theme, setTheme] = useState<WETheme>('classic');
+    const [groupName, setGroupName] = useState('');
+    const [eventDetails, setEventDetails] = useState('');
+    
+    const [activeStep, setActiveStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [gameId, setGameId] = useState<string | null>(null);
-    const [organizerKey, setOrganizerKey] = useState<string | null>(null);
-    const [isActionLoading, setIsActionLoading] = useState(false);
-    
-    // UI State
-    const [shortPlayerLink, setShortPlayerLink] = useState<string>('');
-    const [shortOrganizerLink, setShortOrganizerLink] = useState<string>('');
-    const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-    const [soundEnabled, setSoundEnabled] = useState(false);
-    const [overlayMessage, setOverlayMessage] = useState<{ title: string, subtitle: string, type: 'open' | 'steal' } | null>(null);
-    const [toastMessage, setToastMessage] = useState<string | null>(null);
-    const [visibleReactions, setVisibleReactions] = useState<{ id: string, emoji: string, x: number }[]>([]);
-    
-    // Action Modals
-    const [showStealModal, setShowStealModal] = useState(false);
-    const [showOpenModal, setShowOpenModal] = useState(false);
-    const [showEndGameModal, setShowEndGameModal] = useState(false);
-    
-    // Action Data
-    const [openGiftDescription, setOpenGiftDescription] = useState('');
-    const [stealTargetId, setStealTargetId] = useState<string>('');
-    const [stealGift, setStealGift] = useState('');
+    const [validationError, setValidationError] = useState<string | null>(null);
+    const [showCookieBanner, setShowCookieBanner] = useState(false);
+    const generatorRef = useRef<HTMLDivElement>(null);
 
-    // Refs for polling and diffing
-    const lastReactionCount = useRef(0);
-    const lastReactionTime = useRef(0);
-    const lastHistoryLen = useRef(0);
-    const overlayTimeoutRef = useRef<number | null>(null);
-    const hasCelebratedRef = useRef(false);
-    const pollInterval = useRef<number | null>(null);
-    const lastManualUpdate = useRef<number>(0);
-    const isUpdatingRef = useRef(false);
-
-    // --- INITIALIZATION ---
+    // Analytics: Track Step Changes
+    // Detailed step tracking to lower bounce rate and measure drop-off
     useEffect(() => {
-        const hash = window.location.hash.slice(1);
-        const params = new URLSearchParams(hash);
-        const gId = params.get('gameId');
-        const oKey = params.get('organizerKey');
-        setGameId(gId);
-        setOrganizerKey(oKey);
-
-        if (gId) {
-            fetchGame(gId);
-            // Poll every 3 seconds for updates
-            pollInterval.current = window.setInterval(() => fetchGame(gId), 3000);
-            
-            // Generate short links for sharing
-            const currentBaseUrl = window.location.href.split('#')[0];
-            const longPlayerLink = `${currentBaseUrl}#gameId=${gId}`;
-            
-            // Attempt to get short link
-            fetch('/.netlify/functions/create-short-link', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fullUrl: longPlayerLink, uniqueKey: `we_player_${gId}` })
-            }).then(res => res.json())
-              .then(data => setShortPlayerLink(data.shortUrl || longPlayerLink))
-              .catch(() => setShortPlayerLink(longPlayerLink));
-
-            if (oKey) {
-                const longOrgLink = `${currentBaseUrl}#gameId=${gId}&organizerKey=${oKey}`;
-                fetch('/.netlify/functions/create-short-link', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fullUrl: longOrgLink, uniqueKey: `we_org_${gId}` })
-                }).then(res => res.json())
-                  .then(data => { if (data.shortUrl) setShortOrganizerLink(data.shortUrl); })
-                  .catch(err => console.error(err));
-            }
-            if (shouldTrackByDefault()) trackEvent('page_view', { page_title: 'White Elephant Dashboard' });
-        } else {
-            setError("No game ID found in URL.");
-            setLoading(false);
+        const stepNames = {
+            1: 'Add Names',
+            2: 'Set Rules',
+            3: 'Generate'
+        };
+        const currentStepName = stepNames[activeStep as keyof typeof stepNames];
+        
+        if (currentStepName) {
+            trackEvent('step_view', { 
+                step_number: activeStep, 
+                step_name: currentStepName,
+                generator_type: 'white_elephant'
+            });
         }
-        return () => { if (pollInterval.current) window.clearInterval(pollInterval.current); };
+    }, [activeStep]);
+
+    useEffect(() => {
+        const consent = localStorage.getItem('cookie_consent');
+        if (consent === null) {
+            setShowCookieBanner(true);
+        }
+        if (shouldTrackByDefault()) {
+            trackEvent('we_generator_view');
+        }
     }, []);
 
-    // --- GAME STATE MONITORING ---
-    useEffect(() => {
-        if (game) {
-            // Check for new history events to trigger sounds/overlays
-            if (game.history.length > lastHistoryLen.current) {
-                const isNewGame = lastHistoryLen.current === 0;
-                lastHistoryLen.current = game.history.length;
-                
-                if (!isNewGame) {
-                    const latestEvent = game.history[game.history.length - 1];
-                    
-                    if (latestEvent.toLowerCase().includes('opened')) {
-                        if (soundEnabled) playAudio('open');
-                        // Extract "Name opened [Gift]"
-                        const match = latestEvent.match(/^(.*) opened \[(.*)\]!$/);
-                        setOverlayMessage({ 
-                            title: 'GIFT OPENED!', 
-                            subtitle: match ? `${match[1]} opened ${match[2]}` : latestEvent, 
-                            type: 'open' 
-                        });
-                    } else if (latestEvent.toLowerCase().includes('stole')) {
-                        if (soundEnabled) playAudio('steal');
-                        const match = latestEvent.match(/^(.*) stole \[(.*)\] from (.*)!$/);
-                        setOverlayMessage({ 
-                            title: 'STOLEN!', 
-                            subtitle: match ? `${match[1]} stole ${match[2]} from ${match[3]}` : latestEvent, 
-                            type: 'steal' 
-                        });
-                    } else if (soundEnabled) {
-                        playAudio('turn');
-                    }
-                    
-                    // Clear old overlay timeout and set new one
-                    if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
-                    overlayTimeoutRef.current = window.setTimeout(() => { setOverlayMessage(null); overlayTimeoutRef.current = null; }, 4000);
-                }
-            }
-
-            // Game Finished Celebration
-            if (game.isFinished && !hasCelebratedRef.current) {
-                hasCelebratedRef.current = true;
-                if (soundEnabled) playAudio('win');
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                setTimeout(() => confetti({ particleCount: 100, angle: 60, spread: 55, origin: { x: 0 } }), 500);
-                setTimeout(() => confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 } }), 500);
-            }
-
-            // Reactions Polling
-            const reactions = game.reactions || [];
-            if (reactions.length > lastReactionCount.current) {
-                if (lastReactionCount.current !== 0) {
-                    const newReactions = reactions.slice(lastReactionCount.current);
-                    const newVisible = newReactions.map(r => ({ id: r.id || crypto.randomUUID(), emoji: r.emoji, x: Math.random() * 80 + 10 }));
-                    setVisibleReactions(prev => [...prev, ...newVisible]);
-                    // Clean up emojis after animation
-                    setTimeout(() => setVisibleReactions(prev => prev.filter(p => !newVisible.find(n => n.id === p.id))), 3000);
-                }
-                lastReactionCount.current = reactions.length;
-            }
-        }
-    }, [game, soundEnabled]);
-
-    const fetchGame = async (id: string) => {
-        // Prevent polling if we just manually updated state to avoid flicker
-        if (Date.now() - lastManualUpdate.current < 2000 || isUpdatingRef.current) return;
-        try {
-            const data = await getGameState(id);
-            // Only update if data changed and not finished state glitch
-            if (data) setGame(prev => (prev && data.history.length < prev.history.length && !data.isFinished) ? prev : data);
-            setLoading(false);
-        } catch (err) { console.error("Failed to fetch game:", err); }
+    const handleCookieAccept = () => {
+        localStorage.setItem('cookie_consent', 'true');
+        setShowCookieBanner(false);
+        trackEvent('cookie_consent_accept');
     };
 
-    const handleUpdate = async (action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', payload?: any) => {
-        if (!gameId || !organizerKey) return;
-        setIsActionLoading(true);
-        isUpdatingRef.current = true;
-        lastManualUpdate.current = Date.now();
+    const handleCookieDecline = () => {
+        localStorage.setItem('cookie_consent', 'false');
+        setShowCookieBanner(false);
+    };
+
+    const handleParticipantChange = (id: string, name: string) => {
+        setValidationError(null);
+        
+        const nameTrimmed = name.trim().toLowerCase();
+        if (nameTrimmed && participants.some(p => p.id !== id && p.name.trim().toLowerCase() === nameTrimmed)) {
+            setValidationError(`"${name}" is already on the list.`);
+        }
+
+        const updatedParticipants = produce(participants, draft => {
+            const participant = draft.find(p => p.id === id);
+            if (participant) participant.name = name;
+        });
+
+        const isLastParticipant = participants.findIndex(p => p.id === id) === participants.length - 1;
+        const wasEmpty = participants.find(p => p.id === id)?.name.trim() === '';
+        
+        if (isLastParticipant && wasEmpty && name.trim() !== '') {
+            setParticipants([...updatedParticipants, { id: crypto.randomUUID(), name: '' }]);
+        } else {
+            setParticipants(updatedParticipants);
+        }
+    };
+
+    const removeParticipant = (id: string) => {
+        if (participants.length > 1) {
+            setParticipants(participants.filter(p => p.id !== id));
+        }
+    };
+
+    const handleNextStep = () => {
+        if (activeStep === 1) {
+            const validParticipants = participants.filter(p => p.name.trim() !== '');
+            if (validParticipants.length < 2) {
+                setError("You need at least two participants.");
+                return;
+            }
+            
+            const names = validParticipants.map(p => p.name.trim().toLowerCase());
+            const uniqueNames = new Set(names);
+            if (names.length !== uniqueNames.size) {
+                setError("Please remove duplicate names before continuing.");
+                return;
+            }
+        }
+        
+        if(activeStep < 3) {
+            setError(null);
+            setActiveStep(activeStep + 1);
+            generatorRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    const handleGenerate = async () => {
+        setError(null);
+        const validParticipants = participants.filter(p => p.name.trim() !== '');
+        
+        setIsLoading(true);
+        
+        // PREFERENCE TRACKING:
+        // Record what settings users are choosing (e.g., do people like the 'Funny' theme?)
+        trackEvent('we_generate_start', { 
+            participant_count: validParticipants.length, 
+            theme, 
+            rules 
+        });
         
         try {
-            const updatedGame = await updateGameState(gameId, organizerKey, action, payload);
-            if (updatedGame) {
-                setGame(updatedGame);
-                lastHistoryLen.current = updatedGame.history.length;
-                trackEvent(`we_action_${action}`);
+            const gameData = await createGame(validParticipants, rules, theme, groupName, eventDetails);
+            if (gameData && gameData.gameId && gameData.organizerKey) {
+                trackEvent('we_generate_success', { gameId: gameData.gameId });
+                window.location.href = `/white-elephant-generator.html#gameId=${gameData.gameId}&organizerKey=${gameData.organizerKey}`;
+            } else {
+                throw new Error('Failed to create game. Invalid data returned from server.');
             }
-        } catch (err) { 
-            showToast("Failed to update game. Check connection."); 
-        } finally {
-            setIsActionLoading(false);
-            isUpdatingRef.current = false;
-            // Reset modal states
-            setShowStealModal(false);
-            setShowOpenModal(false);
-            setShowEndGameModal(false);
-            setOpenGiftDescription('');
-            setStealGift('');
-            setStealTargetId('');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "An unknown error occurred.";
+            setError(message);
+            trackEvent('we_generate_fail', { error: message });
+            setIsLoading(false);
         }
     };
-
-    const handleReaction = (emoji: string) => {
-        if (!gameId || Date.now() - lastReactionTime.current < 2000) return; // Rate limit 2s
-        lastReactionTime.current = Date.now();
-        
-        // Optimistic UI update
-        const id = crypto.randomUUID();
-        setVisibleReactions(prev => [...prev, { id, emoji, x: Math.random() * 80 + 10 }]);
-        setTimeout(() => setVisibleReactions(prev => prev.filter(r => r.id !== id)), 3000);
-        
-        sendReaction(gameId, emoji);
-    };
-
-    const handleDownloadRecap = async () => {
-        setIsGeneratingImage(true);
-        const element = document.getElementById('final-results-card');
-        if (element) {
-            try {
-                // Use html2canvas to screenshot the results
-                const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: null });
-                const link = document.createElement('a');
-                link.download = `White_Elephant_Recap.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-                trackEvent('we_download_recap');
-            } catch (e) { showToast("Could not generate image"); }
-        }
-        setIsGeneratingImage(false);
-    };
-
-    const showToast = (msg: string) => { setToastMessage(msg); setTimeout(() => setToastMessage(null), 3000); };
-    const copyToClipboard = (text: string) => { navigator.clipboard.writeText(text).then(() => showToast("Link copied!")); };
-
-    // --- GAME LOGIC HELPERS ---
-    const isOrganizer = !!organizerKey;
-    const displacedPlayer = game?.displacedPlayerId ? game.participants.find(p => p.id === game.displacedPlayerId) : null;
-    const currentTurnPlayer = game?.turnOrder[game.currentPlayerIndex];
     
-    // Who is active? 
-    // If there is a displaced player (victim), they MUST act. 
-    // Otherwise, it's the person whose turn index it is.
-    const activePlayer = displacedPlayer || currentTurnPlayer;
-    
-    // Who can be stolen from?
-    const availableVictims = game ? game.participants.filter(p => {
-        // Can't steal from self
-        if (p.id === activePlayer?.id) return false;
-        
-        // Must have a gift
-        if (!game.giftState[p.id]) return false;
-        
-        // Cannot steal back immediately from the person who just stole from you
-        // game.lastVictimId tracks who was just victimized. 
-        // We need to prevent the current thief from being targeted by the current victim?
-        // Simpler rule: Check gift lock status.
-        
-        // Check Freeze Limit
-        const giftDesc = game.giftState[p.id];
-        const steals = game.giftStealCounts[giftDesc] || 0;
-        
-        // If steal limit is set and met, gift is frozen
-        if (game.rules.stealLimit > 0 && steals >= game.rules.stealLimit) return false; 
+    const steps = [
+        { id: 1, label: '1. Add Names', icon: Users },
+        { id: 2, label: '2. Set Rules', icon: Settings },
+        { id: 3, label: '3. Generate', icon: PartyPopper }
+    ];
 
-        return true;
-    }) : [];
+    if (isLoading) {
+        return (
+            <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 text-center p-4">
+                 <img src="/logo_256.png" alt="Loading" className="w-24 h-24 animate-bounce mb-6" />
+                 <h2 className="text-3xl font-bold text-blue-800 font-serif animate-pulse">Setting Up Your Party...</h2>
+                 <p className="text-slate-500 mt-2 text-lg">Shuffling names and wrapping virtual gifts!</p>
+            </div>
+        )
+    }
 
-    const canSteal = availableVictims.length > 0;
-
-    const handleLogOpen = () => {
-        if (!activePlayer) return;
-        const giftName = openGiftDescription || 'a Mystery Gift';
-        trackEvent('we_gift_revealed', { gift_name: giftName });
-        handleUpdate('log_open', { 
-            entry: `${activePlayer.name} opened [${giftName}]!`, 
-            actorId: activePlayer.id, 
-            gift: giftName 
-        });
-    };
-
-    const handleLogSteal = () => {
-        if (!stealTargetId || !stealGift) return;
-        const thief = activePlayer;
-        const victim = game?.participants.find(p => p.id === stealTargetId);
-        if (!thief || !victim) return;
-        
-        handleUpdate('log_steal', { 
-            entry: `${thief.name} stole [${stealGift}] from ${victim.name}!`, 
-            thiefId: thief.id, 
-            victimId: victim.id, 
-            gift: stealGift 
-        });
-    };
-
-    if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500 font-bold animate-pulse">Loading Game...</div>;
-    if (!game) return <div className="min-h-screen flex items-center justify-center text-slate-500">Game not found.</div>;
-
-    const fullOrganizerLink = `${window.location.href.split('#')[0]}#gameId=${gameId}&organizerKey=${organizerKey}`;
-    const displayOrganizerLink = shortOrganizerLink || fullOrganizerLink;
-    const displayPlayerLink = shortPlayerLink || `${window.location.href.split('#')[0]}#gameId=${gameId}`;
+    const themeOptions = [
+        { val: 'classic', label: 'Classic', desc: 'Anything Goes', color: 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 ring-blue-400' },
+        { val: 'funny', label: 'Funny & Weird', desc: 'Gag Gifts Encouraged', color: 'bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100 ring-orange-400' },
+        { val: 'useful', label: 'Genuinely Useful', desc: 'Things people want', color: 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 ring-emerald-400' },
+        { val: 'regift', label: 'Regift / Eco', desc: 'Re-home items', color: 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 ring-purple-400' }
+    ];
 
     return (
-        <div className="bg-slate-50 min-h-screen pb-20">
-            {/* OVERLAYS */}
-            <BigAnimationOverlay overlayMessage={overlayMessage} />
-            <FloatingEmojis reactions={visibleReactions} />
-            {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
-            
+        <>
             <Header />
-            
-            <main className="container mx-auto px-4 py-8 max-w-6xl">
-                
-                {/* ORGANIZER CONTROL PANEL (Only visible to Organizer) */}
-                {isOrganizer && (
-                    <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
-                        <div className="bg-amber-50 border-2 border-amber-200 border-dashed rounded-xl p-5 flex flex-col justify-between">
-                            <div>
-                                <div className="flex items-center gap-2 mb-2 text-amber-800 font-bold">
-                                    <Lock size={18} /> Organizer Master Key
-                                </div>
-                                <p className="text-amber-700 text-sm mb-4">
-                                    Private control panel. <span className="font-extrabold underline">Do not share</span>.
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-2 bg-white p-2 rounded border border-amber-200">
-                                <input type="text" readOnly value={displayOrganizerLink} className="flex-1 text-xs text-slate-500 truncate outline-none" />
-                                <button onClick={() => copyToClipboard(displayOrganizerLink)} className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded text-xs font-bold flex items-center gap-1">
-                                    <Copy size={14}/> Copy
-                                </button>
-                            </div>
-                        </div>
-                        <div className="bg-indigo-600 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-2 mb-2 font-bold text-lg text-indigo-100">
-                                    <Smartphone size={22} /> Player Dashboard Link
-                                </div>
-                                <p className="text-indigo-100 text-sm mb-4 opacity-90">
-                                    Share screen or send this link to participants so they can watch.
-                                </p>
-                                <div className="flex items-center gap-2 bg-indigo-800/50 p-2 rounded border border-indigo-400/30">
-                                    <input type="text" readOnly value={displayPlayerLink} className="flex-1 text-xs text-indigo-200 bg-transparent truncate outline-none font-mono" />
-                                    <button onClick={() => copyToClipboard(displayPlayerLink)} className="p-2 bg-white text-indigo-700 hover:bg-indigo-50 rounded text-xs font-bold flex items-center gap-1 shadow-sm">
-                                        <Share2 size={14}/> Copy Link
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* GAME HEADER */}
-                <div className="bg-white rounded-2xl shadow-sm border p-6 mb-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div>
-                            <h1 className="text-3xl font-bold text-slate-800 font-serif">{game.groupName || 'White Elephant Party'}</h1>
-                            <div className="flex items-center gap-3 mt-2 text-sm">
-                                <span className={`px-3 py-1 rounded-full font-bold flex items-center gap-1.5 ${game.isFinished ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                    <span className={`w-2 h-2 rounded-full ${game.isFinished ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`}></span> {game.isFinished ? 'Game Over' : 'Live Game'}
-                                </span>
-                                <button onClick={() => setSoundEnabled(!soundEnabled)} className={`flex items-center gap-1 px-3 py-1 rounded-full border ${soundEnabled ? 'bg-purple-100 text-purple-700' : 'bg-slate-50 text-slate-500'}`}>
-                                    {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />} Sound
-                                </button>
-                            </div>
-                        </div>
-                        {isOrganizer && (
-                            <div className="flex gap-2">
-                                <button onClick={() => generateWETurnNumbersPdf(game.participants.length)} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-bold flex gap-2">
-                                    <Download size={16} /> Turn #s
-                                </button>
-                                <button onClick={() => generateWEGameLogPdf(game.history, game.participants, game.giftState, game.groupName, game.eventDetails)} className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm font-bold flex gap-2">
-                                    <BarChart3 size={16} /> Summary
-                                </button>
-                            </div>
-                        )}
-                    </div>
+            <main className="bg-slate-50 min-h-screen pb-20">
+                <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-center py-20 px-4">
+                    <h1 className="text-4xl md:text-6xl font-extrabold font-serif mb-4 drop-shadow-md">
+                        White Elephant Generator
+                    </h1>
+                    <p className="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto font-medium">
+                        The easiest way to run your Yankee Swap or Dirty Santa Party. 
+                        <span className="block mt-2 text-yellow-300 font-bold">Free • No Sign-Up • Live Dashboard</span>
+                    </p>
                 </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* LEFT COLUMN: Turn Order List */}
-                    <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
-                        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden flex flex-col h-[600px]">
-                             <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
-                                <h3 className="font-bold text-slate-700 flex items-center gap-2"><Users className="text-slate-400" size={18} /> Turn Order</h3>
-                                <span className="text-xs font-bold text-slate-400 uppercase">{game.participants.length} Players</span>
-                            </div>
-                            <div className="overflow-y-auto flex-1 p-2 space-y-1 custom-scrollbar">
-                                {game.turnOrder.map((p, i) => {
-                                    // Highlight Logic: Is this person the ACTIVE player?
-                                    const isActor = activePlayer?.id === p.id && !game.isFinished && game.isStarted;
-                                    const hasGift = !!game.giftState[p.id];
-                                    
-                                    return (
-                                        <div key={p.id} className={`relative p-3 rounded-xl border transition-all ${isActor ? 'bg-blue-50 border-blue-400 shadow-md z-10 scale-[1.02]' : 'bg-white border-slate-100'}`}>
-                                            <div className="flex items-start gap-3">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isActor ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>{i + 1}</div>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex items-center justify-between">
-                                                        <p className={`font-bold truncate ${isActor ? 'text-blue-800' : 'text-slate-700'}`}>{p.name}</p>
-                                                    </div>
-                                                    {game.giftState[p.id] && (
-                                                        <div className="mt-1 flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md text-xs font-bold w-fit">
-                                                            <Gift size={12} /> {game.giftState[p.id]}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* RIGHT COLUMN: Active Game Area */}
-                    <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
+                
+                <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
+                
+                <div ref={generatorRef} className="max-w-4xl mx-auto -mt-10 px-4 relative z-10">
+                     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
                         
-                        {/* MAIN ACTION CARD */}
-                        <div className="bg-white rounded-3xl shadow-xl border-2 border-indigo-100 overflow-hidden relative">
-                            {/* Decorative BG */}
-                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
-                            
-                            <div className="p-8 md:p-12 text-center relative">
-                                <div className="inline-block px-4 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">
-                                    {game.isFinished ? 'Game Summary' : displacedPlayer ? 'Steal in Progress!' : `Turn ${game.currentPlayerIndex + 1}`}
+                        {/* HEADER TABS */}
+                        <div className="flex border-b bg-slate-50 border-slate-200">
+                            {steps.map(step => {
+                                const isActive = activeStep === step.id;
+                                const isCompleted = activeStep > step.id;
+                                
+                                let tabColorClass = "";
+                                let circleClass = "";
+
+                                if (isActive) {
+                                    tabColorClass = "bg-white border-b-4 border-blue-500 text-blue-700";
+                                    circleClass = "bg-blue-100 text-blue-600";
+                                } else if (isCompleted) {
+                                    tabColorClass = "text-green-600 cursor-pointer hover:bg-slate-100";
+                                    circleClass = "bg-green-100 text-green-600";
+                                } else {
+                                    tabColorClass = "text-slate-400";
+                                    circleClass = "bg-slate-200 text-slate-500";
+                                }
+
+                                return (
+                                    <button 
+                                        key={step.id} 
+                                        onClick={() => activeStep > step.id ? setActiveStep(step.id) : null}
+                                        disabled={activeStep < step.id}
+                                        className={`flex-1 py-4 flex flex-col sm:flex-row items-center justify-center gap-2 transition-all ${tabColorClass}`}
+                                    >
+                                        <div className={`p-2 rounded-full ${circleClass}`}>
+                                            <step.icon size={20} />
+                                        </div>
+                                        <span className="font-bold text-sm sm:text-base">{step.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        
+                        <div className="p-6 md:p-10 min-h-[400px]">
+                            {error && (
+                                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded flex items-center gap-3">
+                                    <AlertCircle /> {error}
+                                </div>
+                            )}
+
+                            {/* STEP 1: PARTICIPANTS */}
+                            <div className={activeStep === 1 ? 'block animate-fade-in' : 'hidden'}>
+                                <div className="text-center mb-8">
+                                    <h2 className="text-2xl font-bold text-slate-800">Who's Playing?</h2>
+                                    <p className="text-slate-500">Enter names below. We'll shuffle them for you.</p>
                                 </div>
                                 
-                                {game.isFinished ? (
-                                    <div className="text-5xl font-black text-slate-800 mb-6">All Done!</div>
-                                ) : !game.isStarted ? (
-                                    <div className="text-4xl font-bold text-slate-400 mb-6">Waiting to start...</div>
-                                ) : (
-                                    <>
-                                        <h2 className="text-slate-400 text-xl font-medium mb-2">
-                                            It is currently
-                                        </h2>
-                                        <div className={`text-5xl md:text-6xl font-black font-serif mb-6 tracking-tight ${displacedPlayer ? 'text-amber-600' : 'text-indigo-600'}`}>
-                                            {activePlayer?.name}'s Turn
-                                        </div>
-                                        {displacedPlayer && (
-                                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg inline-block mb-6 animate-pulse font-bold">
-                                                🚨 {displacedPlayer.name} was stolen from and must act!
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* ORGANIZER ACTION BUTTONS */}
-                                {isOrganizer && !game.isFinished && (
-                                    <div className="flex flex-wrap justify-center gap-4 mt-8 relative z-20">
-                                        {!game.isStarted ? (
-                                            <button onClick={() => handleUpdate('start_game')} disabled={isActionLoading} className="py-4 px-10 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full shadow-lg text-xl flex items-center gap-3">
-                                                Start Game <Play fill="currentColor" />
+                                <div className="space-y-3 max-w-lg mx-auto">
+                                    {validationError && <p className="text-red-500 text-sm text-center font-bold animate-pulse">{validationError}</p>}
+                                    
+                                    {participants.map((p, i) => (
+                                        <div key={p.id} className="flex items-center gap-3 group">
+                                            <span className="text-slate-400 font-bold w-6 text-right">{i + 1}.</span>
+                                            <input
+                                                type="text"
+                                                value={p.name}
+                                                onChange={e => handleParticipantChange(p.id, e.target.value)}
+                                                placeholder={`Player Name`}
+                                                className={`flex-1 p-3 border-2 rounded-xl focus:ring-2 transition-all outline-none text-lg ${validationError && p.name && participants.filter(px => px.name.toLowerCase() === p.name.toLowerCase()).length > 1 ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-200'}`}
+                                            />
+                                            <button 
+                                                onClick={() => removeParticipant(p.id)} 
+                                                disabled={participants.length <= 1}
+                                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                                aria-label="Remove player"
+                                            >
+                                                <Trash2 size={20}/>
                                             </button>
-                                        ) : (
-                                            <>
-                                                {/* STEAL BUTTON: Only show if there are victims available */}
-                                                <button 
-                                                    onClick={() => { setStealGift(''); setStealTargetId(''); setShowStealModal(true); }} 
-                                                    disabled={isActionLoading || !canSteal} 
-                                                    className="py-3 px-8 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                >
-                                                    <RefreshCw size={20} /> Steal Gift
-                                                </button>
-                                                
-                                                {/* OPEN BUTTON: Always available (ends displacement or turn) */}
-                                                <button 
-                                                    onClick={() => { setOpenGiftDescription(''); setShowOpenModal(true); }} 
-                                                    disabled={isActionLoading} 
-                                                    className="py-3 px-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2"
-                                                >
-                                                    <Gift size={20} /> Open New Gift
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* RECAP CARD (Visible only when game ends) */}
-                        {game.isFinished && (
-                            <div className="space-y-4">
-                                <div id="final-results-card" className="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 overflow-hidden text-white relative">
-                                    <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none"><Gift size={120} /></div>
-                                    <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                                        <div>
-                                            <h3 className="font-serif font-bold text-2xl text-yellow-400">{game.groupName || 'White Elephant Party'}</h3>
-                                            <p className="text-slate-400 text-sm mt-1">{game.eventDetails}</p>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="font-black text-3xl">{game.participants.length}</div>
-                                            <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Gifts</div>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-slate-800">
-                                        {game.turnOrder.map((p, i) => (
-                                            <div key={p.id} className="p-4 flex justify-between items-center bg-slate-900">
-                                                <div className="font-bold flex items-center gap-3">
-                                                    <span className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-400">{i+1}</span>
-                                                    {p.name}
-                                                </div>
-                                                <div className="text-sm font-medium text-emerald-400 truncate max-w-[50%]">{game.giftState[p.id] || "No Gift"}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="p-4 bg-slate-950 text-center text-xs text-slate-500">
-                                        Generated by SecretSantaMatch.com
-                                    </div>
-                                </div>
-                                <div className="text-center">
-                                    <button onClick={handleDownloadRecap} disabled={isGeneratingImage} className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-lg transition-all disabled:opacity-50">
-                                        {isGeneratingImage ? <RefreshCw className="animate-spin" size={18} /> : <ImageIcon size={18} />} Download Recap Image
+                                    ))}
+                                    <button 
+                                        onClick={() => setParticipants([...participants, { id: crypto.randomUUID(), name: '' }])}
+                                        className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <PlusCircle size={20} /> Add Another Player
                                     </button>
                                 </div>
                             </div>
-                        )}
 
-                        {/* LIVE TICKER */}
-                        <div className="bg-white rounded-2xl shadow-sm border flex flex-col h-[400px]">
-                             <div className="p-4 border-b bg-slate-50 flex items-center gap-2"><History className="text-purple-500" /> <h3 className="font-bold text-slate-700">Live Ticker</h3></div>
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar flex flex-col-reverse">
-                                {game.history.length === 0 && <div className="text-center py-10 text-slate-400 italic">Game events will appear here...</div>}
-                                {game.history.map((entry, i) => (
-                                    <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-slate-700 animate-fade-in shadow-sm text-sm flex items-start gap-2">
-                                        <EventBadge text={entry} />
-                                        <span className="leading-snug py-0.5">{entry}</span>
+                            {/* STEP 2: RULES */}
+                            <div className={activeStep === 2 ? 'block animate-fade-in' : 'hidden'}>
+                                <div className="text-center mb-8">
+                                    <h2 className="text-2xl font-bold text-slate-800">Game Rules</h2>
+                                    <p className="text-slate-500">Customize how your party will play.</p>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    <div className="md:col-span-2 bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-2">
+                                        <h3 className="font-bold text-slate-700 text-lg mb-4 flex items-center gap-2">
+                                            <PartyPopper size={20} className="text-blue-500"/> Event Details (Optional)
+                                        </h3>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-600 mb-1">Group / Party Name</label>
+                                                <div className="relative">
+                                                    <Building size={16} className="absolute left-3 top-3.5 text-slate-400"/>
+                                                    <input 
+                                                        type="text" 
+                                                        value={groupName}
+                                                        onChange={(e) => setGroupName(e.target.value)}
+                                                        placeholder="e.g. ACME Corp Holiday Party"
+                                                        className="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-600 mb-1">Date & Time / Location</label>
+                                                <div className="relative">
+                                                    <Calendar size={16} className="absolute left-3 top-3.5 text-slate-400"/>
+                                                    <input 
+                                                        type="text" 
+                                                        value={eventDetails}
+                                                        onChange={(e) => setEventDetails(e.target.value)}
+                                                        placeholder="e.g. Dec 24th @ 6PM"
+                                                        className="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                        
-                        {isOrganizer && (
-                            <div className="text-right">
-                                <button onClick={() => setShowEndGameModal(true)} className="text-red-500 text-xs font-bold hover:underline opacity-60 hover:opacity-100">Force End Game</button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </main>
-            
-            {/* REACTION BAR (Fixed Bottom) */}
-            {!game.isFinished && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md shadow-2xl border border-slate-200 rounded-full px-6 py-3 flex gap-4 items-center z-[500] animate-slide-up transform transition-all hover:scale-105">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">React:</span>
-                    {['😂', '🔥', '😱', '👏', '💀'].map(emoji => (
-                        <button 
-                            key={emoji} 
-                            onClick={() => handleReaction(emoji)} 
-                            className="text-2xl hover:scale-125 transition-transform active:scale-95 cursor-pointer leading-none"
-                        >
-                            {emoji}
-                        </button>
-                    ))}
-                </div>
-            )}
 
-            <Footer />
-            
-            {/* --- MODALS --- */}
-            
-            {/* OPEN GIFT MODAL */}
-            {showOpenModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
-                    <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md transform transition-all scale-100">
-                        <div className="flex items-center gap-3 mb-4 text-emerald-600"><Gift size={28} /><h3 className="text-2xl font-bold font-serif">What did they open?</h3></div>
-                        <p className="text-slate-500 text-sm mb-1">Player: <strong className="text-slate-800">{activePlayer?.name}</strong></p>
-                        <input 
-                            autoFocus 
-                            type="text" 
-                            placeholder="e.g. Blue Bluetooth Speaker" 
-                            value={openGiftDescription} 
-                            onChange={e => setOpenGiftDescription(e.target.value)} 
-                            onKeyDown={e => e.key === 'Enter' && handleLogOpen()} 
-                            className="w-full p-4 border-2 border-emerald-100 focus:border-emerald-500 rounded-xl text-lg mb-6 outline-none transition-colors bg-emerald-50/30"
-                        />
-                        <div className="flex justify-end gap-3">
-                            <button onClick={() => setShowOpenModal(false)} className="px-5 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-100 transition-colors">Cancel</button>
-                            <button onClick={handleLogOpen} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-200">Log "Opened Gift"</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                                    <div className="space-y-4">
+                                        <label className="block font-bold text-slate-700 text-lg">Gift Theme</label>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {themeOptions.map((opt) => (
+                                                <button
+                                                    key={opt.val}
+                                                    onClick={() => setTheme(opt.val as WETheme)}
+                                                    className={`text-left p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${theme === opt.val ? `${opt.color} ring-2 ring-offset-1 ${opt.val === 'classic' ? 'ring-blue-300' : opt.val === 'funny' ? 'ring-orange-300' : opt.val === 'useful' ? 'ring-emerald-300' : 'ring-purple-300'}` : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}
+                                                >
+                                                    <div>
+                                                        <div className="font-bold">{opt.label}</div>
+                                                        <div className="text-sm opacity-80">{opt.desc}</div>
+                                                    </div>
+                                                    {theme === opt.val && <CheckCircle size={24} />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
 
-             {/* STEAL GIFT MODAL */}
-             {showStealModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
-                    <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md">
-                        <div className="flex items-center gap-3 mb-6 text-amber-600"><RefreshCw size={28} /><h3 className="text-2xl font-bold font-serif">Log a Steal</h3></div>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Who is stealing?</label>
-                                <div className="w-full p-3 border rounded-xl bg-slate-50 font-bold text-slate-700">
-                                     {activePlayer?.name}
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block font-bold text-slate-700 text-lg mb-2">Steal Limit (Per Gift)</label>
+                                            <p className="text-sm text-slate-500 mb-3">How many times can a single gift be stolen before it's "frozen"?</p>
+                                            <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                                <input 
+                                                    type="range" 
+                                                    min="0" max="5" 
+                                                    value={rules.stealLimit} 
+                                                    onChange={e => setRules(r => ({ ...r, stealLimit: parseInt(e.target.value) }))}
+                                                    className="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                                />
+                                                <div className="flex flex-col items-center w-20">
+                                                    <span className="font-bold text-3xl text-blue-600">
+                                                        {rules.stealLimit === 0 ? '∞' : rules.stealLimit}
+                                                    </span>
+                                                    <span className="text-xs text-slate-500 font-bold uppercase">
+                                                        {rules.stealLimit === 0 ? 'Unlimited' : 'Steals'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => setRules(r => ({ ...r, noStealBack: !r.noStealBack }))}>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <label className="font-bold text-slate-700 cursor-pointer">No Immediate "Steal Back"</label>
+                                                    <p className="text-sm text-slate-500">Prevents swapping the same gift back and forth.</p>
+                                                </div>
+                                                <div className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${rules.noStealBack ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300'}`}>
+                                                    {rules.noStealBack && <CheckCircle size={16} className="text-white" />}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex justify-center text-slate-300"><div className="border-l-2 border-dashed h-6"></div></div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Stealing FROM whom?</label>
-                                <select 
-                                    value={stealTargetId} 
-                                    onChange={e => { setStealTargetId(e.target.value); setStealGift(game.giftState[e.target.value] || ''); }} 
-                                    className="w-full p-3 border rounded-xl bg-slate-50 font-bold text-slate-700 focus:ring-2 focus:ring-amber-500 outline-none"
+
+                            {/* STEP 3: READY */}
+                            <div className={activeStep === 3 ? 'block animate-fade-in' : 'hidden'}>
+                                <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-inner p-8 md:p-12 text-center">
+                                    <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                                        <PartyPopper size={48} className="text-white" />
+                                    </div>
+                                    <h2 className="text-4xl font-bold mb-3 text-white drop-shadow-md">Ready to Party!</h2>
+                                    <p className="text-blue-100 mb-8 text-lg max-w-xl mx-auto">
+                                        We've shuffled the names and set up your live dashboard. <br/>Everything is ready for your event!
+                                    </p>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left bg-white/10 rounded-2xl p-6 text-sm max-w-3xl mx-auto border border-white/20 shadow-inner">
+                                         <div className="flex flex-col items-center text-center gap-2"><CheckCircle size={24} className="text-green-300"/> <span className="font-bold">Random Order</span></div>
+                                         <div className="flex flex-col items-center text-center gap-2"><CheckCircle size={24} className="text-green-300"/> <span className="font-bold">Live Dashboard</span></div>
+                                         <div className="flex flex-col items-center text-center gap-2"><CheckCircle size={24} className="text-green-300"/> <span className="font-bold">Mobile Friendly</span></div>
+                                         <div className="flex flex-col items-center text-center gap-2"><CheckCircle size={24} className="text-green-300"/> <span className="font-bold">Free Printables</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {/* FOOTER */}
+                        <div className="p-6 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
+                            {activeStep > 1 ? (
+                                <button 
+                                    onClick={() => setActiveStep(activeStep - 1)} 
+                                    className="font-bold px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors"
                                 >
-                                     <option value="">-- Select Victim --</option>
-                                     {availableVictims.map(p => (
-                                         <option key={p.id} value={p.id}>
-                                             {p.name} (Has: {game.giftState[p.id]})
-                                             {game.giftStealCounts[game.giftState[p.id]] ? ` [Stolen ${game.giftStealCounts[game.giftState[p.id]]}x]` : ''}
-                                         </option>
-                                     ))}
-                                </select>
-                            </div>
+                                    Back
+                                </button>
+                            ) : <div></div>}
+                            
+                            {activeStep < 3 ? (
+                                <button onClick={handleNextStep} className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg px-8 py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all flex items-center gap-2">
+                                    Next Step <ArrowRight size={20} />
+                                </button>
+                            ) : (
+                                <button onClick={handleGenerate} className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-10 py-4 rounded-full shadow-xl shadow-green-900/20 transform hover:scale-105 transition-all flex items-center gap-3 animate-pulse border-4 border-green-400/50">
+                                    Generate Game! <PartyPopper size={24} />
+                                </button>
+                            )}
                         </div>
-                        {stealGift && (
-                            <div className="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-xl text-center">
-                                <span className="text-xs text-amber-600 font-bold uppercase">The Gift Being Stolen</span>
-                                <div className="text-lg font-bold text-amber-900 mt-1">{stealGift}</div>
-                            </div>
-                        )}
-                        <div className="flex justify-end gap-3 mt-8">
-                            <button onClick={() => setShowStealModal(false)} className="px-5 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-100 transition-colors">Cancel</button>
-                            <button onClick={handleLogSteal} disabled={!stealTargetId} className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold shadow-lg shadow-amber-200 disabled:opacity-50 disabled:shadow-none">Confirm Steal</button>
-                        </div>
-                    </div>
+                     </div>
                 </div>
-            )}
-            
-            <ConfirmationModal isOpen={showEndGameModal} onClose={() => setShowEndGameModal(false)} onConfirm={() => handleUpdate('end_game')} title="End Game?" message="This will mark the game as finished. You can't undo this." confirmText="End Game" />
-        </div>
+
+                {/* NEW CONTENT SECTION: How To & FAQ */}
+                <div className="max-w-5xl mx-auto mt-20 px-4 space-y-16">
+                    
+                    {/* Visual How to Play Section */}
+                    <section>
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-800 font-serif text-center mb-12">How to Play White Elephant (Official Rules)</h2>
+                        <div className="grid md:grid-cols-4 gap-8 text-center relative">
+                            {/* Step 1 */}
+                            <div className="relative z-10">
+                                <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 h-full transition-transform hover:-translate-y-2">
+                                    <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-red-600 rotate-3">
+                                        <Gift size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="font-bold text-xl text-slate-800 mb-3">1. Bring a Gift</h3>
+                                    <p className="text-slate-600">Everyone brings one wrapped gift within the agreed budget (e.g. $25). No peeking!</p>
+                                </div>
+                            </div>
+                            {/* Step 2 */}
+                            <div className="relative z-10">
+                                <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 h-full transition-transform hover:-translate-y-2">
+                                    <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-blue-600 -rotate-2">
+                                        <Users size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="font-bold text-xl text-slate-800 mb-3">2. Draw Numbers</h3>
+                                    <p className="text-slate-600">Use our <strong>free generator</strong> above to instantly randomize the turn order for everyone.</p>
+                                </div>
+                            </div>
+                            {/* Step 3 */}
+                            <div className="relative z-10">
+                                <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 h-full transition-transform hover:-translate-y-2">
+                                    <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-green-600 rotate-3">
+                                        <ArrowRight size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="font-bold text-xl text-slate-800 mb-3">3. Open or Steal</h3>
+                                    <p className="text-slate-600">Player #1 opens. Player #2 can steal #1's gift or open a new one. This continues down the line!</p>
+                                </div>
+                            </div>
+                            {/* Step 4 */}
+                            <div className="relative z-10">
+                                <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 h-full transition-transform hover:-translate-y-2">
+                                    <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-purple-600 -rotate-2">
+                                        <PartyPopper size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="font-bold text-xl text-slate-800 mb-3">4. The Final Swap</h3>
+                                    <p className="text-slate-600">After the last gift is opened, Player #1 usually gets a chance to swap with anyone.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="2345678901" data-ad-format="auto" data-full-width-responsive="true" />
+
+                    {/* Regional Names Section */}
+                    <section className="bg-slate-900 text-white rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden">
+                         <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                            <div>
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-sm font-bold mb-6">
+                                    <MapPin size={16} className="text-red-400" /> One Game, Many Names
+                                </div>
+                                <h2 className="text-4xl md:text-5xl font-bold font-serif mb-6 leading-tight">
+                                    Is it White Elephant,<br/>Yankee Swap, or<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">Dirty Santa?</span>
+                                </h2>
+                                <p className="text-slate-300 text-lg leading-relaxed mb-8">
+                                    Depending on where you live in the United States, this holiday classic goes by different names. The good news? Our generator works perfectly for all of them!
+                                </p>
+                            </div>
+                            <div className="grid gap-4">
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                                    <h3 className="text-xl font-bold text-yellow-400 mb-1">🐘 White Elephant</h3>
+                                    <p className="text-slate-400 text-sm">The most common name worldwide. Traditionally implies funny, weird, or "gag" gifts that you might want to get rid of!</p>
+                                </div>
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                                    <h3 className="text-xl font-bold text-red-400 mb-1">🎩 Yankee Swap</h3>
+                                    <p className="text-slate-400 text-sm">Popular in New England (and 'The Office' fans). Rules are identical, but the focus is often on genuinely useful or desirable gifts.</p>
+                                </div>
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                                    <h3 className="text-xl font-bold text-green-400 mb-1">🎅 Dirty Santa</h3>
+                                    <p className="text-slate-400 text-sm">A Southern US tradition. The "dirty" refers to the ruthless stealing strategies! Often played for higher stakes and better gifts.</p>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Decorative Background Blobs */}
+                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] -mr-20 -mt-20"></div>
+                        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-600/20 rounded-full blur-[80px] -ml-10 -mb-10"></div>
+                    </section>
+
+                    {/* Virtual Play Guide */}
+                    <section className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 md:p-12 flex flex-col md:flex-row gap-10 items-center">
+                        <div className="md:w-1/2">
+                            <div className="inline-block p-3 rounded-2xl bg-indigo-100 text-indigo-600 mb-6">
+                                <Video size={32} />
+                            </div>
+                            <h2 className="text-3xl font-bold text-slate-800 font-serif mb-4">Can you play virtually? Yes!</h2>
+                            <p className="text-slate-600 text-lg mb-6">
+                                Don't let distance stop the fun. Our tool is designed to be the perfect companion for Zoom, Teams, or Google Meet parties.
+                            </p>
+                            <ul className="space-y-3 text-slate-700 font-medium">
+                                <li className="flex items-center gap-2"><CheckCircle size={20} className="text-green-500"/> Generate the order using this tool.</li>
+                                <li className="flex items-center gap-2"><CheckCircle size={20} className="text-green-500"/> Share your screen so everyone sees the dashboard.</li>
+                                <li className="flex items-center gap-2"><CheckCircle size={20} className="text-green-500"/> Participants unwrap gifts on camera.</li>
+                                <li className="flex items-center gap-2"><CheckCircle size={20} className="text-green-500"/> You log the steals live for everyone to track!</li>
+                            </ul>
+                        </div>
+                        <div className="md:w-1/2 w-full bg-slate-100 rounded-2xl p-6 border-2 border-dashed border-slate-300 text-center">
+                            <p className="font-bold text-slate-500 uppercase tracking-widest text-sm mb-4">Pro Tip</p>
+                            <p className="text-slate-600 italic mb-4">"We used this for our remote team party. Everyone mailed their gifts afterwards. It was chaotic and perfect!"</p>
+                            <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-800">
+                                <span>⭐⭐⭐⭐⭐</span>
+                                <span>- Sarah, HR Manager</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Extensive FAQ Section */}
+                    <section className="max-w-4xl mx-auto">
+                         <h2 className="text-3xl font-bold text-slate-800 font-serif text-center mb-10 flex items-center justify-center gap-3">
+                            <HelpCircle className="text-blue-500" /> Everything You Need To Know
+                        </h2>
+                        
+                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-2 md:p-4 divide-y divide-slate-100">
+                            <div className="px-4 md:px-8">
+                                {/* Core Questions */}
+                                <FaqItem question="What is a White Elephant generator?">
+                                    <p>A White Elephant generator is a free digital tool that randomly assigns turn numbers to participants and helps track the game flow (who opened what, who stole from whom) to ensure fair play without needing paper slips.</p>
+                                </FaqItem>
+                                <FaqItem question="How does the White Elephant order generator work?">
+                                    <p>Simply add all participant names, click generate, and receive a random order. You can print the turn numbers or use the live dashboard to track who opens what gift and manage steals in real-time.</p>
+                                </FaqItem>
+                                <FaqItem question="Is this White Elephant generator really free?">
+                                    <p>Yes, completely free. No credit card, email, or account needed. Generate unlimited orders for any group size.</p>
+                                </FaqItem>
+                                
+                                {/* Gameplay Questions */}
+                                <FaqItem question="How many people can play White Elephant?">
+                                    <p>White Elephant works best with <strong>5-30 people</strong>. Smaller groups (5-10) play faster, while larger groups (15-30) create more excitement and stealing opportunities. Groups larger than 40 might want to consider splitting into two circles to keep the game moving.</p>
+                                </FaqItem>
+                                <FaqItem question="How many times can you steal in White Elephant?">
+                                    <p>Most groups limit stealing to <strong>3 times per gift</strong>. After the third steal, the gift is "locked", "dead", or "frozen" and stays with that person. Our generator allows you to customize this limit in the rules step.</p>
+                                </FaqItem>
+                                <FaqItem question="How much should you spend on White Elephant gifts?">
+                                    <p>Most White Elephant exchanges set a budget of <strong>$20-$25</strong>. Always follow the organizer's price limit to keep things fair. If it's a "gag gift" party, the limit might be lower (e.g., $10).</p>
+                                </FaqItem>
+                                <FaqItem question="Can you steal back your own gift in White Elephant?">
+                                    <p>Generally, no immediate steal-backs are allowed. If someone steals your gift, you must wait until your next turn (if the game loops) or steal a different gift. The "No Immediate Steal Back" rule prevents a game from getting stuck in a loop between two players.</p>
+                                </FaqItem>
+                                
+                                {/* Comparison Questions */}
+                                <FaqItem question="What's the difference between White Elephant and Secret Santa?">
+                                    <p><strong>Secret Santa:</strong> You buy for a specific person assigned to you privately. <br/><strong>White Elephant:</strong> Everyone brings a generic gift, and players steal/swap them publicly during the game. White Elephant is more interactive and competitive.</p>
+                                </FaqItem>
+                                <FaqItem question="Is White Elephant the same as Yankee Swap?">
+                                    <p>Yes, they're the same game with different regional names. "Yankee Swap" is popular in New England, while "White Elephant" is used nationwide. The rules are identical.</p>
+                                </FaqItem>
+                                <FaqItem question="What is Dirty Santa vs White Elephant?">
+                                    <p>Same game, different names. "Dirty Santa" is popular in the Southern US. The "dirty" refers to the ruthless gift-stealing strategies players use!</p>
+                                </FaqItem>
+                                
+                                {/* Virtual Questions */}
+                                <FaqItem question="Can you play White Elephant virtually?">
+                                    <p>Yes! Use our generator to create the order. Share the link via Zoom/Teams. Have participants show their gifts on camera as they open/steal them. The organizer logs the steals on the dashboard so everyone knows who has what.</p>
+                                </FaqItem>
+                                <FaqItem question="How do you do White Elephant over Zoom?">
+                                    <p>Generate order → Share screen with the dashboard → Player 1 opens gift on camera → Organizer logs it → Player 2 steals or opens new → Repeat. Mailed gifts are sent after the party.</p>
+                                </FaqItem>
+
+                                {/* Strategy */}
+                                <FaqItem question="What makes a good White Elephant gift?">
+                                    <p>The best gifts are: funny but useful, weird but desirable, or surprisingly nice. Think quirky kitchen gadgets, funny books, cozy items, or trending novelty products. Avoid trash—getting a truly bad gift isn't fun for anyone.</p>
+                                </FaqItem>
+
+                                {/* NEW FAQs for Internal Linking */}
+                                <FaqItem question="Can I use this for a Secret Santa exchange instead?">
+                                    <p>This tool is specifically for random order generation and stealing games. For a traditional gift exchange where you buy for a specific person, use our free <a href="/generator.html" className="text-blue-600 hover:underline font-semibold">Secret Santa Generator</a>. It handles private matching and wishlists instantly!</p>
+                                </FaqItem>
+                                <FaqItem question="Do you have ideas for funny or good gifts?">
+                                    <p>Absolutely! If you're stuck on what to bring, check out our curated list of <a href="/white-elephant-gifts-under-20.html" className="text-blue-600 hover:underline font-semibold">38 White Elephant Gifts Under $20</a> that people actually want to steal. We also have specific <a href="/streaming-gifts-2025.html" className="text-blue-600 hover:underline font-semibold">ideas for movie lovers</a>.</p>
+                                </FaqItem>
+                                <FaqItem question="How can I make the party more fun?">
+                                    <p>Besides the gift exchange, adding a simple game can liven things up. Try our <a href="/secret-santa-bingo-guide.html" className="text-blue-600 hover:underline font-semibold">Secret Santa Bingo</a> or check out these <a href="/halloween-party-games.html" className="text-blue-600 hover:underline font-semibold">15 Party Games for Adults</a> that work great for any holiday gathering.</p>
+                                </FaqItem>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div className="text-center pb-8">
+                        <h3 className="text-lg font-bold text-slate-600 mb-4">Ready to start your game?</h3>
+                        <button onClick={() => { setActiveStep(1); generatorRef.current?.scrollIntoView({ behavior: 'smooth' }); }} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all transform hover:scale-105">
+                            Scroll Up to Generator
+                        </button>
+                    </div>
+
+                </div>
+            </main>
+            <Footer />
+            {showCookieBanner && <CookieConsentBanner onAccept={handleCookieAccept} onDecline={handleCookieDecline} />}
+            <style>{`
+                .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+            `}</style>
+        </>
     );
 };
 
-export default WhiteElephantDashboard;
+export default WhiteElephantGeneratorPage;
