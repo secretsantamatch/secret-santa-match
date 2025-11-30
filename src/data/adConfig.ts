@@ -1,4 +1,5 @@
-import { Globe, Clock, Gift, Star, Gem, Coffee, Sparkles, ShoppingBag, Hammer, Smile, Zap, Moon } from 'lucide-react';
+
+import { Globe, Clock, Gift, Star, Gem, Coffee, Sparkles, ShoppingBag, Hammer, Smile, Zap, Moon, Mail } from 'lucide-react';
 
 export type AdType = 'luxury' | 'fun' | 'standard' | 'urgency';
 
@@ -30,17 +31,33 @@ export interface Partner {
 }
 
 // --- DATE SPECIFIC MESSAGING ---
+// Based on visitor's local date
 export const URGENCY_CONFIG: Record<string, { title: string; template: string; style: 'urgent' | 'info' }> = {
-    // Format: MM-DD
-    '11-28': { title: '🔥 Black Friday is Here!', template: 'The best {category} deals of the year end soon.', style: 'urgent' },
+    // BLACK FRIDAY / CYBER MONDAY
+    '11-28': { title: '🔥 Black Friday is Here!', template: 'The best {category} deals of the year are live right now.', style: 'urgent' },
     '11-29': { title: '🛍️ Black Friday Continues', template: 'Don\'t miss out on top-rated {category} gifts.', style: 'urgent' },
-    '11-30': { title: '⏳ Deals Ending Soon', template: 'Last chance to grab premium {category} before prices go up.', style: 'urgent' },
-    '12-02': { title: '⚡ Cyber Monday', template: 'Online exclusive {category} deals are live now.', style: 'urgent' },
-    '12-24': { title: '🎁 Last Minute!', template: 'Need it now? Send a digital {category} instantly.', style: 'urgent' }
+    '11-30': { title: '🚨 Weekend Ending!', template: 'Black Friday weekend ends tonight. Grab {category} deals before they\'re gone.', style: 'urgent' },
+    '12-01': { title: '⚡ Cyber Monday Starts Now', template: 'Online exclusive {category} deals are live.', style: 'urgent' },
+    '12-02': { title: '⏳ Cyber Monday Ending', template: 'Last chance to grab premium {category} at sale prices.', style: 'urgent' },
+    
+    // HOLIDAY SHIPPING CRUNCH
+    '12-10': { title: '🚚 Shipping Deadline Approaching', template: 'Order {category} soon to ensure delivery by Dec 25th.', style: 'info' },
+    '12-14': { title: '📦 Free Shipping Day', template: 'Last day for standard shipping on many {category} gifts.', style: 'urgent' },
+    '12-18': { title: '⚠️ 1 Week Left', template: 'Time is running out! Order {category} now or switch to instant digital gifts.', style: 'urgent' },
+    
+    // LAST MINUTE
+    '12-21': { title: '📨 Too Late to Ship?', template: 'Send a digital {category} instantly via text or email.', style: 'info' },
+    '12-22': { title: '📨 Instant Delivery', template: 'Skip the shipping stress. Digital {category} gifts arrive instantly.', style: 'info' },
+    '12-23': { title: '🎁 Need a Gift Now?', template: 'Send a {category} instantly. No shipping required.', style: 'urgent' },
+    '12-24': { title: '🎄 Christmas Eve Rescue', template: 'Forgot a gift? Email a {category} right now.', style: 'urgent' },
+    '12-25': { title: '🎅 Merry Christmas!', template: 'Send a last-second {category} to spread the joy.', style: 'info' },
+    
+    // NEW YEAR
+    '01-01': { title: '🎉 Happy New Year', template: 'Start the year right with {category}.', style: 'info' }
 };
 
 export const PARTNERS: Partner[] = [
-    // --- HIGH PRIORITY / SPECIFIC DATE DEALS ---
+    // --- 1. HIGH PRIORITY / DATE SPECIFIC ---
     {
         id: 'giftcards-cyber-week',
         name: 'GiftCards.com',
@@ -91,13 +108,13 @@ export const PARTNERS: Partner[] = [
         ]
     },
 
-    // --- LUXURY JEWELRY (BONHEUR) ---
+    // --- 2. LUXURY JEWELRY (BONHEUR) ---
     {
         id: 'bonheur',
         name: 'Bonheur Jewelry',
         priority: 95, 
         geo: 'GLOBAL',
-        keywords: ['jewelry', 'jewellery', 'gold', 'silver', 'ring', 'necklace', 'earring', 'bracelet', 'fashion', 'wife', 'girlfriend', 'mom', 'luxury', 'sparkle', 'accessories', 'diamond', 'woman', 'women', 'style'],
+        keywords: ['jewelry', 'jewellery', 'gold', 'silver', 'ring', 'necklace', 'earring', 'bracelet', 'fashion', 'wife', 'girlfriend', 'mom', 'luxury', 'sparkle', 'accessories', 'diamond', 'woman', 'women', 'style', 'joyas', 'anillo', 'collar', 'bijoux', 'bague', 'collier'],
         affiliateLink: "https://www.awin1.com/cread.php?s=4547931&v=90759&q=554223&r=2612068",
         icon: Gem,
         creatives: [
@@ -204,260 +221,7 @@ export const PARTNERS: Partner[] = [
         ]
     },
 
-    // --- CATEGORY SPECIFIC PARTNERS (VIA GIFTCARDS.COM) ---
-    {
-        id: 'gc-beauty',
-        name: 'Beauty Gifts',
-        priority: 85, 
-        geo: 'US_ONLY',
-        keywords: ['makeup', 'beauty', 'hair', 'skin', 'face', 'cosmetics', 'sephora', 'ulta', 'spa'],
-        affiliateLink: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.907&subid=0&type=4",
-        icon: Sparkles,
-        creatives: [
-            {
-                id: 'gc-sephora-holiday',
-                type: 'standard',
-                headline: 'Beauty for the Holidays',
-                body: 'The perfect gift for beauty lovers. Delivered instantly.',
-                cta: 'Shop Sephora Cards',
-                themeColor: 'rose',
-                startDate: '2025-11-13',
-                endDate: '2026-01-06',
-                weight: 50,
-                imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.907&subid=0&type=4&gridnum=0"
-            },
-            {
-                id: 'gc-ulta-holiday',
-                type: 'standard',
-                headline: 'Give the Gift of Glow',
-                body: 'Let them choose their favorite products with an Ulta Beauty card.',
-                cta: 'Shop Ulta Cards',
-                themeColor: 'orange',
-                startDate: '2025-11-13',
-                endDate: '2026-01-06',
-                weight: 50,
-                imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.905&subid=0&type=4&gridnum=0"
-            }
-        ]
-    },
-
-    // --- LUXURY / CUSTOM PRODUCTS ---
-    {
-        id: 'gc-custom-visa',
-        name: 'Custom Visa Gifts',
-        priority: 80,
-        geo: 'US_ONLY',
-        keywords: ['money', 'cash', 'flexible', 'visa', 'mastercard', 'choice', 'anything'],
-        affiliateLink: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.640&subid=0&type=4",
-        icon: Gift,
-        creatives: [
-            {
-                id: 'gc-visa-holiday',
-                type: 'luxury',
-                headline: 'The Gift of Everywhere',
-                body: 'A personalized Visa gift card they can spend anywhere. Choose a festive holiday design.',
-                cta: 'Personalize & Buy',
-                weight: 50,
-                imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/59d2a1fb9bd4.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
-            },
-            {
-                id: 'gc-mastercard-tree',
-                type: 'luxury',
-                headline: 'Make It Personal',
-                body: 'Upload a photo or choose a premium holiday design. Funds never expire.',
-                cta: 'Create Custom Card',
-                weight: 50,
-                imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/5627dfdb539a.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
-            }
-        ]
-    },
-
-    // --- STANDARD PARTNERS ---
-    {
-        id: 'pinetales',
-        name: 'PineTales',
-        priority: 75,
-        geo: 'US_ONLY',
-        keywords: ['sleep', 'pillow', 'bed', 'comfort', 'neck', 'pain', 'relax', 'home', 'cozy', 'health', 'wellness', 'organic', 'back', 'spine'],
-        affiliateLink: "https://www.awin1.com/cread.php?s=4169669&v=91239&q=544185&r=2612068",
-        icon: Moon,
-        creatives: [
-            {
-                id: 'pinetales-designer',
-                type: 'standard',
-                headline: 'Designer Buckwheat Pillow',
-                body: 'Handcrafted in the USA. 100% organic, toxin-free buckwheat hulls adapt to your neck for perfect spinal alignment. Helping 50,000+ sleepers wake up pain-free.',
-                cta: 'Shop Better Sleep',
-                themeColor: 'teal',
-                weight: 100,
-                matchKeywords: ['pain', 'neck', 'sleep', 'back'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4170045&v=91239&q=544185&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4170045&v=91239&q=544185&r=2612068"
-            },
-            {
-                id: 'pinetales-cooling',
-                type: 'standard',
-                headline: 'Cooling Buckwheat Pillow',
-                body: 'Naturally breathable hulls allow heat to escape. Combine ancient Sobakawa craftsmanship with modern cooling comfort. 100% Vegan & Hypoallergenic.',
-                cta: 'Stay Cool',
-                themeColor: 'blue',
-                weight: 90,
-                matchKeywords: ['cool', 'sweat', 'hot', 'summer'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4170088&v=91239&q=544185&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4170088&v=91239&q=544185&r=2612068"
-            },
-            {
-                id: 'pinetales-premium',
-                type: 'standard',
-                headline: 'The Gift of Deep Sleep',
-                body: 'Give the gift of health. Designed with top sleep specialists to relieve tension naturally. Dust-free, 99.9% pure premium hulls.',
-                cta: 'Shop PineTales',
-                themeColor: 'emerald',
-                weight: 80,
-                linkOverride: "https://www.awin1.com/cread.php?s=4170043&v=91239&q=544198&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4170043&v=91239&q=544198&r=2612068"
-            }
-        ]
-    },
-    {
-        id: 'sugarwish',
-        name: 'Sugarwish',
-        priority: 80,
-        geo: 'US_CA',
-        keywords: ['candy', 'sweet', 'chocolate', 'food', 'snack', 'cookie', 'popcorn', 'treat', 'yum', 'wine', 'cocktail', 'drink', 'spa', 'relax', 'bath', 'beer', 'alcohol', 'booze', 'champagne'],
-        affiliateLink: "https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=",
-        icon: Gift,
-        creatives: [
-            {
-                id: 'sugarwish-cookies',
-                type: 'fun',
-                headline: 'Holiday Cookies',
-                body: 'Delightful Cookies! From Iced Chocolate Peppermint to traditional Chocolate Chip. Delivered in a signature awning box.',
-                cta: 'Send Cookies',
-                themeColor: 'pink',
-                weight: 100,
-                matchKeywords: ['cookie', 'baking', 'dessert'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4599375&v=33495&q=589105&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4599375&v=33495&q=589105&r=2612068"
-            },
-            {
-                id: 'sugarwish-cheers',
-                type: 'fun',
-                headline: 'Holiday Cheers!',
-                body: 'Exquisite wine, specialty cocktails, or non-alcoholic mixers. You send the link, they pick the drink.',
-                cta: 'Send a Drink',
-                themeColor: 'rose',
-                weight: 90,
-                matchKeywords: ['wine', 'cocktail', 'alcohol', 'beer', 'champagne', 'booze'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4572305&v=33495&q=586780&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4572305&v=33495&q=586780&r=2612068"
-            },
-            {
-                id: 'sugarwish-lifestyle',
-                type: 'fun',
-                headline: 'Holiday Lifestyle Gifts',
-                body: 'Sugarwish lets your recipients choose between Spa, Gourmet Pantry, Candles, Jewelry or Gift Sets.',
-                cta: 'Let Them Choose',
-                themeColor: 'purple',
-                weight: 90,
-                matchKeywords: ['spa', 'relax', 'candle', 'bath'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4572308&v=33495&q=586782&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4572308&v=33495&q=586782&r=2612068"
-            },
-            {
-                id: 'sugarwish-candy',
-                type: 'fun',
-                headline: 'Candy & Snacks',
-                body: 'Let your recipients experience the joy of being a kid in a candy shoppe! They choose from tons of mouthwatering options.',
-                cta: 'Send Candy',
-                themeColor: 'blue',
-                weight: 80,
-                matchKeywords: ['candy', 'sugar', 'gummy', 'snack'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4516534&v=33495&q=581688&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4516534&v=33495&q=581688&r=2612068"
-            },
-            {
-                id: 'sugarwish-giftsets',
-                type: 'fun',
-                headline: 'Curated Gift Sets',
-                body: 'Say goodbye to boring gift baskets - send them a gift set the Sugarwish way! We\'ve curated delightful collections.',
-                cta: 'Send a Sugarwish',
-                themeColor: 'emerald',
-                weight: 50,
-                linkOverride: "https://www.awin1.com/cread.php?s=4516535&v=33495&q=581689&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4516535&v=33495&q=581689&r=2612068"
-            }
-        ]
-    },
-    {
-        id: 'teabook',
-        name: 'The TeaBook',
-        priority: 85, // Increased priority
-        geo: 'US_CA',
-        keywords: ['tea', 'drink', 'beverage', 'book', 'reading', 'cozy', 'mug', 'chai', 'fred', 'agatha', 'pun', 'funny', 'mystery', 'science', 'history', 'music'],
-        affiliateLink: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068",
-        icon: Coffee,
-        creatives: [
-            {
-                id: 'teabook-agatha',
-                type: 'standard',
-                headline: 'Agatha ChrisTEA',
-                body: 'Solve the mystery of the perfect gift. Delicious organic tea in fun, collectible packaging. Millions of teabags gifted! Free US Shipping $50+.',
-                cta: 'Shop Agatha ChrisTEA',
-                themeColor: 'emerald',
-                weight: 100,
-                matchKeywords: ['mystery', 'book', 'reading', 'agatha'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4276839&v=88557&q=557671&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4276839&v=88557&q=557671&r=2612068"
-            },
-            {
-                id: 'teabook-marie',
-                type: 'standard',
-                headline: 'Marie Curie Radiant Tea',
-                body: 'Celebrate historical icons with this glowing organic blend. Eco-friendly and plastic-free. A gift that educates and delights.',
-                cta: 'Shop Radiant Tea',
-                themeColor: 'emerald',
-                weight: 90,
-                matchKeywords: ['science', 'history', 'smart'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4276838&v=88557&q=557671&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4276838&v=88557&q=557671&r=2612068"
-            },
-            {
-                id: 'teabook-chaikovsky',
-                type: 'standard',
-                headline: 'Chaikovsky Chai Tea',
-                body: 'Sip on a symphony of flavor. One of 28+ designs drawn by diverse artists. The perfect punny gift for music lovers.',
-                cta: 'Shop Chaikovsky',
-                themeColor: 'emerald',
-                weight: 90,
-                matchKeywords: ['music', 'chai', 'symphony'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4276818&v=88557&q=557671&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4276818&v=88557&q=557671&r=2612068"
-            },
-            {
-                id: 'teabook-fred',
-                type: 'standard',
-                headline: 'Fred Tea (Limited Edition)',
-                body: 'Brings harmony to your mug. Our artistic teas educate and bring joy through puns. Organic, Non-GMO, and family-run.',
-                cta: 'Shop Fred Tea',
-                themeColor: 'emerald',
-                weight: 90,
-                matchKeywords: ['fred', 'music', 'rock'],
-                linkOverride: "https://www.awin1.com/cread.php?s=4276847&v=88557&q=557671&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4276847&v=88557&q=557671&r=2612068"
-            },
-            {
-                id: 'teabook-general',
-                type: 'standard',
-                headline: 'The TeaBook Sampler',
-                body: 'Founded by best friends to bring joy through punny, organic tea. Store your collection in the signature TeaBook. Free US Shipping $50+.',
-                cta: 'Explore The TeaBook',
-                themeColor: 'emerald',
-                weight: 60,
-                imageUrl: "https://www.awin1.com/cshow.php?s=4276843&v=88557&q=557671&r=2612068"
-            }
-        ]
-    },
+    // --- 3. THE MET STORE (Arts & Culture) ---
     {
         id: 'the-met',
         name: 'The Met Store',
@@ -613,13 +377,269 @@ export const PARTNERS: Partner[] = [
             }
         ]
     },
-    // --- FALLBACK / GENERAL A/B TEST ---
+
+    // --- 4. THE TEA BOOK ---
+    {
+        id: 'teabook',
+        name: 'The TeaBook',
+        priority: 85,
+        geo: 'US_CA',
+        keywords: ['tea', 'drink', 'beverage', 'book', 'reading', 'cozy', 'mug', 'chai', 'fred', 'agatha', 'pun', 'funny', 'mystery', 'science', 'history', 'music'],
+        affiliateLink: "https://www.awin1.com/cread.php?s=4276843&v=88557&q=557671&r=2612068",
+        icon: Coffee,
+        creatives: [
+            {
+                id: 'teabook-agatha',
+                type: 'standard',
+                headline: 'Agatha ChrisTEA',
+                body: 'Solve the mystery of the perfect gift. Delicious organic tea in fun, collectible packaging. Millions of teabags gifted! Free US Shipping $50+.',
+                cta: 'Shop Agatha ChrisTEA',
+                themeColor: 'emerald',
+                weight: 100,
+                matchKeywords: ['mystery', 'book', 'reading', 'agatha'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4276839&v=88557&q=557671&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276839&v=88557&q=557671&r=2612068"
+            },
+            {
+                id: 'teabook-marie',
+                type: 'standard',
+                headline: 'Marie Curie Radiant Tea',
+                body: 'Celebrate historical icons with this glowing organic blend. Eco-friendly and plastic-free. A gift that educates and delights.',
+                cta: 'Shop Radiant Tea',
+                themeColor: 'emerald',
+                weight: 90,
+                matchKeywords: ['science', 'history', 'smart'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4276838&v=88557&q=557671&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276838&v=88557&q=557671&r=2612068"
+            },
+            {
+                id: 'teabook-chaikovsky',
+                type: 'standard',
+                headline: 'Chaikovsky Chai Tea',
+                body: 'Sip on a symphony of flavor. One of 28+ designs drawn by diverse artists. The perfect punny gift for music lovers.',
+                cta: 'Shop Chaikovsky',
+                themeColor: 'emerald',
+                weight: 90,
+                matchKeywords: ['music', 'chai', 'symphony'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4276818&v=88557&q=557671&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276818&v=88557&q=557671&r=2612068"
+            },
+            {
+                id: 'teabook-fred',
+                type: 'standard',
+                headline: 'Fred Tea (Limited Edition)',
+                body: 'Brings harmony to your mug. Our artistic teas educate and bring joy through puns. Organic, Non-GMO, and family-run.',
+                cta: 'Shop Fred Tea',
+                themeColor: 'emerald',
+                weight: 90,
+                matchKeywords: ['fred', 'music', 'rock'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4276847&v=88557&q=557671&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276847&v=88557&q=557671&r=2612068"
+            },
+            {
+                id: 'teabook-general',
+                type: 'standard',
+                headline: 'The TeaBook Sampler',
+                body: 'Founded by best friends to bring joy through punny, organic tea. Store your collection in the signature TeaBook. Free US Shipping $50+.',
+                cta: 'Explore The TeaBook',
+                themeColor: 'emerald',
+                weight: 60,
+                imageUrl: "https://www.awin1.com/cshow.php?s=4276843&v=88557&q=557671&r=2612068"
+            }
+        ]
+    },
+
+    // --- 5. PINE TALES (Sleep/Wellness) ---
+    {
+        id: 'pinetales',
+        name: 'PineTales',
+        priority: 75,
+        geo: 'US_ONLY',
+        keywords: ['sleep', 'pillow', 'bed', 'comfort', 'neck', 'pain', 'relax', 'home', 'cozy', 'health', 'wellness', 'organic', 'back', 'spine'],
+        affiliateLink: "https://www.awin1.com/cread.php?s=4169669&v=91239&q=544185&r=2612068",
+        icon: Moon,
+        creatives: [
+            {
+                id: 'pinetales-designer',
+                type: 'standard',
+                headline: 'Designer Buckwheat Pillow',
+                body: 'Handcrafted in the USA. 100% organic, toxin-free buckwheat hulls adapt to your neck for perfect spinal alignment. Helping 50,000+ sleepers wake up pain-free.',
+                cta: 'Shop Better Sleep',
+                themeColor: 'teal',
+                weight: 100,
+                matchKeywords: ['pain', 'neck', 'sleep', 'back'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4170045&v=91239&q=544185&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4170045&v=91239&q=544185&r=2612068"
+            },
+            {
+                id: 'pinetales-cooling',
+                type: 'standard',
+                headline: 'Cooling Buckwheat Pillow',
+                body: 'Naturally breathable hulls allow heat to escape. Combine ancient Sobakawa craftsmanship with modern cooling comfort. 100% Vegan & Hypoallergenic.',
+                cta: 'Stay Cool',
+                themeColor: 'blue',
+                weight: 90,
+                matchKeywords: ['cool', 'sweat', 'hot', 'summer'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4170088&v=91239&q=544185&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4170088&v=91239&q=544185&r=2612068"
+            },
+            {
+                id: 'pinetales-premium',
+                type: 'standard',
+                headline: 'The Gift of Deep Sleep',
+                body: 'Give the gift of health. Designed with top sleep specialists to relieve tension naturally. Dust-free, 99.9% pure premium hulls.',
+                cta: 'Shop PineTales',
+                themeColor: 'emerald',
+                weight: 80,
+                linkOverride: "https://www.awin1.com/cread.php?s=4170043&v=91239&q=544198&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4170043&v=91239&q=544198&r=2612068"
+            }
+        ]
+    },
+
+    // --- 6. SUGARWISH (Fun & Food) ---
+    {
+        id: 'sugarwish',
+        name: 'Sugarwish',
+        priority: 80,
+        geo: 'US_CA',
+        keywords: ['candy', 'sweet', 'chocolate', 'food', 'snack', 'cookie', 'popcorn', 'treat', 'yum', 'wine', 'cocktail', 'drink', 'spa', 'relax', 'bath', 'beer', 'alcohol', 'booze', 'champagne', 'dulces', 'bonbon', 'vino', 'vin'],
+        affiliateLink: "https://www.awin1.com/awclick.php?gid=518477&mid=33495&awinaffid=2612068&linkid=3923493&clickref=",
+        icon: Gift,
+        creatives: [
+            {
+                id: 'sugarwish-cookies',
+                type: 'fun',
+                headline: 'Holiday Cookies',
+                body: 'Delightful Cookies! From Iced Chocolate Peppermint to traditional Chocolate Chip. Delivered in a signature awning box.',
+                cta: 'Send Cookies',
+                themeColor: 'pink',
+                weight: 100,
+                matchKeywords: ['cookie', 'baking', 'dessert', 'galletas'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4599375&v=33495&q=589105&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4599375&v=33495&q=589105&r=2612068"
+            },
+            {
+                id: 'sugarwish-cheers',
+                type: 'fun',
+                headline: 'Holiday Cheers!',
+                body: 'Exquisite wine, specialty cocktails, or non-alcoholic mixers. You send the link, they pick the drink.',
+                cta: 'Send a Drink',
+                themeColor: 'rose',
+                weight: 90,
+                matchKeywords: ['wine', 'cocktail', 'alcohol', 'beer', 'champagne', 'booze', 'vino', 'vin'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4572305&v=33495&q=586780&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4572305&v=33495&q=586780&r=2612068"
+            },
+            {
+                id: 'sugarwish-lifestyle',
+                type: 'fun',
+                headline: 'Holiday Lifestyle Gifts',
+                body: 'Sugarwish lets your recipients choose between Spa, Gourmet Pantry, Candles, Jewelry or Gift Sets.',
+                cta: 'Let Them Choose',
+                themeColor: 'purple',
+                weight: 90,
+                matchKeywords: ['spa', 'relax', 'candle', 'bath'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4572308&v=33495&q=586782&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4572308&v=33495&q=586782&r=2612068"
+            },
+            {
+                id: 'sugarwish-candy',
+                type: 'fun',
+                headline: 'Candy & Snacks',
+                body: 'Let your recipients experience the joy of being a kid in a candy shoppe! They choose from tons of mouthwatering options.',
+                cta: 'Send Candy',
+                themeColor: 'blue',
+                weight: 80,
+                matchKeywords: ['candy', 'sugar', 'gummy', 'snack', 'dulces', 'bonbon'],
+                linkOverride: "https://www.awin1.com/cread.php?s=4516534&v=33495&q=581688&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4516534&v=33495&q=581688&r=2612068"
+            },
+            {
+                id: 'sugarwish-giftsets',
+                type: 'fun',
+                headline: 'Curated Gift Sets',
+                body: 'Say goodbye to boring gift baskets - send them a gift set the Sugarwish way! We\'ve curated delightful collections.',
+                cta: 'Send a Sugarwish',
+                themeColor: 'emerald',
+                weight: 50,
+                linkOverride: "https://www.awin1.com/cread.php?s=4516535&v=33495&q=581689&r=2612068",
+                imageUrl: "https://www.awin1.com/cshow.php?s=4516535&v=33495&q=581689&r=2612068"
+            }
+        ]
+    },
+
+    // --- 7. GIFTCARDS.COM (Fallback & Categories) ---
+    {
+        id: 'gc-beauty',
+        name: 'Beauty Gifts',
+        priority: 85, 
+        geo: 'US_ONLY',
+        keywords: ['makeup', 'beauty', 'hair', 'skin', 'face', 'cosmetics', 'sephora', 'ulta', 'spa'],
+        affiliateLink: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.907&subid=0&type=4",
+        icon: Sparkles,
+        creatives: [
+            {
+                id: 'gc-sephora-holiday',
+                type: 'standard',
+                headline: 'Beauty for the Holidays',
+                body: 'The perfect gift for beauty lovers. Delivered instantly.',
+                cta: 'Shop Sephora Cards',
+                themeColor: 'rose',
+                startDate: '2025-11-13',
+                endDate: '2026-01-06',
+                weight: 50,
+                imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.907&subid=0&type=4&gridnum=0"
+            },
+            {
+                id: 'gc-ulta-holiday',
+                type: 'standard',
+                headline: 'Give the Gift of Glow',
+                body: 'Let them choose their favorite products with an Ulta Beauty card.',
+                cta: 'Shop Ulta Cards',
+                themeColor: 'orange',
+                startDate: '2025-11-13',
+                endDate: '2026-01-06',
+                weight: 50,
+                imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.905&subid=0&type=4&gridnum=0"
+            }
+        ]
+    },
+    {
+        id: 'gc-custom-visa',
+        name: 'Custom Visa Gifts',
+        priority: 80,
+        geo: 'US_ONLY',
+        keywords: ['money', 'cash', 'flexible', 'visa', 'mastercard', 'choice', 'anything'],
+        affiliateLink: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.640&subid=0&type=4",
+        icon: Gift,
+        creatives: [
+            {
+                id: 'gc-visa-holiday',
+                type: 'luxury',
+                headline: 'Personalize a Holiday Visa®',
+                body: 'Upload a photo or choose a festive design. The perfect gift they can spend anywhere.',
+                cta: 'Personalize Now',
+                weight: 50,
+                imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/59d2a1fb9bd4.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
+            },
+            {
+                id: 'gc-mastercard-tree',
+                type: 'luxury',
+                headline: 'Make It Personal',
+                body: 'Upload a photo or choose a premium holiday design. Funds never expire.',
+                cta: 'Create Custom Card',
+                weight: 50,
+                imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/5627dfdb539a.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
+            }
+        ]
+    },
     {
         id: 'giftcards-com-general',
         name: 'GiftCards.com',
         priority: 10,
         geo: 'US_ONLY',
-        keywords: ['*'], // Wildcard
+        keywords: ['*', 'regalo', 'cadeau', 'tarjeta', 'carte'], // Wildcard + Multi-lang
         affiliateLink: "https://click.linksynergy.com/fs-bin/click?id=6AKK8tkf2k4&offerid=1469583.640&subid=0&type=4",
         icon: Gift,
         creatives: [
@@ -629,13 +649,13 @@ export const PARTNERS: Partner[] = [
                 type: 'standard',
                 headline: 'Personalize a Holiday Visa®',
                 body: 'Upload a photo or choose a festive design. The perfect gift they can spend anywhere.',
-                cta: 'Personalize & Buy ($50)',
+                cta: 'Personalize Now',
                 themeColor: 'emerald',
-                weight: 70, // 70% chance
+                weight: 70,
                 linkOverride: "https://click.linksynergy.com/link?id=6AKK8tkf2k4&offerid=1469583.444323918390291691328604&type=2&murl=https%3a%2f%2fwww.giftcards.com%2fus%2fen%2fcatalog%2fproduct-details%2fopen-loop-gift-card%3fmode%3ddesign%26brand%3dvisa%26image-id%3d1de39cec-2760-4aa0-bccf-71b8f59820bb%26amount%3d50",
                 imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/636bce53be23.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
             },
-            // VARIANT B: General Holiday (Lower conversion probability, good fallback)
+            // VARIANT B: General Holiday
             {
                 id: 'gc-share-joy',
                 type: 'standard',
@@ -643,7 +663,7 @@ export const PARTNERS: Partner[] = [
                 body: 'Share the joy of the season with gift cards that fit every style. Instant delivery available.',
                 cta: 'Browse All Cards',
                 themeColor: 'red',
-                weight: 30, // 30% chance
+                weight: 30,
                 startDate: '2025-11-26',
                 endDate: '2025-12-15',
                 imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.830&subid=0&type=4&gridnum=0"

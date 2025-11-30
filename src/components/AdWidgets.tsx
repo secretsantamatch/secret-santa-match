@@ -154,29 +154,27 @@ const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
         {/* Background Decor */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-50 -mr-10 -mt-10"></div>
         
-        <div className="relative z-10 flex flex-col sm:flex-row h-full">
-            {/* Image Side */}
+        <div className="relative z-10 flex flex-col sm:flex-row h-full min-h-[250px] sm:min-h-[220px]">
+            {/* Image Side (If Image Exists) */}
             {creative.imageUrl ? (
-                <div className="sm:w-2/5 relative min-h-[200px] sm:min-h-full bg-white border-b sm:border-b-0 sm:border-r border-slate-100">
-                    <div className="absolute inset-0 flex items-center justify-center p-4">
-                         <a href={targetLink} target="_blank" rel="noopener noreferrer sponsored" onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)} className="block w-full h-full">
-                            <img 
-                                src={creative.imageUrl} 
-                                alt={creative.headline} 
-                                className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500" 
-                                loading="lazy"
-                            />
-                        </a>
-                    </div>
+                <div className="sm:w-5/12 relative bg-white border-b sm:border-b-0 sm:border-r border-slate-100 overflow-hidden">
+                     <a href={targetLink} target="_blank" rel="noopener noreferrer sponsored" onClick={() => handleAdClick(partner.name, placement, creative.id, creative.type)} className="block w-full h-full relative">
+                        <img 
+                            src={creative.imageUrl} 
+                            alt={creative.headline} 
+                            className="absolute inset-0 w-full h-full object-contain p-4 transform group-hover:scale-105 transition-transform duration-500" 
+                            loading="lazy"
+                        />
+                    </a>
                     {/* Benefit Badge */}
                     {isSugarwish && (
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 sm:left-2 sm:translate-x-0 bg-white/90 backdrop-blur text-slate-800 text-[10px] font-bold px-3 py-1 rounded-full shadow-sm border border-slate-200 whitespace-nowrap flex items-center gap-1">
-                            <Mail size={10} className="text-blue-500" /> Delivered Instantly via Email/Text
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-max max-w-[90%] bg-white/95 backdrop-blur text-slate-800 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm border border-slate-200 flex items-center justify-center gap-1.5 z-20">
+                            <Mail size={12} className="text-blue-500" /> Delivered Instantly via Email/Text
                         </div>
                     )}
                 </div>
             ) : (
-                // Fallback Icon
+                // Fallback Icon if no image
                 <div className="p-6 flex items-center justify-center sm:w-auto bg-white/50">
                     <div className={`flex-shrink-0 bg-white rounded-full h-20 w-20 flex items-center justify-center shadow-md border-2 ${theme.border}`}>
                         <partner.icon size={36} className={theme.icon} />
@@ -190,7 +188,7 @@ const FunCard: React.FC<AdProps> = ({ partner, creative, placement }) => {
                     {creative.headline}
                 </h4>
                 
-                <p className="text-sm text-slate-600 font-medium leading-relaxed mb-5">
+                <p className="text-sm text-slate-600 font-medium leading-relaxed mb-6">
                     {creative.body}
                 </p>
                 
