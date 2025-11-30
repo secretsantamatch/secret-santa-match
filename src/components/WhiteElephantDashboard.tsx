@@ -1,17 +1,18 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
-import { getGameState, updateGameState } from '../services/whiteElephantService';
-import type { WEGame } from '../types';
+import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
+import type { WEGame, WEReaction } from '../types';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { generateWETurnNumbersPdf, generateWERulesPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, ArrowRight, FileText, BarChart3, X } from 'lucide-react';
+import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, ArrowRight, FileText, BarChart3, X, Image as ImageIcon } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import QRCode from 'react-qr-code';
 import { shouldTrackByDefault } from '../utils/privacy';
 import confetti from 'canvas-confetti';
+import html2canvas from 'html2canvas';
 
 // Simple Audio Player Helper (Oscillators)
 const playAudio = (type: 'open' | 'steal' | 'turn' | 'win') => {
@@ -87,6 +88,23 @@ const Toast = ({ message, onClose }: { message: string, onClose: () => void }) =
     </div>
 );
 
+// Floating Emojis Component
+const FloatingEmojis = ({ reactions }: { reactions: { id: string, emoji: string, x: number }[] }) => {
+    return (
+        <div className="fixed inset-0 pointer-events-none z-[9998] overflow-hidden">
+            {reactions.map(r => (
+                <div 
+                    key={r.id} 
+                    className="absolute bottom-20 text-4xl animate-float-up"
+                    style={{ left: `${r.x}%` }}
+                >
+                    {r.emoji}
+                </div>
+            ))}
+        </div>
+    );
+};
+
 const WhiteElephantDashboard: React.FC = () => {
     const [game, setGame] = useState<WEGame | null>(null);
     const [loading, setLoading] = useState(true);
@@ -96,11 +114,17 @@ const WhiteElephantDashboard: React.FC = () => {
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [shortPlayerLink, setShortPlayerLink] = useState<string>('');
     const [shortOrganizerLink, setShortOrganizerLink] = useState<string>('');
+    const [isGeneratingImage, setIsGeneratingImage] = useState(false);
     
     // UI State
     const [soundEnabled, setSoundEnabled] = useState(false);
     const [overlayMessage, setOverlayMessage] = useState<{ title: string, subtitle: string, type: 'open' | 'steal' } | null>(null);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
+    
+    // Reaction State
+    const [visibleReactions, setVisibleReactions] = useState<{ id: string, emoji: string, x: number }[]>([]);
+    const lastReactionCount = useRef(0);
+    const lastReactionTime = useRef(0); // For rate limiting
     
     // Refs
     const lastHistoryLen = useRef(0);
@@ -239,6 +263,31 @@ const WhiteElephantDashboard: React.FC = () => {
                     confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
                 }, 250);
             }
+
+            // 3. Reactions
+            const reactions = game.reactions || [];
+            if (reactions.length > lastReactionCount.current) {
+                // If it's the initial load, don't blast them all. Sync count.
+                if (lastReactionCount.current === 0) {
+                    lastReactionCount.current = reactions.length;
+                } else {
+                    const newReactions = reactions.slice(lastReactionCount.current);
+                    lastReactionCount.current = reactions.length;
+                    
+                    const newVisible = newReactions.map(r => ({
+                        id: r.id || crypto.randomUUID(),
+                        emoji: r.emoji,
+                        x: Math.random() * 80 + 10 // Random X position 10-90%
+                    }));
+                    
+                    setVisibleReactions(prev => [...prev, ...newVisible]);
+                    
+                    // Cleanup old reactions from state after animation
+                    setTimeout(() => {
+                        setVisibleReactions(prev => prev.filter(p => !newVisible.find(n => n.id === p.id)));
+                    }, 3000);
+                }
+            }
         }
     }, [game, soundEnabled]);
 
@@ -284,6 +333,40 @@ const WhiteElephantDashboard: React.FC = () => {
             setStealGift('');
             setStealTargetId('');
         }
+    };
+
+    const handleReaction = (emoji: string) => {
+        if (!gameId) return;
+        
+        // Rate Limit
+        if (Date.now() - lastReactionTime.current < 2000) return;
+        lastReactionTime.current = Date.now();
+
+        // Optimistic UI update
+        const id = crypto.randomUUID();
+        setVisibleReactions(prev => [...prev, { id, emoji, x: Math.random() * 80 + 10 }]);
+        setTimeout(() => setVisibleReactions(prev => prev.filter(r => r.id !== id)), 3000);
+
+        sendReaction(gameId, emoji);
+    };
+
+    const handleDownloadRecap = async () => {
+        setIsGeneratingImage(true);
+        const element = document.getElementById('final-results-card');
+        if (element) {
+            try {
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: null });
+                const link = document.createElement('a');
+                link.download = `White_Elephant_Recap_${game?.groupName?.replace(/\s+/g, '_') || 'Party'}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                trackEvent('download_recap_image');
+            } catch (e) {
+                console.error("Failed to generate image", e);
+                showToast("Could not generate image");
+            }
+        }
+        setIsGeneratingImage(false);
     };
 
     const showToast = (msg: string) => {
@@ -367,6 +450,7 @@ const WhiteElephantDashboard: React.FC = () => {
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
             <BigAnimationOverlay />
+            <FloatingEmojis reactions={visibleReactions} />
             {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
             <Header />
             
@@ -506,22 +590,46 @@ const WhiteElephantDashboard: React.FC = () => {
 
                         {/* FINAL SUMMARY (When Game Over) */}
                         {game.isFinished && (
-                            <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden animate-fade-in">
-                                <div className="p-4 bg-slate-800 text-white flex justify-between items-center">
-                                    <h3 className="font-bold flex items-center gap-2"><Gift size={18}/> Final Gift Distribution</h3>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-                                    {game.turnOrder.map((p, i) => (
-                                        <div key={p.id} className={`p-4 flex justify-between items-center ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                                            <div className="font-bold text-slate-700 flex items-center gap-2">
-                                                <span className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-600">{i+1}</span>
-                                                {p.name}
-                                            </div>
-                                            <div className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                                                {game.giftState[p.id] || "No Gift"}
-                                            </div>
+                            <div className="space-y-4">
+                                <div id="final-results-card" className="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 overflow-hidden text-white relative">
+                                    <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none"><Gift size={120} /></div>
+                                    <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                                        <div>
+                                            <h3 className="font-serif font-bold text-2xl text-yellow-400">{game.groupName || 'White Elephant Party'}</h3>
+                                            <p className="text-slate-400 text-sm mt-1">{game.eventDetails || new Date().toLocaleDateString()}</p>
                                         </div>
-                                    ))}
+                                        <div className="text-right">
+                                            <div className="font-black text-3xl">{game.participants.length}</div>
+                                            <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Gifts Exchanged</div>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-slate-800">
+                                        {game.turnOrder.map((p, i) => (
+                                            <div key={p.id} className="p-4 flex justify-between items-center bg-slate-900">
+                                                <div className="font-bold flex items-center gap-3">
+                                                    <span className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-400">{i+1}</span>
+                                                    {p.name}
+                                                </div>
+                                                <div className="text-sm font-medium text-emerald-400 truncate max-w-[50%]">
+                                                    {game.giftState[p.id] || "No Gift"}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="p-4 bg-slate-950 text-center text-slate-600 text-xs font-bold uppercase tracking-widest">
+                                        Generated by SecretSantaMatch.com
+                                    </div>
+                                </div>
+                                
+                                <div className="text-center">
+                                    <button 
+                                        onClick={handleDownloadRecap} 
+                                        disabled={isGeneratingImage}
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-lg transition-all transform hover:scale-105 disabled:opacity-50"
+                                    >
+                                        {isGeneratingImage ? <RefreshCw className="animate-spin" size={18} /> : <ImageIcon size={18} />}
+                                        {isGeneratingImage ? 'Generating...' : 'Download Recap Image'}
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -548,6 +656,23 @@ const WhiteElephantDashboard: React.FC = () => {
                     </div>
                 </div>
             </main>
+            
+            {/* EMOJI REACTION BAR */}
+            {!game.isFinished && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md shadow-2xl border border-slate-200 rounded-full px-6 py-3 flex gap-4 items-center z-[500] animate-slide-up">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">React:</span>
+                    {['😂', '🔥', '😱', '👏', '💀'].map(emoji => (
+                        <button 
+                            key={emoji} 
+                            onClick={() => handleReaction(emoji)}
+                            className="text-2xl hover:scale-125 transition-transform active:scale-95 cursor-pointer leading-none"
+                        >
+                            {emoji}
+                        </button>
+                    ))}
+                </div>
+            )}
+
             <Footer />
             
             {/* MODALS */}
@@ -608,8 +733,17 @@ const WhiteElephantDashboard: React.FC = () => {
                 .animate-fade-in { animation: fadeIn 0.3s ease-out; }
                 .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
                 .animate-bounce-in { animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+                .animate-slide-up { animation: slideUp 0.5s ease-out; }
+                .animate-float-up { animation: floatUp 3s ease-out forwards; }
+                
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                @keyframes slideUp { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+                @keyframes floatUp { 
+                    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+                    10% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+                    100% { transform: translateY(-200px) scale(1); opacity: 0; }
+                }
                 @keyframes bounceIn { 
                     0% { opacity: 0; transform: scale(0.3); } 
                     50% { opacity: 1; transform: scale(1.05); } 

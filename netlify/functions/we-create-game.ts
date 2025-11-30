@@ -39,6 +39,7 @@ export default async (req: Request, context: Context) => {
             isFinished: false,
             finalRound: false,
             history: [],
+            reactions: [], // Initialize empty
             giftState: {}, // Initialize empty gift state
             createdAt: new Date().toISOString(),
         };

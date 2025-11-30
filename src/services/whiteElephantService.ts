@@ -63,3 +63,16 @@ export const updateGameState = async (
         throw error;
     }
 };
+
+export const sendReaction = async (gameId: string, emoji: string): Promise<void> => {
+    try {
+        await fetch('/.netlify/functions/we-reaction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId, emoji }),
+        });
+    } catch (error) {
+        // Silent fail for reactions
+        console.error("Error sending reaction:", error);
+    }
+};

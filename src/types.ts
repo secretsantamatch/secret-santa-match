@@ -137,6 +137,12 @@ export interface WEEvent {
     }; 
 }
 
+export interface WEReaction {
+    id: string;
+    emoji: string;
+    timestamp: number;
+}
+
 export interface WEGame {
     gameId: string;
     organizerKey: string;
@@ -151,10 +157,10 @@ export interface WEGame {
     isFinished: boolean;
     finalRound: boolean; 
     history: string[];
+    reactions: WEReaction[]; // New field for emojis
     giftState: Record<string, string>; // Maps Participant ID -> Gift Description
     createdAt: string;
 }
-
 
 // --- BABY POOL TYPES ---
 
