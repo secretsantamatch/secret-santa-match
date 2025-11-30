@@ -172,11 +172,11 @@ const WhiteElephantDashboard: React.FC = () => {
     const isUpdatingRef = useRef(false);
 
     // ==========================================================================
-    // FIX: Track ACTUAL last event (not just length) to prevent race conditions
+    // FIX: Track history LENGTH to detect multiple new events at once
     // ==========================================================================
     const prevIsStartedRef = useRef<boolean | null>(null);
-    const lastSeenEventRef = useRef<string>('');
-    const popupDebounceRef = useRef<number>(0); // Timestamp of last popup shown
+    const lastSeenHistoryLenRef = useRef<number>(0);
+    const popupDebounceRef = useRef<number>(0);
 
     // --- INITIALIZATION ---
     useEffect(() => {
@@ -227,48 +227,59 @@ const WhiteElephantDashboard: React.FC = () => {
 
         // ==========================================================================
         // FIX #1: Detect START transition properly
-        // Only show popup when transitioning from false → true
-        // NOT on first load when game is already started (prevIsStartedRef.current === null)
         // ==========================================================================
         if (game.isStarted && prevIsStartedRef.current === false) {
-            // Game just transitioned from not-started to started!
             showOverlay('start', "LET'S PLAY!", `${game.turnOrder[0]?.name || 'Player 1'} goes first!`);
         }
-        
-        // Update the ref AFTER checking
         prevIsStartedRef.current = game.isStarted;
 
         // ==========================================================================
-        // FIX: Check for new events using ACTUAL event text, not just length
-        // This prevents race conditions and double popups
+        // FIX: Check ALL new events, not just the last one
+        // When a gift is opened, backend logs BOTH "opened" AND "next turn"
+        // We need to find the OPEN/STEAL event and show that popup
         // ==========================================================================
-        const latestEvent = game.history[game.history.length - 1] || '';
-        const isNewEvent = latestEvent && latestEvent !== lastSeenEventRef.current;
-        
-        if (isNewEvent) {
-            lastSeenEventRef.current = latestEvent;
+        if (game.history.length > lastSeenHistoryLenRef.current) {
+            const isFirstLoad = lastSeenHistoryLenRef.current === 0;
+            const newEvents = game.history.slice(lastSeenHistoryLenRef.current);
+            lastSeenHistoryLenRef.current = game.history.length;
             
-            // Don't show popup for "game started" (handled above) or on first load
-            const isGameStartedEvent = latestEvent.toLowerCase().includes('started');
-            const isFirstLoad = !prevIsStartedRef.current && game.history.length > 0;
-            
-            if (!isGameStartedEvent && !isFirstLoad) {
+            if (!isFirstLoad) {
                 // Debounce: Don't show popup if one was shown in last 500ms
                 const now = Date.now();
                 if (now - popupDebounceRef.current > 500) {
-                    popupDebounceRef.current = now;
                     
-                    if (latestEvent.toLowerCase().includes('opened')) {
-                        if (soundEnabled) playAudio('open');
-                        const match = latestEvent.match(/^(.*) opened \[(.*)\]!$/);
-                        showOverlay('open', 'GIFT OPENED!', match ? `${match[1]} opened ${match[2]}` : latestEvent);
-                    } else if (latestEvent.toLowerCase().includes('stole') || latestEvent.toLowerCase().includes('swap')) {
-                        if (soundEnabled) playAudio('steal');
-                        const match = latestEvent.match(/^(.*) stole \[(.*)\] from (.*)!$/);
-                        showOverlay('steal', 'STOLEN!', match ? `${match[1]} stole ${match[2]} from ${match[3]}` : latestEvent);
-                    } else if (latestEvent.toLowerCase().includes('turn')) {
-                        if (soundEnabled) playAudio('turn');
-                        // Don't show popup for turn changes, just play sound
+                    // Find the most important event (prioritize OPEN/STEAL over TURN)
+                    let eventToShow: string | null = null;
+                    let eventType: 'open' | 'steal' | null = null;
+                    
+                    for (const event of newEvents) {
+                        const lower = event.toLowerCase();
+                        if (lower.includes('opened')) {
+                            eventToShow = event;
+                            eventType = 'open';
+                            break; // Open is highest priority
+                        } else if (lower.includes('stole') || lower.includes('swap')) {
+                            eventToShow = event;
+                            eventType = 'steal';
+                            break; // Steal is high priority
+                        }
+                    }
+                    
+                    if (eventToShow && eventType) {
+                        popupDebounceRef.current = now;
+                        
+                        if (eventType === 'open') {
+                            if (soundEnabled) playAudio('open');
+                            const match = eventToShow.match(/^(.*) opened \[(.*)\]!$/);
+                            showOverlay('open', 'GIFT OPENED!', match ? `${match[1]} opened ${match[2]}` : eventToShow);
+                        } else if (eventType === 'steal') {
+                            if (soundEnabled) playAudio('steal');
+                            const match = eventToShow.match(/^(.*) stole \[(.*)\] from (.*)!$/);
+                            showOverlay('steal', 'STOLEN!', match ? `${match[1]} stole ${match[2]} from ${match[3]}` : eventToShow);
+                        }
+                    } else if (soundEnabled) {
+                        // No open/steal, just play turn sound for other events
+                        playAudio('turn');
                     }
                 }
             }
@@ -341,13 +352,12 @@ const WhiteElephantDashboard: React.FC = () => {
             const updatedGame = await updateGameState(gameId, organizerKey, action, payload);
             if (updatedGame) {
                 // ==========================================================================
-                // FIX: Set lastSeenEventRef BEFORE setGame to prevent duplicate popup
-                // The admin action will show popup once from this update, not from useEffect
+                // FIX: Show popup immediately for admin, then mark history as "seen"
                 // ==========================================================================
                 const latestEvent = updatedGame.history[updatedGame.history.length - 1] || '';
                 
-                // Show popup for admin immediately (before useEffect can fire)
-                if (latestEvent && action !== 'start_game' && action !== 'end_game' && action !== 'undo') {
+                // Show popup for admin immediately
+                if (latestEvent && action !== 'start_game' && action !== 'end_game' && action !== 'undo' && action !== 'next_player') {
                     popupDebounceRef.current = Date.now();
                     
                     if (latestEvent.toLowerCase().includes('opened')) {
@@ -361,8 +371,8 @@ const WhiteElephantDashboard: React.FC = () => {
                     }
                 }
                 
-                // Mark this event as "seen" so useEffect won't trigger popup again
-                lastSeenEventRef.current = latestEvent;
+                // Mark all events as "seen" so useEffect won't trigger popup again
+                lastSeenHistoryLenRef.current = updatedGame.history.length;
                 
                 setGame(updatedGame);
                 trackEvent(`we_action_${action}`);
