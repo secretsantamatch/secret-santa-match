@@ -18,7 +18,6 @@ const playAudio = (type: 'open' | 'steal' | 'turn' | 'win' | 'start') => {
         if (!AudioContext) return;
         const ctx = new AudioContext();
         
-        // Resume context if suspended (browser policy)
         if (ctx.state === 'suspended') ctx.resume();
 
         const osc = ctx.createOscillator();
@@ -138,9 +137,6 @@ const BigAnimationOverlay = ({ overlayMessage, onClose }: { overlayMessage: any,
 
 const WhiteElephantDashboard: React.FC = () => {
     const [game, setGame] = useState<WEGame | null>(null);
-    // Use a Ref to track the current game state inside the interval closure to solve stale state bugs
-    const gameRef = useRef<WEGame | null>(null);
-    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [gameId, setGameId] = useState<string | null>(null);
@@ -172,15 +168,16 @@ const WhiteElephantDashboard: React.FC = () => {
     const lastHistoryLen = useRef(0);
     const overlayTimeoutRef = useRef<number | null>(null);
     const hasCelebratedRef = useRef(false);
-    const hasStartedRef = useRef(false);
     const pollInterval = useRef<number | null>(null);
     const lastManualUpdate = useRef<number>(0);
     const isUpdatingRef = useRef(false);
 
-    // Sync game state to ref for access inside interval/async closures
-    useEffect(() => {
-        gameRef.current = game;
-    }, [game]);
+    // ==========================================================================
+    // FIX #1: Track the PREVIOUS isStarted value to detect the TRANSITION
+    // null = never loaded, false = game not started, true = game started
+    // We only show popup when transitioning from FALSE to TRUE
+    // ==========================================================================
+    const prevIsStartedRef = useRef<boolean | null>(null);
 
     // --- INITIALIZATION ---
     useEffect(() => {
@@ -193,10 +190,8 @@ const WhiteElephantDashboard: React.FC = () => {
 
         if (gId) {
             fetchGame(gId);
-            // Poll every 3 seconds for updates
             pollInterval.current = window.setInterval(() => fetchGame(gId), 3000);
             
-            // Generate short links for sharing
             const currentBaseUrl = window.location.href.split('#')[0];
             const longPlayerLink = `${currentBaseUrl}#gameId=${gId}`;
             
@@ -228,29 +223,42 @@ const WhiteElephantDashboard: React.FC = () => {
 
     // --- GAME STATE MONITORING ---
     useEffect(() => {
-        if (game) {
-            // Check for Game Start Transition
-            if (game.isStarted && !hasStartedRef.current) {
-                hasStartedRef.current = true;
-                setOverlayMessage({ 
-                    title: "LET'S PLAY!", 
-                    subtitle: "The game has started!", 
-                    type: 'start' 
-                });
-                if (soundEnabled) playAudio('start');
-                
-                if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
-                overlayTimeoutRef.current = window.setTimeout(() => { setOverlayMessage(null); overlayTimeoutRef.current = null; }, 4000);
-            }
+        if (!game) return;
 
-            // Check for new history events to trigger sounds/overlays
-            if (game.history.length > lastHistoryLen.current) {
-                const isNewGame = lastHistoryLen.current === 0;
-                lastHistoryLen.current = game.history.length;
+        // ==========================================================================
+        // FIX #1: Detect START transition properly
+        // Only show popup when transitioning from false → true
+        // NOT on first load when game is already started (prevIsStartedRef.current === null)
+        // ==========================================================================
+        if (game.isStarted && prevIsStartedRef.current === false) {
+            // Game just transitioned from not-started to started!
+            setOverlayMessage({ 
+                title: "LET'S PLAY!", 
+                subtitle: `${game.turnOrder[0]?.name || 'Player 1'} goes first!`, 
+                type: 'start' 
+            });
+            if (soundEnabled) playAudio('start');
+            
+            if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
+            overlayTimeoutRef.current = window.setTimeout(() => { 
+                setOverlayMessage(null); 
+                overlayTimeoutRef.current = null; 
+            }, 4000);
+        }
+        
+        // Update the ref AFTER checking
+        prevIsStartedRef.current = game.isStarted;
+
+        // Check for new history events
+        if (game.history.length > lastHistoryLen.current) {
+            const isFirstLoad = lastHistoryLen.current === 0;
+            lastHistoryLen.current = game.history.length;
+            
+            if (!isFirstLoad) {
+                const latestEvent = game.history[game.history.length - 1];
                 
-                if (!isNewGame) {
-                    const latestEvent = game.history[game.history.length - 1];
-                    
+                // Skip "game started" event (handled above)
+                if (!latestEvent.toLowerCase().includes('started')) {
                     if (latestEvent.toLowerCase().includes('opened')) {
                         if (soundEnabled) playAudio('open');
                         const match = latestEvent.match(/^(.*) opened \[(.*)\]!$/);
@@ -272,30 +280,39 @@ const WhiteElephantDashboard: React.FC = () => {
                     }
                     
                     if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
-                    overlayTimeoutRef.current = window.setTimeout(() => { setOverlayMessage(null); overlayTimeoutRef.current = null; }, 4000);
+                    overlayTimeoutRef.current = window.setTimeout(() => { 
+                        setOverlayMessage(null); 
+                        overlayTimeoutRef.current = null; 
+                    }, 4000);
                 }
             }
+        }
 
-            // Game Finished Celebration
-            if (game.isFinished && !hasCelebratedRef.current) {
-                hasCelebratedRef.current = true;
-                if (soundEnabled) playAudio('win');
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                setTimeout(() => confetti({ particleCount: 100, angle: 60, spread: 55, origin: { x: 0 } }), 500);
-                setTimeout(() => confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 } }), 500);
-            }
+        // Game Finished Celebration
+        if (game.isFinished && !hasCelebratedRef.current) {
+            hasCelebratedRef.current = true;
+            if (soundEnabled) playAudio('win');
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            setTimeout(() => confetti({ particleCount: 100, angle: 60, spread: 55, origin: { x: 0 } }), 500);
+            setTimeout(() => confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 } }), 500);
+        }
 
-            // Reactions Polling
-            const reactions = game.reactions || [];
-            if (reactions.length > lastReactionCount.current) {
-                if (lastReactionCount.current !== 0) {
-                    const newReactions = reactions.slice(lastReactionCount.current);
-                    const newVisible = newReactions.map(r => ({ id: r.id || crypto.randomUUID(), emoji: r.emoji, x: Math.random() * 80 + 10 }));
-                    setVisibleReactions(prev => [...prev, ...newVisible]);
-                    setTimeout(() => setVisibleReactions(prev => prev.filter(p => !newVisible.find(n => n.id === p.id))), 3000);
-                }
-                lastReactionCount.current = reactions.length;
+        // Reactions Polling
+        const reactions = game.reactions || [];
+        if (reactions.length > lastReactionCount.current) {
+            if (lastReactionCount.current !== 0) {
+                const newReactions = reactions.slice(lastReactionCount.current);
+                const newVisible = newReactions.map(r => ({ 
+                    id: r.id || crypto.randomUUID(), 
+                    emoji: r.emoji, 
+                    x: Math.random() * 80 + 10 
+                }));
+                setVisibleReactions(prev => [...prev, ...newVisible]);
+                setTimeout(() => setVisibleReactions(prev => 
+                    prev.filter(p => !newVisible.find(n => n.id === p.id))
+                ), 3000);
             }
+            lastReactionCount.current = reactions.length;
         }
     }, [game, soundEnabled]);
 
@@ -304,22 +321,11 @@ const WhiteElephantDashboard: React.FC = () => {
         try {
             const data = await getGameState(id);
             if (data) {
-                // FIXED: Use the REF to check the previous state, preventing stale closure issues
-                const prevGame = gameRef.current;
-
-                // Case 1: First load (prevGame is null). If game already started, silent sync.
-                if (!prevGame && data.isStarted) {
-                    hasStartedRef.current = true;
-                }
-                
-                // Case 2: Update state if data changed
-                setGame(prev => {
-                    if (!prev) return data;
-                    if (data.history.length > prev.history.length || data.isFinished !== prev.isFinished || data.finalRound !== prev.finalRound || data.reactions.length > prev.reactions.length || data.isStarted !== prev.isStarted) {
-                        return data;
-                    }
-                    return prev;
-                });
+                // ==========================================================================
+                // FIX #3: Always update state - let React handle diffing
+                // The previous logic was too restrictive and missed giftState updates
+                // ==========================================================================
+                setGame(data);
             }
             setLoading(false);
         } catch (err) { console.error("Failed to fetch game:", err); }
@@ -379,35 +385,54 @@ const WhiteElephantDashboard: React.FC = () => {
         setIsGeneratingImage(false);
     };
 
-    const showToast = (msg: string) => { setToastMessage(msg); setTimeout(() => setToastMessage(null), 3000); };
-    const copyToClipboard = (text: string) => { navigator.clipboard.writeText(text).then(() => showToast("Link copied!")); };
+    const showToast = (msg: string) => { 
+        setToastMessage(msg); 
+        setTimeout(() => setToastMessage(null), 3000); 
+    };
+    
+    const copyToClipboard = (text: string) => { 
+        navigator.clipboard.writeText(text).then(() => showToast("Link copied!")); 
+    };
 
     const isOrganizer = !!organizerKey;
-    const displacedPlayer = game?.displacedPlayerId ? game.participants.find(p => p.id === game.displacedPlayerId) : null;
+    const displacedPlayer = game?.displacedPlayerId 
+        ? game.participants.find(p => p.id === game.displacedPlayerId) 
+        : null;
     const currentTurnPlayer = game?.turnOrder[game.currentPlayerIndex];
     
-    // Who is active? If there is a displaced player (victim or Player 1 in final round), they MUST act.
+    // Who is active? Displaced player takes priority.
     const activePlayer = displacedPlayer || currentTurnPlayer;
     
-    // Who can be stolen from?
+    // ==========================================================================
+    // FIX #2: ALWAYS enforce no-steal-back when displaced (not optional!)
+    // This is a FUNDAMENTAL White Elephant rule to prevent infinite A↔B loops
+    // The checkbox "noStealBack" is for ADDITIONAL restrictions, not this basic one
+    // ==========================================================================
     const availableVictims = game ? game.participants.filter(p => {
+        // Can't steal from yourself
         if (p.id === activePlayer?.id) return false;
+        
+        // Can't steal if they don't have a gift
         if (!game.giftState[p.id]) return false;
         
-        // Final Round: Player 1 can swap with ANYONE (except self)
+        // Final Round: Player 1 can swap with ANYONE
         if (game.finalRound) return true;
 
-        // Regular Round Checks:
         const giftDesc = game.giftState[p.id];
-        const steals = game.giftStealCounts[giftDesc] || 0;
+        const steals = game.giftStealCounts?.[giftDesc] || 0;
         
-        // 1. Freeze Limit (e.g. 3 steals)
-        if (game.rules.stealLimit > 0 && steals >= game.rules.stealLimit) return false; 
-
-        // 2. "No Steal Back" Rule
-        // If displaced player (active) was just stolen from by Person X, they cannot steal from Person X immediately.
-        if (game.rules.noStealBack && game.displacedPlayerId && game.lastThiefId === p.id) {
+        // Check Freeze Limit (e.g., gift stolen 3x is locked)
+        if (game.rules?.stealLimit && game.rules.stealLimit > 0 && steals >= game.rules.stealLimit) {
             return false;
+        }
+
+        // ==========================================================================
+        // FIX #2: ALWAYS prevent immediate steal-back from the thief
+        // This is NOT optional - it's core game mechanics to prevent infinite loops
+        // If Mary stole from Tom, Tom CANNOT steal back from Mary immediately
+        // ==========================================================================
+        if (game.displacedPlayerId && game.lastThiefId === p.id) {
+            return false; // Displaced player cannot steal from whoever just stole from them
         }
 
         return true;
@@ -452,20 +477,24 @@ const WhiteElephantDashboard: React.FC = () => {
     const displayPlayerLink = shortPlayerLink || `${window.location.href.split('#')[0]}#gameId=${gameId}`;
 
     return (
-        <div className="bg-slate-50 min-h-screen pb-20">
-            {/* STYLES FOR ANIMATIONS */}
+        <div className="bg-slate-50 min-h-screen pb-28">
+            {/* STYLES */}
             <style>{`
                 @keyframes floatUp {
                     0% { transform: translateY(0) scale(0.5); opacity: 0; }
                     10% { opacity: 1; transform: translateY(-20px) scale(1.2); }
                     100% { transform: translateY(-400px) scale(1); opacity: 0; }
                 }
-                .float-up-animation {
-                    animation: floatUp 3s ease-out forwards;
-                    position: absolute;
-                    pointer-events: none;
-                    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                }
+                .float-up-animation { animation: floatUp 3s ease-out forwards; position: absolute; pointer-events: none; }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                @keyframes bounceIn { 0% { opacity: 0; transform: scale(0.3); } 50% { opacity: 1; transform: scale(1.05); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } }
+                .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+                .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
+                .animate-bounce-in { animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
             `}</style>
 
             {/* OVERLAYS */}
@@ -502,12 +531,12 @@ const WhiteElephantDashboard: React.FC = () => {
                                     <Smartphone size={22} /> Player Dashboard Link
                                 </div>
                                 <p className="text-indigo-100 text-sm mb-4 opacity-90">
-                                    Share screen or send this link to participants so they can watch.
+                                    Share screen or send this link to participants.
                                 </p>
                                 <div className="flex items-center gap-2 bg-indigo-800/50 p-2 rounded border border-indigo-400/30">
                                     <input type="text" readOnly value={displayPlayerLink} className="flex-1 text-xs text-indigo-200 bg-transparent truncate outline-none font-mono" />
                                     <button onClick={() => copyToClipboard(displayPlayerLink)} className="p-2 bg-white text-indigo-700 hover:bg-indigo-50 rounded text-xs font-bold flex items-center gap-1 shadow-sm">
-                                        <Share2 size={14}/> Copy Link
+                                        <Share2 size={14}/> Copy
                                     </button>
                                 </div>
                             </div>
@@ -515,26 +544,33 @@ const WhiteElephantDashboard: React.FC = () => {
                     </div>
                 )}
 
-                {/* GAME HEADER */}
+                {/* DASHBOARD HEADER */}
                 <div className="bg-white rounded-2xl shadow-sm border p-6 mb-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-slate-800 font-serif">{game.groupName || 'White Elephant Party'}</h1>
-                            <div className="flex items-center gap-3 mt-2 text-sm">
-                                <span className={`px-3 py-1 rounded-full font-bold flex items-center gap-1.5 ${game.isFinished ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                    <span className={`w-2 h-2 rounded-full ${game.isFinished ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`}></span> {game.isFinished ? 'Game Over' : game.finalRound ? 'Final Round' : 'Live Game'}
+                            <h1 className="text-3xl font-bold text-slate-800 font-serif">
+                                {game.groupName || 'White Elephant Party'}
+                            </h1>
+                            <div className="flex flex-wrap items-center gap-3 mt-2 text-sm">
+                                <span className={`px-3 py-1 rounded-full font-bold flex items-center gap-1.5 ${game.isFinished ? 'bg-red-100 text-red-700' : game.isStarted ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                                    <span className={`w-2 h-2 rounded-full ${game.isFinished ? 'bg-red-500' : game.isStarted ? 'bg-green-500 animate-pulse' : 'bg-blue-500'}`}></span>
+                                    {game.isFinished ? 'Game Over' : game.isStarted ? 'Live Game' : 'Waiting...'}
                                 </span>
-                                <button onClick={() => setSoundEnabled(!soundEnabled)} className={`flex items-center gap-1 px-3 py-1 rounded-full border ${soundEnabled ? 'bg-purple-100 text-purple-700' : 'bg-slate-50 text-slate-500'}`}>
-                                    {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />} Sound
+                                <button 
+                                    onClick={() => setSoundEnabled(!soundEnabled)}
+                                    className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${soundEnabled ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}
+                                >
+                                    {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                                    {soundEnabled ? 'Sound On' : 'Sound'}
                                 </button>
                             </div>
                         </div>
                         {isOrganizer && (
-                            <div className="flex gap-2">
-                                <button onClick={() => generateWETurnNumbersPdf(game.participants.length)} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-bold flex gap-2">
+                            <div className="flex flex-wrap gap-2">
+                                <button onClick={() => generateWETurnNumbersPdf(game.participants.length)} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border font-semibold text-sm flex items-center gap-2">
                                     <Download size={16} /> Turn #s
                                 </button>
-                                <button onClick={() => generateWEGameLogPdf(game.history, game.participants, game.giftState, game.groupName, game.eventDetails)} className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm font-bold flex gap-2">
+                                <button onClick={() => generateWEGameLogPdf(game.history, game.participants, game.giftState, game.groupName, game.eventDetails)} className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg border font-semibold text-sm flex items-center gap-2">
                                     <BarChart3 size={16} /> Summary
                                 </button>
                             </div>
@@ -543,33 +579,45 @@ const WhiteElephantDashboard: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* LEFT COLUMN: Turn Order List */}
+                    
+                    {/* LEFT: Turn Order */}
                     <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
-                        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden flex flex-col h-[600px]">
-                             <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
-                                <h3 className="font-bold text-slate-700 flex items-center gap-2"><Users className="text-slate-400" size={18} /> Turn Order</h3>
+                        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden flex flex-col h-[500px]">
+                            <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
+                                <h3 className="font-bold text-slate-700 flex items-center gap-2">
+                                    <Users className="text-slate-400" size={18} /> Turn Order
+                                </h3>
                                 <span className="text-xs font-bold text-slate-400 uppercase">{game.participants.length} Players</span>
                             </div>
                             <div className="overflow-y-auto flex-1 p-2 space-y-1 custom-scrollbar">
                                 {game.turnOrder.map((p, i) => {
-                                    // Highlight Logic
-                                    const isActor = activePlayer?.id === p.id && !game.isFinished && game.isStarted;
+                                    const isCurrent = p.id === activePlayer?.id && !game.isFinished && game.isStarted;
+                                    const hasGone = i < game.currentPlayerIndex || game.isFinished;
+                                    const gift = game.giftState[p.id];
+                                    const isDisplaced = p.id === game.displacedPlayerId;
                                     
                                     return (
-                                        <div key={p.id} className={`relative p-3 rounded-xl border transition-all ${isActor ? 'bg-blue-50 border-blue-400 shadow-md z-10 scale-[1.02]' : 'bg-white border-slate-100'}`}>
+                                        <div key={p.id} className={`relative p-3 rounded-xl border transition-all duration-300 ${isCurrent ? 'bg-blue-50 border-blue-400 shadow-md scale-[1.02]' : 'bg-white border-slate-100'}`}>
                                             <div className="flex items-start gap-3">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isActor ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>{i + 1}</div>
+                                                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm ${isCurrent ? 'bg-blue-600 text-white' : hasGone ? 'bg-slate-200 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>
+                                                    {i + 1}
+                                                </div>
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center justify-between">
-                                                        <p className={`font-bold truncate ${isActor ? 'text-blue-800' : 'text-slate-700'}`}>{p.name}</p>
+                                                        <p className={`font-bold truncate ${isCurrent ? 'text-blue-800 text-lg' : 'text-slate-700'}`}>
+                                                            {p.name}
+                                                        </p>
+                                                        {hasGone && !isDisplaced && <CheckCircle size={16} className="text-emerald-500 ml-2 flex-shrink-0" />}
+                                                        {isDisplaced && <AlertTriangle size={16} className="text-amber-500 ml-2 flex-shrink-0" />}
                                                     </div>
-                                                    {game.giftState[p.id] && (
+                                                    {gift && (
                                                         <div className="mt-1 flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md text-xs font-bold w-fit">
-                                                            <Gift size={12} /> {game.giftState[p.id]}
+                                                            <Gift size={12} /> {gift}
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
+                                            {isCurrent && <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-blue-500 rounded-r-full"></div>}
                                         </div>
                                     )
                                 })}
@@ -577,84 +625,87 @@ const WhiteElephantDashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN: Active Game Area */}
+                    {/* RIGHT: Active Game Area */}
                     <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
                         
-                        {/* MAIN ACTION CARD */}
+                        {/* Big Active Card */}
                         <div className="bg-white rounded-3xl shadow-xl border-2 border-indigo-100 overflow-hidden relative">
-                            {/* Decorative BG */}
-                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                            <div className={`absolute top-0 left-0 w-full h-2 ${game.finalRound ? 'bg-purple-500' : game.isFinished ? 'bg-slate-400' : game.displacedPlayerId ? 'bg-amber-500' : 'bg-gradient-to-r from-blue-500 to-cyan-500'}`}></div>
                             
                             <div className="p-8 md:p-12 text-center relative">
+                                
                                 <div className="inline-block px-4 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">
-                                    {game.isFinished ? 'Game Summary' : game.finalRound ? 'FINAL ROUND' : displacedPlayer ? 'Steal in Progress!' : `Turn ${game.currentPlayerIndex + 1}`}
+                                    {game.isFinished ? 'Game Over' : game.displacedPlayerId ? 'Steal in Progress!' : game.isStarted ? (game.finalRound ? 'Final Round' : 'Live Game') : 'Waiting Room'}
                                 </div>
                                 
-                                {game.isFinished ? (
-                                    <div className="text-5xl font-black text-slate-800 mb-6">All Done!</div>
-                                ) : !game.isStarted ? (
-                                    <div className="text-4xl font-bold text-slate-400 mb-6">Waiting to start...</div>
-                                ) : (
-                                    <>
-                                        <h2 className="text-slate-400 text-xl font-medium mb-2">
-                                            It is currently
-                                        </h2>
-                                        <div className={`text-5xl md:text-6xl font-black font-serif mb-6 tracking-tight ${displacedPlayer ? 'text-amber-600' : 'text-indigo-600'}`}>
-                                            {activePlayer?.name}'s Turn
-                                        </div>
-                                        
-                                        {game.finalRound && (
-                                            <p className="text-purple-600 font-bold text-lg mb-6">
-                                                🏆 Player 1 Advantage: Swap with anyone or Keep your gift!
-                                            </p>
-                                        )}
+                                <h2 className="text-slate-400 text-lg md:text-xl font-medium mb-2">
+                                    {game.isFinished ? 'The game has ended!' : game.isStarted ? 'It is currently' : 'Waiting for organizer...'}
+                                </h2>
+                                
+                                <div className={`text-5xl md:text-7xl font-black font-serif mb-4 tracking-tight ${game.finalRound ? 'text-purple-600' : game.displacedPlayerId ? 'text-amber-600' : 'text-indigo-600'}`}>
+                                    {game.isFinished ? 'All Done!' : game.isStarted ? `${activePlayer?.name}'s Turn!` : 'Not Started'}
+                                </div>
 
-                                        {displacedPlayer && !game.finalRound && (
-                                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg inline-block mb-6 animate-pulse font-bold">
-                                                🚨 {displacedPlayer.name} was stolen from and must act!
-                                            </div>
-                                        )}
-                                    </>
+                                {/* Displaced Player Alert */}
+                                {game.displacedPlayerId && !game.isFinished && (
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 border border-amber-300 rounded-full text-amber-800 font-bold text-sm mb-6 animate-pulse">
+                                        <AlertTriangle size={16} />
+                                        {activePlayer?.name} was stolen from and must act!
+                                    </div>
                                 )}
 
-                                {/* ORGANIZER ACTION BUTTONS */}
+                                {/* Action Buttons (Organizer Only) */}
                                 {isOrganizer && !game.isFinished && (
-                                    <div className="flex flex-wrap justify-center gap-4 mt-8 relative z-20">
+                                    <div className="flex flex-wrap justify-center gap-4 mt-6">
                                         {!game.isStarted ? (
-                                            <button onClick={() => handleUpdate('start_game')} disabled={isActionLoading} className="py-4 px-10 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full shadow-lg text-xl flex items-center gap-3">
-                                                Start Game <Play fill="currentColor" />
+                                            <button 
+                                                onClick={() => handleUpdate('start_game')}
+                                                disabled={isActionLoading}
+                                                className="py-4 px-10 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full shadow-lg text-xl flex items-center gap-3 transition-all transform hover:-translate-y-1"
+                                            >
+                                                Start The Game <Play fill="currentColor" />
                                             </button>
-                                        ) : (
+                                        ) : game.finalRound ? (
+                                            // Final Round: Keep or Swap
                                             <>
-                                                {/* STEAL BUTTON: Only show if there are victims available */}
                                                 <button 
-                                                    onClick={() => { setStealGift(''); setStealTargetId(''); setShowStealModal(true); }} 
-                                                    disabled={isActionLoading || !canSteal} 
-                                                    className="py-3 px-8 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    onClick={handleLogKeep}
+                                                    disabled={isActionLoading}
+                                                    className="py-3 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2"
                                                 >
-                                                    <RefreshCw size={20} /> {game.finalRound ? 'Swap Gift' : 'Steal Gift'}
+                                                    <Trophy size={20} /> Keep Gift
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setStealGift(''); setStealTargetId(''); setShowStealModal(true); }}
+                                                    disabled={isActionLoading || !canSteal}
+                                                    className="py-3 px-6 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2 disabled:opacity-50"
+                                                >
+                                                    <RefreshCw size={20} /> Swap Gift
+                                                </button>
+                                            </>
+                                        ) : (
+                                            // Regular Round: Steal or Open
+                                            <>
+                                                <button 
+                                                    onClick={() => { setStealGift(''); setStealTargetId(''); setShowStealModal(true); }}
+                                                    disabled={isActionLoading || !canSteal}
+                                                    className="py-3 px-6 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2 disabled:opacity-50"
+                                                >
+                                                    <RefreshCw size={20} /> Steal Gift
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setOpenGiftDescription(''); setShowOpenModal(true); }}
+                                                    disabled={isActionLoading}
+                                                    className="py-3 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2"
+                                                >
+                                                    <Gift size={20} /> Open New Gift
                                                 </button>
                                                 
-                                                {/* FINAL ROUND KEEP BUTTON */}
-                                                {game.finalRound && (
-                                                    <button 
-                                                        onClick={() => handleUpdate('log_keep')} 
-                                                        disabled={isActionLoading} 
-                                                        className="py-3 px-8 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md flex items-center gap-2"
-                                                    >
-                                                        <CheckCircle size={20} /> Keep Gift (End Game)
-                                                    </button>
-                                                )}
-
-                                                {/* OPEN BUTTON: Available only if not final round (everyone has opened) */}
-                                                {!game.finalRound && (
-                                                    <button 
-                                                        onClick={() => { setOpenGiftDescription(''); setShowOpenModal(true); }} 
-                                                        disabled={isActionLoading} 
-                                                        className="py-3 px-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md flex items-center gap-2"
-                                                    >
-                                                        <Gift size={20} /> Open New Gift
-                                                    </button>
+                                                {/* Show why Steal is disabled */}
+                                                {!canSteal && game.displacedPlayerId && (
+                                                    <p className="w-full text-center text-sm text-amber-600 mt-2">
+                                                        No valid steal targets — {activePlayer?.name} must open a new gift.
+                                                    </p>
                                                 )}
                                             </>
                                         )}
@@ -663,29 +714,24 @@ const WhiteElephantDashboard: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* RECAP CARD (Visible only when game ends) */}
+                        {/* Final Results Card (Game Over) */}
                         {game.isFinished && (
                             <div className="space-y-4">
-                                <div id="final-results-card" className="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 overflow-hidden text-white relative">
-                                    <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none"><Gift size={120} /></div>
-                                    <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                                        <div>
-                                            <h3 className="font-serif font-bold text-2xl text-yellow-400">{game.groupName || 'White Elephant Party'}</h3>
-                                            <p className="text-slate-400 text-sm mt-1">{game.eventDetails}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-black text-3xl">{game.participants.length}</div>
-                                            <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Gifts</div>
-                                        </div>
+                                <div id="final-results-card" className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl overflow-hidden text-white">
+                                    <div className="p-6 text-center border-b border-slate-700">
+                                        <h2 className="text-2xl font-bold font-serif">🎁 Final Gift Distribution</h2>
+                                        <p className="text-slate-400 text-sm">{game.groupName || 'White Elephant Party'}</p>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-slate-800">
-                                        {game.turnOrder.map((p, i) => (
-                                            <div key={p.id} className="p-4 flex justify-between items-center bg-slate-900">
-                                                <div className="font-bold flex items-center gap-3">
-                                                    <span className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-400">{i+1}</span>
-                                                    {p.name}
+                                    <div className="p-6 grid grid-cols-2 gap-4">
+                                        {game.participants.map((p, i) => (
+                                            <div key={p.id} className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-xs font-bold">{i + 1}</span>
+                                                    <span className="font-bold truncate">{p.name}</span>
                                                 </div>
-                                                <div className="text-sm font-medium text-emerald-400 truncate max-w-[50%]">{game.giftState[p.id] || "No Gift"}</div>
+                                                <div className="text-emerald-400 font-medium text-sm truncate">
+                                                    {game.giftState[p.id] || <span className="text-slate-500 italic">No Gift</span>}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -694,18 +740,25 @@ const WhiteElephantDashboard: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="text-center">
-                                    <button onClick={handleDownloadRecap} disabled={isGeneratingImage} className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-lg transition-all disabled:opacity-50">
+                                    <button onClick={handleDownloadRecap} disabled={isGeneratingImage} className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-lg disabled:opacity-50">
                                         {isGeneratingImage ? <RefreshCw className="animate-spin" size={18} /> : <ImageIcon size={18} />} Download Recap Image
                                     </button>
                                 </div>
                             </div>
                         )}
 
-                        {/* LIVE TICKER */}
+                        {/* Live Ticker */}
                         <div className="bg-white rounded-2xl shadow-sm border flex flex-col h-[400px]">
-                             <div className="p-4 border-b bg-slate-50 flex items-center gap-2"><History className="text-purple-500" /> <h3 className="font-bold text-slate-700">Live Ticker</h3></div>
+                            <div className="p-4 border-b bg-slate-50 flex items-center gap-2">
+                                <History className="text-purple-500" /> 
+                                <h3 className="font-bold text-slate-700">Live Ticker</h3>
+                            </div>
                             <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar flex flex-col-reverse">
-                                {game.history.length === 0 && <div className="text-center py-10 text-slate-400 italic">Game events will appear here...</div>}
+                                {game.history.length === 0 && (
+                                    <div className="text-center py-10 text-slate-400 italic">
+                                        Game events will appear here...
+                                    </div>
+                                )}
                                 {game.history.map((entry, i) => (
                                     <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-slate-700 animate-fade-in shadow-sm text-sm flex items-start gap-2">
                                         <EventBadge text={entry} />
@@ -717,16 +770,18 @@ const WhiteElephantDashboard: React.FC = () => {
                         
                         {isOrganizer && (
                             <div className="text-right">
-                                <button onClick={() => setShowEndGameModal(true)} className="text-red-500 text-xs font-bold hover:underline opacity-60 hover:opacity-100">Force End Game</button>
+                                <button onClick={() => setShowEndGameModal(true)} className="text-red-500 text-xs font-bold hover:underline opacity-60 hover:opacity-100">
+                                    Force End Game
+                                </button>
                             </div>
                         )}
                     </div>
                 </div>
             </main>
             
-            {/* REACTION BAR (Fixed Bottom) - Visible to Everyone */}
+            {/* REACTION BAR */}
             {!game.isFinished && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md shadow-2xl border border-slate-200 rounded-full px-6 py-3 flex gap-4 items-center z-[500] animate-slide-up transform transition-all hover:scale-105">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md shadow-2xl border border-slate-200 rounded-full px-6 py-3 flex gap-4 items-center z-[500]">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">React:</span>
                     {['😂', '🔥', '😱', '👏', '💀', '❤️'].map(emoji => (
                         <button 
@@ -740,15 +795,26 @@ const WhiteElephantDashboard: React.FC = () => {
                 </div>
             )}
 
+            {/* Viewer Footer Promo */}
+            {!isOrganizer && (
+                <div className="fixed bottom-20 left-1/2 -translate-x-1/2 text-center z-[400]">
+                    <a href="/" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                        🎁 Powered by <span className="font-bold">SecretSantaMatch.com</span> — Free gift exchange tools
+                    </a>
+                </div>
+            )}
+
             <Footer />
             
             {/* --- MODALS --- */}
             
-            {/* OPEN GIFT MODAL */}
             {showOpenModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
-                    <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md transform transition-all scale-100">
-                        <div className="flex items-center gap-3 mb-4 text-emerald-600"><Gift size={28} /><h3 className="text-2xl font-bold font-serif">What did they open?</h3></div>
+                    <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md">
+                        <div className="flex items-center gap-3 mb-4 text-emerald-600">
+                            <Gift size={28} />
+                            <h3 className="text-2xl font-bold font-serif">What did they open?</h3>
+                        </div>
                         <p className="text-slate-500 text-sm mb-1">Player: <strong className="text-slate-800">{activePlayer?.name}</strong></p>
                         <input 
                             autoFocus 
@@ -760,23 +826,25 @@ const WhiteElephantDashboard: React.FC = () => {
                             className="w-full p-4 border-2 border-emerald-100 focus:border-emerald-500 rounded-xl text-lg mb-6 outline-none transition-colors bg-emerald-50/30"
                         />
                         <div className="flex justify-end gap-3">
-                            <button onClick={() => setShowOpenModal(false)} className="px-5 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-100 transition-colors">Cancel</button>
-                            <button onClick={handleLogOpen} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-200">Log "Opened Gift"</button>
+                            <button onClick={() => setShowOpenModal(false)} className="px-5 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-100">Cancel</button>
+                            <button onClick={handleLogOpen} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg">Log Gift</button>
                         </div>
                     </div>
                 </div>
             )}
 
-             {/* STEAL GIFT MODAL */}
-             {showStealModal && (
+            {showStealModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
                     <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md">
-                        <div className="flex items-center gap-3 mb-6 text-amber-600"><RefreshCw size={28} /><h3 className="text-2xl font-bold font-serif">{game.finalRound ? 'Final Swap' : 'Log a Steal'}</h3></div>
+                        <div className="flex items-center gap-3 mb-6 text-amber-600">
+                            <RefreshCw size={28} />
+                            <h3 className="text-2xl font-bold font-serif">{game.finalRound ? 'Final Swap' : 'Log a Steal'}</h3>
+                        </div>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Who is stealing?</label>
                                 <div className="w-full p-3 border rounded-xl bg-slate-50 font-bold text-slate-700">
-                                     {activePlayer?.name}
+                                    {activePlayer?.name}
                                 </div>
                             </div>
                             <div className="flex justify-center text-slate-300"><div className="border-l-2 border-dashed h-6"></div></div>
@@ -787,13 +855,13 @@ const WhiteElephantDashboard: React.FC = () => {
                                     onChange={e => { setStealTargetId(e.target.value); setStealGift(game.giftState[e.target.value] || ''); }} 
                                     className="w-full p-3 border rounded-xl bg-slate-50 font-bold text-slate-700 focus:ring-2 focus:ring-amber-500 outline-none"
                                 >
-                                     <option value="">-- Select Victim --</option>
-                                     {availableVictims.map(p => (
-                                         <option key={p.id} value={p.id}>
-                                             {p.name} (Has: {game.giftState[p.id]})
-                                             {game.giftStealCounts[game.giftState[p.id]] ? ` [Stolen ${game.giftStealCounts[game.giftState[p.id]]}x]` : ''}
-                                         </option>
-                                     ))}
+                                    <option value="">-- Select Victim --</option>
+                                    {availableVictims.map(p => (
+                                        <option key={p.id} value={p.id}>
+                                            {p.name} (Has: {game.giftState[p.id]})
+                                            {(game.giftStealCounts?.[game.giftState[p.id]] || 0) > 0 && ` [Stolen ${game.giftStealCounts[game.giftState[p.id]]}x]`}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -804,14 +872,23 @@ const WhiteElephantDashboard: React.FC = () => {
                             </div>
                         )}
                         <div className="flex justify-end gap-3 mt-8">
-                            <button onClick={() => setShowStealModal(false)} className="px-5 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-100 transition-colors">Cancel</button>
-                            <button onClick={handleLogSteal} disabled={!stealTargetId} className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold shadow-lg shadow-amber-200 disabled:opacity-50 disabled:shadow-none">Confirm {game.finalRound ? 'Swap' : 'Steal'}</button>
+                            <button onClick={() => setShowStealModal(false)} className="px-5 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-100">Cancel</button>
+                            <button onClick={handleLogSteal} disabled={!stealTargetId} className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold shadow-lg disabled:opacity-50">
+                                Confirm {game.finalRound ? 'Swap' : 'Steal'}
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
             
-            <ConfirmationModal isOpen={showEndGameModal} onClose={() => setShowEndGameModal(false)} onConfirm={() => handleUpdate('end_game')} title="End Game?" message="This will mark the game as finished. You can't undo this." confirmText="End Game" />
+            <ConfirmationModal 
+                isOpen={showEndGameModal} 
+                onClose={() => setShowEndGameModal(false)} 
+                onConfirm={() => handleUpdate('end_game')} 
+                title="End Game?" 
+                message="This will mark the game as finished. You can't undo this." 
+                confirmText="End Game" 
+            />
         </div>
     );
 };
