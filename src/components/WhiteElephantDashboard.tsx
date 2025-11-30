@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
@@ -13,7 +12,7 @@ import html2canvas from 'html2canvas';
 import { shouldTrackByDefault } from '../utils/privacy';
 
 // --- AUDIO SYSTEM ---
-const playAudio = (type: 'open' | 'steal' | 'turn' | 'win') => {
+const playAudio = (type: 'open' | 'steal' | 'turn' | 'win' | 'start') => {
     try {
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         if (!AudioContext) return;
@@ -42,6 +41,15 @@ const playAudio = (type: 'open' | 'steal' | 'turn' | 'win') => {
             gain.gain.linearRampToValueAtTime(0.001, now + 0.4);
             osc.start(now);
             osc.stop(now + 0.4);
+        } else if (type === 'start') {
+            // Rising chime
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.linearRampToValueAtTime(880, now + 0.5);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0, now + 1.0);
+            osc.start(now);
+            osc.stop(now + 1.0);
         } else if (type === 'win') {
             const freqs = [523.25, 659.25, 783.99, 1046.50];
             freqs.forEach((f) => {
@@ -81,7 +89,9 @@ const Toast = ({ message, onClose }: { message: string, onClose: () => void }) =
 const FloatingEmojis = ({ reactions }: { reactions: { id: string, emoji: string, x: number }[] }) => (
     <div className="fixed inset-0 pointer-events-none z-[9998] overflow-hidden">
         {reactions.map(r => (
-            <div key={r.id} className="absolute bottom-20 text-4xl animate-float-up" style={{ left: `${r.x}%` }}>{r.emoji}</div>
+            <div key={r.id} className="absolute bottom-0 text-5xl float-up-animation" style={{ left: `${r.x}%` }}>
+                {r.emoji}
+            </div>
         ))}
     </div>
 );
@@ -96,11 +106,23 @@ const EventBadge = ({ text }: { text: string }) => {
 
 const BigAnimationOverlay = ({ overlayMessage }: { overlayMessage: any }) => {
     if (!overlayMessage) return null;
+    
+    let icon = '🎁';
+    let colorClass = 'border-emerald-500 text-emerald-600';
+    
+    if (overlayMessage.type === 'steal') {
+        icon = '😈';
+        colorClass = 'border-red-500 text-red-600';
+    } else if (overlayMessage.type === 'start') {
+        icon = '🚀';
+        colorClass = 'border-blue-500 text-blue-600';
+    }
+
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in"></div>
-            <div className={`relative bg-white p-8 md:p-12 rounded-3xl shadow-2xl border-4 text-center transform transition-all scale-100 animate-bounce-in ${overlayMessage.type === 'steal' ? 'border-red-500 text-red-600' : 'border-emerald-500 text-emerald-600'}`}>
-                <div className="text-6xl md:text-8xl mb-4">{overlayMessage.type === 'steal' ? '😈' : '🎁'}</div>
+            <div className={`relative bg-white p-8 md:p-12 rounded-3xl shadow-2xl border-4 text-center transform transition-all scale-100 animate-bounce-in ${colorClass}`}>
+                <div className="text-6xl md:text-8xl mb-4">{icon}</div>
                 <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight mb-2 drop-shadow-sm">{overlayMessage.title}</h1>
                 <p className="text-xl md:text-3xl font-bold text-slate-700">{overlayMessage.subtitle}</p>
             </div>
@@ -123,7 +145,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const [shortOrganizerLink, setShortOrganizerLink] = useState<string>('');
     const [isGeneratingImage, setIsGeneratingImage] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(false);
-    const [overlayMessage, setOverlayMessage] = useState<{ title: string, subtitle: string, type: 'open' | 'steal' } | null>(null);
+    const [overlayMessage, setOverlayMessage] = useState<{ title: string, subtitle: string, type: 'open' | 'steal' | 'start' } | null>(null);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [visibleReactions, setVisibleReactions] = useState<{ id: string, emoji: string, x: number }[]>([]);
     
@@ -143,6 +165,7 @@ const WhiteElephantDashboard: React.FC = () => {
     const lastHistoryLen = useRef(0);
     const overlayTimeoutRef = useRef<number | null>(null);
     const hasCelebratedRef = useRef(false);
+    const hasStartedRef = useRef(false);
     const pollInterval = useRef<number | null>(null);
     const lastManualUpdate = useRef<number>(0);
     const isUpdatingRef = useRef(false);
@@ -195,6 +218,20 @@ const WhiteElephantDashboard: React.FC = () => {
     // --- GAME STATE MONITORING ---
     useEffect(() => {
         if (game) {
+            // Check for Game Start Transition
+            if (game.isStarted && !hasStartedRef.current) {
+                hasStartedRef.current = true;
+                setOverlayMessage({ 
+                    title: "LET'S PLAY!", 
+                    subtitle: "The game has started!", 
+                    type: 'start' 
+                });
+                if (soundEnabled) playAudio('start');
+                
+                if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
+                overlayTimeoutRef.current = window.setTimeout(() => { setOverlayMessage(null); overlayTimeoutRef.current = null; }, 4000);
+            }
+
             // Check for new history events to trigger sounds/overlays
             if (game.history.length > lastHistoryLen.current) {
                 const isNewGame = lastHistoryLen.current === 0;
@@ -205,7 +242,6 @@ const WhiteElephantDashboard: React.FC = () => {
                     
                     if (latestEvent.toLowerCase().includes('opened')) {
                         if (soundEnabled) playAudio('open');
-                        // Extract "Name opened [Gift]"
                         const match = latestEvent.match(/^(.*) opened \[(.*)\]!$/);
                         setOverlayMessage({ 
                             title: 'GIFT OPENED!', 
@@ -260,7 +296,10 @@ const WhiteElephantDashboard: React.FC = () => {
         try {
             const data = await getGameState(id);
             // Only update if data changed and not finished state glitch
-            if (data) setGame(prev => (prev && data.history.length < prev.history.length && !data.isFinished) ? prev : data);
+            if (data) {
+                setGame(prev => (prev && data.history.length < prev.history.length && !data.isFinished) ? prev : data);
+                if (data.isStarted) hasStartedRef.current = true; // Sync ref if loading mid-game
+            }
             setLoading(false);
         } catch (err) { console.error("Failed to fetch game:", err); }
     };
@@ -389,6 +428,21 @@ const WhiteElephantDashboard: React.FC = () => {
 
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
+            {/* STYLES FOR ANIMATIONS */}
+            <style>{`
+                @keyframes floatUp {
+                    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+                    10% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+                    100% { transform: translateY(-400px) scale(1); opacity: 0; }
+                }
+                .float-up-animation {
+                    animation: floatUp 3s ease-out forwards;
+                    position: absolute;
+                    pointer-events: none;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+            `}</style>
+
             {/* OVERLAYS */}
             <BigAnimationOverlay overlayMessage={overlayMessage} />
             <FloatingEmojis reactions={visibleReactions} />
@@ -630,7 +684,7 @@ const WhiteElephantDashboard: React.FC = () => {
             {!game.isFinished && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md shadow-2xl border border-slate-200 rounded-full px-6 py-3 flex gap-4 items-center z-[500] animate-slide-up transform transition-all hover:scale-105">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">React:</span>
-                    {['😂', '🔥', '😱', '👏', '💀'].map(emoji => (
+                    {['😂', '🔥', '😱', '👏', '💀', '❤️'].map(emoji => (
                         <button 
                             key={emoji} 
                             onClick={() => handleReaction(emoji)} 
