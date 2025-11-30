@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
@@ -12,64 +11,74 @@ import ConfirmationModal from './ConfirmationModal';
 import QRCode from 'react-qr-code';
 import { shouldTrackByDefault } from '../utils/privacy';
 
-// --- SOUND EFFECTS (Base64 encoded for instant playback) ---
-const SOUNDS = {
-    // "Ding/Chime" for opening a gift
-    open: 'data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq',
-    // "Whoosh/Slide" for stealing
-    steal: 'data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq',
-    // "Pop" for next turn
-    turn: 'data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq',
-};
+// --- SOUND ENGINE ---
+// We use a ref to hold a single AudioContext to comply with browser autoplay policies
+const useAudio = () => {
+    const audioCtxRef = useRef<AudioContext | null>(null);
+    const [isEnabled, setIsEnabled] = useState(false);
 
-// Simple Audio Player Helper
-const playAudio = (type: 'open' | 'steal' | 'turn') => {
-    try {
-        // In a real production app, these would be real mp3 file paths.
-        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioContext) return;
-        
-        const ctx = new AudioContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        const now = ctx.currentTime;
-        
-        if (type === 'open') {
-            // Magical Chime (High pitch arpeggio)
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(523.25, now); // C5
-            osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
-            osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
-            osc.frequency.setValueAtTime(1046.50, now + 0.3); // C6
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-            osc.start(now);
-            osc.stop(now + 1.5);
-        } else if (type === 'steal') {
-            // Slide Whistle / Whoosh (Frequency ramp down)
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.exponentialRampToValueAtTime(100, now + 0.4);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.001, now + 0.4);
-            osc.start(now);
-            osc.stop(now + 0.4);
-        } else {
-            // Turn Pop (Short blip)
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(400, now);
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-            osc.start(now);
-            osc.stop(now + 0.1);
+    const initAudio = () => {
+        if (!audioCtxRef.current) {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioContext) {
+                audioCtxRef.current = new AudioContext();
+            }
         }
-    } catch (e) {
-        console.error("Audio play failed", e);
-    }
+        // Resume if suspended (common browser policy requirement)
+        if (audioCtxRef.current?.state === 'suspended') {
+            audioCtxRef.current.resume();
+        }
+        setIsEnabled(true);
+    };
+
+    const playSound = (type: 'open' | 'steal' | 'turn') => {
+        if (!isEnabled || !audioCtxRef.current) return;
+        
+        try {
+            const ctx = audioCtxRef.current;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            const now = ctx.currentTime;
+            
+            if (type === 'open') {
+                // Magical Chime (High pitch arpeggio)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                osc.frequency.setValueAtTime(1046.50, now + 0.3); // C6
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+                osc.start(now);
+                osc.stop(now + 1.5);
+            } else if (type === 'steal') {
+                // Slide Whistle / Whoosh (Frequency ramp down)
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.4);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else {
+                // Turn Pop (Short blip)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+        } catch (e) {
+            console.error("Audio play failed", e);
+        }
+    };
+
+    return { isEnabled, initAudio, playSound, toggle: () => setIsEnabled(!isEnabled) };
 };
 
 const WhiteElephantDashboard: React.FC = () => {
@@ -81,8 +90,10 @@ const WhiteElephantDashboard: React.FC = () => {
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [shortPlayerLink, setShortPlayerLink] = useState<string>('');
     
-    // Sound & Animation State
-    const [soundEnabled, setSoundEnabled] = useState(false);
+    // Audio Hook
+    const { isEnabled: soundEnabled, initAudio, playSound, toggle: toggleSound } = useAudio();
+
+    // Animation State
     const [overlayMessage, setOverlayMessage] = useState<{ title: string, subtitle: string, type: 'open' | 'steal' } | null>(null);
     const lastHistoryLen = useRef(0);
     const overlayTimeoutRef = useRef<number | null>(null);
@@ -117,13 +128,14 @@ const WhiteElephantDashboard: React.FC = () => {
 
             // Generate short link for player view
             const longLink = `${window.location.href.split('#')[0]}#gameId=${gId}`;
-            fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longLink)}`)
-                .then(res => res.text())
-                .then(text => {
-                    if (!text.toLowerCase().includes('error')) setShortPlayerLink(text);
-                    else setShortPlayerLink(longLink);
-                })
-                .catch(() => setShortPlayerLink(longLink));
+            fetch('/.netlify/functions/create-short-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullUrl: longLink })
+            })
+            .then(res => res.json())
+            .then(data => setShortPlayerLink(data.shortUrl))
+            .catch(() => setShortPlayerLink(longLink));
             
             // BOUNCE RATE FIX: Fire Virtual Page View
             if (shouldTrackByDefault()) {
@@ -158,7 +170,7 @@ const WhiteElephantDashboard: React.FC = () => {
             
             // Determine event type from string (basic parsing)
             if (latestEvent.includes('opened')) {
-                if (soundEnabled) playAudio('open');
+                playSound('open');
                 // Extract info for overlay
                 const match = latestEvent.match(/^(.*) opened \[(.*)\]!$/);
                 if (match) {
@@ -167,7 +179,7 @@ const WhiteElephantDashboard: React.FC = () => {
                     setOverlayMessage({ title: 'GIFT OPENED!', subtitle: latestEvent, type: 'open' });
                 }
             } else if (latestEvent.includes('stole')) {
-                if (soundEnabled) playAudio('steal');
+                playSound('steal');
                 const match = latestEvent.match(/^(.*) stole \[(.*)\] from (.*)!$/);
                 if (match) {
                     setOverlayMessage({ title: 'STOLEN!', subtitle: `${match[1]} stole ${match[2]} from ${match[3]}`, type: 'steal' });
@@ -175,7 +187,7 @@ const WhiteElephantDashboard: React.FC = () => {
                      setOverlayMessage({ title: 'STOLEN!', subtitle: latestEvent, type: 'steal' });
                 }
             } else {
-                if (soundEnabled) playAudio('turn');
+                playSound('turn');
             }
 
             // Clear any existing timeout to prevent flickering/early dismissal
@@ -274,6 +286,15 @@ const WhiteElephantDashboard: React.FC = () => {
             victimId: victim.id,
             gift: stealGift
         });
+    };
+    
+    // Handle Sound Button Click (Must be user initiated)
+    const handleSoundToggle = () => {
+        if (!soundEnabled) {
+            initAudio(); // This creates/resumes the context
+        } else {
+            toggleSound();
+        }
     };
 
     // --- UI Sub-Components ---
@@ -413,7 +434,7 @@ const WhiteElephantDashboard: React.FC = () => {
                                 
                                 {/* Sound Toggle */}
                                 <button 
-                                    onClick={() => setSoundEnabled(!soundEnabled)}
+                                    onClick={handleSoundToggle}
                                     className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${soundEnabled ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}
                                 >
                                     {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}

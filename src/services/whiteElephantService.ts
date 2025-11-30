@@ -27,7 +27,8 @@ export const createGame = async (
 
 export const getGameState = async (gameId: string): Promise<WEGame | null> => {
     try {
-        const response = await fetch(`/.netlify/functions/we-get-game?gameId=${gameId}`);
+        // Add timestamp to prevent browser caching of game state
+        const response = await fetch(`/.netlify/functions/we-get-game?gameId=${gameId}&t=${Date.now()}`);
         if (response.status === 404) return null;
         if (!response.ok) {
             const errorData = await response.json();
