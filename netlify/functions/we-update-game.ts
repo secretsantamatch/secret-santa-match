@@ -1,3 +1,4 @@
+
 import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 import type { WEGame } from '../../src/types';

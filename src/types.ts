@@ -157,13 +157,13 @@ export interface WEGame {
     isFinished: boolean;
     finalRound: boolean; 
     history: string[];
-    reactions: WEReaction[]; 
+    reactions: WEReaction[]; // New field for emojis
     giftState: Record<string, string>; // Maps Participant ID -> Gift Description
-    giftStealCounts: Record<string, number>; // Maps Gift Description -> Number of times stolen
     createdAt: string;
-    displacedPlayerId: string | null;
-    lastVictimId: string | null;
-    lastThiefId: string | null; // Tracks who stole last to prevent immediate steal-back
+    displacedPlayerId?: string | null;
+    lastVictimId?: string | null;
+    lastThiefId?: string | null;
+    giftStealCounts: Record<string, number>;
 }
 
 // --- BABY POOL TYPES ---

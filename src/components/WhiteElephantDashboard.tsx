@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
@@ -296,8 +297,10 @@ const WhiteElephantDashboard: React.FC = () => {
         try {
             const data = await getGameState(id);
             if (data) {
-                // If it's the very first load and game is already started, set the ref silently
-                // to avoid showing "Game Started" popup on refresh.
+                // BUG FIX: Viewers missed the start popup because we silently set the ref.
+                // Logic: 
+                // 1. If we don't have a game yet (first load) AND it's already started, mark as started silently (don't play horn).
+                // 2. If we DO have a game, and it transitions from !started to started, the useEffect will handle it.
                 if (!game && data.isStarted) {
                     hasStartedRef.current = true;
                 }
@@ -395,6 +398,7 @@ const WhiteElephantDashboard: React.FC = () => {
 
         // 2. Check "No Steal Back" Rule
         // If displaced player (victim) is active, they cannot steal from the last thief.
+        // We check lastThiefId (who stole from the currently displaced player) against potential target P.
         if (game.rules.noStealBack && game.displacedPlayerId && game.lastThiefId === p.id) {
             return false;
         }
