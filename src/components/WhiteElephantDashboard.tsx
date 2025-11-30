@@ -165,7 +165,6 @@ const WhiteElephantDashboard: React.FC = () => {
     // Refs for polling and diffing
     const lastReactionCount = useRef(0);
     const lastReactionTime = useRef(0);
-    const lastHistoryLen = useRef(0);
     const overlayTimeoutRef = useRef<number | null>(null);
     const hasCelebratedRef = useRef(false);
     const pollInterval = useRef<number | null>(null);
@@ -173,11 +172,11 @@ const WhiteElephantDashboard: React.FC = () => {
     const isUpdatingRef = useRef(false);
 
     // ==========================================================================
-    // FIX #1: Track the PREVIOUS isStarted value to detect the TRANSITION
-    // null = never loaded, false = game not started, true = game started
-    // We only show popup when transitioning from FALSE to TRUE
+    // FIX: Track ACTUAL last event (not just length) to prevent race conditions
     // ==========================================================================
     const prevIsStartedRef = useRef<boolean | null>(null);
+    const lastSeenEventRef = useRef<string>('');
+    const popupDebounceRef = useRef<number>(0); // Timestamp of last popup shown
 
     // --- INITIALIZATION ---
     useEffect(() => {
@@ -190,7 +189,8 @@ const WhiteElephantDashboard: React.FC = () => {
 
         if (gId) {
             fetchGame(gId);
-            pollInterval.current = window.setInterval(() => fetchGame(gId), 3000);
+            // Poll every 1.5 seconds for faster updates (was 3 seconds)
+            pollInterval.current = window.setInterval(() => fetchGame(gId), 1500);
             
             const currentBaseUrl = window.location.href.split('#')[0];
             const longPlayerLink = `${currentBaseUrl}#gameId=${gId}`;
@@ -232,58 +232,44 @@ const WhiteElephantDashboard: React.FC = () => {
         // ==========================================================================
         if (game.isStarted && prevIsStartedRef.current === false) {
             // Game just transitioned from not-started to started!
-            setOverlayMessage({ 
-                title: "LET'S PLAY!", 
-                subtitle: `${game.turnOrder[0]?.name || 'Player 1'} goes first!`, 
-                type: 'start' 
-            });
-            if (soundEnabled) playAudio('start');
-            
-            if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
-            overlayTimeoutRef.current = window.setTimeout(() => { 
-                setOverlayMessage(null); 
-                overlayTimeoutRef.current = null; 
-            }, 4000);
+            showOverlay('start', "LET'S PLAY!", `${game.turnOrder[0]?.name || 'Player 1'} goes first!`);
         }
         
         // Update the ref AFTER checking
         prevIsStartedRef.current = game.isStarted;
 
-        // Check for new history events
-        if (game.history.length > lastHistoryLen.current) {
-            const isFirstLoad = lastHistoryLen.current === 0;
-            lastHistoryLen.current = game.history.length;
+        // ==========================================================================
+        // FIX: Check for new events using ACTUAL event text, not just length
+        // This prevents race conditions and double popups
+        // ==========================================================================
+        const latestEvent = game.history[game.history.length - 1] || '';
+        const isNewEvent = latestEvent && latestEvent !== lastSeenEventRef.current;
+        
+        if (isNewEvent) {
+            lastSeenEventRef.current = latestEvent;
             
-            if (!isFirstLoad) {
-                const latestEvent = game.history[game.history.length - 1];
-                
-                // Skip "game started" event (handled above)
-                if (!latestEvent.toLowerCase().includes('started')) {
+            // Don't show popup for "game started" (handled above) or on first load
+            const isGameStartedEvent = latestEvent.toLowerCase().includes('started');
+            const isFirstLoad = !prevIsStartedRef.current && game.history.length > 0;
+            
+            if (!isGameStartedEvent && !isFirstLoad) {
+                // Debounce: Don't show popup if one was shown in last 500ms
+                const now = Date.now();
+                if (now - popupDebounceRef.current > 500) {
+                    popupDebounceRef.current = now;
+                    
                     if (latestEvent.toLowerCase().includes('opened')) {
                         if (soundEnabled) playAudio('open');
                         const match = latestEvent.match(/^(.*) opened \[(.*)\]!$/);
-                        setOverlayMessage({ 
-                            title: 'GIFT OPENED!', 
-                            subtitle: match ? `${match[1]} opened ${match[2]}` : latestEvent, 
-                            type: 'open' 
-                        });
+                        showOverlay('open', 'GIFT OPENED!', match ? `${match[1]} opened ${match[2]}` : latestEvent);
                     } else if (latestEvent.toLowerCase().includes('stole') || latestEvent.toLowerCase().includes('swap')) {
                         if (soundEnabled) playAudio('steal');
                         const match = latestEvent.match(/^(.*) stole \[(.*)\] from (.*)!$/);
-                        setOverlayMessage({ 
-                            title: 'STOLEN!', 
-                            subtitle: match ? `${match[1]} stole ${match[2]} from ${match[3]}` : latestEvent, 
-                            type: 'steal' 
-                        });
-                    } else if (soundEnabled) {
-                        playAudio('turn');
+                        showOverlay('steal', 'STOLEN!', match ? `${match[1]} stole ${match[2]} from ${match[3]}` : latestEvent);
+                    } else if (latestEvent.toLowerCase().includes('turn')) {
+                        if (soundEnabled) playAudio('turn');
+                        // Don't show popup for turn changes, just play sound
                     }
-                    
-                    if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
-                    overlayTimeoutRef.current = window.setTimeout(() => { 
-                        setOverlayMessage(null); 
-                        overlayTimeoutRef.current = null; 
-                    }, 4000);
                 }
             }
         }
@@ -316,6 +302,20 @@ const WhiteElephantDashboard: React.FC = () => {
         }
     }, [game, soundEnabled]);
 
+    // Helper to show overlay with auto-dismiss
+    const showOverlay = (type: 'open' | 'steal' | 'start', title: string, subtitle: string) => {
+        setOverlayMessage({ title, subtitle, type });
+        if (soundEnabled) {
+            if (type === 'start') playAudio('start');
+        }
+        
+        if (overlayTimeoutRef.current) window.clearTimeout(overlayTimeoutRef.current);
+        overlayTimeoutRef.current = window.setTimeout(() => { 
+            setOverlayMessage(null); 
+            overlayTimeoutRef.current = null; 
+        }, 4000);
+    };
+
     const fetchGame = async (id: string) => {
         if (Date.now() - lastManualUpdate.current < 2000 || isUpdatingRef.current) return;
         try {
@@ -340,8 +340,31 @@ const WhiteElephantDashboard: React.FC = () => {
         try {
             const updatedGame = await updateGameState(gameId, organizerKey, action, payload);
             if (updatedGame) {
+                // ==========================================================================
+                // FIX: Set lastSeenEventRef BEFORE setGame to prevent duplicate popup
+                // The admin action will show popup once from this update, not from useEffect
+                // ==========================================================================
+                const latestEvent = updatedGame.history[updatedGame.history.length - 1] || '';
+                
+                // Show popup for admin immediately (before useEffect can fire)
+                if (latestEvent && action !== 'start_game' && action !== 'end_game' && action !== 'undo') {
+                    popupDebounceRef.current = Date.now();
+                    
+                    if (latestEvent.toLowerCase().includes('opened')) {
+                        if (soundEnabled) playAudio('open');
+                        const match = latestEvent.match(/^(.*) opened \[(.*)\]!$/);
+                        showOverlay('open', 'GIFT OPENED!', match ? `${match[1]} opened ${match[2]}` : latestEvent);
+                    } else if (latestEvent.toLowerCase().includes('stole') || latestEvent.toLowerCase().includes('swap')) {
+                        if (soundEnabled) playAudio('steal');
+                        const match = latestEvent.match(/^(.*) stole \[(.*)\] from (.*)!$/);
+                        showOverlay('steal', 'STOLEN!', match ? `${match[1]} stole ${match[2]} from ${match[3]}` : latestEvent);
+                    }
+                }
+                
+                // Mark this event as "seen" so useEffect won't trigger popup again
+                lastSeenEventRef.current = latestEvent;
+                
                 setGame(updatedGame);
-                lastHistoryLen.current = updatedGame.history.length;
                 trackEvent(`we_action_${action}`);
             }
         } catch (err) { 
