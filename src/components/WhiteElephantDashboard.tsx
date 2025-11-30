@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState } from '../services/whiteElephantService';
@@ -25,7 +24,6 @@ const SOUNDS = {
 // Simple Audio Player Helper
 const playAudio = (type: 'open' | 'steal' | 'turn') => {
     try {
-        // In a real production app, these would be real mp3 file paths.
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         if (!AudioContext) return;
         
@@ -115,16 +113,30 @@ const WhiteElephantDashboard: React.FC = () => {
             // Start Polling every 3 seconds using window.setInterval
             pollInterval.current = window.setInterval(() => fetchGame(gId), 3000);
 
-            // Generate short link for player view
-            const longLink = `${window.location.href.split('#')[0]}#gameId=${gId}`;
-            fetch('/.netlify/functions/create-short-link', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fullUrl: longLink })
-            })
-            .then(res => res.json())
-            .then(data => setShortPlayerLink(data.shortUrl))
-            .catch(() => setShortPlayerLink(longLink));
+            // --- SHORT LINK LOGIC (WITH CACHING) ---
+            const storageKey = `ssm_we_link_${gId}`;
+            const cachedLink = localStorage.getItem(storageKey);
+            
+            if (cachedLink) {
+                setShortPlayerLink(cachedLink);
+            } else {
+                const longLink = `${window.location.href.split('#')[0]}#gameId=${gId}`;
+                fetch('/.netlify/functions/create-short-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullUrl: longLink })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.shortUrl) {
+                        setShortPlayerLink(data.shortUrl);
+                        localStorage.setItem(storageKey, data.shortUrl);
+                    } else {
+                        setShortPlayerLink(longLink);
+                    }
+                })
+                .catch(() => setShortPlayerLink(longLink));
+            }
             
             // BOUNCE RATE FIX: Fire Virtual Page View
             if (shouldTrackByDefault()) {
