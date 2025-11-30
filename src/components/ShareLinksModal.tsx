@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import type { ExchangeData, Match, Participant } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -230,6 +229,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
   // SANITIZE DATA FOR URL HASH
   // We strip out mutable fields (interests, likes, dislikes, links, budget)
   // so the URL hash remains stable even if the user updates their wishlist in the background.
+  // This prevents the short link generator from running in an infinite loop due to hash mismatches.
   const compressedHash = useMemo(() => {
       const { backgroundOptions, ...baseData } = exchangeData;
       
@@ -272,16 +272,27 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
   const getFullOrganizerLink = (): string => `${window.location.origin}/generator.html#${compressedHash}`;
 
   useEffect(() => {
-    const shortenUrl = async (url: string) => {
+    const shortenUrl = async (url: string, uniqueKey: string) => {
         try {
+            // Check LocalStorage cache first
+            const cached = localStorage.getItem(`short_link_${uniqueKey}`);
+            if (cached) return cached;
+
             const res = await fetch('/.netlify/functions/create-short-link', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fullUrl: url })
+                body: JSON.stringify({ 
+                    fullUrl: url,
+                    uniqueKey: uniqueKey // Stable identifier
+                })
             });
             if (res.ok) {
                 const data = await res.json();
-                return data.shortUrl || url;
+                if (data.shortUrl) {
+                    // Cache the result
+                    try { localStorage.setItem(`short_link_${uniqueKey}`, data.shortUrl); } catch(e){}
+                    return data.shortUrl;
+                }
             }
         } catch (e) { console.error("Shortener error:", e); }
         return url;
@@ -289,9 +300,23 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
 
     const fetchAllShortLinks = async () => {
         setLoadingShortLinks(true);
-        const linksToShorten = matches.map(m => ({ id: m.giver.id, url: getFullLink(m.giver.id) }));
-        linksToShorten.push({ id: 'organizer', url: getFullOrganizerLink() });
-        const promises = linksToShorten.map(item => shortenUrl(item.url).then(shortUrl => ({ id: item.id, shortUrl })));
+        
+        const linksToShorten = matches.map(m => ({ 
+            id: m.giver.id, 
+            url: getFullLink(m.giver.id),
+            uniqueKey: `participant_${exchangeData.id}_${m.giver.id}`
+        }));
+        
+        linksToShorten.push({ 
+            id: 'organizer', 
+            url: getFullOrganizerLink(),
+            uniqueKey: `organizer_${exchangeData.id}`
+        });
+
+        const promises = linksToShorten.map(item => 
+            shortenUrl(item.url, item.uniqueKey).then(shortUrl => ({ id: item.id, shortUrl }))
+        );
+        
         const results = await Promise.all(promises);
         const newShortLinks: Record<string, string> = {};
         results.forEach(result => { newShortLinks[result.id] = result.shortUrl; });
@@ -300,7 +325,7 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ exchangeData, 
     };
 
     fetchAllShortLinks();
-  }, [compressedHash]); // Only re-run if compressedHash changes (which is now stable)
+  }, [compressedHash, exchangeData.id]); 
 
   const getLinkForParticipant = (participant: Participant) => !showFullLinks ? (shortLinks[participant.id] || getFullLink(participant.id)) : getFullLink(participant.id);
   
