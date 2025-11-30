@@ -153,12 +153,15 @@ export interface WEGame {
     rules: WERules;
     theme: WETheme;
     currentPlayerIndex: number;
+    displacedPlayerId: string | null; // ID of the player who was just stolen from and needs to act
+    lastVictimId: string | null;      // ID of the last victim (to prevent immediate steal-back)
     isStarted: boolean;
     isFinished: boolean;
     finalRound: boolean; 
     history: string[];
-    reactions: WEReaction[]; // New field for emojis
+    reactions: WEReaction[]; 
     giftState: Record<string, string>; // Maps Participant ID -> Gift Description
+    giftStealCounts: Record<string, number>; // Maps Gift Description -> Number of times stolen
     createdAt: string;
 }
 

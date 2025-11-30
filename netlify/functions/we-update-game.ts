@@ -34,10 +34,11 @@ export default async (req: Request, context: Context) => {
             return new Response(JSON.stringify({ error: 'Unauthorized.' }), { status: 403 });
         }
 
-        // Ensure giftState exists
-        if (!game.giftState) {
-            game.giftState = {};
-        }
+        // Init checks for existing games
+        if (!game.giftState) game.giftState = {};
+        if (!game.giftStealCounts) game.giftStealCounts = {};
+        if (game.displacedPlayerId === undefined) game.displacedPlayerId = null;
+        if (game.lastVictimId === undefined) game.lastVictimId = null;
 
         switch (action) {
             case 'start_game':
@@ -46,46 +47,80 @@ export default async (req: Request, context: Context) => {
                     game.history.push('The game has started!');
                 }
                 break;
-            case 'next_player':
-                if (game.finalRound && game.currentPlayerIndex === 0) {
-                    // End of final round
-                    game.isFinished = true;
-                    game.history.push('The game has ended! Thanks for playing!');
-                } else if (game.currentPlayerIndex < game.turnOrder.length - 1) {
-                    game.currentPlayerIndex++;
-                    game.history.push(`It's now ${game.turnOrder[game.currentPlayerIndex].name}'s turn.`);
-                } else if (!game.finalRound) {
-                    // Trigger Final Round for Player 1
-                    game.finalRound = true;
-                    game.currentPlayerIndex = 0; // Back to Player 1
-                    game.history.push(`FINAL ROUND! ${game.turnOrder[0].name} gets one last chance to steal!`);
-                } else {
-                     game.isFinished = true;
-                     game.history.push('The game has ended! Thanks for playing!');
-                }
-                break;
+
             case 'log_open':
+                // Logic: A player opens a gift. This effectively "ends" the turn/chain and moves the game to the next person in line.
+                // Even if it was a displaced player opening, the "chain" of steals resolves here.
                 if (payload && payload.entry && payload.actorId && payload.gift) {
                     game.history.push(payload.entry);
+                    
+                    // Assign gift
                     game.giftState[payload.actorId] = payload.gift;
+                    // Initialize steal count for this new gift
+                    game.giftStealCounts[payload.gift] = 0;
+
+                    // Clear steal chain state since a new gift was opened
+                    game.displacedPlayerId = null;
+                    game.lastVictimId = null;
+
+                    // Advance the Turn Order
+                    // We only move to the next player index if the game isn't finished
+                    if (game.currentPlayerIndex < game.turnOrder.length - 1) {
+                        game.currentPlayerIndex++;
+                        game.history.push(`It's now ${game.turnOrder[game.currentPlayerIndex].name}'s turn.`);
+                    } else {
+                        // Everyone has had a chance to open a gift
+                        game.isFinished = true;
+                        game.history.push('All gifts have been opened! The game is over (unless you want to do a final swap)!');
+                    }
                 }
                 break;
+
             case 'log_steal':
+                // Logic: Player steals a gift. They get the gift, the victim becomes "displaced" and must act next.
+                // The main turn counter (currentPlayerIndex) DOES NOT change.
                 if (payload && payload.entry) {
                     game.history.push(payload.entry);
+                    
                     // Update gift ownership
                     if (payload.thiefId && payload.victimId && payload.gift) {
                         game.giftState[payload.thiefId] = payload.gift;
                         delete game.giftState[payload.victimId];
+                        
+                        // Increment Steal Count
+                        const currentSteals = game.giftStealCounts[payload.gift] || 0;
+                        game.giftStealCounts[payload.gift] = currentSteals + 1;
+
+                        // Set the displaced player (the victim)
+                        game.displacedPlayerId = payload.victimId;
+                        
+                        // Track last victim to prevent immediate steal-back rules
+                        game.lastVictimId = payload.victimId; 
                     }
                 }
                 break;
+
+            case 'next_player':
+                // Manual override to skip or force next
+                game.displacedPlayerId = null;
+                if (game.currentPlayerIndex < game.turnOrder.length - 1) {
+                    game.currentPlayerIndex++;
+                    game.history.push(`Organized forced next turn: ${game.turnOrder[game.currentPlayerIndex].name}`);
+                } else {
+                     game.isFinished = true;
+                     game.history.push('The game has ended!');
+                }
+                break;
+
             case 'undo':
                 // Simple undo: pops the last history entry. 
+                // Note: This simplistic undo doesn't revert complex state perfectly, 
+                // but it helps if an organizer just logged a text string wrong.
                 if (game.history.length > 1) { 
                     game.history.pop();
                 }
                 break;
+
             case 'end_game':
                 game.isFinished = true;
                 game.history.push('The organizer has ended the game.');

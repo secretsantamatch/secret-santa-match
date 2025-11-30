@@ -1,4 +1,3 @@
-
 import { getStore } from "@netlify/blobs";
 import type { Context } from '@netlify/functions';
 import type { WEGame, WEParticipant, WERules, WETheme } from '../../src/types';
@@ -35,12 +34,15 @@ export default async (req: Request, context: Context) => {
             rules,
             theme,
             currentPlayerIndex: 0,
+            displacedPlayerId: null,
+            lastVictimId: null,
             isStarted: false,
             isFinished: false,
             finalRound: false,
             history: [],
             reactions: [], // Initialize empty
             giftState: {}, // Initialize empty gift state
+            giftStealCounts: {}, // Initialize empty counts
             createdAt: new Date().toISOString(),
         };
 
