@@ -914,7 +914,7 @@ const WhiteElephantDashboard: React.FC = () => {
                     ))}
                 </div>
             )}
-            
+
             {/* Viewer Footer Promo - Replaced with Bottom Left Banner */}
             {!isOrganizer && (
                 <a 
