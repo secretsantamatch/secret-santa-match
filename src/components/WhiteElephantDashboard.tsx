@@ -5,13 +5,14 @@ import type { WEGame, WEReaction } from '../types';
 import Header from './Header';
 import Footer from './Footer';
 import { generateWETurnNumbersPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer, ArrowRight, ShoppingBag } from 'lucide-react';
+import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer, ArrowRight, ShoppingBag, ShieldCheck, Mail } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import confetti from 'canvas-confetti';
 import html2canvas from 'html2canvas';
 import { shouldTrackByDefault } from '../utils/privacy';
 import { SmartAd } from './AdWidgets';
 import { getPromoById } from '../services/promoEngine';
+import AdBanner from './AdBanner';
 
 // --- AUDIO SYSTEM ---
 const playAudio = (type: 'open' | 'steal' | 'turn' | 'win' | 'start') => {
@@ -914,18 +915,21 @@ const WhiteElephantDashboard: React.FC = () => {
                         
                         {/* SPONSORED PROMO FOR VIEWERS - SITS BELOW TICKER */}
                         {!isOrganizer && (
-                            <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-5 shadow-lg text-white flex items-center justify-between gap-4 mt-6 transform transition-all hover:scale-[1.01] group cursor-pointer" onClick={() => window.open('/', '_blank')}>
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                                        <Gift size={24} className="text-white group-hover:animate-bounce" />
+                            <div className="bg-white rounded-2xl p-1 shadow-sm border border-slate-200 mt-6 hover:shadow-md transition-shadow cursor-pointer group" onClick={() => window.open('/', '_blank')}>
+                                <div className="bg-gradient-to-r from-slate-800 to-indigo-900 rounded-xl p-5 flex items-center justify-between gap-4 relative overflow-hidden">
+                                    {/* Decor */}
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                                    
+                                    <div className="flex items-center gap-4 relative z-10">
+                                        <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm border border-white/10">
+                                            <Gift size={24} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-0.5">More Free Tools</p>
+                                            <p className="font-bold text-white text-lg leading-tight">Get Free Printables & Party Games</p>
+                                            <p className="text-xs text-slate-300 mt-1 group-hover:text-white transition-colors">SecretSantaMatch.com &rarr;</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-0.5">Powered by SecretSantaMatch</p>
-                                        <p className="font-bold text-lg leading-tight">Get Free Party Games & Printables</p>
-                                    </div>
-                                </div>
-                                <div className="bg-white text-indigo-600 p-2 rounded-full shadow-sm group-hover:bg-indigo-50 transition-colors">
-                                    <ArrowRight size={20} />
                                 </div>
                             </div>
                         )}
