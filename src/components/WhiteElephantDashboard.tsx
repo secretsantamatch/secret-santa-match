@@ -528,7 +528,6 @@ const WhiteElephantDashboard: React.FC = () => {
             `}</style>
 
             {/* --- HIDDEN RECAP IMAGE TEMPLATE (FOR GENERATION ONLY) --- */}
-            {/* This div is hidden from view but used by html2canvas. Fixed width ensures consistent layout. */}
             <div id="social-recap-capture" style={{ display: 'none', position: 'absolute', top: 0, left: '-9999px', width: '600px', zIndex: -1 }}>
                 <div className="w-[600px] bg-gradient-to-br from-red-900 via-slate-900 to-slate-800 p-8 text-white font-sans min-h-[800px] flex flex-col border-[12px] border-yellow-500/80 relative">
                     {/* Header */}
@@ -553,18 +552,18 @@ const WhiteElephantDashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* The Grid */}
-                    <div className="bg-white/5 rounded-xl p-6 border border-white/10 flex-grow">
+                    {/* The Grid - DYNAMIC HEIGHT AND TEXT WRAPPING */}
+                    <div className="bg-white/5 rounded-xl p-6 border border-white/10 mb-8 flex-grow">
                         <h3 className="text-center text-xl font-bold mb-6 flex items-center justify-center gap-2">
                             <Gift size={24} className="text-red-400" /> Final Results
                         </h3>
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                             {game.turnOrder.map((p, i) => (
-                                <div key={p.id} className="flex items-center gap-3 border-b border-white/5 pb-2">
-                                    <span className="w-6 h-6 bg-yellow-500 text-slate-900 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">{i+1}</span>
-                                    <div className="min-w-0">
-                                        <p className="font-bold text-sm truncate text-slate-200">{p.name}</p>
-                                        <p className="text-xs text-emerald-400 truncate">{game.giftState[p.id] || 'No Gift'}</p>
+                                <div key={p.id} className="flex items-start gap-3 border-b border-white/5 pb-3">
+                                    <span className="w-6 h-6 bg-yellow-500 text-slate-900 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i+1}</span>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-bold text-sm text-slate-200 leading-snug break-words">{p.name}</p>
+                                        <p className="text-xs text-emerald-400 mt-0.5 leading-snug break-words">{game.giftState[p.id] || 'No Gift'}</p>
                                     </div>
                                 </div>
                             ))}
@@ -572,7 +571,7 @@ const WhiteElephantDashboard: React.FC = () => {
                     </div>
 
                     {/* Footer */}
-                    <div className="mt-auto pt-8 text-center">
+                    <div className="mt-auto pt-4 text-center">
                         <p className="text-slate-400 text-sm font-medium">Create your own for free at</p>
                         <p className="text-2xl font-bold text-white">SecretSantaMatch.com</p>
                     </div>
