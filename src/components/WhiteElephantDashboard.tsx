@@ -5,7 +5,7 @@ import type { WEGame, WEReaction } from '../types';
 import Header from './Header';
 import Footer from './Footer';
 import { generateWETurnNumbersPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame } from 'lucide-react';
+import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import confetti from 'canvas-confetti';
 import html2canvas from 'html2canvas';
@@ -553,7 +553,6 @@ const WhiteElephantDashboard: React.FC = () => {
                         </div>
                         <div className="bg-white/10 p-4 rounded-xl text-center border border-white/10">
                             <p className="text-yellow-400 font-bold text-sm uppercase tracking-wider">Most Stolen Gift</p>
-                            {/* FIX: Removed truncate to allow long text to wrap */}
                             <p className="text-xl font-bold text-white break-words px-2 leading-tight mt-1">
                                 {mostStolen ? mostStolen.name : 'None'}
                             </p>
@@ -915,14 +914,25 @@ const WhiteElephantDashboard: React.FC = () => {
                     ))}
                 </div>
             )}
-
-            {/* Viewer Footer Promo */}
+            
+            {/* Viewer Footer Promo - Replaced with Bottom Left Banner */}
             {!isOrganizer && (
-                <div className="fixed bottom-20 left-1/2 -translate-x-1/2 text-center z-[400]">
-                    <a href="/" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">
-                        🎁 Powered by <span className="font-bold">SecretSantaMatch.com</span> — Free gift exchange tools
-                    </a>
-                </div>
+                <a 
+                    href="/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="fixed bottom-6 left-6 z-[400] hidden md:flex items-center gap-3 bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 hover:scale-105 transition-all group"
+                >
+                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-2.5 rounded-xl shadow-sm group-hover:rotate-12 transition-transform">
+                        <Gift size={20} fill="currentColor" className="text-white/90" />
+                    </div>
+                    <div className="text-left">
+                        <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Love this tool?</p>
+                        <p className="text-sm font-bold text-slate-700 leading-none group-hover:text-indigo-600 transition-colors">
+                            Get Free Printables & Party Games <span className="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
+                        </p>
+                    </div>
+                </a>
             )}
 
             <Footer />
