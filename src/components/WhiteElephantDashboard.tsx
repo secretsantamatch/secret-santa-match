@@ -375,6 +375,9 @@ const WhiteElephantDashboard: React.FC = () => {
     };
 
     const handleReaction = (emoji: string) => {
+        // Analytics: Track interaction so session isn't a bounce
+        trackEvent('we_send_reaction', { emoji });
+        
         if (!gameId || Date.now() - lastReactionTime.current < 2000) return; 
         lastReactionTime.current = Date.now();
         
@@ -385,15 +388,21 @@ const WhiteElephantDashboard: React.FC = () => {
         sendReaction(gameId, emoji);
     };
 
+    const handleToggleSound = () => {
+        const newState = !soundEnabled;
+        setSoundEnabled(newState);
+        trackEvent('we_toggle_sound', { enabled: newState });
+    };
+
     // --- SHAREABLE IMAGE GENERATOR ---
     const handleDownloadRecap = async () => {
         setIsGeneratingImage(true);
-        // Use the dedicated hidden element that is formatted perfectly for social media
+        trackEvent('we_download_recap_start');
+        
         const element = document.getElementById('social-recap-capture');
         
         if (element) {
             try {
-                // Temporarily make it visible for capture, but keep it hidden from user view via z-index
                 element.style.display = 'block';
                 
                 const canvas = await html2canvas(element, { 
@@ -403,17 +412,17 @@ const WhiteElephantDashboard: React.FC = () => {
                     logging: false
                 });
                 
-                // Hide it again
                 element.style.display = 'none';
 
                 const link = document.createElement('a');
                 link.download = `White_Elephant_Recap.png`;
                 link.href = canvas.toDataURL();
                 link.click();
-                trackEvent('we_download_recap');
+                trackEvent('we_download_recap_success');
             } catch (e) { 
                 console.error("Image gen error:", e);
                 showToast("Could not generate image"); 
+                trackEvent('we_download_recap_fail');
             }
         }
         setIsGeneratingImage(false);
@@ -458,7 +467,6 @@ const WhiteElephantDashboard: React.FC = () => {
     const canSteal = availableVictims.length > 0;
 
     // --- CALCULATE STATS FOR RECAP ---
-    // Find the "Most Stolen Gift"
     const getMostStolenGift = () => {
         if (!game?.giftStealCounts) return null;
         let maxSteals = 0;
@@ -545,7 +553,8 @@ const WhiteElephantDashboard: React.FC = () => {
                         </div>
                         <div className="bg-white/10 p-4 rounded-xl text-center border border-white/10">
                             <p className="text-yellow-400 font-bold text-sm uppercase tracking-wider">Most Stolen Gift</p>
-                            <p className="text-xl font-bold text-white truncate px-2 leading-tight mt-1">
+                            {/* FIX: Removed truncate to allow long text to wrap */}
+                            <p className="text-xl font-bold text-white break-words px-2 leading-tight mt-1">
                                 {mostStolen ? mostStolen.name : 'None'}
                             </p>
                             {mostStolen && <p className="text-xs text-slate-400 mt-1">Stolen {mostStolen.count} times!</p>}
@@ -639,7 +648,7 @@ const WhiteElephantDashboard: React.FC = () => {
                                     {game.isFinished ? 'Game Over' : game.isStarted ? 'Live Game' : 'Waiting...'}
                                 </span>
                                 <button 
-                                    onClick={() => setSoundEnabled(!soundEnabled)}
+                                    onClick={handleToggleSound}
                                     className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${soundEnabled ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}
                                 >
                                     {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
