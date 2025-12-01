@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
 import type { WEGame, WEReaction } from '../types';
 import Header from './Header';
 import Footer from './Footer';
 import { generateWETurnNumbersPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer, ArrowRight } from 'lucide-react';
+import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer, ArrowRight, ShoppingBag } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import confetti from 'canvas-confetti';
 import html2canvas from 'html2canvas';
 import { shouldTrackByDefault } from '../utils/privacy';
+import { SmartAd } from './AdWidgets';
+import { getPromoById } from '../services/promoEngine';
 
 // --- AUDIO SYSTEM ---
 const playAudio = (type: 'open' | 'steal' | 'turn' | 'win' | 'start') => {
@@ -178,6 +180,11 @@ const WhiteElephantDashboard: React.FC = () => {
     const prevIsStartedRef = useRef<boolean | null>(null);
     const lastSeenHistoryLenRef = useRef<number>(0);
     const popupDebounceRef = useRef<number>(0);
+
+    // Get Ad for Organizer
+    const organizerAd = useMemo(() => {
+        return getPromoById('giftcards-cyber-week') || getPromoById('giftcards-com-general');
+    }, []);
 
     // Sync game state to ref
     useEffect(() => {
@@ -598,40 +605,57 @@ const WhiteElephantDashboard: React.FC = () => {
                 
                 {/* ORGANIZER CONTROL PANEL */}
                 {isOrganizer && (
-                    <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
-                        <div className="bg-amber-50 border-2 border-amber-200 border-dashed rounded-xl p-5 flex flex-col justify-between">
-                            <div>
-                                <div className="flex items-center gap-2 mb-2 text-amber-800 font-bold">
-                                    <Lock size={18} /> Organizer Master Key
+                    <>
+                        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
+                            <div className="bg-amber-50 border-2 border-amber-200 border-dashed rounded-xl p-5 flex flex-col justify-between">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2 text-amber-800 font-bold">
+                                        <Lock size={18} /> Organizer Master Key
+                                    </div>
+                                    <p className="text-amber-700 text-sm mb-4">
+                                        Private control panel. <span className="font-extrabold underline">Do not share</span>.
+                                    </p>
                                 </div>
-                                <p className="text-amber-700 text-sm mb-4">
-                                    Private control panel. <span className="font-extrabold underline">Do not share</span>.
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-2 bg-white p-2 rounded border border-amber-200">
-                                <input type="text" readOnly value={displayOrganizerLink} className="flex-1 text-xs text-slate-500 truncate outline-none" />
-                                <button onClick={() => copyToClipboard(displayOrganizerLink)} className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded text-xs font-bold flex items-center gap-1">
-                                    <Copy size={14}/> Copy
-                                </button>
-                            </div>
-                        </div>
-                        <div className="bg-indigo-600 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-2 mb-2 font-bold text-lg text-indigo-100">
-                                    <Smartphone size={22} /> Player Dashboard Link
-                                </div>
-                                <p className="text-indigo-100 text-sm mb-4 opacity-90">
-                                    Share screen or send this link to participants.
-                                </p>
-                                <div className="flex items-center gap-2 bg-indigo-800/50 p-2 rounded border border-indigo-400/30">
-                                    <input type="text" readOnly value={displayPlayerLink} className="flex-1 text-xs text-indigo-200 bg-transparent truncate outline-none font-mono" />
-                                    <button onClick={() => copyToClipboard(displayPlayerLink)} className="p-2 bg-white text-indigo-700 hover:bg-indigo-50 rounded text-xs font-bold flex items-center gap-1 shadow-sm">
-                                        <Share2 size={14}/> Copy
+                                <div className="flex items-center gap-2 bg-white p-2 rounded border border-amber-200">
+                                    <input type="text" readOnly value={displayOrganizerLink} className="flex-1 text-xs text-slate-500 truncate outline-none" />
+                                    <button onClick={() => copyToClipboard(displayOrganizerLink)} className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded text-xs font-bold flex items-center gap-1">
+                                        <Copy size={14}/> Copy
                                     </button>
                                 </div>
                             </div>
+                            <div className="bg-indigo-600 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-2 font-bold text-lg text-indigo-100">
+                                        <Smartphone size={22} /> Player Dashboard Link
+                                    </div>
+                                    <p className="text-indigo-100 text-sm mb-4 opacity-90">
+                                        Share screen or send this link to participants.
+                                    </p>
+                                    <div className="flex items-center gap-2 bg-indigo-800/50 p-2 rounded border border-indigo-400/30">
+                                        <input type="text" readOnly value={displayPlayerLink} className="flex-1 text-xs text-indigo-200 bg-transparent truncate outline-none font-mono" />
+                                        <button onClick={() => copyToClipboard(displayPlayerLink)} className="p-2 bg-white text-indigo-700 hover:bg-indigo-50 rounded text-xs font-bold flex items-center gap-1 shadow-sm">
+                                            <Share2 size={14}/> Copy
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+
+                        {/* ORGANIZER AD BANNER */}
+                        {organizerAd && (
+                            <div className="mb-8 animate-fade-in-up">
+                                <div className="flex items-center justify-between mb-2 px-1">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1"><ShoppingBag size={12}/> Gift Ideas</span>
+                                    <span className="text-[10px] text-slate-300">Sponsored</span>
+                                </div>
+                                <SmartAd 
+                                    partner={organizerAd.partner} 
+                                    creative={organizerAd.creative} 
+                                    placement="we_organizer_dashboard" 
+                                />
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {/* DASHBOARD HEADER */}
