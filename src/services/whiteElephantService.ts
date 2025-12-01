@@ -44,7 +44,7 @@ export const getGameState = async (gameId: string): Promise<WEGame | null> => {
 export const updateGameState = async (
     gameId: string, 
     organizerKey: string, 
-    action: 'next_player' | 'log_steal' | 'log_open' | 'undo' | 'start_game' | 'end_game', 
+    action: 'next_player' | 'log_steal' | 'log_open' | 'log_keep' | 'undo' | 'start_game' | 'end_game', 
     payload?: any
 ): Promise<WEGame | null> => {
     try {
@@ -61,5 +61,18 @@ export const updateGameState = async (
     } catch (error) {
         console.error("Error in updateGameState service:", error);
         throw error;
+    }
+};
+
+export const sendReaction = async (gameId: string, emoji: string): Promise<void> => {
+    try {
+        await fetch('/.netlify/functions/we-reaction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId, emoji }),
+        });
+    } catch (error) {
+        // Silent fail for reactions
+        console.error("Error sending reaction:", error);
     }
 };
