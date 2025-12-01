@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
@@ -6,7 +5,7 @@ import type { WEGame, WEReaction } from '../types';
 import Header from './Header';
 import Footer from './Footer';
 import { generateWETurnNumbersPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy } from 'lucide-react';
+import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import confetti from 'canvas-confetti';
 import html2canvas from 'html2canvas';
@@ -19,7 +18,6 @@ const playAudio = (type: 'open' | 'steal' | 'turn' | 'win' | 'start') => {
         if (!AudioContext) return;
         const ctx = new AudioContext();
         
-        // Resume context if suspended (browser policy)
         if (ctx.state === 'suspended') ctx.resume();
 
         const osc = ctx.createOscillator();
@@ -139,7 +137,6 @@ const BigAnimationOverlay = ({ overlayMessage, onClose }: { overlayMessage: any,
 
 const WhiteElephantDashboard: React.FC = () => {
     const [game, setGame] = useState<WEGame | null>(null);
-    // Use a Ref to track the current game state inside the interval closure to solve stale state bugs
     const gameRef = useRef<WEGame | null>(null);
     
     const [loading, setLoading] = useState(true);
@@ -178,12 +175,14 @@ const WhiteElephantDashboard: React.FC = () => {
     const lastManualUpdate = useRef<number>(0);
     const isUpdatingRef = useRef(false);
 
-    // ==========================================================================
-    // FIX: Track history LENGTH to detect multiple new events at once
-    // ==========================================================================
     const prevIsStartedRef = useRef<boolean | null>(null);
     const lastSeenHistoryLenRef = useRef<number>(0);
     const popupDebounceRef = useRef<number>(0);
+
+    // Sync game state to ref
+    useEffect(() => {
+        gameRef.current = game;
+    }, [game]);
 
     // --- INITIALIZATION ---
     useEffect(() => {
@@ -196,7 +195,6 @@ const WhiteElephantDashboard: React.FC = () => {
 
         if (gId) {
             fetchGame(gId);
-            // Poll every 1.5 seconds for faster updates (was 3 seconds)
             pollInterval.current = window.setInterval(() => fetchGame(gId), 1500);
             
             const currentBaseUrl = window.location.href.split('#')[0];
@@ -228,39 +226,23 @@ const WhiteElephantDashboard: React.FC = () => {
         return () => { if (pollInterval.current) window.clearInterval(pollInterval.current); };
     }, []);
 
-    // Sync game state to ref for access inside interval/async closures
-    useEffect(() => {
-        gameRef.current = game;
-    }, [game]);
-
     // --- GAME STATE MONITORING ---
     useEffect(() => {
         if (!game) return;
 
-        // ==========================================================================
-        // FIX #1: Detect START transition properly
-        // ==========================================================================
         if (game.isStarted && prevIsStartedRef.current === false) {
             showOverlay('start', "LET'S PLAY!", `${game.turnOrder[0]?.name || 'Player 1'} goes first!`);
         }
         prevIsStartedRef.current = game.isStarted;
 
-        // ==========================================================================
-        // FIX: Check ALL new events, not just the last one
-        // When a gift is opened, backend logs BOTH "opened" AND "next turn"
-        // We need to find the OPEN/STEAL event and show that popup
-        // ==========================================================================
         if (game.history.length > lastSeenHistoryLenRef.current) {
             const isFirstLoad = lastSeenHistoryLenRef.current === 0;
             const newEvents = game.history.slice(lastSeenHistoryLenRef.current);
             lastSeenHistoryLenRef.current = game.history.length;
             
             if (!isFirstLoad) {
-                // Debounce: Don't show popup if one was shown in last 500ms
                 const now = Date.now();
                 if (now - popupDebounceRef.current > 500) {
-                    
-                    // Find the most important event (prioritize OPEN/STEAL over TURN)
                     let eventToShow: string | null = null;
                     let eventType: 'open' | 'steal' | null = null;
                     
@@ -269,11 +251,11 @@ const WhiteElephantDashboard: React.FC = () => {
                         if (lower.includes('opened')) {
                             eventToShow = event;
                             eventType = 'open';
-                            break; // Open is highest priority
+                            break;
                         } else if (lower.includes('stole') || lower.includes('swap')) {
                             eventToShow = event;
                             eventType = 'steal';
-                            break; // Steal is high priority
+                            break;
                         }
                     }
                     
@@ -290,14 +272,12 @@ const WhiteElephantDashboard: React.FC = () => {
                             showOverlay('steal', 'STOLEN!', match ? `${match[1]} stole ${match[2]} from ${match[3]}` : eventToShow);
                         }
                     } else if (soundEnabled) {
-                        // No open/steal, just play turn sound for other events
                         playAudio('turn');
                     }
                 }
             }
         }
 
-        // Game Finished Celebration
         if (game.isFinished && !hasCelebratedRef.current) {
             hasCelebratedRef.current = true;
             if (soundEnabled) playAudio('win');
@@ -306,7 +286,6 @@ const WhiteElephantDashboard: React.FC = () => {
             setTimeout(() => confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 } }), 500);
         }
 
-        // Reactions Polling
         const reactions = game.reactions || [];
         if (reactions.length > lastReactionCount.current) {
             if (lastReactionCount.current !== 0) {
@@ -325,7 +304,6 @@ const WhiteElephantDashboard: React.FC = () => {
         }
     }, [game, soundEnabled]);
 
-    // Helper to show overlay with auto-dismiss
     const showOverlay = (type: 'open' | 'steal' | 'start', title: string, subtitle: string) => {
         setOverlayMessage({ title, subtitle, type });
         if (soundEnabled) {
@@ -344,19 +322,10 @@ const WhiteElephantDashboard: React.FC = () => {
         try {
             const data = await getGameState(id);
             if (data) {
-                // ==========================================================================
-                // FIX #3: Always update state - let React handle diffing
-                // The previous logic was too restrictive and missed giftState updates
-                // ==========================================================================
-                // Use the REF to check the previous state, preventing stale closure issues
                 const prevGame = gameRef.current;
-
-                // Case 1: First load (prevGame is null). If game already started, silent sync.
                 if (!prevGame && data.isStarted) {
                     hasStartedRef.current = true;
-                    prevIsStartedRef.current = true;
                 }
-                
                 setGame(data);
             }
             setLoading(false);
@@ -372,12 +341,7 @@ const WhiteElephantDashboard: React.FC = () => {
         try {
             const updatedGame = await updateGameState(gameId, organizerKey, action, payload);
             if (updatedGame) {
-                // ==========================================================================
-                // FIX: Show popup immediately for admin, then mark history as "seen"
-                // ==========================================================================
                 const latestEvent = updatedGame.history[updatedGame.history.length - 1] || '';
-                
-                // Show popup for admin immediately
                 if (latestEvent && action !== 'start_game' && action !== 'end_game' && action !== 'undo' && action !== 'next_player') {
                     popupDebounceRef.current = Date.now();
                     
@@ -392,9 +356,7 @@ const WhiteElephantDashboard: React.FC = () => {
                     }
                 }
                 
-                // Mark all events as "seen" so useEffect won't trigger popup again
                 lastSeenHistoryLenRef.current = updatedGame.history.length;
-                
                 setGame(updatedGame);
                 trackEvent(`we_action_${action}`);
             }
@@ -423,18 +385,36 @@ const WhiteElephantDashboard: React.FC = () => {
         sendReaction(gameId, emoji);
     };
 
+    // --- SHAREABLE IMAGE GENERATOR ---
     const handleDownloadRecap = async () => {
         setIsGeneratingImage(true);
-        const element = document.getElementById('final-results-card');
+        // Use the dedicated hidden element that is formatted perfectly for social media
+        const element = document.getElementById('social-recap-capture');
+        
         if (element) {
             try {
-                const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: null });
+                // Temporarily make it visible for capture, but keep it hidden from user view via z-index
+                element.style.display = 'block';
+                
+                const canvas = await html2canvas(element, { 
+                    scale: 2, // High res
+                    useCORS: true, 
+                    backgroundColor: null,
+                    logging: false
+                });
+                
+                // Hide it again
+                element.style.display = 'none';
+
                 const link = document.createElement('a');
                 link.download = `White_Elephant_Recap.png`;
                 link.href = canvas.toDataURL();
                 link.click();
                 trackEvent('we_download_recap');
-            } catch (e) { showToast("Could not generate image"); }
+            } catch (e) { 
+                console.error("Image gen error:", e);
+                showToast("Could not generate image"); 
+            }
         }
         setIsGeneratingImage(false);
     };
@@ -453,46 +433,46 @@ const WhiteElephantDashboard: React.FC = () => {
         ? game.participants.find(p => p.id === game.displacedPlayerId) 
         : null;
     const currentTurnPlayer = game?.turnOrder[game.currentPlayerIndex];
-    
-    // Who is active? Displaced player takes priority.
     const activePlayer = displacedPlayer || currentTurnPlayer;
     
-    // ==========================================================================
-    // FIX #2: ALWAYS enforce no-steal-back when displaced (not optional!)
-    // This is a FUNDAMENTAL White Elephant rule to prevent infinite A↔B loops
-    // The checkbox "noStealBack" is for ADDITIONAL restrictions, not this basic one
-    // ==========================================================================
     const availableVictims = game ? game.participants.filter(p => {
-        // Can't steal from yourself
         if (p.id === activePlayer?.id) return false;
-        
-        // Can't steal if they don't have a gift
         if (!game.giftState[p.id]) return false;
         
-        // Final Round: Player 1 can swap with ANYONE
         if (game.finalRound) return true;
 
         const giftDesc = game.giftState[p.id];
         const steals = game.giftStealCounts?.[giftDesc] || 0;
         
-        // Check Freeze Limit (e.g., gift stolen 3x is locked)
         if (game.rules?.stealLimit && game.rules.stealLimit > 0 && steals >= game.rules.stealLimit) {
             return false;
         }
 
-        // ==========================================================================
-        // FIX #2: ALWAYS prevent immediate steal-back from the thief
-        // This is NOT optional - it's core game mechanics to prevent infinite loops
-        // If Mary stole from Tom, Tom CANNOT steal back from Mary immediately
-        // ==========================================================================
         if (game.displacedPlayerId && game.lastThiefId === p.id) {
-            return false; // Displaced player cannot steal from whoever just stole from them
+            return false;
         }
 
         return true;
     }) : [];
 
     const canSteal = availableVictims.length > 0;
+
+    // --- CALCULATE STATS FOR RECAP ---
+    // Find the "Most Stolen Gift"
+    const getMostStolenGift = () => {
+        if (!game?.giftStealCounts) return null;
+        let maxSteals = 0;
+        let topGift = null;
+        Object.entries(game.giftStealCounts).forEach(([giftName, count]) => {
+            if (count > maxSteals) {
+                maxSteals = count;
+                topGift = giftName;
+            }
+        });
+        return topGift ? { name: topGift, count: maxSteals } : null;
+    };
+    const mostStolen = getMostStolenGift();
+    const totalSteals = game ? Object.values(game.giftStealCounts || {}).reduce((a, b) => a + b, 0) : 0;
 
     const handleLogOpen = () => {
         if (!activePlayer) return;
@@ -534,11 +514,7 @@ const WhiteElephantDashboard: React.FC = () => {
         <div className="bg-slate-50 min-h-screen pb-28">
             {/* STYLES */}
             <style>{`
-                @keyframes floatUp {
-                    0% { transform: translateY(0) scale(0.5); opacity: 0; }
-                    10% { opacity: 1; transform: translateY(-20px) scale(1.2); }
-                    100% { transform: translateY(-400px) scale(1); opacity: 0; }
-                }
+                @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 10% { opacity: 1; transform: translateY(-20px) scale(1.2); } 100% { transform: translateY(-400px) scale(1); opacity: 0; } }
                 .float-up-animation { animation: floatUp 3s ease-out forwards; position: absolute; pointer-events: none; }
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -550,6 +526,59 @@ const WhiteElephantDashboard: React.FC = () => {
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
             `}</style>
+
+            {/* --- HIDDEN RECAP IMAGE TEMPLATE (FOR GENERATION ONLY) --- */}
+            {/* This div is hidden from view but used by html2canvas. Fixed width ensures consistent layout. */}
+            <div id="social-recap-capture" style={{ display: 'none', position: 'absolute', top: 0, left: '-9999px', width: '600px', zIndex: -1 }}>
+                <div className="w-[600px] bg-gradient-to-br from-red-900 via-slate-900 to-slate-800 p-8 text-white font-sans min-h-[800px] flex flex-col border-[12px] border-yellow-500/80 relative">
+                    {/* Header */}
+                    <div className="text-center border-b border-white/20 pb-6 mb-6">
+                        <h2 className="text-2xl font-bold text-yellow-400 tracking-widest uppercase mb-2">Official Recap</h2>
+                        <h1 className="text-5xl font-serif font-bold text-white mb-2 leading-tight">{game.groupName || 'White Elephant Party'}</h1>
+                        <p className="text-slate-300 text-lg">{new Date().toLocaleDateString()}</p>
+                    </div>
+
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                        <div className="bg-white/10 p-4 rounded-xl text-center border border-white/10">
+                            <p className="text-yellow-400 font-bold text-sm uppercase tracking-wider">Total Steals</p>
+                            <p className="text-4xl font-black text-white">{totalSteals}</p>
+                        </div>
+                        <div className="bg-white/10 p-4 rounded-xl text-center border border-white/10">
+                            <p className="text-yellow-400 font-bold text-sm uppercase tracking-wider">Most Stolen Gift</p>
+                            <p className="text-xl font-bold text-white truncate px-2 leading-tight mt-1">
+                                {mostStolen ? mostStolen.name : 'None'}
+                            </p>
+                            {mostStolen && <p className="text-xs text-slate-400 mt-1">Stolen {mostStolen.count} times!</p>}
+                        </div>
+                    </div>
+
+                    {/* The Grid */}
+                    <div className="bg-white/5 rounded-xl p-6 border border-white/10 flex-grow">
+                        <h3 className="text-center text-xl font-bold mb-6 flex items-center justify-center gap-2">
+                            <Gift size={24} className="text-red-400" /> Final Results
+                        </h3>
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                            {game.turnOrder.map((p, i) => (
+                                <div key={p.id} className="flex items-center gap-3 border-b border-white/5 pb-2">
+                                    <span className="w-6 h-6 bg-yellow-500 text-slate-900 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">{i+1}</span>
+                                    <div className="min-w-0">
+                                        <p className="font-bold text-sm truncate text-slate-200">{p.name}</p>
+                                        <p className="text-xs text-emerald-400 truncate">{game.giftState[p.id] || 'No Gift'}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mt-auto pt-8 text-center">
+                        <p className="text-slate-400 text-sm font-medium">Create your own for free at</p>
+                        <p className="text-2xl font-bold text-white">SecretSantaMatch.com</p>
+                    </div>
+                </div>
+            </div>
+            {/* --- END HIDDEN TEMPLATE --- */}
 
             {/* OVERLAYS */}
             <BigAnimationOverlay overlayMessage={overlayMessage} onClose={() => setOverlayMessage(null)} />
@@ -689,7 +718,7 @@ const WhiteElephantDashboard: React.FC = () => {
                             <div className="p-8 md:p-12 text-center relative">
                                 
                                 <div className="inline-block px-4 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">
-                                    {game.isFinished ? 'Game Over' : game.finalRound ? 'FINAL ROUND' : game.displacedPlayerId ? 'Steal in Progress!' : `Turn ${game.currentPlayerIndex + 1}`}
+                                    {game.isFinished ? 'Game Summary' : game.finalRound ? 'FINAL ROUND' : game.displacedPlayerId ? 'Steal in Progress!' : `Turn ${game.currentPlayerIndex + 1}`}
                                 </div>
                                 
                                 <h2 className="text-slate-400 text-lg md:text-xl font-medium mb-2">
@@ -795,31 +824,37 @@ const WhiteElephantDashboard: React.FC = () => {
                         {/* Final Results Card (Game Over) */}
                         {game.isFinished && (
                             <div className="space-y-4">
-                                <div id="final-results-card" className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl overflow-hidden text-white">
-                                    <div className="p-6 text-center border-b border-slate-700">
-                                        <h2 className="text-2xl font-bold font-serif">🎁 Final Gift Distribution</h2>
-                                        <p className="text-slate-400 text-sm">{game.groupName || 'White Elephant Party'}</p>
+                                <div id="final-results-card" className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl overflow-hidden text-white shadow-2xl">
+                                    <div className="p-6 text-center border-b border-slate-700 relative overflow-hidden">
+                                        {/* Header bg accent */}
+                                        <div className="absolute inset-0 bg-white/5"></div>
+                                        <div className="relative z-10">
+                                            <h2 className="text-2xl font-bold font-serif text-yellow-400 flex items-center justify-center gap-2">
+                                                <Gift size={24} /> Final Gift Distribution
+                                            </h2>
+                                            <p className="text-slate-400 text-sm mt-1">{game.groupName || 'White Elephant Party'}</p>
+                                        </div>
                                     </div>
-                                    <div className="p-6 grid grid-cols-2 gap-4">
+                                    <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {game.participants.map((p, i) => (
-                                            <div key={p.id} className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-xs font-bold">{i + 1}</span>
-                                                    <span className="font-bold truncate">{p.name}</span>
-                                                </div>
-                                                <div className="text-emerald-400 font-medium text-sm truncate">
-                                                    {game.giftState[p.id] || <span className="text-slate-500 italic">No Gift</span>}
+                                            <div key={p.id} className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 flex items-center gap-3">
+                                                <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-sm font-bold shadow-lg flex-shrink-0">{i + 1}</span>
+                                                <div className="min-w-0">
+                                                    <span className="font-bold text-white block truncate">{p.name}</span>
+                                                    <span className="text-emerald-400 text-sm font-medium truncate block">
+                                                        {game.giftState[p.id] || <span className="text-slate-500 italic">No Gift</span>}
+                                                    </span>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="p-4 bg-slate-950 text-center text-xs text-slate-500">
+                                    <div className="p-4 bg-slate-950 text-center text-xs text-slate-500 border-t border-slate-800">
                                         Generated by SecretSantaMatch.com
                                     </div>
                                 </div>
                                 <div className="text-center">
-                                    <button onClick={handleDownloadRecap} disabled={isGeneratingImage} className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-lg disabled:opacity-50">
-                                        {isGeneratingImage ? <RefreshCw className="animate-spin" size={18} /> : <ImageIcon size={18} />} Download Recap Image
+                                    <button onClick={handleDownloadRecap} disabled={isGeneratingImage} className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold shadow-lg disabled:opacity-50 transform hover:scale-105 transition-all">
+                                        {isGeneratingImage ? <RefreshCw className="animate-spin" size={20} /> : <ImageIcon size={20} />} Download Beautiful Recap
                                     </button>
                                 </div>
                             </div>
