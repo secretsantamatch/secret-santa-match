@@ -5,7 +5,7 @@ import type { WEGame, WEReaction } from '../types';
 import Header from './Header';
 import Footer from './Footer';
 import { generateWETurnNumbersPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer } from 'lucide-react';
+import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer, ArrowRight } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import confetti from 'canvas-confetti';
 import html2canvas from 'html2canvas';
@@ -888,6 +888,24 @@ const WhiteElephantDashboard: React.FC = () => {
                             </div>
                         </div>
                         
+                        {/* SPONSORED PROMO FOR VIEWERS - SITS BELOW TICKER */}
+                        {!isOrganizer && (
+                            <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-5 shadow-lg text-white flex items-center justify-between gap-4 mt-6 transform transition-all hover:scale-[1.01] group cursor-pointer" onClick={() => window.open('/', '_blank')}>
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                                        <Gift size={24} className="text-white group-hover:animate-bounce" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-0.5">Powered by SecretSantaMatch</p>
+                                        <p className="font-bold text-lg leading-tight">Get Free Party Games & Printables</p>
+                                    </div>
+                                </div>
+                                <div className="bg-white text-indigo-600 p-2 rounded-full shadow-sm group-hover:bg-indigo-50 transition-colors">
+                                    <ArrowRight size={20} />
+                                </div>
+                            </div>
+                        )}
+                        
                         {isOrganizer && (
                             <div className="text-right">
                                 <button onClick={() => setShowEndGameModal(true)} className="text-red-500 text-xs font-bold hover:underline opacity-60 hover:opacity-100">
@@ -913,26 +931,6 @@ const WhiteElephantDashboard: React.FC = () => {
                         </button>
                     ))}
                 </div>
-            )}
-
-            {/* Viewer Footer Promo - Replaced with Bottom Left Banner */}
-            {!isOrganizer && (
-                <a 
-                    href="/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="fixed bottom-6 left-6 z-[400] hidden md:flex items-center gap-3 bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 hover:scale-105 transition-all group"
-                >
-                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-2.5 rounded-xl shadow-sm group-hover:rotate-12 transition-transform">
-                        <Gift size={20} fill="currentColor" className="text-white/90" />
-                    </div>
-                    <div className="text-left">
-                        <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Love this tool?</p>
-                        <p className="text-sm font-bold text-slate-700 leading-none group-hover:text-indigo-600 transition-colors">
-                            Get Free Printables & Party Games <span className="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
-                        </p>
-                    </div>
-                </a>
             )}
 
             <Footer />
