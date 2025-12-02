@@ -7,13 +7,13 @@ import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
 import { createGame } from '../services/whiteElephantService';
 import type { WEParticipant, WERules, WETheme } from '../types';
-import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building, HelpCircle, BookOpen, MapPin, Video, Gamepad2, ShoppingBag } from 'lucide-react';
+import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building, HelpCircle, Video, MapPin, Dices, BookOpen } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import { shouldTrackByDefault } from '../utils/privacy';
 
 const FaqItem: React.FC<{ question: string; children: React.ReactNode }> = ({ question, children }) => (
     <div className="border-b border-slate-200 py-4">
-        <details className="group">
+        <details className="group" onClick={() => trackEvent('we_faq_click', { question })}>
             <summary className="flex justify-between items-center font-bold text-slate-800 cursor-pointer list-none text-lg hover:text-blue-700 transition-colors">
                 <span>{question}</span>
                 <span className="transition-transform transform group-open:rotate-180">
@@ -46,7 +46,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
     const generatorRef = useRef<HTMLDivElement>(null);
 
     // Analytics: Track Step Changes
-    // Detailed step tracking to lower bounce rate and measure drop-off
     useEffect(() => {
         const stepNames = {
             1: 'Add Names',
@@ -103,6 +102,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         
         if (isLastParticipant && wasEmpty && name.trim() !== '') {
             setParticipants([...updatedParticipants, { id: crypto.randomUUID(), name: '' }]);
+            trackEvent('we_add_row_auto');
         } else {
             setParticipants(updatedParticipants);
         }
@@ -111,6 +111,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
     const removeParticipant = (id: string) => {
         if (participants.length > 1) {
             setParticipants(participants.filter(p => p.id !== id));
+            trackEvent('we_remove_row');
         }
     };
 
@@ -128,6 +129,11 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                 setError("Please remove duplicate names before continuing.");
                 return;
             }
+            trackEvent('we_step_complete', { step: 1, count: validParticipants.length });
+        }
+        
+        if (activeStep === 2) {
+            trackEvent('we_step_complete', { step: 2, theme, stealLimit: rules.stealLimit });
         }
         
         if(activeStep < 3) {
@@ -143,8 +149,6 @@ const WhiteElephantGeneratorPage: React.FC = () => {
         
         setIsLoading(true);
         
-        // PREFERENCE TRACKING:
-        // Record what settings users are choosing (e.g., do people like the 'Funny' theme?)
         trackEvent('we_generate_start', { 
             participant_count: validParticipants.length, 
             theme, 
@@ -283,7 +287,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                         </div>
                                     ))}
                                     <button 
-                                        onClick={() => setParticipants([...participants, { id: crypto.randomUUID(), name: '' }])}
+                                        onClick={() => { setParticipants([...participants, { id: crypto.randomUUID(), name: '' }]); trackEvent('we_add_row_manual'); }}
                                         className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
                                     >
                                         <PlusCircle size={20} /> Add Another Player
@@ -339,7 +343,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                                             {themeOptions.map((opt) => (
                                                 <button
                                                     key={opt.val}
-                                                    onClick={() => setTheme(opt.val as WETheme)}
+                                                    onClick={() => { setTheme(opt.val as WETheme); trackEvent('we_change_theme', { theme: opt.val }); }}
                                                     className={`text-left p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${theme === opt.val ? `${opt.color} ring-2 ring-offset-1 ${opt.val === 'classic' ? 'ring-blue-300' : opt.val === 'funny' ? 'ring-orange-300' : opt.val === 'useful' ? 'ring-emerald-300' : 'ring-purple-300'}` : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300'}`}
                                                 >
                                                     <div>
@@ -435,7 +439,7 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                      </div>
                 </div>
 
-                {/* NEW CONTENT SECTION: How To & FAQ */}
+                {/* SEO CONTENT SECTION - Matching the HTML file content */}
                 <div className="max-w-5xl mx-auto mt-20 px-4 space-y-16">
                     
                     {/* Visual How to Play Section */}
@@ -486,6 +490,40 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                     </section>
 
                     <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="2345678901" data-ad-format="auto" data-full-width-responsive="true" />
+
+                    {/* Fun Variations Section (Targeting Long Tail Keywords) */}
+                    <section className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+                        <div className="bg-slate-50 p-6 border-b border-slate-200">
+                            <h2 className="text-2xl font-bold text-slate-800 font-serif flex items-center gap-3 justify-center">
+                                <Dices className="text-purple-600" /> Fun Game Variations
+                            </h2>
+                        </div>
+                        <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+                            <div className="p-8 hover:bg-slate-50 transition-colors">
+                                <h3 className="font-bold text-xl text-slate-800 mb-3 flex items-center gap-2">
+                                    <Dices size={20} className="text-purple-500" /> Dice Game Rules
+                                </h3>
+                                <p className="text-slate-600 text-sm mb-4">Shake things up! Instead of choosing to steal, roll a die on your turn:</p>
+                                <ul className="text-sm space-y-2 text-slate-600">
+                                    <li><strong>1:</strong> Steal from anyone</li>
+                                    <li><strong>2:</strong> Move everyone's gift to the Left</li>
+                                    <li><strong>3:</strong> Move everyone's gift to the Right</li>
+                                    <li><strong>4:</strong> Unwrap a new gift</li>
+                                    <li><strong>5:</strong> Unwrap a new gift</li>
+                                    <li><strong>6:</strong> Swap your gift with anyone</li>
+                                </ul>
+                            </div>
+                            <div className="p-8 hover:bg-slate-50 transition-colors">
+                                <h3 className="font-bold text-xl text-slate-800 mb-3 flex items-center gap-2">
+                                    <BookOpen size={20} className="text-blue-500" /> Left Right Story
+                                </h3>
+                                <p className="text-slate-600 text-sm mb-4">Perfect for large groups! Everyone sits in a circle holding their gift.</p>
+                                <p className="text-slate-600 text-sm">
+                                    A host reads a special holiday story. Every time the word <strong>"LEFT"</strong> is said, everyone passes their gift left. Every time <strong>"RIGHT"</strong> is said, pass right. When the story ends, you keep what you're holding!
+                                </p>
+                            </div>
+                        </div>
+                    </section>
 
                     {/* Regional Names Section */}
                     <section className="bg-slate-900 text-white rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden">
