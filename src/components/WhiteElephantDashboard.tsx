@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { getGameState, updateGameState, sendReaction } from '../services/whiteElephantService';
@@ -5,7 +6,7 @@ import type { WEGame, WEReaction } from '../types';
 import Header from './Header';
 import Footer from './Footer';
 import { generateWETurnNumbersPdf, generateWEGameLogPdf } from '../services/pdfService';
-import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer, ArrowRight, ShoppingBag, ShieldCheck, Mail } from 'lucide-react';
+import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer, ArrowRight, ShoppingBag } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import confetti from 'canvas-confetti';
 import html2canvas from 'html2canvas';
@@ -383,8 +384,8 @@ const WhiteElephantDashboard: React.FC = () => {
     };
 
     const handleReaction = (emoji: string) => {
-        // Analytics: Track interaction so session isn't a bounce
-        trackEvent('we_send_reaction', { emoji });
+        // Analytics: Track interaction with the specific event name requested
+        trackEvent('we_reaction_sent', { emoji });
         
         if (!gameId || Date.now() - lastReactionTime.current < 2000) return; 
         lastReactionTime.current = Date.now();
@@ -442,7 +443,11 @@ const WhiteElephantDashboard: React.FC = () => {
     };
     
     const copyToClipboard = (text: string) => { 
-        navigator.clipboard.writeText(text).then(() => showToast("Link copied!")); 
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("Link copied!");
+            // Explicitly tracking copy_link as requested
+            trackEvent('copy_link', { type: text.includes('organizerKey') ? 'organizer' : 'player' });
+        }); 
     };
 
     const isOrganizer = !!organizerKey;
