@@ -600,17 +600,13 @@ const BabyPoolDashboard: React.FC = () => {
     };
 
     const getPersonalLink = (name: string) => {
-        // Ensure we are using the origin plus pathname to handle subpages correctly
-        const baseUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+        // Robust URL generation: use full href without hash, then append params
+        const baseUrl = window.location.href.split('#')[0];
         return `${baseUrl}#poolId=${pool?.poolId}&guestName=${encodeURIComponent(name)}`;
     };
 
     const copyLink = (text: string) => {
         navigator.clipboard.writeText(text).then(() => alert("Link copied to clipboard!"));
-    };
-
-    const openLink = (text: string) => {
-        window.open(text, '_blank');
     };
 
     const shareWhatsApp = (name: string) => {
@@ -773,7 +769,7 @@ const BabyPoolDashboard: React.FC = () => {
                                         <span className="font-bold text-slate-700">{invitee.name}</span>
                                         <div className="flex gap-2">
                                             <button onClick={() => copyLink(personalLink)} className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600" title="Copy Link"><Copy size={16} /></button>
-                                            <button onClick={() => openLink(personalLink)} className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600" title="Open Link"><ExternalLink size={16} /></button>
+                                            <a href={personalLink} target="_blank" rel="noopener noreferrer" className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600 flex items-center justify-center" title="Open Link"><ExternalLink size={16} /></a>
                                             <button onClick={() => shareWhatsApp(invitee.name)} className="p-2 bg-green-500 hover:bg-green-600 rounded text-white" title="WhatsApp"><MessageCircle size={16} /></button>
                                             <button onClick={() => removeInvitee(invitee.id)} className="p-2 text-slate-400 hover:text-red-500" title="Remove"><Trash2 size={16} /></button>
                                         </div>
@@ -807,7 +803,7 @@ const BabyPoolDashboard: React.FC = () => {
                     <div className="bg-white rounded-2xl shadow-sm border border-orange-200 p-6 mb-8">
                         <div className="flex flex-col items-center text-center">
                             <h3 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
-                                <Settings size={22} className="text-orange-500"/> Admin Console
+                                <Settings size={22} className="text-orange-500"/> Enter Results & Declare Birth
                             </h3>
                             <p className="text-slate-600 mb-6 max-w-md">
                                 When the baby arrives, click below to enter the final stats and calculate the winner automatically!
