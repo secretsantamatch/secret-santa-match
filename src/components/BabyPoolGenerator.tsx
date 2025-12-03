@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
     Calendar, Gift, Loader2, PlusCircle, CheckCircle, Palette, 
@@ -246,8 +247,8 @@ const BabyPoolGenerator: React.FC = () => {
 
     const finishPoolCreation = () => {
         if (pendingPoolData) {
-            // Redirect to dashboard with admin key
-            window.location.href = `/baby-pool#poolId=${pendingPoolData.poolId}&adminKey=${pendingPoolData.adminKey}`;
+            // Update hash to navigate to the dashboard
+            window.location.hash = `poolId=${pendingPoolData.poolId}&adminKey=${pendingPoolData.adminKey}`;
         }
     };
 

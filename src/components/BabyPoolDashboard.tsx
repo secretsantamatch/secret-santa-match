@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
     Calendar, Scale, Clock, User, Trophy, Share2, Copy, Baby, 
@@ -613,7 +614,7 @@ const BabyPoolDashboard: React.FC = () => {
                 </div>
                 <h2 className="text-xl font-bold text-slate-800 mb-2">Pool Not Found</h2>
                 <p className="text-slate-600 mb-4">{error || "This baby pool doesn't exist or the link is incorrect."}</p>
-                <a href="/baby-pool/create" className="inline-block bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-emerald-700 transition-colors">
+                <a href="/baby-pool.html" className="inline-block bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-emerald-700 transition-colors">
                     Create a New Pool
                 </a>
             </div>

@@ -10,7 +10,8 @@ export default async (req: Request, context: Context) => {
     if (!poolId) return new Response('Missing poolId', { status: 400 });
 
     try {
-        const store = getStore('baby-pools');
+        // Use strong consistency to ensure we find newly created pools immediately
+        const store = getStore({ name: 'baby-pools', consistency: 'strong' });
         const pool: any = await store.get(poolId, { type: 'json' });
 
         if (!pool) return new Response('Pool not found', { status: 404 });
