@@ -501,8 +501,32 @@ const BabyPoolDashboard: React.FC = () => {
     }, [pool]);
 
     const loadPool = async (id: string, key?: string | null) => {
+        // 1. Check Session Storage (Local Handoff)
+        try {
+            const cached = sessionStorage.getItem(`bp_new_pool_${id}`);
+            if (cached) {
+                const data = JSON.parse(cached);
+                setPool(data);
+                // If we have an admin key in URL, ensure we enable admin mode
+                // Since the cached object includes everything (including adminKey usually if passed from create), we rely on URL param match if we want to be strict, or just trust the handoff.
+                // However, the `bp-create` returns the full object with adminKey. 
+                // The `bp-get` usually strips it for public.
+                // If we are creator, we are redirected with adminKey in URL.
+                // Let's rely on URL logic for admin mode setting in useEffect, but set pool data here.
+                // Actually `useEffect` sets `adminMode` based on URL param presence.
+                
+                // We should probably check if `key` matches `data.adminKey` to set the internal pool state correctly if we were stripping it, but here `setPool` expects the full object.
+                // The `bp-create` returns `pool` which has `adminKey`.
+                
+                setLoading(false);
+                sessionStorage.removeItem(`bp_new_pool_${id}`); // Clear cache
+                return;
+            }
+        } catch(e) { console.error("Local handoff failed", e); }
+
+        // 2. Network Fetch with Retries
         let attempts = 0;
-        const maxAttempts = 3;
+        const maxAttempts = 10; // Increased retry count
         
         while(attempts < maxAttempts) {
             try {

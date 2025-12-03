@@ -38,7 +38,8 @@ export default async (req: Request, context: Context) => {
         const store = getStore({ name: 'baby-pools', consistency: 'strong' });
         await store.setJSON(poolId, newPool);
 
-        return new Response(JSON.stringify({ poolId, adminKey }), {
+        // RETURN FULL POOL OBJECT FOR IMMEDIATE CLIENT-SIDE HYDRATION
+        return new Response(JSON.stringify({ poolId, adminKey, pool: newPool }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });

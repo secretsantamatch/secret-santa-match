@@ -229,7 +229,17 @@ const BabyPoolGenerator: React.FC = () => {
         try {
             // Filter empty custom questions
             const cleanQuestions = setupData.customQuestions.filter(q => q.trim() !== '');
-            const { poolId, adminKey } = await createPool({ ...setupData, customQuestions: cleanQuestions });
+            // Update createPool service to return the full object, the service wrapper handles the json().
+            const responseData = await createPool({ ...setupData, customQuestions: cleanQuestions });
+            
+            const { poolId, adminKey, pool } = responseData;
+
+            // LOCAL HANDOFF: Save to sessionStorage to avoid race condition on redirect
+            if (pool) {
+                try {
+                    sessionStorage.setItem(`bp_new_pool_${poolId}`, JSON.stringify(pool));
+                } catch (e) { console.error("Session storage full", e); }
+            }
             
             // Store pending data and show Amazon modal
             setPendingPoolData({ poolId, adminKey });
