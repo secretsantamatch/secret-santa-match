@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
     Calendar, Scale, Clock, User, Trophy, Share2, Copy, Baby, 
     PlusCircle, CheckCircle, Instagram, Gift, Loader2, Lock, 
     MessageCircle, Trash2, DollarSign, Ruler, Scissors, Eye, 
-    HelpCircle, BarChart3, Bookmark, Sparkles, X, RefreshCw
+    HelpCircle, BarChart3, Bookmark, Sparkles, X, RefreshCw,
+    ExternalLink, Settings
 } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
@@ -434,6 +434,7 @@ const BabyPoolDashboard: React.FC = () => {
     const [invitees, setInvitees] = useState<Invitee[]>([]);
     const [newInviteeName, setNewInviteeName] = useState('');
     const [shortLink, setShortLink] = useState<string>('');
+    const [adminWantsToGuess, setAdminWantsToGuess] = useState(false);
 
     // UI State
     const [showHomePrompt, setShowHomePrompt] = useState(false);
@@ -507,17 +508,6 @@ const BabyPoolDashboard: React.FC = () => {
             if (cached) {
                 const data = JSON.parse(cached);
                 setPool(data);
-                // If we have an admin key in URL, ensure we enable admin mode
-                // Since the cached object includes everything (including adminKey usually if passed from create), we rely on URL param match if we want to be strict, or just trust the handoff.
-                // However, the `bp-create` returns the full object with adminKey. 
-                // The `bp-get` usually strips it for public.
-                // If we are creator, we are redirected with adminKey in URL.
-                // Let's rely on URL logic for admin mode setting in useEffect, but set pool data here.
-                // Actually `useEffect` sets `adminMode` based on URL param presence.
-                
-                // We should probably check if `key` matches `data.adminKey` to set the internal pool state correctly if we were stripping it, but here `setPool` expects the full object.
-                // The `bp-create` returns `pool` which has `adminKey`.
-                
                 setLoading(false);
                 sessionStorage.removeItem(`bp_new_pool_${id}`); // Clear cache
                 return;
@@ -526,7 +516,7 @@ const BabyPoolDashboard: React.FC = () => {
 
         // 2. Network Fetch with Retries
         let attempts = 0;
-        const maxAttempts = 10; // Increased retry count
+        const maxAttempts = 10;
         
         while(attempts < maxAttempts) {
             try {
@@ -610,11 +600,17 @@ const BabyPoolDashboard: React.FC = () => {
     };
 
     const getPersonalLink = (name: string) => {
-        return `${window.location.origin}/baby-pool.html#poolId=${pool?.poolId}&guestName=${encodeURIComponent(name)}`;
+        // Ensure we are using the origin plus pathname to handle subpages correctly
+        const baseUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+        return `${baseUrl}#poolId=${pool?.poolId}&guestName=${encodeURIComponent(name)}`;
     };
 
     const copyLink = (text: string) => {
         navigator.clipboard.writeText(text).then(() => alert("Link copied to clipboard!"));
+    };
+
+    const openLink = (text: string) => {
+        window.open(text, '_blank');
     };
 
     const shareWhatsApp = (name: string) => {
@@ -770,16 +766,20 @@ const BabyPoolDashboard: React.FC = () => {
                             <button onClick={addInvitee} className="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold hover:bg-slate-900">Add</button>
                         </div>
                         <div className="space-y-2">
-                            {invitees.map(invitee => (
-                                <div key={invitee.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                    <span className="font-bold text-slate-700">{invitee.name}</span>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => copyLink(getPersonalLink(invitee.name))} className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600" title="Copy Link"><Copy size={16} /></button>
-                                        <button onClick={() => shareWhatsApp(invitee.name)} className="p-2 bg-green-500 hover:bg-green-600 rounded text-white" title="WhatsApp"><MessageCircle size={16} /></button>
-                                        <button onClick={() => removeInvitee(invitee.id)} className="p-2 text-slate-400 hover:text-red-500" title="Remove"><Trash2 size={16} /></button>
+                            {invitees.map(invitee => {
+                                const personalLink = getPersonalLink(invitee.name);
+                                return (
+                                    <div key={invitee.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                        <span className="font-bold text-slate-700">{invitee.name}</span>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => copyLink(personalLink)} className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600" title="Copy Link"><Copy size={16} /></button>
+                                            <button onClick={() => openLink(personalLink)} className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600" title="Open Link"><ExternalLink size={16} /></button>
+                                            <button onClick={() => shareWhatsApp(invitee.name)} className="p-2 bg-green-500 hover:bg-green-600 rounded text-white" title="WhatsApp"><MessageCircle size={16} /></button>
+                                            <button onClick={() => removeInvitee(invitee.id)} className="p-2 text-slate-400 hover:text-red-500" title="Remove"><Trash2 size={16} /></button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}
@@ -802,10 +802,44 @@ const BabyPoolDashboard: React.FC = () => {
                     </div>
                 )}
 
+                {/* ADMIN ACTIONS: Declare Birth / Enter Results */}
+                {adminMode && !isCompleted && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-orange-200 p-6 mb-8">
+                        <div className="flex flex-col items-center text-center">
+                            <h3 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
+                                <Settings size={22} className="text-orange-500"/> Admin Console
+                            </h3>
+                            <p className="text-slate-600 mb-6 max-w-md">
+                                When the baby arrives, click below to enter the final stats and calculate the winner automatically!
+                            </p>
+                            <button 
+                                onClick={() => setShowAdminModal(true)} 
+                                className="bg-orange-500 hover:bg-orange-600 text-white text-lg font-bold py-4 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-2"
+                            >
+                                <Baby size={24}/> Declare Birth / Enter Results
+                            </button>
+                            
+                            {!adminWantsToGuess && (
+                                <button 
+                                    onClick={() => setAdminWantsToGuess(true)} 
+                                    className="mt-6 text-slate-500 hover:text-slate-700 font-medium underline text-sm"
+                                >
+                                    I also want to make a prediction (show guessing form)
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* GUESS FORM (IF ACTIVE) */}
-                {!isCompleted && !hasGuessed && (
+                {/* For Admin: Only show if they explicitly clicked "I want to predict" */}
+                {/* For Guests: Always show if they haven't guessed */}
+                {!isCompleted && !hasGuessed && (!adminMode || adminWantsToGuess) && (
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><PlusCircle size={20} className={t.accent}/> Cast Your Vote</h3>
+                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <PlusCircle size={20} className={t.accent}/> 
+                            {adminMode ? "Make a Prediction (As Organizer)" : "Cast Your Vote"}
+                        </h3>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div className="relative">
