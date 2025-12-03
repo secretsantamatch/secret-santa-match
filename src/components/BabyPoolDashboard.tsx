@@ -5,7 +5,7 @@ import {
     MessageCircle, Trash2, DollarSign, Ruler, Scissors, Eye, 
     HelpCircle, BarChart3, Bookmark, Sparkles, X, RefreshCw,
     ExternalLink, Settings, Mail, QrCode, Download, AlertCircle,
-    Users, ChevronDown, ChevronUp, Link2, Check
+    Users, ChevronDown, ChevronUp, Link2, Check, Edit3
 } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
@@ -350,6 +350,365 @@ const MyPredictionCard: React.FC<{
     );
 };
 
+// --- Welcome Splash for Personalized Links ---
+const WelcomeSplash: React.FC<{ 
+    guestName: string, 
+    babyName: string, 
+    parentNames: string,
+    theme: any,
+    onContinue: () => void 
+}> = ({ guestName, babyName, parentNames, theme, onContinue }) => {
+    return (
+        <div className="fixed inset-0 bg-gradient-to-br from-emerald-50 via-white to-sky-50 flex items-center justify-center p-4 z-50">
+            <div className="max-w-md w-full text-center animate-fade-in">
+                {/* Decorative elements */}
+                <div className="text-6xl mb-6">🍼</div>
+                
+                <h1 className="text-3xl md:text-4xl font-black text-slate-800 font-serif mb-2">
+                    Hi {guestName}! 👋
+                </h1>
+                
+                <p className="text-lg text-slate-600 mb-6">
+                    {parentNames ? (
+                        <>
+                            <span className="font-semibold text-emerald-700">{parentNames}</span> invited you to join the baby pool for
+                        </>
+                    ) : (
+                        <>You've been invited to join the baby pool for</>
+                    )}
+                </p>
+                
+                <div className={`${theme.primary} text-white py-6 px-8 rounded-2xl mb-8 shadow-lg`}>
+                    <p className="text-white/80 text-sm font-medium mb-1">Guess the arrival of</p>
+                    <h2 className="text-4xl font-black font-serif">{babyName}</h2>
+                </div>
+                
+                <div className="bg-white rounded-2xl p-6 mb-8 shadow-sm border border-slate-200">
+                    <h3 className="font-bold text-slate-700 mb-4">🎯 How it works:</h3>
+                    <div className="space-y-3 text-left">
+                        <div className="flex items-start gap-3">
+                            <span className="bg-emerald-100 text-emerald-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                            <p className="text-slate-600 text-sm">Make your predictions for when baby arrives, weight, gender & more</p>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <span className="bg-emerald-100 text-emerald-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                            <p className="text-slate-600 text-sm">See how your guesses compare to everyone else</p>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <span className="bg-emerald-100 text-emerald-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                            <p className="text-slate-600 text-sm">Come back after baby arrives to see if you won! 🏆</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button 
+                    onClick={onContinue}
+                    className={`w-full ${theme.primary} text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-105 transition-all text-lg flex items-center justify-center gap-2`}
+                >
+                    Make My Prediction <Sparkles size={20}/>
+                </button>
+                
+                <p className="text-xs text-slate-400 mt-4">
+                    No signup required • Takes 2 minutes • 100% free
+                </p>
+            </div>
+        </div>
+    );
+};
+
+// --- What's Winning Section (For Organizer) ---
+const WhatsWinningCard: React.FC<{ guesses: BabyGuess[], pool: BabyPool, theme: any }> = ({ guesses, pool, theme }) => {
+    if (guesses.length < 1) return null;
+
+    const fields = pool.includeFields || { time: true, weight: true, length: true, hair: true, eye: true, gender: true };
+
+    // Calculate most popular for each category
+    const getMode = (arr: string[]) => {
+        const counts: Record<string, number> = {};
+        arr.forEach(v => { if (v) counts[v] = (counts[v] || 0) + 1; });
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        return sorted[0] || null;
+    };
+
+    const getMedian = (arr: number[]) => {
+        const sorted = arr.filter(n => !isNaN(n)).sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    };
+
+    // Dates
+    const dates = guesses.map(g => g.date);
+    const topDate = getMode(dates);
+    
+    // Gender
+    const genders = guesses.map(g => g.gender).filter(g => g && g !== 'Surprise');
+    const topGender = getMode(genders);
+    const genderPct = topGender ? Math.round((topGender[1] / genders.length) * 100) : 0;
+
+    // Weight
+    const weights = guesses.map(g => g.weightLbs * 16 + g.weightOz);
+    const medianWeight = getMedian(weights);
+    const medianLbs = Math.floor(medianWeight / 16);
+    const medianOz = Math.round(medianWeight % 16);
+
+    // Time slots
+    const timeSlots = guesses.map(g => {
+        if (!g.time) return null;
+        const hour = parseInt(g.time.split(':')[0]);
+        if (hour >= 6 && hour < 12) return 'Morning';
+        if (hour >= 12 && hour < 18) return 'Afternoon';
+        if (hour >= 18 && hour < 22) return 'Evening';
+        return 'Night';
+    }).filter(Boolean) as string[];
+    const topTimeSlot = getMode(timeSlots);
+
+    // Hair
+    const hairs = guesses.map(g => g.hairColor).filter(Boolean) as string[];
+    const topHair = getMode(hairs);
+
+    // Names
+    const names = guesses.map(g => g.suggestedName?.toLowerCase().trim()).filter(Boolean) as string[];
+    const topName = getMode(names);
+
+    return (
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200 p-6 mb-8">
+            <h3 className="font-bold text-amber-900 mb-4 flex items-center gap-2 text-lg">
+                <Trophy size={22} className="text-amber-500"/> 
+                🔮 Current Predictions Summary
+            </h3>
+            <p className="text-amber-700 text-sm mb-4">
+                Based on {guesses.length} {guesses.length === 1 ? 'guess' : 'guesses'} so far:
+            </p>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {/* Date */}
+                {topDate && (
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">📅 Due Date</div>
+                        <div className="font-black text-slate-800">{formatDate(topDate[0])}</div>
+                        <div className="text-xs text-emerald-600 font-medium">{topDate[1]} votes</div>
+                    </div>
+                )}
+
+                {/* Gender */}
+                {fields.gender && topGender && (
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">👶 Gender</div>
+                        <div className={`font-black ${topGender[0] === 'Boy' ? 'text-blue-600' : 'text-pink-500'}`}>
+                            {topGender[0] === 'Boy' ? '💙' : '💗'} {topGender[0]}
+                        </div>
+                        <div className="text-xs text-emerald-600 font-medium">{genderPct}% say {topGender[0]}</div>
+                    </div>
+                )}
+
+                {/* Weight */}
+                {fields.weight && !isNaN(medianWeight) && (
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">⚖️ Weight</div>
+                        <div className="font-black text-slate-800">{medianLbs}lb {medianOz}oz</div>
+                        <div className="text-xs text-slate-500 font-medium">median guess</div>
+                    </div>
+                )}
+
+                {/* Time */}
+                {fields.time && topTimeSlot && (
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">🕐 Time of Day</div>
+                        <div className="font-black text-slate-800">{topTimeSlot[0]}</div>
+                        <div className="text-xs text-emerald-600 font-medium">{topTimeSlot[1]} votes</div>
+                    </div>
+                )}
+
+                {/* Hair */}
+                {fields.hair && topHair && (
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">💇 Hair Color</div>
+                        <div className="font-black text-slate-800">{topHair[0]}</div>
+                        <div className="text-xs text-emerald-600 font-medium">{topHair[1]} votes</div>
+                    </div>
+                )}
+
+                {/* Name */}
+                {topName && (
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">✨ Top Name</div>
+                        <div className="font-black text-slate-800 capitalize">{topName[0]}</div>
+                        <div className="text-xs text-emerald-600 font-medium">{topName[1]} votes</div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// --- Enhanced Post-Vote Results Card ---
+const PostVoteResultsCard: React.FC<{ 
+    guess: BabyGuess, 
+    allGuesses: BabyGuess[],
+    babyName: string, 
+    pool: BabyPool,
+    theme: any,
+    onEdit: () => void,
+    canEdit: boolean
+}> = ({ guess, allGuesses, babyName, pool, theme, onEdit, canEdit }) => {
+    const [copied, setCopied] = useState(false);
+
+    // Calculate percentile/ranking
+    const totalGuesses = allGuesses.length;
+    const guessIndex = allGuesses.findIndex(g => g.id === guess.id);
+    const rank = totalGuesses - guessIndex; // Newer = lower rank for now
+    const percentile = Math.round((rank / totalGuesses) * 100);
+
+    // Calculate how guess compares to others
+    const getComparison = () => {
+        const comparisons: string[] = [];
+        
+        // Gender comparison
+        const sameGender = allGuesses.filter(g => g.gender === guess.gender).length;
+        const genderPct = Math.round((sameGender / totalGuesses) * 100);
+        if (guess.gender !== 'Surprise') {
+            comparisons.push(`${genderPct}% also picked ${guess.gender}`);
+        }
+
+        // Date comparison
+        const sameDate = allGuesses.filter(g => g.date === guess.date).length;
+        if (sameDate > 1) {
+            comparisons.push(`${sameDate} others picked ${formatDate(guess.date)}`);
+        } else {
+            comparisons.push(`You're the only one who picked ${formatDate(guess.date)}!`);
+        }
+
+        return comparisons;
+    };
+
+    const shareText = `🔮 My Baby Pool Prediction for ${babyName}:\n📅 ${formatDate(guess.date)}${guess.time ? ` at ${guess.time}` : ''}\n⚖️ ${guess.weightLbs}lb ${guess.weightOz}oz\n👶 ${guess.gender}\n\nMake your guess too!`;
+
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `My ${babyName} Prediction`,
+                    text: shareText,
+                    url: window.location.href
+                });
+            } catch (err) {}
+        } else {
+            navigator.clipboard.writeText(shareText + '\n' + window.location.href);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    return (
+        <div className={`bg-white rounded-2xl shadow-lg border-2 ${theme.border} overflow-hidden mb-8`}>
+            {/* Header */}
+            <div className={`${theme.primary} text-white p-6 text-center`}>
+                <div className="text-4xl mb-2">🎉</div>
+                <h3 className="text-xl font-bold mb-1">Your Prediction is Locked In!</h3>
+                <p className="text-white/80 text-sm">Come back after {babyName} arrives to see if you won</p>
+            </div>
+            
+            {/* Ranking Badge */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 border-b border-amber-100 text-center">
+                <div className="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-sm border border-amber-200">
+                    <Trophy className="text-amber-500" size={24}/>
+                    <div className="text-left">
+                        <p className="text-xs text-slate-500 font-medium">Your Position</p>
+                        <p className="font-black text-slate-800">
+                            #{rank} of {totalGuesses} 
+                            <span className="text-amber-600 ml-2">Top {percentile}%</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Prediction Summary */}
+            <div className="p-6">
+                <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
+                    <User size={18}/> {guess.guesserName}'s Prediction
+                </h4>
+                
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="bg-slate-50 p-3 rounded-xl">
+                        <span className="text-xs text-slate-400">📅 Date</span>
+                        <p className="font-bold text-slate-800">{formatDate(guess.date)}</p>
+                    </div>
+                    {guess.time && (
+                        <div className="bg-slate-50 p-3 rounded-xl">
+                            <span className="text-xs text-slate-400">🕐 Time</span>
+                            <p className="font-bold text-slate-800">{guess.time}</p>
+                        </div>
+                    )}
+                    <div className="bg-slate-50 p-3 rounded-xl">
+                        <span className="text-xs text-slate-400">⚖️ Weight</span>
+                        <p className="font-bold text-slate-800">{guess.weightLbs}lb {guess.weightOz}oz</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl">
+                        <span className="text-xs text-slate-400">👶 Gender</span>
+                        <p className={`font-bold ${guess.gender === 'Boy' ? 'text-blue-600' : guess.gender === 'Girl' ? 'text-pink-500' : 'text-slate-800'}`}>
+                            {guess.gender === 'Boy' ? '💙 ' : guess.gender === 'Girl' ? '💗 ' : ''}
+                            {guess.gender}
+                        </p>
+                    </div>
+                    {guess.suggestedName && (
+                        <div className="bg-slate-50 p-3 rounded-xl col-span-2">
+                            <span className="text-xs text-slate-400">✨ Name Guess</span>
+                            <p className="font-bold text-slate-800">{guess.suggestedName}</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* How You Compare */}
+                <div className="bg-blue-50 p-4 rounded-xl mb-4 border border-blue-100">
+                    <h5 className="font-bold text-blue-800 mb-2 text-sm flex items-center gap-2">
+                        <BarChart3 size={16}/> How You Compare
+                    </h5>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                        {getComparison().map((c, i) => (
+                            <li key={i} className="flex items-center gap-2">
+                                <span className="text-blue-400">•</span> {c}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                    <button 
+                        onClick={handleShare}
+                        className={`flex-1 ${theme.primary} text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-all`}
+                    >
+                        {copied ? <CheckCircle size={18}/> : <Share2 size={18}/>}
+                        {copied ? 'Copied!' : 'Share'}
+                    </button>
+                    {canEdit && (
+                        <button 
+                            onClick={onEdit}
+                            className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-200 transition-all"
+                        >
+                            <Edit3 size={18}/> Edit Guess
+                        </button>
+                    )}
+                </div>
+
+                {canEdit && (
+                    <p className="text-xs text-center text-slate-400 mt-3">
+                        You can edit your guess until 7 days before the due date
+                    </p>
+                )}
+            </div>
+
+            {/* Bookmark Reminder */}
+            <div className="bg-slate-50 p-4 border-t border-slate-100 text-center">
+                <p className="text-sm text-slate-600 flex items-center justify-center gap-2">
+                    <Bookmark size={16} className="text-slate-400"/>
+                    <span>Bookmark this page to check back for results!</span>
+                </p>
+            </div>
+        </div>
+    );
+};
+
 // --- Add to Home Screen Prompt ---
 const AddToHomePrompt: React.FC<{ onDismiss: () => void }> = ({ onDismiss }) => {
     const [isIOS, setIsIOS] = useState(false);
@@ -492,6 +851,18 @@ const BabyPoolDashboard: React.FC = () => {
 
     // UI State
     const [showHomePrompt, setShowHomePrompt] = useState(false);
+    const [showWelcomeSplash, setShowWelcomeSplash] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [personalizedGuestName, setPersonalizedGuestName] = useState<string | null>(null);
+
+    // Check if user can edit (7 days before due date)
+    const canEditGuess = useMemo(() => {
+        if (!pool) return false;
+        const dueDate = new Date(pool.dueDate);
+        const cutoffDate = new Date(dueDate);
+        cutoffDate.setDate(cutoffDate.getDate() - 7);
+        return new Date() < cutoffDate;
+    }, [pool]);
 
     // Get the guest share URL (without admin key)
     const getGuestShareUrl = useCallback(() => {
@@ -539,7 +910,14 @@ const BabyPoolDashboard: React.FC = () => {
                 }
             }
             if (guestName) {
-                setNewGuess(prev => ({ ...prev, guesserName: decodeURIComponent(guestName) }));
+                const decodedName = decodeURIComponent(guestName);
+                setNewGuess(prev => ({ ...prev, guesserName: decodedName }));
+                setPersonalizedGuestName(decodedName);
+                // Show welcome splash for personalized links (only if not already guessed)
+                const myGuessId = localStorage.getItem(`bp_my_guess_${poolId}`);
+                if (!myGuessId) {
+                    setShowWelcomeSplash(true);
+                }
             }
             
             const myGuessId = localStorage.getItem(`bp_my_guess_${poolId}`);
@@ -594,13 +972,35 @@ const BabyPoolDashboard: React.FC = () => {
             
             await loadPool(pool.poolId);
             setHasGuessed(true);
+            setIsEditMode(false);
             setMySubmittedGuess({ ...submission, id: result?.id || Date.now().toString() } as BabyGuess);
             
-            trackEvent('guess_submitted', { poolId: pool.poolId });
+            trackEvent('guess_submitted', { poolId: pool.poolId, isEdit: isEditMode });
         } catch (err) {
             alert("Failed to submit guess.");
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleEditGuess = () => {
+        if (mySubmittedGuess) {
+            // Pre-fill the form with existing guess
+            setNewGuess({
+                guesserName: mySubmittedGuess.guesserName,
+                date: mySubmittedGuess.date,
+                time: mySubmittedGuess.time || '',
+                weightLbs: mySubmittedGuess.weightLbs,
+                weightOz: mySubmittedGuess.weightOz,
+                length: mySubmittedGuess.length || 20,
+                hairColor: mySubmittedGuess.hairColor || 'Bald/None',
+                eyeColor: mySubmittedGuess.eyeColor || 'Blue',
+                gender: mySubmittedGuess.gender,
+                suggestedName: mySubmittedGuess.suggestedName || '',
+                customAnswers: mySubmittedGuess.customAnswers || {}
+            });
+            setIsEditMode(true);
+            setHasGuessed(false);
         }
     };
 
@@ -724,8 +1124,30 @@ const BabyPoolDashboard: React.FC = () => {
     return (
         <div className={`min-h-screen font-sans ${t.bg}`}>
             <Header />
+
+            {/* Welcome Splash for Personalized Links */}
+            {showWelcomeSplash && pool && personalizedGuestName && (
+                <WelcomeSplash 
+                    guestName={personalizedGuestName}
+                    babyName={pool.babyName}
+                    parentNames={pool.parentNames || ''}
+                    theme={t}
+                    onContinue={() => setShowWelcomeSplash(false)}
+                />
+            )}
+
             <div className="max-w-3xl mx-auto p-4 pb-20">
                 
+                {/* Personalized Greeting (after splash dismissed) */}
+                {!adminMode && personalizedGuestName && !showWelcomeSplash && (
+                    <div className="bg-gradient-to-r from-emerald-50 to-sky-50 rounded-2xl p-4 mb-6 border border-emerald-100 text-center">
+                        <p className="text-emerald-800 font-medium">
+                            Welcome, <span className="font-bold">{personalizedGuestName}</span>! 
+                            {pool?.parentNames && <span className="text-slate-600"> • Invited by {pool.parentNames}</span>}
+                        </p>
+                    </div>
+                )}
+
                 {/* HERO HEADER */}
                 <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-6 border-b-8 ${t.border.replace('border', 'border-b')}`}>
                     <div className={`${t.primary} p-8 text-center text-white relative overflow-hidden`}>
@@ -777,6 +1199,11 @@ const BabyPoolDashboard: React.FC = () => {
                 {/* ADMIN QUICK STATS */}
                 {adminMode && !isCompleted && <AdminQuickStats pool={pool} />}
 
+                {/* WHAT'S WINNING - Organizer Summary */}
+                {adminMode && !isCompleted && pool.guesses.length > 0 && (
+                    <WhatsWinningCard guesses={pool.guesses} pool={pool} theme={t} />
+                )}
+
                 {/* NO GUESSES REMINDER FOR ADMIN */}
                 {adminMode && !isCompleted && pool.guesses.length === 0 && (
                     <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8 text-center">
@@ -807,12 +1234,14 @@ const BabyPoolDashboard: React.FC = () => {
 
                 {/* MY PREDICTION CARD (if user already guessed) */}
                 {hasGuessed && mySubmittedGuess && !isCompleted && (
-                    <MyPredictionCard 
+                    <PostVoteResultsCard 
                         guess={mySubmittedGuess} 
+                        allGuesses={pool.guesses}
                         babyName={pool.babyName} 
+                        pool={pool}
                         theme={t}
-                        rank={myRanking?.rank}
-                        totalGuesses={myRanking?.total}
+                        onEdit={handleEditGuess}
+                        canEdit={canEditGuess}
                     />
                 )}
 
@@ -980,106 +1409,230 @@ const BabyPoolDashboard: React.FC = () => {
                 {/* GUESS FORM (IF ACTIVE) */}
                 {!isCompleted && !hasGuessed && (!adminMode || adminWantsToGuess) && (
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                             <PlusCircle size={20} className={t.accent}/> 
-                            {adminMode ? "Make a Prediction (As Organizer)" : "Cast Your Vote"}
+                            {isEditMode ? "Edit Your Prediction" : adminMode ? "Make a Prediction (As Organizer)" : "Cast Your Vote"}
                         </h3>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        {personalizedGuestName && !adminMode && (
+                            <p className="text-slate-500 text-sm mb-4">
+                                Make your best guess, {personalizedGuestName}! The closest prediction wins. 🏆
+                            </p>
+                        )}
+
+                        {/* YOUR INFO */}
+                        <div className="mb-6">
+                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <User size={14}/> Your Info
+                            </h4>
                             <div className="relative">
                                 <User className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                <input type="text" placeholder="Your Name" value={newGuess.guesserName} onChange={e => setNewGuess({...newGuess, guesserName: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50"/>
+                                <input 
+                                    type="text" 
+                                    placeholder="Your Name" 
+                                    value={newGuess.guesserName} 
+                                    onChange={e => setNewGuess({...newGuess, guesserName: e.target.value})} 
+                                    className="w-full p-3 pl-10 border rounded-xl bg-slate-50"
+                                    disabled={!!personalizedGuestName}
+                                />
                             </div>
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                <input type="date" value={newGuess.date} onChange={e => setNewGuess({...newGuess, date: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50"/>
+                        </div>
+
+                        {/* WHEN WILL BABY ARRIVE */}
+                        <div className="mb-6">
+                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                📅 When Will Baby Arrive?
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="relative">
+                                    <Calendar className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                    <input 
+                                        type="date" 
+                                        value={newGuess.date} 
+                                        onChange={e => setNewGuess({...newGuess, date: e.target.value})} 
+                                        className="w-full p-3 pl-10 border rounded-xl bg-slate-50"
+                                    />
+                                </div>
+                                {fields.time && (
+                                    <div className="relative">
+                                        <Clock className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                        <input 
+                                            type="time" 
+                                            value={newGuess.time} 
+                                            onChange={e => setNewGuess({...newGuess, time: e.target.value})} 
+                                            className="w-full p-3 pl-10 border rounded-xl bg-slate-50"
+                                            placeholder="Time of birth"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            {fields.time && (
-                                <div className="relative">
-                                    <Clock className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                    <input type="time" value={newGuess.time} onChange={e => setNewGuess({...newGuess, time: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50"/>
+                        {/* BABY'S STATS */}
+                        {(fields.weight || fields.length) && (
+                            <div className="mb-6">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    ⚖️ Baby's Stats
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {fields.weight && (
+                                        <div>
+                                            <label className="text-xs text-slate-500 mb-1 block">Weight</label>
+                                            <div className="flex gap-2 items-center">
+                                                <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
+                                                    <Scale size={18} className="text-slate-400 mr-2"/>
+                                                    <input type="number" value={newGuess.weightLbs} onChange={e => setNewGuess({...newGuess, weightLbs: parseInt(e.target.value) || 0})} className="w-full p-3 bg-transparent outline-none" min="0" max="15"/>
+                                                    <span className="text-xs font-bold text-slate-400">lbs</span>
+                                                </div>
+                                                <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
+                                                    <input type="number" value={newGuess.weightOz} onChange={e => setNewGuess({...newGuess, weightOz: parseInt(e.target.value) || 0})} className="w-full p-3 bg-transparent outline-none" min="0" max="15"/>
+                                                    <span className="text-xs font-bold text-slate-400">oz</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {fields.length && (
+                                        <div>
+                                            <label className="text-xs text-slate-500 mb-1 block">Length</label>
+                                            <div className="relative">
+                                                <Ruler className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                                <input 
+                                                    type="number" 
+                                                    value={newGuess.length} 
+                                                    onChange={e => setNewGuess({...newGuess, length: parseFloat(e.target.value) || 0})} 
+                                                    className="w-full p-3 pl-10 border rounded-xl bg-slate-50" 
+                                                    placeholder="Length in inches"
+                                                    step="0.5"
+                                                    min="15"
+                                                    max="25"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                            {fields.weight && (
-                                <div className="flex gap-2 items-center">
-                                    <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
-                                        <Scale size={18} className="text-slate-400 mr-2"/>
-                                        <input type="number" value={newGuess.weightLbs} onChange={e => setNewGuess({...newGuess, weightLbs: parseInt(e.target.value) || 0})} className="w-full p-3 bg-transparent outline-none" placeholder="Lbs"/>
-                                        <span className="text-xs font-bold text-slate-400">lbs</span>
+                            </div>
+                        )}
+
+                        {/* BABY'S APPEARANCE */}
+                        {(fields.gender || fields.hair || fields.eye) && (
+                            <div className="mb-6">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    👶 Baby's Appearance
+                                </h4>
+                                
+                                {fields.gender && (
+                                    <div className="mb-4">
+                                        <label className="text-xs text-slate-500 mb-2 block">Gender</label>
+                                        <div className="flex gap-3">
+                                            {['Boy', 'Girl', 'Surprise'].map(g => (
+                                                <button 
+                                                    key={g} 
+                                                    onClick={() => setNewGuess({...newGuess, gender: g})} 
+                                                    className={`flex-1 py-3 rounded-xl border-2 font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                                                        newGuess.gender === g 
+                                                            ? g === 'Boy' 
+                                                                ? 'bg-blue-50 text-blue-600 border-blue-400' 
+                                                                : g === 'Girl' 
+                                                                    ? 'bg-pink-50 text-pink-500 border-pink-400' 
+                                                                    : 'bg-slate-800 text-white border-slate-800'
+                                                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                                                    }`}
+                                                >
+                                                    {g === 'Boy' && '💙'} {g === 'Girl' && '💗'} {g === 'Surprise' && '🎁'} {g}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
-                                        <input type="number" value={newGuess.weightOz} onChange={e => setNewGuess({...newGuess, weightOz: parseInt(e.target.value) || 0})} className="w-full p-3 bg-transparent outline-none" placeholder="Oz"/>
-                                        <span className="text-xs font-bold text-slate-400">oz</span>
-                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {fields.hair && (
+                                        <div>
+                                            <label className="text-xs text-slate-500 mb-1 block">Hair Color</label>
+                                            <div className="relative">
+                                                <Scissors className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                                <select value={newGuess.hairColor} onChange={e => setNewGuess({...newGuess, hairColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none cursor-pointer">
+                                                    {HAIR_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {fields.eye && (
+                                        <div>
+                                            <label className="text-xs text-slate-500 mb-1 block">Eye Color</label>
+                                            <div className="relative">
+                                                <Eye className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                                <select value={newGuess.eyeColor} onChange={e => setNewGuess({...newGuess, eyeColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none cursor-pointer">
+                                                    {EYE_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
+                        )}
+
+                        {/* NAME GUESS */}
+                        <div className="mb-6">
+                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                ✨ Name Guess (Optional)
+                            </h4>
+                            <input 
+                                type="text" 
+                                placeholder="What do you think they'll name the baby?" 
+                                value={newGuess.suggestedName} 
+                                onChange={e => setNewGuess({...newGuess, suggestedName: e.target.value})} 
+                                className="w-full p-3 border rounded-xl bg-slate-50"
+                            />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            {fields.length && (
-                                <div className="relative">
-                                    <Ruler className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                    <input type="number" value={newGuess.length} onChange={e => setNewGuess({...newGuess, length: parseFloat(e.target.value) || 0})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50" placeholder="Length (inches)"/>
-                                </div>
-                            )}
-                            {fields.hair && (
-                                <div className="relative">
-                                    <Scissors className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                    <select value={newGuess.hairColor} onChange={e => setNewGuess({...newGuess, hairColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none">
-                                        {HAIR_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
-                            )}
-                            {fields.eye && (
-                                <div className="relative">
-                                    <Eye className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                    <select value={newGuess.eyeColor} onChange={e => setNewGuess({...newGuess, eyeColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none">
-                                        {EYE_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
-                            )}
-                        </div>
-
-                        {fields.gender && (
-                            <div className="mb-4">
-                                <label className="text-xs font-bold text-slate-400 block mb-1">Gender Guess</label>
-                                <div className="flex gap-3">
-                                    {['Boy', 'Girl', 'Surprise'].map(g => (
-                                        <button key={g} onClick={() => setNewGuess({...newGuess, gender: g})} className={`flex-1 py-2 rounded-lg border font-bold text-sm transition-all ${newGuess.gender === g ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}>{g}</button>
+                        {/* CUSTOM QUESTIONS */}
+                        {pool.customQuestions && pool.customQuestions.length > 0 && (
+                            <div className="mb-6">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    <HelpCircle size={14}/> Bonus Predictions
+                                </h4>
+                                <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                    {pool.customQuestions.map((q, i) => (
+                                        <div key={i}>
+                                            <label className="block text-xs font-bold text-slate-500 mb-1">{q}</label>
+                                            <input 
+                                                type="text" 
+                                                value={newGuess.customAnswers?.[i] || ''} 
+                                                onChange={e => {
+                                                    const answers = { ...newGuess.customAnswers, [i]: e.target.value };
+                                                    setNewGuess({ ...newGuess, customAnswers: answers });
+                                                }}
+                                                className="w-full p-2 border rounded-lg bg-white text-sm"
+                                                placeholder="Your answer..."
+                                            />
+                                        </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        <input type="text" placeholder="Suggested Name (Optional)" value={newGuess.suggestedName} onChange={e => setNewGuess({...newGuess, suggestedName: e.target.value})} className="w-full p-3 border rounded-xl bg-slate-50 mb-4"/>
-
-                        {pool.customQuestions && pool.customQuestions.length > 0 && (
-                            <div className="mb-6 space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <h4 className="font-bold text-slate-700 flex items-center gap-2 text-sm"><HelpCircle size={16}/> Bonus Predictions</h4>
-                                {pool.customQuestions.map((q, i) => (
-                                    <div key={i}>
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">{q}</label>
-                                        <input 
-                                            type="text" 
-                                            value={newGuess.customAnswers?.[i] || ''} 
-                                            onChange={e => {
-                                                const answers = { ...newGuess.customAnswers, [i]: e.target.value };
-                                                setNewGuess({ ...newGuess, customAnswers: answers });
-                                            }}
-                                            className="w-full p-2 border rounded-lg bg-white text-sm"
-                                            placeholder="Your answer..."
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        <button onClick={handleGuessSubmit} disabled={isSubmitting} className={`w-full ${t.primary} hover:opacity-90 text-white font-bold py-3 rounded-xl shadow-md transition-all transform active:scale-95`}>
-                            {isSubmitting ? 'Submitting...' : 'Submit Guess'}
+                        <button 
+                            onClick={handleGuessSubmit} 
+                            disabled={isSubmitting} 
+                            className={`w-full ${t.primary} hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-md transition-all transform active:scale-95 text-lg flex items-center justify-center gap-2`}
+                        >
+                            {isSubmitting ? (
+                                <><Loader2 className="animate-spin" size={20}/> Submitting...</>
+                            ) : isEditMode ? (
+                                <><Edit3 size={20}/> Update My Prediction</>
+                            ) : (
+                                <><Sparkles size={20}/> Submit My Prediction</>
+                            )}
                         </button>
+
+                        {isEditMode && (
+                            <button 
+                                onClick={() => { setIsEditMode(false); setHasGuessed(true); }}
+                                className="w-full text-slate-500 font-medium py-3 mt-2 hover:text-slate-700"
+                            >
+                                Cancel Edit
+                            </button>
+                        )}
                     </div>
                 )}
 
