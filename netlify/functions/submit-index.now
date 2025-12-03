@@ -1,0 +1,63 @@
+
+import type { Context } from "@netlify/functions";
+
+export default async (req: Request, context: Context) => {
+    // Hardcoded credentials based on your file
+    const API_KEY = "fa9800864d8745e3adeefdc444631310";
+    const HOST = "secretsantamatch.com";
+    const KEY_LOCATION = `https://${HOST}/${API_KEY}.txt`;
+
+    // Priority pages to index immediately
+    const urlList = [
+        `https://${HOST}/`,
+        `https://${HOST}/generator.html`,
+        `https://${HOST}/white-elephant-generator.html`,
+        `https://${HOST}/baby-pool.html`,
+        `https://${HOST}/free-printables.html`,
+        `https://${HOST}/blog.html`,
+        `https://${HOST}/holiday-budget-calculator.html`,
+        `https://${HOST}/minimum-payment-calculator.html`,
+        `https://${HOST}/gift-card-etiquette.html`,
+        `https://${HOST}/digital-vs-physical-gift-cards.html`,
+        `https://${HOST}/are-gift-cards-good-gifts.html`,
+        `https://${HOST}/ultimate-guide-buying-gift-cards.html`,
+        `https://${HOST}/complete-secret-santa-comparison.html`,
+        `https://${HOST}/white-elephant-rules.html`,
+        `https://${HOST}/secret-santa-rules.html`,
+        `https://${HOST}/how-to-do-secret-santa.html`,
+        `https://${HOST}/how-to-organize-secret-santa.html`
+    ];
+
+    try {
+        const response = await fetch("https://api.indexnow.org/indexnow", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+            },
+            body: JSON.stringify({
+                host: HOST,
+                key: API_KEY,
+                keyLocation: KEY_LOCATION,
+                urlList: urlList,
+            }),
+        });
+
+        if (response.ok) {
+            return new Response(JSON.stringify({ message: "Successfully submitted URLs to IndexNow", submitted: urlList }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" }
+            });
+        } else {
+            const text = await response.text();
+            return new Response(JSON.stringify({ error: "Failed to submit", details: text }), {
+                status: 500,
+                headers: { "Content-Type": "application/json" }
+            });
+        }
+    } catch (error: any) {
+        return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
+    }
+};
