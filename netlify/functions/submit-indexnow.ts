@@ -12,7 +12,6 @@ export default async (req: Request, context: Context) => {
         `https://${HOST}/`,
         `https://${HOST}/generator.html`,
         `https://${HOST}/white-elephant-generator.html`,
-        `https://${HOST}/baby-pool.html`,
         `https://${HOST}/free-printables.html`,
         `https://${HOST}/blog.html`,
         `https://${HOST}/holiday-budget-calculator.html`,
