@@ -4,7 +4,8 @@ import {
     PlusCircle, CheckCircle, Instagram, Gift, Loader2, Lock, 
     MessageCircle, Trash2, DollarSign, Ruler, Scissors, Eye, 
     HelpCircle, BarChart3, Bookmark, Sparkles, X, RefreshCw,
-    ExternalLink, Settings
+    ExternalLink, Settings, Mail, QrCode, Download, AlertCircle,
+    Users, ChevronDown, ChevronUp, Link2, Check
 } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
@@ -21,9 +22,6 @@ import { THEMES, ThemeKey, AMAZON_CONFIG, detectCountry } from './BabyPoolGenera
 
 const HAIR_COLORS = ['Bald/None', 'Blonde', 'Brown', 'Black', 'Red', 'Strawberry Blonde'];
 const EYE_COLORS = ['Blue', 'Brown', 'Green', 'Hazel', 'Grey', 'Violet'];
-
-// Short link service (using SecretSantaMatch)
-const SHORT_LINK_BASE = 'https://secretsantamatch.com/s/';
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -71,18 +69,6 @@ const calculateScore = (guess: BabyGuess, actual: NonNullable<BabyPool['result']
     return Math.round(score);
 };
 
-// Generate short link
-const generateShortLink = async (longUrl: string): Promise<string> => {
-    try {
-        const encoded = btoa(longUrl).replace(/[+/=]/g, (c) => 
-            c === '+' ? '-' : c === '/' ? '_' : ''
-        ).substring(0, 8);
-        return `${SHORT_LINK_BASE}bp-${encoded}`;
-    } catch {
-        return longUrl;
-    }
-};
-
 // Format date nicely
 const formatDate = (dateStr: string): string => {
     try {
@@ -94,6 +80,11 @@ const formatDate = (dateStr: string): string => {
     }
 };
 
+// Generate QR Code URL using free QR code API
+const generateQRCodeUrl = (url: string, size: number = 200): string => {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`;
+};
+
 // ============================================================================
 // HELPER COMPONENTS
 // ============================================================================
@@ -101,6 +92,7 @@ const formatDate = (dateStr: string): string => {
 interface Invitee {
     id: string;
     name: string;
+    sent?: boolean;
 }
 
 // --- Countdown Component ---
@@ -153,7 +145,6 @@ const PoolCountdown: React.FC<{ dueDate: string, theme: any }> = ({ dueDate, the
 const GroupStatsCard: React.FC<{ guesses: BabyGuess[], theme: any, fields: any }> = ({ guesses, theme, fields }) => {
     if (guesses.length < 3) return null;
 
-    // Calculate stats
     const genderVotes = guesses.reduce((acc, g) => {
         if (g.gender && g.gender !== 'Surprise') {
             acc[g.gender] = (acc[g.gender] || 0) + 1;
@@ -163,19 +154,16 @@ const GroupStatsCard: React.FC<{ guesses: BabyGuess[], theme: any, fields: any }
 
     const totalGenderVotes = Object.values(genderVotes).reduce((a, b) => a + b, 0);
 
-    // Most popular date
     const dateCounts = guesses.reduce((acc, g) => {
         acc[g.date] = (acc[g.date] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
     const popularDate = Object.entries(dateCounts).sort((a, b) => b[1] - a[1])[0];
 
-    // Average weight
     const avgWeight = guesses.reduce((sum, g) => sum + (g.weightLbs * 16 + g.weightOz), 0) / guesses.length;
     const avgLbs = Math.floor(avgWeight / 16);
     const avgOz = Math.round(avgWeight % 16);
 
-    // Top name guesses
     const nameGuesses = guesses.filter(g => g.suggestedName).reduce((acc, g) => {
         const name = g.suggestedName!.toLowerCase().trim();
         acc[name] = (acc[name] || 0) + 1;
@@ -183,7 +171,6 @@ const GroupStatsCard: React.FC<{ guesses: BabyGuess[], theme: any, fields: any }
     }, {} as Record<string, number>);
     const topNames = Object.entries(nameGuesses).sort((a, b) => b[1] - a[1]).slice(0, 3);
 
-    // Time distribution
     const timeSlots = { 'Morning (6am-12pm)': 0, 'Afternoon (12pm-6pm)': 0, 'Evening (6pm-12am)': 0, 'Night (12am-6am)': 0 };
     guesses.forEach(g => {
         if (g.time) {
@@ -204,7 +191,6 @@ const GroupStatsCard: React.FC<{ guesses: BabyGuess[], theme: any, fields: any }
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Gender Distribution */}
                 {fields.gender && totalGenderVotes > 0 && (
                     <div className="bg-slate-50 p-4 rounded-xl">
                         <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">👶 Gender Predictions</h4>
@@ -230,7 +216,6 @@ const GroupStatsCard: React.FC<{ guesses: BabyGuess[], theme: any, fields: any }
                     </div>
                 )}
 
-                {/* Most Popular Date */}
                 {popularDate && (
                     <div className="bg-slate-50 p-4 rounded-xl">
                         <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">📅 Most Predicted Date</h4>
@@ -239,7 +224,6 @@ const GroupStatsCard: React.FC<{ guesses: BabyGuess[], theme: any, fields: any }
                     </div>
                 )}
 
-                {/* Average Weight */}
                 {fields.weight && (
                     <div className="bg-slate-50 p-4 rounded-xl">
                         <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">⚖️ Average Weight Guess</h4>
@@ -247,7 +231,6 @@ const GroupStatsCard: React.FC<{ guesses: BabyGuess[], theme: any, fields: any }
                     </div>
                 )}
 
-                {/* Popular Time Slot */}
                 {fields.time && popularTimeSlot[1] > 0 && (
                     <div className="bg-slate-50 p-4 rounded-xl">
                         <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">🕐 Most Popular Time</h4>
@@ -256,7 +239,6 @@ const GroupStatsCard: React.FC<{ guesses: BabyGuess[], theme: any, fields: any }
                     </div>
                 )}
 
-                {/* Top Names */}
                 {topNames.length > 0 && (
                     <div className="bg-slate-50 p-4 rounded-xl md:col-span-2">
                         <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">📝 Top Name Guesses</h4>
@@ -399,6 +381,76 @@ const AddToHomePrompt: React.FC<{ onDismiss: () => void }> = ({ onDismiss }) => 
     );
 };
 
+// --- QR Code Modal ---
+const QRCodeModal: React.FC<{ url: string, babyName: string, onClose: () => void }> = ({ url, babyName, onClose }) => {
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center relative">
+                <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                    <X size={24}/>
+                </button>
+                <h3 className="font-bold text-xl text-slate-800 mb-4">📱 Scan to Join</h3>
+                <p className="text-slate-600 text-sm mb-4">
+                    Share this QR code at your baby shower!
+                </p>
+                <div className="bg-white p-4 rounded-xl border-2 border-slate-200 inline-block mb-4">
+                    <img 
+                        src={generateQRCodeUrl(url, 200)} 
+                        alt="QR Code"
+                        className="w-48 h-48"
+                    />
+                </div>
+                <p className="text-xs text-slate-500 mb-4">{babyName}'s Baby Pool</p>
+                <button 
+                    onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = generateQRCodeUrl(url, 400);
+                        link.download = `${babyName.replace(/\s+/g, '-')}-baby-pool-qr.png`;
+                        link.click();
+                    }}
+                    className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-900"
+                >
+                    <Download size={18}/> Download QR Code
+                </button>
+                <button onClick={onClose} className="w-full text-slate-500 py-2 mt-2">Close</button>
+            </div>
+        </div>
+    );
+};
+
+// --- Quick Stats for Admin ---
+const AdminQuickStats: React.FC<{ pool: BabyPool }> = ({ pool }) => {
+    const guessCount = pool.guesses.length;
+    const recentGuess = pool.guesses[pool.guesses.length - 1];
+    
+    return (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div className="bg-emerald-50 p-4 rounded-xl text-center border border-emerald-100">
+                <Users className="mx-auto text-emerald-600 mb-1" size={24}/>
+                <p className="text-2xl font-black text-emerald-800">{guessCount}</p>
+                <p className="text-xs text-emerald-600 font-medium">Total Guesses</p>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-xl text-center border border-blue-100">
+                <Calendar className="mx-auto text-blue-600 mb-1" size={24}/>
+                <p className="text-lg font-black text-blue-800">{formatDate(pool.dueDate)}</p>
+                <p className="text-xs text-blue-600 font-medium">Due Date</p>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-xl text-center border border-purple-100">
+                <Clock className="mx-auto text-purple-600 mb-1" size={24}/>
+                <p className="text-sm font-bold text-purple-800 truncate">
+                    {recentGuess ? recentGuess.guesserName : 'No guesses'}
+                </p>
+                <p className="text-xs text-purple-600 font-medium">Latest Guess</p>
+            </div>
+            <div className="bg-amber-50 p-4 rounded-xl text-center border border-amber-100">
+                <Trophy className="mx-auto text-amber-600 mb-1" size={24}/>
+                <p className="text-sm font-bold text-amber-800">{pool.status === 'active' ? 'Open' : 'Closed'}</p>
+                <p className="text-xs text-amber-600 font-medium">Status</p>
+            </div>
+        </div>
+    );
+};
+
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
@@ -429,17 +481,32 @@ const BabyPoolDashboard: React.FC = () => {
 
     // Admin State
     const [adminMode, setAdminMode] = useState(false);
+    const [adminWantsToGuess, setAdminWantsToGuess] = useState(false);
     const [birthData, setBirthData] = useState({ date: '', time: '', weightLbs: 7, weightOz: 5, length: 20, hairColor: '', eyeColor: '', gender: '', actualName: '', photoLink: '' });
     const [showAdminModal, setShowAdminModal] = useState(false);
     const [invitees, setInvitees] = useState<Invitee[]>([]);
     const [newInviteeName, setNewInviteeName] = useState('');
-    const [shortLink, setShortLink] = useState<string>('');
-    const [adminWantsToGuess, setAdminWantsToGuess] = useState(false);
+    const [showQRModal, setShowQRModal] = useState(false);
+    const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+    const [showShareSection, setShowShareSection] = useState(true);
 
     // UI State
     const [showHomePrompt, setShowHomePrompt] = useState(false);
 
-    // Check if user has dismissed home prompt before
+    // Get the guest share URL (without admin key)
+    const getGuestShareUrl = useCallback(() => {
+        if (!pool) return '';
+        const baseUrl = window.location.origin + window.location.pathname;
+        return `${baseUrl}#poolId=${pool.poolId}`;
+    }, [pool]);
+
+    // Get personalized link for a specific guest
+    const getPersonalLink = useCallback((name: string) => {
+        if (!pool) return '';
+        const baseUrl = window.location.origin + window.location.pathname;
+        return `${baseUrl}#poolId=${pool.poolId}&guestName=${encodeURIComponent(name)}`;
+    }, [pool]);
+
     useEffect(() => {
         const dismissed = localStorage.getItem('bp_home_prompt_dismissed');
         if (!dismissed && pool && !adminMode) {
@@ -475,80 +542,42 @@ const BabyPoolDashboard: React.FC = () => {
                 setNewGuess(prev => ({ ...prev, guesserName: decodeURIComponent(guestName) }));
             }
             
-            // Check if user already guessed (stored in localStorage)
             const myGuessId = localStorage.getItem(`bp_my_guess_${poolId}`);
             if (myGuessId) {
                 setHasGuessed(true);
             }
         } else {
-            // No pool ID, redirect to generator
             window.location.href = '/baby-pool.html';
         }
     }, []);
 
-    // Save invitees to localStorage
     useEffect(() => {
         if (pool && adminMode) {
             localStorage.setItem(`bp_invitees_${pool.poolId}`, JSON.stringify(invitees));
         }
     }, [invitees, pool, adminMode]);
 
-    // Generate short link when pool is loaded
-    useEffect(() => {
-        if (pool) {
-            const guestUrl = `${window.location.origin}/baby-pool.html#poolId=${pool.poolId}`;
-            generateShortLink(guestUrl).then(setShortLink);
-        }
-    }, [pool]);
-
     const loadPool = async (id: string, key?: string | null) => {
-        // 1. Check Session Storage (Local Handoff)
         try {
-            const cached = sessionStorage.getItem(`bp_new_pool_${id}`);
-            if (cached) {
-                const data = JSON.parse(cached);
-                setPool(data);
-                setLoading(false);
-                sessionStorage.removeItem(`bp_new_pool_${id}`); // Clear cache
-                return;
-            }
-        } catch(e) { console.error("Local handoff failed", e); }
-
-        // 2. Network Fetch with Retries
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        while(attempts < maxAttempts) {
-            try {
-                const data = await getPool(id, key);
-                setPool(data);
-                
-                // Check if user's guess is in the pool
-                const myGuessId = localStorage.getItem(`bp_my_guess_${id}`);
-                if (myGuessId) {
-                    const myGuess = data.guesses.find(g => g.id === myGuessId);
-                    if (myGuess) {
-                        setMySubmittedGuess(myGuess);
-                        setHasGuessed(true);
-                    }
-                }
-                
-                if (data.result) {
-                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#f59e0b', '#3b82f6'] });
-                }
-                setLoading(false);
-                return; // Success
-            } catch (err) {
-                console.warn(`Attempt ${attempts + 1} failed to load pool`);
-                attempts++;
-                if (attempts >= maxAttempts) {
-                    setError("Could not load baby pool. Check the link and try again.");
-                    setLoading(false);
-                } else {
-                    // Wait 1 second before retry to handle eventual consistency
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+            const data = await getPool(id, key);
+            setPool(data);
+            
+            const myGuessId = localStorage.getItem(`bp_my_guess_${id}`);
+            if (myGuessId) {
+                const myGuess = data.guesses.find(g => g.id === myGuessId);
+                if (myGuess) {
+                    setMySubmittedGuess(myGuess);
+                    setHasGuessed(true);
                 }
             }
+            
+            if (data.result) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#f59e0b', '#3b82f6'] });
+            }
+        } catch (err) {
+            setError("Could not load baby pool. Check the link and try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -559,7 +588,6 @@ const BabyPoolDashboard: React.FC = () => {
             const submission = { ...newGuess };
             const result = await submitGuess(pool.poolId, submission);
             
-            // Store guess ID in localStorage
             if (result?.id) {
                 localStorage.setItem(`bp_my_guess_${pool.poolId}`, result.id);
             }
@@ -591,7 +619,7 @@ const BabyPoolDashboard: React.FC = () => {
 
     const addInvitee = () => {
         if (!newInviteeName.trim()) return;
-        setInvitees([...invitees, { id: crypto.randomUUID(), name: newInviteeName.trim() }]);
+        setInvitees([...invitees, { id: crypto.randomUUID(), name: newInviteeName.trim(), sent: false }]);
         setNewInviteeName('');
     };
 
@@ -599,14 +627,15 @@ const BabyPoolDashboard: React.FC = () => {
         setInvitees(invitees.filter(i => i.id !== id));
     };
 
-    const getPersonalLink = (name: string) => {
-        // Robust URL generation: use full href without hash, then append params
-        const baseUrl = window.location.href.split('#')[0];
-        return `${baseUrl}#poolId=${pool?.poolId}&guestName=${encodeURIComponent(name)}`;
-    };
-
-    const copyLink = (text: string) => {
-        navigator.clipboard.writeText(text).then(() => alert("Link copied to clipboard!"));
+    const copyLink = (text: string, id?: string) => {
+        navigator.clipboard.writeText(text).then(() => {
+            if (id) {
+                setCopiedLinkId(id);
+                setTimeout(() => setCopiedLinkId(null), 2000);
+            } else {
+                alert("Link copied to clipboard!");
+            }
+        });
     };
 
     const shareWhatsApp = (name: string) => {
@@ -615,7 +644,19 @@ const BabyPoolDashboard: React.FC = () => {
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     };
 
-    // Calculate user's ranking
+    const shareEmail = (name: string) => {
+        const link = getPersonalLink(name);
+        const subject = encodeURIComponent(`Join ${pool?.babyName}'s Baby Pool! 🍼`);
+        const body = encodeURIComponent(`Hi ${name}!\n\nYou're invited to join our Baby Pool guessing game for ${pool?.babyName}!\n\nGuess the due date, weight, gender, and more. The closest guess wins!\n\nMake your prediction here: ${link}\n\nGood luck! 🎉`);
+        window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+    };
+
+    const openPersonalLink = (name: string) => {
+        const link = getPersonalLink(name);
+        console.log('Opening personal link:', link); // Debug log
+        window.open(link, '_blank', 'noopener,noreferrer');
+    };
+
     const myRanking = useMemo(() => {
         if (!pool || !mySubmittedGuess) return null;
         const guessIndex = pool.guesses.findIndex(g => g.id === mySubmittedGuess.id);
@@ -678,6 +719,7 @@ const BabyPoolDashboard: React.FC = () => {
         : [...pool.guesses].reverse(); 
     
     const fields = pool.includeFields || { time: true, weight: true, length: true, hair: true, eye: true, gender: true };
+    const guestShareUrl = getGuestShareUrl();
 
     return (
         <div className={`min-h-screen font-sans ${t.bg}`}>
@@ -707,15 +749,23 @@ const BabyPoolDashboard: React.FC = () => {
                                 <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
                                     <Lock size={16}/> ORGANIZER MODE
                                 </div>
-                                <div className="flex gap-2 w-full md:w-auto">
-                                    <button onClick={() => {
-                                        const url = shortLink || `${window.location.origin}/baby-pool.html#poolId=${pool.poolId}`;
-                                        navigator.clipboard.writeText(url);
-                                        alert("Share link copied! Send this to friends & family.");
-                                    }} className="flex-1 md:flex-none bg-white border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-100 flex items-center gap-2">
+                                <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center">
+                                    <button 
+                                        onClick={() => copyLink(guestShareUrl)} 
+                                        className="flex-1 md:flex-none bg-white border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-100 flex items-center gap-2"
+                                    >
                                         <Copy size={14}/> Copy Share Link
                                     </button>
-                                    <button onClick={() => setShowAdminModal(true)} className="flex-1 md:flex-none bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-600 shadow-sm flex items-center gap-2">
+                                    <button 
+                                        onClick={() => setShowQRModal(true)} 
+                                        className="flex-1 md:flex-none bg-white border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-100 flex items-center gap-2"
+                                    >
+                                        <QrCode size={14}/> QR Code
+                                    </button>
+                                    <button 
+                                        onClick={() => setShowAdminModal(true)} 
+                                        className="flex-1 md:flex-none bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-600 shadow-sm flex items-center gap-2"
+                                    >
                                         <Baby size={14}/> Declare Birth
                                     </button>
                                 </div>
@@ -723,6 +773,34 @@ const BabyPoolDashboard: React.FC = () => {
                         </div>
                     )}
                 </div>
+
+                {/* ADMIN QUICK STATS */}
+                {adminMode && !isCompleted && <AdminQuickStats pool={pool} />}
+
+                {/* NO GUESSES REMINDER FOR ADMIN */}
+                {adminMode && !isCompleted && pool.guesses.length === 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8 text-center">
+                        <AlertCircle className="mx-auto text-blue-500 mb-3" size={32}/>
+                        <h3 className="font-bold text-blue-900 text-lg mb-2">No guesses yet!</h3>
+                        <p className="text-blue-700 text-sm mb-4">
+                            Share your baby pool link with friends and family to start collecting predictions.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                            <button 
+                                onClick={() => copyLink(guestShareUrl)} 
+                                className="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700"
+                            >
+                                <Link2 size={18}/> Copy Share Link
+                            </button>
+                            <button 
+                                onClick={() => setShowQRModal(true)} 
+                                className="bg-white border-2 border-blue-600 text-blue-600 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-50"
+                            >
+                                <QrCode size={18}/> Show QR Code
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* COUNTDOWN (Only if active) */}
                 {!isCompleted && <PoolCountdown dueDate={pool.dueDate} theme={t} />}
@@ -745,38 +823,110 @@ const BabyPoolDashboard: React.FC = () => {
 
                 {/* ADMIN - PERSONAL LINKS GENERATOR */}
                 {adminMode && !isCompleted && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <Share2 size={20} className={t.accent}/> Invite Guests with Personal Links
-                        </h3>
-                        <p className="text-sm text-slate-500 mb-4">Create personalized links for each guest. Their name will be pre-filled!</p>
-                        <div className="flex gap-2 mb-6">
-                            <input 
-                                type="text" 
-                                placeholder="Enter guest name (e.g. Grandma)" 
-                                value={newInviteeName}
-                                onChange={e => setNewInviteeName(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && addInvitee()}
-                                className="flex-1 p-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <button onClick={addInvitee} className="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold hover:bg-slate-900">Add</button>
-                        </div>
-                        <div className="space-y-2">
-                            {invitees.map(invitee => {
-                                const personalLink = getPersonalLink(invitee.name);
-                                return (
-                                    <div key={invitee.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                        <span className="font-bold text-slate-700">{invitee.name}</span>
-                                        <div className="flex gap-2">
-                                            <button onClick={() => copyLink(personalLink)} className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600" title="Copy Link"><Copy size={16} /></button>
-                                            <a href={personalLink} target="_blank" rel="noopener noreferrer" className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600 flex items-center justify-center" title="Open Link"><ExternalLink size={16} /></a>
-                                            <button onClick={() => shareWhatsApp(invitee.name)} className="p-2 bg-green-500 hover:bg-green-600 rounded text-white" title="WhatsApp"><MessageCircle size={16} /></button>
-                                            <button onClick={() => removeInvitee(invitee.id)} className="p-2 text-slate-400 hover:text-red-500" title="Remove"><Trash2 size={16} /></button>
-                                        </div>
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+                        <button 
+                            onClick={() => setShowShareSection(!showShareSection)}
+                            className="w-full p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
+                        >
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <Share2 size={20} className={t.accent}/> Invite Guests with Personal Links
+                            </h3>
+                            {showShareSection ? <ChevronUp size={20} className="text-slate-400"/> : <ChevronDown size={20} className="text-slate-400"/>}
+                        </button>
+                        
+                        {showShareSection && (
+                            <div className="p-6">
+                                <p className="text-sm text-slate-500 mb-4">Create personalized links for each guest. Their name will be pre-filled!</p>
+                                
+                                {/* Quick Share URL */}
+                                <div className="bg-slate-50 p-4 rounded-xl mb-6 border border-slate-100">
+                                    <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Generic Share Link</label>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="text" 
+                                            readOnly 
+                                            value={guestShareUrl}
+                                            className="flex-1 p-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 truncate"
+                                        />
+                                        <button 
+                                            onClick={() => copyLink(guestShareUrl)} 
+                                            className="bg-slate-800 text-white px-4 rounded-lg font-bold hover:bg-slate-900 flex items-center gap-2"
+                                        >
+                                            <Copy size={16}/>
+                                        </button>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                </div>
+
+                                {/* Add Invitee */}
+                                <div className="flex gap-2 mb-6">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Enter guest name (e.g. Grandma)" 
+                                        value={newInviteeName}
+                                        onChange={e => setNewInviteeName(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && addInvitee()}
+                                        className="flex-1 p-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+                                    />
+                                    <button onClick={addInvitee} className="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-emerald-700">Add</button>
+                                </div>
+
+                                {/* Invitee List */}
+                                <div className="space-y-2">
+                                    {invitees.map(invitee => {
+                                        const personalLink = getPersonalLink(invitee.name);
+                                        const isCopied = copiedLinkId === invitee.id;
+                                        
+                                        return (
+                                            <div key={invitee.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                <span className="font-bold text-slate-700">{invitee.name}</span>
+                                                <div className="flex gap-1">
+                                                    <button 
+                                                        onClick={() => copyLink(personalLink, invitee.id)} 
+                                                        className={`p-2 rounded transition-colors ${isCopied ? 'bg-emerald-100 text-emerald-600' : 'bg-white border hover:bg-slate-100 text-slate-600'}`} 
+                                                        title="Copy Link"
+                                                    >
+                                                        {isCopied ? <Check size={16}/> : <Copy size={16}/>}
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => openPersonalLink(invitee.name)} 
+                                                        className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600" 
+                                                        title="Open Link"
+                                                    >
+                                                        <ExternalLink size={16}/>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => shareEmail(invitee.name)} 
+                                                        className="p-2 bg-blue-500 hover:bg-blue-600 rounded text-white" 
+                                                        title="Send Email"
+                                                    >
+                                                        <Mail size={16}/>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => shareWhatsApp(invitee.name)} 
+                                                        className="p-2 bg-green-500 hover:bg-green-600 rounded text-white" 
+                                                        title="WhatsApp"
+                                                    >
+                                                        <MessageCircle size={16}/>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => removeInvitee(invitee.id)} 
+                                                        className="p-2 text-slate-400 hover:text-red-500" 
+                                                        title="Remove"
+                                                    >
+                                                        <Trash2 size={16}/>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {invitees.length === 0 && (
+                                        <p className="text-center text-slate-400 py-4 text-sm">
+                                            Add guest names above to create personalized links
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -828,8 +978,6 @@ const BabyPoolDashboard: React.FC = () => {
                 )}
 
                 {/* GUESS FORM (IF ACTIVE) */}
-                {/* For Admin: Only show if they explicitly clicked "I want to predict" */}
-                {/* For Guests: Always show if they haven't guessed */}
                 {!isCompleted && !hasGuessed && (!adminMode || adminWantsToGuess) && (
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
                         <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -908,7 +1056,6 @@ const BabyPoolDashboard: React.FC = () => {
 
                         <input type="text" placeholder="Suggested Name (Optional)" value={newGuess.suggestedName} onChange={e => setNewGuess({...newGuess, suggestedName: e.target.value})} className="w-full p-3 border rounded-xl bg-slate-50 mb-4"/>
 
-                        {/* CUSTOM QUESTIONS */}
                         {pool.customQuestions && pool.customQuestions.length > 0 && (
                             <div className="mb-6 space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
                                 <h4 className="font-bold text-slate-700 flex items-center gap-2 text-sm"><HelpCircle size={16}/> Bonus Predictions</h4>
@@ -1024,6 +1171,15 @@ const BabyPoolDashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* QR CODE MODAL */}
+            {showQRModal && pool && (
+                <QRCodeModal 
+                    url={guestShareUrl}
+                    babyName={pool.babyName}
+                    onClose={() => setShowQRModal(false)}
+                />
             )}
 
             {/* ADD TO HOME SCREEN PROMPT */}
