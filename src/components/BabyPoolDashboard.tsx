@@ -4,7 +4,7 @@ import {
     Calendar, Scale, Clock, User, Trophy, Share2, Copy, Baby, 
     PlusCircle, CheckCircle, Instagram, Gift, Loader2, Lock, 
     MessageCircle, Trash2, DollarSign, Ruler, Scissors, Eye, 
-    HelpCircle, BarChart3, Bookmark, Sparkles, X
+    HelpCircle, BarChart3, Bookmark, Sparkles, X, RefreshCw
 } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
@@ -481,7 +481,7 @@ const BabyPoolDashboard: React.FC = () => {
             }
         } else {
             // No pool ID, redirect to generator
-            window.location.href = '/baby-pool/create';
+            window.location.href = '/baby-pool.html';
         }
     }, []);
 
@@ -495,33 +495,46 @@ const BabyPoolDashboard: React.FC = () => {
     // Generate short link when pool is loaded
     useEffect(() => {
         if (pool) {
-            const guestUrl = `${window.location.origin}/baby-pool#poolId=${pool.poolId}`;
+            const guestUrl = `${window.location.origin}/baby-pool.html#poolId=${pool.poolId}`;
             generateShortLink(guestUrl).then(setShortLink);
         }
     }, [pool]);
 
     const loadPool = async (id: string, key?: string | null) => {
-        try {
-            const data = await getPool(id, key);
-            setPool(data);
-            
-            // Check if user's guess is in the pool
-            const myGuessId = localStorage.getItem(`bp_my_guess_${id}`);
-            if (myGuessId) {
-                const myGuess = data.guesses.find(g => g.id === myGuessId);
-                if (myGuess) {
-                    setMySubmittedGuess(myGuess);
-                    setHasGuessed(true);
+        let attempts = 0;
+        const maxAttempts = 3;
+        
+        while(attempts < maxAttempts) {
+            try {
+                const data = await getPool(id, key);
+                setPool(data);
+                
+                // Check if user's guess is in the pool
+                const myGuessId = localStorage.getItem(`bp_my_guess_${id}`);
+                if (myGuessId) {
+                    const myGuess = data.guesses.find(g => g.id === myGuessId);
+                    if (myGuess) {
+                        setMySubmittedGuess(myGuess);
+                        setHasGuessed(true);
+                    }
+                }
+                
+                if (data.result) {
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#f59e0b', '#3b82f6'] });
+                }
+                setLoading(false);
+                return; // Success
+            } catch (err) {
+                console.warn(`Attempt ${attempts + 1} failed to load pool`);
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    setError("Could not load baby pool. Check the link and try again.");
+                    setLoading(false);
+                } else {
+                    // Wait 1 second before retry to handle eventual consistency
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
-            
-            if (data.result) {
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#f59e0b', '#3b82f6'] });
-            }
-        } catch (err) {
-            setError("Could not load baby pool. Check the link and try again.");
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -573,7 +586,7 @@ const BabyPoolDashboard: React.FC = () => {
     };
 
     const getPersonalLink = (name: string) => {
-        return `${window.location.origin}/baby-pool#poolId=${pool?.poolId}&guestName=${encodeURIComponent(name)}`;
+        return `${window.location.origin}/baby-pool.html#poolId=${pool?.poolId}&guestName=${encodeURIComponent(name)}`;
     };
 
     const copyLink = (text: string) => {
@@ -597,6 +610,18 @@ const BabyPoolDashboard: React.FC = () => {
         };
     }, [pool, mySubmittedGuess]);
 
+    const handleRetryLoad = () => {
+        setLoading(true);
+        setError(null);
+        const hash = window.location.hash.slice(1);
+        const params = new URLSearchParams(hash);
+        const poolId = params.get('poolId');
+        const adminKey = params.get('adminKey');
+        if (poolId) {
+            loadPool(poolId, adminKey);
+        }
+    };
+
     // Loading state
     if (loading) return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
@@ -614,9 +639,14 @@ const BabyPoolDashboard: React.FC = () => {
                 </div>
                 <h2 className="text-xl font-bold text-slate-800 mb-2">Pool Not Found</h2>
                 <p className="text-slate-600 mb-4">{error || "This baby pool doesn't exist or the link is incorrect."}</p>
-                <a href="/baby-pool.html" className="inline-block bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-emerald-700 transition-colors">
-                    Create a New Pool
-                </a>
+                <div className="flex flex-col gap-3">
+                    <button onClick={handleRetryLoad} className="w-full bg-slate-100 text-slate-700 font-bold py-3 px-6 rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+                        <RefreshCw size={18} /> Retry Loading
+                    </button>
+                    <a href="/baby-pool.html" className="inline-block w-full bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-emerald-700 transition-colors">
+                        Create a New Pool
+                    </a>
+                </div>
             </div>
         </div>
     );
@@ -663,7 +693,7 @@ const BabyPoolDashboard: React.FC = () => {
                                 </div>
                                 <div className="flex gap-2 w-full md:w-auto">
                                     <button onClick={() => {
-                                        const url = shortLink || `${window.location.origin}/baby-pool#poolId=${pool.poolId}`;
+                                        const url = shortLink || `${window.location.origin}/baby-pool.html#poolId=${pool.poolId}`;
                                         navigator.clipboard.writeText(url);
                                         alert("Share link copied! Send this to friends & family.");
                                     }} className="flex-1 md:flex-none bg-white border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-100 flex items-center gap-2">
