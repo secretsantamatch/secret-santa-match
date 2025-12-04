@@ -181,10 +181,12 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
     // --- SMART AD ENGINE INTEGRATION ---
     
-    // 1. Pre-Reveal Deal: Broad appeal (usually GiftCards.com or Seasonal)
+    // 1. Pre-Reveal Deal: ROTATING
     const PreRevealPromo = useMemo(() => {
-        // Passing 'gift cards' hints the engine to look for general deals if no dates override it
-        const match = getBestPromo('gift cards'); 
+        // Randomly pick context to ensure variety
+        const contexts = ['gift cards', 'luxury gift', 'jewelry'];
+        const randomContext = contexts[Math.floor(Math.random() * contexts.length)];
+        const match = getBestPromo(randomContext); 
         return match ? <SmartAd partner={match.partner} creative={match.creative} placement="pre-reveal" /> : null;
     }, []);
 
@@ -390,15 +392,7 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                     <span className="text-[10px] text-slate-400 font-medium">Sponsored</span>
                                                 </div>
                                                 <div className="p-4">
-                                                    <div className="flex items-center gap-3 mb-4">
-                                                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
-                                                            <Gift size={20} />
-                                                        </div>
-                                                        <div className="text-left">
-                                                            <h4 className="font-bold text-slate-800 text-sm leading-tight">GiftCards.com</h4>
-                                                            <p className="text-xs text-slate-500">The safe, instant way to send gifts from 350+ top brands.</p>
-                                                        </div>
-                                                    </div>
+                                                    {/* We remove the hardcoded GiftCards.com header since it might be Bonheur now */}
                                                     {PreRevealPromo}
                                                 </div>
                                             </div>
