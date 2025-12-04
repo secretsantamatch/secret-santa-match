@@ -417,21 +417,166 @@ const WhatsWinningCard: React.FC<{ guesses: BabyGuess[], pool: BabyPool, theme: 
     );
 };
 
-// --- Post-Vote Results Card (FIXED PERCENTILE) ---
-const PostVoteResultsCard: React.FC<{ 
-    guess: BabyGuess, allGuesses: BabyGuess[], babyName: string, pool: BabyPool, theme: any, onEdit: () => void, canEdit: boolean
-}> = ({ guess, allGuesses, babyName, pool, theme, onEdit, canEdit }) => {
+// --- STUNNING Share Modal for Social Sharing ---
+const SharePredictionModal: React.FC<{
+    guess: BabyGuess,
+    babyName: string,
+    parentNames: string,
+    rank: number,
+    totalGuesses: number,
+    theme: any,
+    onClose: () => void
+}> = ({ guess, babyName, parentNames, rank, totalGuesses, theme, onClose }) => {
     const [copied, setCopied] = useState(false);
 
-    // FIX: Calculate correct percentile - newer guesses at bottom, so we need submission order
+    const shareText = `🔮 I made my prediction for ${babyName}'s arrival!\n\n📅 ${formatDate(guess.date)}\n⚖️ ${guess.weightLbs}lb ${guess.weightOz}oz\n👶 ${guess.gender}\n\nThink you can guess better? Join the baby pool! 🍼`;
+    
+    const handleCopy = () => {
+        navigator.clipboard.writeText(shareText + '\n\n' + window.location.href);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleNativeShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: `My ${babyName} Prediction`, text: shareText, url: window.location.href });
+            } catch {}
+        } else {
+            handleCopy();
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-3xl max-w-md w-full relative overflow-hidden animate-fade-in shadow-2xl">
+                {/* Close button */}
+                <button onClick={onClose} className="absolute top-4 right-4 z-20 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg">
+                    <X size={20} className="text-slate-600"/>
+                </button>
+
+                {/* Shareable Card Preview */}
+                <div className={`${theme.bg} p-6 relative overflow-hidden`}>
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 left-0 w-full h-full opacity-10">
+                        <div className="absolute top-2 left-4 text-4xl">✨</div>
+                        <div className="absolute top-8 right-8 text-3xl">🍼</div>
+                        <div className="absolute bottom-4 left-1/4 text-2xl">⭐</div>
+                        <div className="absolute bottom-8 right-1/4 text-3xl">🎉</div>
+                    </div>
+                    
+                    <div className="relative z-10">
+                        <div className="text-center mb-4">
+                            <div className="text-4xl mb-2">🔮</div>
+                            <h3 className={`text-lg font-bold ${theme.text}`}>My Prediction for</h3>
+                            <h2 className={`text-2xl font-black font-serif ${theme.text}`}>{babyName}</h2>
+                            {parentNames && <p className={`text-sm ${theme.accent} opacity-80`}>by {parentNames}</p>}
+                        </div>
+
+                        {/* Prediction Card */}
+                        <div className={`bg-white rounded-2xl p-5 shadow-lg border-2 ${theme.border}`}>
+                            <div className="text-center mb-4">
+                                <p className="text-slate-500 text-xs font-medium uppercase tracking-wider">Predicted by</p>
+                                <p className="text-xl font-black text-slate-800">{guess.guesserName}</p>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-slate-50 p-3 rounded-xl text-center">
+                                    <div className="text-2xl mb-1">📅</div>
+                                    <p className="text-xs text-slate-400 font-medium">Date</p>
+                                    <p className="font-bold text-slate-800">{formatDate(guess.date)}</p>
+                                </div>
+                                <div className="bg-slate-50 p-3 rounded-xl text-center">
+                                    <div className="text-2xl mb-1">⚖️</div>
+                                    <p className="text-xs text-slate-400 font-medium">Weight</p>
+                                    <p className="font-bold text-slate-800">{guess.weightLbs}lb {guess.weightOz}oz</p>
+                                </div>
+                                <div className={`p-3 rounded-xl text-center ${guess.gender === 'Boy' ? 'bg-blue-50' : guess.gender === 'Girl' ? 'bg-pink-50' : 'bg-slate-50'}`}>
+                                    <div className="text-2xl mb-1">{guess.gender === 'Boy' ? '💙' : guess.gender === 'Girl' ? '💗' : '🎁'}</div>
+                                    <p className="text-xs text-slate-400 font-medium">Gender</p>
+                                    <p className={`font-bold ${guess.gender === 'Boy' ? 'text-blue-600' : guess.gender === 'Girl' ? 'text-pink-500' : 'text-slate-800'}`}>{guess.gender}</p>
+                                </div>
+                                <div className="bg-amber-50 p-3 rounded-xl text-center">
+                                    <div className="text-2xl mb-1">🏆</div>
+                                    <p className="text-xs text-slate-400 font-medium">Position</p>
+                                    <p className="font-bold text-amber-700">#{rank} of {totalGuesses}</p>
+                                </div>
+                            </div>
+
+                            {guess.suggestedName && (
+                                <div className="mt-3 bg-purple-50 p-3 rounded-xl text-center">
+                                    <p className="text-xs text-purple-400 font-medium">Name Guess</p>
+                                    <p className="font-bold text-purple-700">"{guess.suggestedName}"</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <p className="text-center text-xs text-slate-400 mt-4">
+                            Join the baby pool at SecretSantaMatch.com 🍼
+                        </p>
+                    </div>
+                </div>
+
+                {/* Share Actions */}
+                <div className="p-6 space-y-3">
+                    <button 
+                        onClick={handleNativeShare}
+                        className={`w-full ${theme.primary} text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-lg text-lg`}
+                    >
+                        <Share2 size={22}/> Share My Prediction
+                    </button>
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                        <a 
+                            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + '\n\n' + window.location.href)}`}
+                            target="_blank"
+                            rel="noopener"
+                            className="bg-green-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600"
+                        >
+                            <MessageCircle size={18}/>
+                        </a>
+                        <a 
+                            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                            target="_blank"
+                            rel="noopener"
+                            className="bg-blue-600 text-white font-bold py-3 rounded-xl flex items-center justify-center hover:bg-blue-700 text-lg"
+                        >
+                            f
+                        </a>
+                        <button 
+                            onClick={handleCopy}
+                            className="bg-slate-200 text-slate-700 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-300"
+                        >
+                            {copied ? <Check size={18}/> : <Copy size={18}/>}
+                        </button>
+                    </div>
+                    
+                    <p className="text-xs text-slate-400 text-center">
+                        {copied ? '✅ Copied to clipboard!' : 'Share to challenge friends & family!'}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Post-Vote Results Card (FIXED PERCENTILE) ---
+const PostVoteResultsCard: React.FC<{ 
+    guess: BabyGuess, allGuesses: BabyGuess[], babyName: string, parentNames?: string, pool: BabyPool, theme: any, onEdit: () => void, canEdit: boolean
+}> = ({ guess, allGuesses, babyName, parentNames, pool, theme, onEdit, canEdit }) => {
+    const [showShareModal, setShowShareModal] = useState(false);
+
+    // FIX: Calculate correct rank - findIndex returns 0-based, we need 1-based
     const totalGuesses = allGuesses.length;
     const myIndex = allGuesses.findIndex(g => g.id === guess.id);
-    const rank = myIndex + 1; // 1-indexed position
     
-    // FIX: Percentile = what % of people you're ahead of (higher = better)
-    // If you're 1st of 10, you're in top 10% (ahead of 90%)
-    // If you're 10th of 10, you're in top 100% (ahead of 0%)
-    const percentile = Math.max(1, Math.round((rank / totalGuesses) * 100));
+    // CRITICAL FIX: If not found (-1) or found at index 0, both need proper handling
+    // Index 0 = first guess = rank 1, Index 1 = second guess = rank 2, etc.
+    const rank = myIndex >= 0 ? myIndex + 1 : 1; // Default to 1 if not found
+    
+    // Percentile: Rank 1 of 10 = Top 10%, Rank 5 of 10 = Top 50%
+    const percentile = totalGuesses > 0 ? Math.max(1, Math.round((rank / totalGuesses) * 100)) : 100;
 
     const getComparison = () => {
         const comparisons: string[] = [];
@@ -449,19 +594,22 @@ const PostVoteResultsCard: React.FC<{
         return comparisons;
     };
 
-    const handleShare = async () => {
-        const shareText = `🔮 My Baby Pool Prediction for ${babyName}:\n📅 ${formatDate(guess.date)}${guess.time ? ` at ${guess.time}` : ''}\n⚖️ ${guess.weightLbs}lb ${guess.weightOz}oz\n👶 ${guess.gender}\n\nMake your guess too!`;
-        if (navigator.share) {
-            try { await navigator.share({ title: `My ${babyName} Prediction`, text: shareText, url: window.location.href }); } catch {}
-        } else {
-            navigator.clipboard.writeText(shareText + '\n' + window.location.href);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        }
-    };
-
     return (
-        <div className={`bg-white rounded-2xl shadow-lg border-2 ${theme.border} overflow-hidden mb-8`}>
+        <>
+            {/* Stunning Share Modal */}
+            {showShareModal && (
+                <SharePredictionModal
+                    guess={guess}
+                    babyName={babyName}
+                    parentNames={parentNames || ''}
+                    rank={rank}
+                    totalGuesses={totalGuesses}
+                    theme={theme}
+                    onClose={() => setShowShareModal(false)}
+                />
+            )}
+
+            <div className={`bg-white rounded-2xl shadow-lg border-2 ${theme.border} overflow-hidden mb-8`}>
             <div className={`${theme.primary} text-white p-6 text-center`}>
                 <div className="text-4xl mb-2">🎉</div>
                 <h3 className="text-xl font-bold mb-1">Your Prediction is Locked In!</h3>
@@ -523,9 +671,8 @@ const PostVoteResultsCard: React.FC<{
                 </div>
 
                 <div className="flex gap-2">
-                    <button onClick={handleShare} className={`flex-1 ${theme.primary} text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90`}>
-                        {copied ? <CheckCircle size={18}/> : <Share2 size={18}/>}
-                        {copied ? 'Copied!' : 'Share'}
+                    <button onClick={() => setShowShareModal(true)} className={`flex-1 ${theme.primary} text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 shadow-lg`}>
+                        <Share2 size={18}/> Share My Prediction
                     </button>
                     {canEdit && (
                         <button onClick={onEdit} className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-200">
@@ -542,6 +689,7 @@ const PostVoteResultsCard: React.FC<{
                 </p>
             </div>
         </div>
+        </>
     );
 };
 
@@ -1022,7 +1170,8 @@ const BabyPoolDashboard: React.FC = () => {
                     <PostVoteResultsCard 
                         guess={mySubmittedGuess} 
                         allGuesses={pool.guesses}
-                        babyName={pool.babyName} 
+                        babyName={pool.babyName}
+                        parentNames={pool.parentNames}
                         pool={pool}
                         theme={t}
                         onEdit={handleEditGuess}
