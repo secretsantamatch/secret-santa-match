@@ -114,7 +114,7 @@ export const PARTNERS: Partner[] = [
         name: 'Bonheur Jewelry',
         priority: 95, 
         geo: 'GLOBAL',
-        keywords: ['jewelry', 'jewellery', 'gold', 'silver', 'ring', 'necklace', 'earring', 'bracelet', 'fashion', 'wife', 'girlfriend', 'mom', 'luxury', 'sparkle', 'accessories', 'diamond', 'woman', 'women', 'style', 'joyas', 'anillo', 'collar', 'bijoux', 'bague', 'collier'],
+        keywords: ['jewelry', 'jewellery', 'gold', 'silver', 'ring', 'necklace', 'earring', 'bracelet', 'fashion', 'wife', 'girlfriend', 'mom', 'luxury', 'sparkle', 'accessories', 'diamond', 'woman', 'women', 'style', 'joyas', 'anillo', 'collar', 'bijoux', 'bague', 'collier', 'gift', 'present', 'holiday'],
         affiliateLink: "https://www.awin1.com/cread.php?s=4547931&v=90759&q=554223&r=2612068",
         icon: Gem,
         creatives: [
@@ -126,7 +126,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'Shop This Look',
                 weight: 80,
                 linkOverride: "https://www.awin1.com/cread.php?s=4551138&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4551138&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&q=80&w=600"
             },
             {
                 id: 'bonheur-odette-model',
@@ -136,7 +136,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'View Earrings',
                 weight: 80,
                 linkOverride: "https://www.awin1.com/cread.php?s=4551136&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4551136&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600"
             },
             {
                 id: 'bonheur-rings-model',
@@ -146,7 +146,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'Shop Rings',
                 weight: 70,
                 linkOverride: "https://www.awin1.com/cread.php?s=4547918&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4547918&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=600"
             },
             {
                 id: 'bonheur-anik-bracelet',
@@ -156,7 +156,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'Shop Bracelets',
                 weight: 70,
                 linkOverride: "https://www.awin1.com/cread.php?s=4547819&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4547819&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=600"
             },
             {
                 id: 'bonheur-lilou-charm',
@@ -166,7 +166,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'View Bracelet',
                 weight: 60,
                 linkOverride: "https://www.awin1.com/cread.php?s=4547876&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4547876&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=600"
             },
             {
                 id: 'bonheur-eugenie-tennis',
@@ -176,7 +176,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'Shop Luxury',
                 weight: 60,
                 linkOverride: "https://www.awin1.com/cread.php?s=4547874&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4547874&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1599643478518-17488fbbcd75?auto=format&fit=crop&q=80&w=600"
             },
             {
                 id: 'bonheur-taylor-earrings',
@@ -186,7 +186,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'Shop Earrings',
                 weight: 60,
                 linkOverride: "https://www.awin1.com/cread.php?s=4547850&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4547850&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1630019852942-f89202989a51?auto=format&fit=crop&q=80&w=600"
             },
             {
                 id: 'bonheur-astor-hoops',
@@ -196,7 +196,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'View Hoops',
                 weight: 50,
                 linkOverride: "https://www.awin1.com/cread.php?s=4547812&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4547812&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1629224316810-9d8805b95076?auto=format&fit=crop&q=80&w=600"
             },
             {
                 id: 'bonheur-odette-product',
@@ -206,7 +206,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'See Details',
                 weight: 40,
                 linkOverride: "https://www.awin1.com/cread.php?s=4551135&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4551135&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600"
             },
             {
                 id: 'bonheur-general-banner',
@@ -216,7 +216,7 @@ export const PARTNERS: Partner[] = [
                 cta: 'Discover Bonheur',
                 weight: 50,
                 linkOverride: "https://www.awin1.com/cread.php?s=4547931&v=90759&q=554223&r=2612068",
-                imageUrl: "https://www.awin1.com/cshow.php?s=4547931&v=90759&q=554223&r=2612068"
+                imageUrl: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=600"
             }
         ]
     },
@@ -651,7 +651,7 @@ export const PARTNERS: Partner[] = [
                 body: 'Upload a photo or choose a festive design. The perfect gift they can spend anywhere.',
                 cta: 'Personalize Now',
                 themeColor: 'emerald',
-                weight: 70,
+                weight: 7,
                 linkOverride: "https://click.linksynergy.com/link?id=6AKK8tkf2k4&offerid=1469583.444323918390291691328604&type=2&murl=https%3a%2f%2fwww.giftcards.com%2fus%2fen%2fcatalog%2fproduct-details%2fopen-loop-gift-card%3fmode%3ddesign%26brand%3dvisa%26image-id%3d1de39cec-2760-4aa0-bccf-71b8f59820bb%26amount%3d50",
                 imageUrl: "https://www.giftcards.com/content/dam/bhn/live/nam/us/en/marketing-assets/predesigns/636bce53be23.jpg/jcr:content/renditions/cq5dam.thumbnail.319.319.png"
             },
@@ -663,7 +663,7 @@ export const PARTNERS: Partner[] = [
                 body: 'Share the joy of the season with gift cards that fit every style. Instant delivery available.',
                 cta: 'Browse All Cards',
                 themeColor: 'red',
-                weight: 30,
+                weight: 3,
                 startDate: '2025-11-26',
                 endDate: '2025-12-15',
                 imageUrl: "https://ad.linksynergy.com/fs-bin/show?id=6AKK8tkf2k4&bids=1469583.830&subid=0&type=4&gridnum=0"
