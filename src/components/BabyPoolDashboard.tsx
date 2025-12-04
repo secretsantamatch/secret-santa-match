@@ -5,7 +5,8 @@ import {
     MessageCircle, Trash2, DollarSign, Ruler, Scissors, Eye, 
     HelpCircle, BarChart3, Bookmark, Sparkles, X, RefreshCw,
     ExternalLink, Settings, Mail, QrCode, Download, AlertCircle,
-    Users, ChevronDown, ChevronUp, Link2, Check, Edit3
+    Users, ChevronDown, ChevronUp, Link2, Check, Edit3, Heart,
+    Target, Globe
 } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
@@ -14,7 +15,7 @@ import { trackEvent } from '../services/analyticsService';
 import { getPool, submitGuess, declareBirth } from '../services/babyPoolService';
 import type { BabyPool, BabyGuess } from '../types';
 import confetti from 'canvas-confetti';
-import { THEMES, ThemeKey, AMAZON_CONFIG, detectCountry } from './BabyPoolGenerator';
+import { THEMES, ThemeKey, AMAZON_CONFIG, detectCountry, UNIT_LABELS, UnitSystem } from './BabyPoolGenerator';
 
 // ============================================================================
 // CONSTANTS
@@ -27,18 +28,15 @@ const EYE_COLORS = ['Blue', 'Brown', 'Green', 'Hazel', 'Grey', 'Violet'];
 // UTILITY FUNCTIONS
 // ============================================================================
 
-// Scoring logic
 const calculateScore = (guess: BabyGuess, actual: NonNullable<BabyPool['result']>, pool: BabyPool) => {
     let score = 0;
     const fields = pool.includeFields || { time: true, weight: true, length: true, hair: true, eye: true, gender: true };
 
-    // Date: 50 pts max, -2 per day off
     const gDate = new Date(guess.date).getTime();
     const aDate = new Date(actual.date).getTime();
     const daysDiff = Math.abs(gDate - aDate) / (1000 * 60 * 60 * 24);
     score += Math.max(0, 50 - (daysDiff * 2)); 
 
-    // Weight: 50 pts max, -3 per oz off
     if (fields.weight) {
         const gTotalOz = (guess.weightLbs * 16) + guess.weightOz;
         const aTotalOz = (actual.weightLbs * 16) + actual.weightOz;
@@ -46,7 +44,6 @@ const calculateScore = (guess: BabyGuess, actual: NonNullable<BabyPool['result']
         score += Math.max(0, 50 - (ozDiff * 3)); 
     }
 
-    // Time: 30 pts max, -1 per 10 mins off
     if (fields.time && guess.time && actual.time) {
         const gTime = new Date(`2000-01-01T${guess.time}`).getTime();
         const aTime = new Date(`2000-01-01T${actual.time}`).getTime();
@@ -54,7 +51,6 @@ const calculateScore = (guess: BabyGuess, actual: NonNullable<BabyPool['result']
         score += Math.max(0, 30 - Math.floor(minsDiff / 10));
     }
 
-    // Length: 30 pts max, -5 per inch off
     if (fields.length && guess.length && actual.length) {
         score += Math.max(0, 30 - (Math.abs(guess.length - actual.length) * 5));
     }
@@ -63,24 +59,17 @@ const calculateScore = (guess: BabyGuess, actual: NonNullable<BabyPool['result']
     if (fields.hair && guess.hairColor && actual.hairColor && guess.hairColor === actual.hairColor) score += 10;
     if (fields.eye && guess.eyeColor && actual.eyeColor && guess.eyeColor === actual.eyeColor) score += 10;
     
-    // Name Match
     if (actual.actualName && guess.suggestedName && actual.actualName.toLowerCase().trim() === guess.suggestedName.toLowerCase().trim()) score += 50;
 
     return Math.round(score);
 };
 
-// Format date nicely
 const formatDate = (dateStr: string): string => {
     try {
-        return new Date(dateStr).toLocaleDateString('en-US', { 
-            month: 'short', day: 'numeric', year: 'numeric' 
-        });
-    } catch {
-        return dateStr;
-    }
+        return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch { return dateStr; }
 };
 
-// Generate QR Code URL using free QR code API
 const generateQRCodeUrl = (url: string, size: number = 200): string => {
     return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`;
 };
@@ -89,11 +78,114 @@ const generateQRCodeUrl = (url: string, size: number = 200): string => {
 // HELPER COMPONENTS
 // ============================================================================
 
-interface Invitee {
-    id: string;
-    name: string;
-    sent?: boolean;
-}
+interface Invitee { id: string; name: string; sent?: boolean; }
+
+// --- Progress Bar Component ---
+const ProgressBar: React.FC<{ current: number, target: number, theme: any }> = ({ current, target, theme }) => {
+    const percentage = Math.min(100, Math.round((current / target) * 100));
+    
+    return (
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6">
+            <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <Target size={16} className={theme.accent}/> 
+                    🎯 {current} of {target} guesses collected!
+                </span>
+                <span className="text-sm font-bold text-slate-500">{percentage}%</span>
+            </div>
+            <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                    className={`h-full ${theme.primary} rounded-full transition-all duration-500`} 
+                    style={{ width: `${percentage}%` }}
+                ></div>
+            </div>
+            {percentage >= 100 && (
+                <p className="text-xs text-emerald-600 font-medium mt-2 text-center">🎉 Goal reached! Keep sharing to get more guesses!</p>
+            )}
+        </div>
+    );
+};
+
+// --- Prize Display Component ---
+const PrizeDisplay: React.FC<{ prize: string, theme: any }> = ({ prize, theme }) => {
+    if (!prize) return null;
+    
+    return (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-xl border-2 border-amber-200 mb-6 text-center">
+            <Trophy className="mx-auto text-amber-500 mb-2" size={28}/>
+            <h3 className="font-bold text-amber-900 mb-1">🏆 Winner's Prize</h3>
+            <p className="text-amber-800 font-medium">{prize}</p>
+        </div>
+    );
+};
+
+// --- Name Poll Component ---
+const NamePollCard: React.FC<{ 
+    nameOptions: string[], 
+    votes: Record<string, number>,
+    onVote: (name: string) => void,
+    hasVoted: boolean,
+    myVote: string | null,
+    theme: any 
+}> = ({ nameOptions, votes, onVote, hasVoted, myVote, theme }) => {
+    if (!nameOptions || nameOptions.length === 0) return null;
+    
+    const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
+    
+    return (
+        <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-5 rounded-2xl border border-pink-200 mb-6">
+            <h3 className="font-bold text-pink-900 mb-3 flex items-center gap-2">
+                <Heart size={20} className="text-pink-500"/> 💕 Help Pick a Name!
+            </h3>
+            
+            <div className="space-y-2">
+                {nameOptions.map((name, i) => {
+                    const voteCount = votes[name] || 0;
+                    const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                    const isMyVote = myVote === name;
+                    
+                    return (
+                        <button 
+                            key={i}
+                            onClick={() => !hasVoted && onVote(name)}
+                            disabled={hasVoted}
+                            className={`w-full p-3 rounded-xl border-2 text-left transition-all relative overflow-hidden ${
+                                isMyVote 
+                                    ? 'border-pink-400 bg-pink-100' 
+                                    : hasVoted 
+                                        ? 'border-slate-200 bg-white cursor-default'
+                                        : 'border-slate-200 bg-white hover:border-pink-300 cursor-pointer'
+                            }`}
+                        >
+                            {hasVoted && (
+                                <div 
+                                    className="absolute left-0 top-0 h-full bg-pink-100 transition-all duration-500"
+                                    style={{ width: `${percentage}%` }}
+                                ></div>
+                            )}
+                            <div className="relative flex justify-between items-center">
+                                <span className="font-medium text-slate-800 flex items-center gap-2">
+                                    {!hasVoted && <div className="w-4 h-4 rounded-full border-2 border-pink-300"></div>}
+                                    {isMyVote && <CheckCircle size={16} className="text-pink-500"/>}
+                                    {name}
+                                </span>
+                                {hasVoted && (
+                                    <span className="text-sm text-pink-700 font-bold">{percentage}%</span>
+                                )}
+                            </div>
+                        </button>
+                    );
+                })}
+            </div>
+            
+            {hasVoted && (
+                <p className="text-xs text-pink-600 mt-3 text-center">
+                    {totalVotes} {totalVotes === 1 ? 'vote' : 'votes'} cast • Your vote: {myVote}
+                </p>
+            )}
+        </div>
+    );
+};
 
 // --- Countdown Component ---
 const PoolCountdown: React.FC<{ dueDate: string, theme: any }> = ({ dueDate, theme }) => {
@@ -133,296 +225,128 @@ const PoolCountdown: React.FC<{ dueDate: string, theme: any }> = ({ dueDate, the
                     </div>
                 ))}
             </div>
-            <p className="text-xs text-slate-500 mt-4">
-                <Bookmark className="inline mr-1" size={12}/>
-                Bookmark this page to check back for updates!
+            <p className="text-xs text-slate-400 mt-4 flex items-center justify-center gap-1">
+                <Bookmark size={12}/> Bookmark this page to check back for updates!
             </p>
         </div>
     );
 };
 
-// --- Group Stats Scorecard ---
-const GroupStatsCard: React.FC<{ guesses: BabyGuess[], theme: any, fields: any }> = ({ guesses, theme, fields }) => {
-    if (guesses.length < 3) return null;
-
-    const genderVotes = guesses.reduce((acc, g) => {
-        if (g.gender && g.gender !== 'Surprise') {
-            acc[g.gender] = (acc[g.gender] || 0) + 1;
-        }
-        return acc;
-    }, {} as Record<string, number>);
-
-    const totalGenderVotes = Object.values(genderVotes).reduce((a, b) => a + b, 0);
-
-    const dateCounts = guesses.reduce((acc, g) => {
-        acc[g.date] = (acc[g.date] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-    const popularDate = Object.entries(dateCounts).sort((a, b) => b[1] - a[1])[0];
-
-    const avgWeight = guesses.reduce((sum, g) => sum + (g.weightLbs * 16 + g.weightOz), 0) / guesses.length;
-    const avgLbs = Math.floor(avgWeight / 16);
-    const avgOz = Math.round(avgWeight % 16);
-
-    const nameGuesses = guesses.filter(g => g.suggestedName).reduce((acc, g) => {
-        const name = g.suggestedName!.toLowerCase().trim();
-        acc[name] = (acc[name] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-    const topNames = Object.entries(nameGuesses).sort((a, b) => b[1] - a[1]).slice(0, 3);
-
-    const timeSlots = { 'Morning (6am-12pm)': 0, 'Afternoon (12pm-6pm)': 0, 'Evening (6pm-12am)': 0, 'Night (12am-6am)': 0 };
-    guesses.forEach(g => {
-        if (g.time) {
-            const hour = parseInt(g.time.split(':')[0]);
-            if (hour >= 6 && hour < 12) timeSlots['Morning (6am-12pm)']++;
-            else if (hour >= 12 && hour < 18) timeSlots['Afternoon (12pm-6pm)']++;
-            else if (hour >= 18) timeSlots['Evening (6pm-12am)']++;
-            else timeSlots['Night (12am-6am)']++;
-        }
-    });
-    const popularTimeSlot = Object.entries(timeSlots).sort((a, b) => b[1] - a[1])[0];
-
+// --- Deadline Banner ---
+const DeadlineBanner: React.FC<{ deadline: string, isPast: boolean }> = ({ deadline, isPast }) => {
+    if (!deadline) return null;
+    
+    if (isPast) {
+        return (
+            <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-6 text-center">
+                <Lock className="inline mr-2 text-red-500" size={18}/>
+                <span className="font-bold text-red-700">Guessing is closed!</span>
+                <p className="text-sm text-red-600 mt-1">The deadline was {formatDate(deadline)}</p>
+            </div>
+        );
+    }
+    
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+        <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl mb-6 text-center">
+            <Clock className="inline mr-2 text-amber-600" size={16}/>
+            <span className="text-sm font-medium text-amber-800">
+                ⏰ Guessing closes on <strong>{formatDate(deadline)}</strong>
+            </span>
+        </div>
+    );
+};
+
+// --- Registry Section for Participants ---
+const RegistrySection: React.FC<{ pool: BabyPool, theme: any, country: string }> = ({ pool, theme, country }) => {
+    const hasLinks = pool.registryLink || pool.diaperFundLink || (pool.additionalLinks && pool.additionalLinks.length > 0);
+    
+    if (!hasLinks) return null;
+    
+    return (
+        <div className={`mt-8 p-6 bg-white rounded-2xl border-2 ${theme.border} shadow-sm`}>
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <BarChart3 size={20} className={theme.accent}/> 
-                📊 The Predictions Are In
+                <Gift size={20} className="text-orange-500"/> 🎁 Want to Send a Gift?
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {fields.gender && totalGenderVotes > 0 && (
-                    <div className="bg-slate-50 p-4 rounded-xl">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">👶 Gender Predictions</h4>
-                        <div className="space-y-2">
-                            {Object.entries(genderVotes).map(([gender, count]) => {
-                                const pct = Math.round((count / totalGenderVotes) * 100);
-                                return (
-                                    <div key={gender}>
-                                        <div className="flex justify-between text-sm mb-1">
-                                            <span className="font-medium">{gender}</span>
-                                            <span className="text-slate-500">{pct}% ({count})</span>
-                                        </div>
-                                        <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                                            <div 
-                                                className={`h-full rounded-full transition-all ${gender === 'Boy' ? 'bg-blue-400' : 'bg-pink-400'}`}
-                                                style={{ width: `${pct}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+            <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                {pool.registryLink && (
+                    <a href={pool.registryLink} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-slate-800 text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-900 transition-colors text-sm">
+                        <Gift size={16}/> View Baby Registry
+                    </a>
                 )}
-
-                {popularDate && (
-                    <div className="bg-slate-50 p-4 rounded-xl">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">📅 Most Predicted Date</h4>
-                        <p className="text-2xl font-black text-slate-800">{formatDate(popularDate[0])}</p>
-                        <p className="text-sm text-slate-500">{popularDate[1]} {popularDate[1] === 1 ? 'guess' : 'guesses'}</p>
-                    </div>
-                )}
-
-                {fields.weight && (
-                    <div className="bg-slate-50 p-4 rounded-xl">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">⚖️ Average Weight Guess</h4>
-                        <p className="text-2xl font-black text-slate-800">{avgLbs} lbs {avgOz} oz</p>
-                    </div>
-                )}
-
-                {fields.time && popularTimeSlot[1] > 0 && (
-                    <div className="bg-slate-50 p-4 rounded-xl">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">🕐 Most Popular Time</h4>
-                        <p className="text-lg font-bold text-slate-800">{popularTimeSlot[0]}</p>
-                        <p className="text-sm text-slate-500">{Math.round((popularTimeSlot[1] / guesses.filter(g => g.time).length) * 100)}% of guesses</p>
-                    </div>
-                )}
-
-                {topNames.length > 0 && (
-                    <div className="bg-slate-50 p-4 rounded-xl md:col-span-2">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">📝 Top Name Guesses</h4>
-                        <div className="flex flex-wrap gap-2">
-                            {topNames.map(([name, count], i) => (
-                                <span key={name} className={`px-3 py-1 rounded-full text-sm font-bold ${i === 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-600'}`}>
-                                    {name.charAt(0).toUpperCase() + name.slice(1)} ({count})
-                                </span>
-                            ))}
-                        </div>
-                    </div>
+                {pool.diaperFundLink && (
+                    <a href={pool.diaperFundLink} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-emerald-600 transition-colors text-sm">
+                        <DollarSign size={16}/> Diaper Fund
+                    </a>
                 )}
             </div>
-        </div>
-    );
-};
-
-// --- My Prediction Card (Shareable) ---
-const MyPredictionCard: React.FC<{ 
-    guess: BabyGuess, 
-    babyName: string, 
-    theme: any,
-    rank?: number,
-    totalGuesses?: number 
-}> = ({ guess, babyName, theme, rank, totalGuesses }) => {
-    const [copied, setCopied] = useState(false);
-
-    const shareText = `🔮 My Baby Pool Prediction for ${babyName}:\n📅 ${formatDate(guess.date)}${guess.time ? ` at ${guess.time}` : ''}\n⚖️ ${guess.weightLbs}lb ${guess.weightOz}oz\n👶 ${guess.gender}\n\nMake your guess too!`;
-
-    const handleShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: `My ${babyName} Prediction`,
-                    text: shareText,
-                    url: window.location.href
-                });
-            } catch (err) {
-                // User cancelled
-            }
-        } else {
-            navigator.clipboard.writeText(shareText + '\n' + window.location.href);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        }
-    };
-
-    return (
-        <div className={`bg-white rounded-2xl shadow-lg border-2 ${theme.border} p-6 mb-8 relative overflow-hidden`}>
-            <div className={`absolute top-0 left-0 w-full h-1 ${theme.primary}`}></div>
             
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                    <Sparkles size={20} className={theme.accent}/> 
-                    Your Prediction
-                </h3>
-                {rank && totalGuesses && (
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${rank === 1 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
-                        {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`} of {totalGuesses}
-                    </span>
-                )}
-            </div>
-
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 mb-4">
-                <p className="text-sm text-slate-500 mb-2">Predicted for <strong className="text-slate-800">{babyName}</strong></p>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                        <span className="text-slate-400">📅 Date:</span>
-                        <p className="font-bold text-slate-800">{formatDate(guess.date)}</p>
-                    </div>
-                    {guess.time && (
-                        <div>
-                            <span className="text-slate-400">🕐 Time:</span>
-                            <p className="font-bold text-slate-800">{guess.time}</p>
-                        </div>
-                    )}
-                    <div>
-                        <span className="text-slate-400">⚖️ Weight:</span>
-                        <p className="font-bold text-slate-800">{guess.weightLbs}lb {guess.weightOz}oz</p>
-                    </div>
-                    <div>
-                        <span className="text-slate-400">👶 Gender:</span>
-                        <p className="font-bold text-slate-800">{guess.gender}</p>
-                    </div>
-                    {guess.suggestedName && (
-                        <div className="col-span-2">
-                            <span className="text-slate-400">✨ Name Guess:</span>
-                            <p className="font-bold text-slate-800">{guess.suggestedName}</p>
-                        </div>
-                    )}
+            {pool.additionalLinks && pool.additionalLinks.length > 0 && (
+                <div className="space-y-2 pt-3 border-t border-slate-100">
+                    {pool.additionalLinks.map((link, i) => (
+                        <a key={i} href={link.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                            <ExternalLink size={14}/> {link.label}
+                        </a>
+                    ))}
+                </div>
+            )}
+            
+            {/* Affiliate suggestions */}
+            <div className="mt-4 pt-4 border-t border-slate-100">
+                <p className="text-xs text-slate-500 mb-2">Or shop top baby gifts:</p>
+                <div className="flex flex-wrap gap-2">
+                    <a href={AMAZON_CONFIG[country]?.link || AMAZON_CONFIG.US.link} target="_blank" rel="noopener" className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full hover:bg-orange-200 font-medium">
+                        🎁 Amazon Baby Registry
+                    </a>
+                    <a href="https://sugarwish.com?ref=secretsantamatch" target="_blank" rel="noopener" className="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full hover:bg-pink-200 font-medium">
+                        🍬 Sugarwish Treats
+                    </a>
                 </div>
             </div>
+        </div>
+    );
+};
 
-            <div className="flex gap-2">
-                <button 
-                    onClick={handleShare}
-                    className={`flex-1 ${theme.primary} text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-all`}
-                >
-                    {copied ? <CheckCircle size={18}/> : <Share2 size={18}/>}
-                    {copied ? 'Copied!' : 'Share My Prediction'}
-                </button>
-            </div>
-
-            <p className="text-xs text-center text-slate-400 mt-3">
-                <Bookmark className="inline mr-1" size={12}/>
-                Bookmark this page to see if you won!
+// --- Welcome Splash ---
+const WelcomeSplash: React.FC<{ guestName: string, babyName: string, parentNames: string, theme: any, onContinue: () => void }> = ({ guestName, babyName, parentNames, theme, onContinue }) => (
+    <div className="fixed inset-0 bg-gradient-to-br from-emerald-50 via-white to-sky-50 flex items-center justify-center p-4 z-50">
+        <div className="max-w-md w-full text-center animate-fade-in">
+            <div className="text-6xl mb-6">🍼</div>
+            <h1 className="text-3xl md:text-4xl font-black text-slate-800 font-serif mb-2">Hi {guestName}! 👋</h1>
+            <p className="text-lg text-slate-600 mb-6">
+                {parentNames ? (
+                    <><span className="font-semibold text-emerald-700">{parentNames}</span> invited you to join the baby pool for</>
+                ) : 'You\'ve been invited to join the baby pool for'}
             </p>
-        </div>
-    );
-};
-
-// --- Welcome Splash for Personalized Links ---
-const WelcomeSplash: React.FC<{ 
-    guestName: string, 
-    babyName: string, 
-    parentNames: string,
-    theme: any,
-    onContinue: () => void 
-}> = ({ guestName, babyName, parentNames, theme, onContinue }) => {
-    return (
-        <div className="fixed inset-0 bg-gradient-to-br from-emerald-50 via-white to-sky-50 flex items-center justify-center p-4 z-50">
-            <div className="max-w-md w-full text-center animate-fade-in">
-                {/* Decorative elements */}
-                <div className="text-6xl mb-6">🍼</div>
-                
-                <h1 className="text-3xl md:text-4xl font-black text-slate-800 font-serif mb-2">
-                    Hi {guestName}! 👋
-                </h1>
-                
-                <p className="text-lg text-slate-600 mb-6">
-                    {parentNames ? (
-                        <>
-                            <span className="font-semibold text-emerald-700">{parentNames}</span> invited you to join the baby pool for
-                        </>
-                    ) : (
-                        <>You've been invited to join the baby pool for</>
-                    )}
-                </p>
-                
-                <div className={`${theme.primary} text-white py-6 px-8 rounded-2xl mb-8 shadow-lg`}>
-                    <p className="text-white/80 text-sm font-medium mb-1">Guess the arrival of</p>
-                    <h2 className="text-4xl font-black font-serif">{babyName}</h2>
-                </div>
-                
-                <div className="bg-white rounded-2xl p-6 mb-8 shadow-sm border border-slate-200">
-                    <h3 className="font-bold text-slate-700 mb-4">🎯 How it works:</h3>
-                    <div className="space-y-3 text-left">
-                        <div className="flex items-start gap-3">
-                            <span className="bg-emerald-100 text-emerald-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
-                            <p className="text-slate-600 text-sm">Make your predictions for when baby arrives, weight, gender & more</p>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <span className="bg-emerald-100 text-emerald-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
-                            <p className="text-slate-600 text-sm">See how your guesses compare to everyone else</p>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <span className="bg-emerald-100 text-emerald-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
-                            <p className="text-slate-600 text-sm">Come back after baby arrives to see if you won! 🏆</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <button 
-                    onClick={onContinue}
-                    className={`w-full ${theme.primary} text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-105 transition-all text-lg flex items-center justify-center gap-2`}
-                >
-                    Make My Prediction <Sparkles size={20}/>
-                </button>
-                
-                <p className="text-xs text-slate-400 mt-4">
-                    No signup required • Takes 2 minutes • 100% free
-                </p>
+            <div className={`${theme.primary} text-white py-6 px-8 rounded-2xl mb-8 shadow-lg`}>
+                <p className="text-white/80 text-sm font-medium mb-1">Guess the arrival of</p>
+                <h2 className="text-4xl font-black font-serif">{babyName}</h2>
             </div>
+            <div className="bg-white rounded-2xl p-6 mb-8 shadow-sm border border-slate-200">
+                <h3 className="font-bold text-slate-700 mb-4">🎯 How it works:</h3>
+                <div className="space-y-3 text-left">
+                    {['Make your predictions for when baby arrives, weight, gender & more', 'See how your guesses compare to everyone else', 'Come back after baby arrives to see if you won! 🏆'].map((text, i) => (
+                        <div key={i} className="flex items-start gap-3">
+                            <span className="bg-emerald-100 text-emerald-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">{i+1}</span>
+                            <p className="text-slate-600 text-sm">{text}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <button onClick={onContinue} className={`w-full ${theme.primary} text-white font-bold py-4 px-8 rounded-xl shadow-lg transform hover:scale-105 transition-all text-lg flex items-center justify-center gap-2`}>
+                Make My Prediction <Sparkles size={20}/>
+            </button>
+            <p className="text-xs text-slate-400 mt-4">No signup required • Takes 2 minutes • 100% free</p>
         </div>
-    );
-};
+    </div>
+);
 
-// --- What's Winning Section (For Organizer) ---
+// --- What's Winning Section ---
 const WhatsWinningCard: React.FC<{ guesses: BabyGuess[], pool: BabyPool, theme: any }> = ({ guesses, pool, theme }) => {
     if (guesses.length < 1) return null;
 
     const fields = pool.includeFields || { time: true, weight: true, length: true, hair: true, eye: true, gender: true };
 
-    // Calculate most popular for each category
     const getMode = (arr: string[]) => {
         const counts: Record<string, number> = {};
         arr.forEach(v => { if (v) counts[v] = (counts[v] || 0) + 1; });
@@ -436,61 +360,35 @@ const WhatsWinningCard: React.FC<{ guesses: BabyGuess[], pool: BabyPool, theme: 
         return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
     };
 
-    // Dates
     const dates = guesses.map(g => g.date);
     const topDate = getMode(dates);
     
-    // Gender
     const genders = guesses.map(g => g.gender).filter(g => g && g !== 'Surprise');
     const topGender = getMode(genders);
-    const genderPct = topGender ? Math.round((topGender[1] / genders.length) * 100) : 0;
+    const genderPct = topGender && genders.length > 0 ? Math.round((topGender[1] / genders.length) * 100) : 0;
 
-    // Weight
     const weights = guesses.map(g => g.weightLbs * 16 + g.weightOz);
     const medianWeight = getMedian(weights);
     const medianLbs = Math.floor(medianWeight / 16);
     const medianOz = Math.round(medianWeight % 16);
 
-    // Time slots
-    const timeSlots = guesses.map(g => {
-        if (!g.time) return null;
-        const hour = parseInt(g.time.split(':')[0]);
-        if (hour >= 6 && hour < 12) return 'Morning';
-        if (hour >= 12 && hour < 18) return 'Afternoon';
-        if (hour >= 18 && hour < 22) return 'Evening';
-        return 'Night';
-    }).filter(Boolean) as string[];
-    const topTimeSlot = getMode(timeSlots);
-
-    // Hair
-    const hairs = guesses.map(g => g.hairColor).filter(Boolean) as string[];
-    const topHair = getMode(hairs);
-
-    // Names
     const names = guesses.map(g => g.suggestedName?.toLowerCase().trim()).filter(Boolean) as string[];
     const topName = getMode(names);
 
     return (
         <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200 p-6 mb-8">
             <h3 className="font-bold text-amber-900 mb-4 flex items-center gap-2 text-lg">
-                <Trophy size={22} className="text-amber-500"/> 
-                🔮 Current Predictions Summary
+                <Trophy size={22} className="text-amber-500"/> 🔮 Current Predictions Summary
             </h3>
-            <p className="text-amber-700 text-sm mb-4">
-                Based on {guesses.length} {guesses.length === 1 ? 'guess' : 'guesses'} so far:
-            </p>
-
+            <p className="text-amber-700 text-sm mb-4">Based on {guesses.length} {guesses.length === 1 ? 'guess' : 'guesses'} so far:</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {/* Date */}
                 {topDate && (
                     <div className="bg-white rounded-xl p-4 shadow-sm">
-                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">📅 Due Date</div>
+                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">📅 Top Date</div>
                         <div className="font-black text-slate-800">{formatDate(topDate[0])}</div>
                         <div className="text-xs text-emerald-600 font-medium">{topDate[1]} votes</div>
                     </div>
                 )}
-
-                {/* Gender */}
                 {fields.gender && topGender && (
                     <div className="bg-white rounded-xl p-4 shadow-sm">
                         <div className="text-xs text-slate-400 uppercase font-bold mb-1">👶 Gender</div>
@@ -500,8 +398,6 @@ const WhatsWinningCard: React.FC<{ guesses: BabyGuess[], pool: BabyPool, theme: 
                         <div className="text-xs text-emerald-600 font-medium">{genderPct}% say {topGender[0]}</div>
                     </div>
                 )}
-
-                {/* Weight */}
                 {fields.weight && !isNaN(medianWeight) && (
                     <div className="bg-white rounded-xl p-4 shadow-sm">
                         <div className="text-xs text-slate-400 uppercase font-bold mb-1">⚖️ Weight</div>
@@ -509,26 +405,6 @@ const WhatsWinningCard: React.FC<{ guesses: BabyGuess[], pool: BabyPool, theme: 
                         <div className="text-xs text-slate-500 font-medium">median guess</div>
                     </div>
                 )}
-
-                {/* Time */}
-                {fields.time && topTimeSlot && (
-                    <div className="bg-white rounded-xl p-4 shadow-sm">
-                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">🕐 Time of Day</div>
-                        <div className="font-black text-slate-800">{topTimeSlot[0]}</div>
-                        <div className="text-xs text-emerald-600 font-medium">{topTimeSlot[1]} votes</div>
-                    </div>
-                )}
-
-                {/* Hair */}
-                {fields.hair && topHair && (
-                    <div className="bg-white rounded-xl p-4 shadow-sm">
-                        <div className="text-xs text-slate-400 uppercase font-bold mb-1">💇 Hair Color</div>
-                        <div className="font-black text-slate-800">{topHair[0]}</div>
-                        <div className="text-xs text-emerald-600 font-medium">{topHair[1]} votes</div>
-                    </div>
-                )}
-
-                {/* Name */}
                 {topName && (
                     <div className="bg-white rounded-xl p-4 shadow-sm">
                         <div className="text-xs text-slate-400 uppercase font-bold mb-1">✨ Top Name</div>
@@ -541,57 +417,42 @@ const WhatsWinningCard: React.FC<{ guesses: BabyGuess[], pool: BabyPool, theme: 
     );
 };
 
-// --- Enhanced Post-Vote Results Card ---
+// --- Post-Vote Results Card (FIXED PERCENTILE) ---
 const PostVoteResultsCard: React.FC<{ 
-    guess: BabyGuess, 
-    allGuesses: BabyGuess[],
-    babyName: string, 
-    pool: BabyPool,
-    theme: any,
-    onEdit: () => void,
-    canEdit: boolean
+    guess: BabyGuess, allGuesses: BabyGuess[], babyName: string, pool: BabyPool, theme: any, onEdit: () => void, canEdit: boolean
 }> = ({ guess, allGuesses, babyName, pool, theme, onEdit, canEdit }) => {
     const [copied, setCopied] = useState(false);
 
-    // Calculate percentile/ranking
+    // FIX: Calculate correct percentile - newer guesses at bottom, so we need submission order
     const totalGuesses = allGuesses.length;
-    const guessIndex = allGuesses.findIndex(g => g.id === guess.id);
-    const rank = totalGuesses - guessIndex; // Newer = lower rank for now
-    const percentile = Math.round((rank / totalGuesses) * 100);
+    const myIndex = allGuesses.findIndex(g => g.id === guess.id);
+    const rank = myIndex + 1; // 1-indexed position
+    
+    // FIX: Percentile = what % of people you're ahead of (higher = better)
+    // If you're 1st of 10, you're in top 10% (ahead of 90%)
+    // If you're 10th of 10, you're in top 100% (ahead of 0%)
+    const percentile = Math.max(1, Math.round((rank / totalGuesses) * 100));
 
-    // Calculate how guess compares to others
     const getComparison = () => {
         const comparisons: string[] = [];
-        
-        // Gender comparison
         const sameGender = allGuesses.filter(g => g.gender === guess.gender).length;
         const genderPct = Math.round((sameGender / totalGuesses) * 100);
         if (guess.gender !== 'Surprise') {
             comparisons.push(`${genderPct}% also picked ${guess.gender}`);
         }
-
-        // Date comparison
         const sameDate = allGuesses.filter(g => g.date === guess.date).length;
         if (sameDate > 1) {
             comparisons.push(`${sameDate} others picked ${formatDate(guess.date)}`);
         } else {
             comparisons.push(`You're the only one who picked ${formatDate(guess.date)}!`);
         }
-
         return comparisons;
     };
 
-    const shareText = `🔮 My Baby Pool Prediction for ${babyName}:\n📅 ${formatDate(guess.date)}${guess.time ? ` at ${guess.time}` : ''}\n⚖️ ${guess.weightLbs}lb ${guess.weightOz}oz\n👶 ${guess.gender}\n\nMake your guess too!`;
-
     const handleShare = async () => {
+        const shareText = `🔮 My Baby Pool Prediction for ${babyName}:\n📅 ${formatDate(guess.date)}${guess.time ? ` at ${guess.time}` : ''}\n⚖️ ${guess.weightLbs}lb ${guess.weightOz}oz\n👶 ${guess.gender}\n\nMake your guess too!`;
         if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: `My ${babyName} Prediction`,
-                    text: shareText,
-                    url: window.location.href
-                });
-            } catch (err) {}
+            try { await navigator.share({ title: `My ${babyName} Prediction`, text: shareText, url: window.location.href }); } catch {}
         } else {
             navigator.clipboard.writeText(shareText + '\n' + window.location.href);
             setCopied(true);
@@ -601,14 +462,12 @@ const PostVoteResultsCard: React.FC<{
 
     return (
         <div className={`bg-white rounded-2xl shadow-lg border-2 ${theme.border} overflow-hidden mb-8`}>
-            {/* Header */}
             <div className={`${theme.primary} text-white p-6 text-center`}>
                 <div className="text-4xl mb-2">🎉</div>
                 <h3 className="text-xl font-bold mb-1">Your Prediction is Locked In!</h3>
                 <p className="text-white/80 text-sm">Come back after {babyName} arrives to see if you won</p>
             </div>
             
-            {/* Ranking Badge */}
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 border-b border-amber-100 text-center">
                 <div className="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-sm border border-amber-200">
                     <Trophy className="text-amber-500" size={24}/>
@@ -622,7 +481,6 @@ const PostVoteResultsCard: React.FC<{
                 </div>
             </div>
 
-            {/* Prediction Summary */}
             <div className="p-6">
                 <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
                     <User size={18}/> {guess.guesserName}'s Prediction
@@ -646,19 +504,11 @@ const PostVoteResultsCard: React.FC<{
                     <div className="bg-slate-50 p-3 rounded-xl">
                         <span className="text-xs text-slate-400">👶 Gender</span>
                         <p className={`font-bold ${guess.gender === 'Boy' ? 'text-blue-600' : guess.gender === 'Girl' ? 'text-pink-500' : 'text-slate-800'}`}>
-                            {guess.gender === 'Boy' ? '💙 ' : guess.gender === 'Girl' ? '💗 ' : ''}
-                            {guess.gender}
+                            {guess.gender === 'Boy' ? '💙 ' : guess.gender === 'Girl' ? '💗 ' : ''}{guess.gender}
                         </p>
                     </div>
-                    {guess.suggestedName && (
-                        <div className="bg-slate-50 p-3 rounded-xl col-span-2">
-                            <span className="text-xs text-slate-400">✨ Name Guess</span>
-                            <p className="font-bold text-slate-800">{guess.suggestedName}</p>
-                        </div>
-                    )}
                 </div>
 
-                {/* How You Compare */}
                 <div className="bg-blue-50 p-4 rounded-xl mb-4 border border-blue-100">
                     <h5 className="font-bold text-blue-800 mb-2 text-sm flex items-center gap-2">
                         <BarChart3 size={16}/> How You Compare
@@ -672,112 +522,56 @@ const PostVoteResultsCard: React.FC<{
                     </ul>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-2">
-                    <button 
-                        onClick={handleShare}
-                        className={`flex-1 ${theme.primary} text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-all`}
-                    >
+                    <button onClick={handleShare} className={`flex-1 ${theme.primary} text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90`}>
                         {copied ? <CheckCircle size={18}/> : <Share2 size={18}/>}
                         {copied ? 'Copied!' : 'Share'}
                     </button>
                     {canEdit && (
-                        <button 
-                            onClick={onEdit}
-                            className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-200 transition-all"
-                        >
-                            <Edit3 size={18}/> Edit Guess
+                        <button onClick={onEdit} className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-200">
+                            <Edit3 size={18}/> Edit
                         </button>
                     )}
                 </div>
-
-                {canEdit && (
-                    <p className="text-xs text-center text-slate-400 mt-3">
-                        You can edit your guess until 7 days before the due date
-                    </p>
-                )}
+                {canEdit && <p className="text-xs text-center text-slate-400 mt-3">You can edit until 7 days before due date</p>}
             </div>
 
-            {/* Bookmark Reminder */}
             <div className="bg-slate-50 p-4 border-t border-slate-100 text-center">
                 <p className="text-sm text-slate-600 flex items-center justify-center gap-2">
-                    <Bookmark size={16} className="text-slate-400"/>
-                    <span>Bookmark this page to check back for results!</span>
+                    <Bookmark size={16} className="text-slate-400"/> Bookmark to check results!
                 </p>
-            </div>
-        </div>
-    );
-};
-
-// --- Add to Home Screen Prompt ---
-const AddToHomePrompt: React.FC<{ onDismiss: () => void }> = ({ onDismiss }) => {
-    const [isIOS, setIsIOS] = useState(false);
-
-    useEffect(() => {
-        setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent));
-    }, []);
-
-    return (
-        <div className="fixed bottom-4 left-4 right-4 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl z-40 animate-slide-up">
-            <button onClick={onDismiss} className="absolute top-2 right-2 text-slate-400 hover:text-white">
-                <X size={20}/>
-            </button>
-            <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Baby size={24}/>
-                </div>
-                <div className="flex-1">
-                    <p className="font-bold text-sm">Never miss the results!</p>
-                    <p className="text-xs text-slate-300">
-                        {isIOS 
-                            ? "Tap Share → 'Add to Home Screen'" 
-                            : "Tap ⋮ → 'Add to Home Screen'"}
-                    </p>
-                </div>
-                <Bookmark className="text-emerald-400 flex-shrink-0" size={24}/>
             </div>
         </div>
     );
 };
 
 // --- QR Code Modal ---
-const QRCodeModal: React.FC<{ url: string, babyName: string, onClose: () => void }> = ({ url, babyName, onClose }) => {
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center relative">
-                <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                    <X size={24}/>
-                </button>
-                <h3 className="font-bold text-xl text-slate-800 mb-4">📱 Scan to Join</h3>
-                <p className="text-slate-600 text-sm mb-4">
-                    Share this QR code at your baby shower!
-                </p>
-                <div className="bg-white p-4 rounded-xl border-2 border-slate-200 inline-block mb-4">
-                    <img 
-                        src={generateQRCodeUrl(url, 200)} 
-                        alt="QR Code"
-                        className="w-48 h-48"
-                    />
-                </div>
-                <p className="text-xs text-slate-500 mb-4">{babyName}'s Baby Pool</p>
-                <button 
-                    onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = generateQRCodeUrl(url, 400);
-                        link.download = `${babyName.replace(/\s+/g, '-')}-baby-pool-qr.png`;
-                        link.click();
-                    }}
-                    className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-900"
-                >
-                    <Download size={18}/> Download QR Code
-                </button>
-                <button onClick={onClose} className="w-full text-slate-500 py-2 mt-2">Close</button>
+const QRCodeModal: React.FC<{ url: string, babyName: string, onClose: () => void }> = ({ url, babyName, onClose }) => (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
+            <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><X size={24}/></button>
+            <h3 className="font-bold text-xl text-slate-800 mb-4">📱 Scan to Join</h3>
+            <div className="bg-white p-4 rounded-xl border-2 border-slate-200 inline-block mb-4">
+                <img src={generateQRCodeUrl(url, 200)} alt="QR Code" className="w-48 h-48"/>
             </div>
+            <p className="text-xs text-slate-500 mb-4">{babyName}'s Baby Pool</p>
+            <button 
+                onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = generateQRCodeUrl(url, 400);
+                    link.download = `${babyName.replace(/\s+/g, '-')}-baby-pool-qr.png`;
+                    link.click();
+                }}
+                className="w-full bg-slate-800 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-900"
+            >
+                <Download size={18}/> Download QR Code
+            </button>
+            <button onClick={onClose} className="w-full text-slate-500 py-2 mt-2">Close</button>
         </div>
-    );
-};
+    </div>
+);
 
-// --- Quick Stats for Admin ---
+// --- Admin Quick Stats ---
 const AdminQuickStats: React.FC<{ pool: BabyPool }> = ({ pool }) => {
     const guessCount = pool.guesses.length;
     const recentGuess = pool.guesses[pool.guesses.length - 1];
@@ -791,14 +585,12 @@ const AdminQuickStats: React.FC<{ pool: BabyPool }> = ({ pool }) => {
             </div>
             <div className="bg-blue-50 p-4 rounded-xl text-center border border-blue-100">
                 <Calendar className="mx-auto text-blue-600 mb-1" size={24}/>
-                <p className="text-lg font-black text-blue-800">{formatDate(pool.dueDate)}</p>
+                <p className="text-lg font-black text-blue-800">{pool.dueDate ? formatDate(pool.dueDate) : 'TBD'}</p>
                 <p className="text-xs text-blue-600 font-medium">Due Date</p>
             </div>
             <div className="bg-purple-50 p-4 rounded-xl text-center border border-purple-100">
                 <Clock className="mx-auto text-purple-600 mb-1" size={24}/>
-                <p className="text-sm font-bold text-purple-800 truncate">
-                    {recentGuess ? recentGuess.guesserName : 'No guesses'}
-                </p>
+                <p className="text-sm font-bold text-purple-800 truncate">{recentGuess ? recentGuess.guesserName : 'No guesses'}</p>
                 <p className="text-xs text-purple-600 font-medium">Latest Guess</p>
             </div>
             <div className="bg-amber-50 p-4 rounded-xl text-center border border-amber-100">
@@ -809,6 +601,16 @@ const AdminQuickStats: React.FC<{ pool: BabyPool }> = ({ pool }) => {
         </div>
     );
 };
+
+// --- Add to Home Prompt ---
+const AddToHomePrompt: React.FC<{ onDismiss: () => void }> = ({ onDismiss }) => (
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl z-40 animate-slide-up">
+        <button onClick={onDismiss} className="absolute top-2 right-2 text-slate-400 hover:text-white"><X size={18}/></button>
+        <p className="font-bold mb-1 flex items-center gap-2"><Bookmark size={16}/> Add to Home Screen</p>
+        <p className="text-sm text-slate-300 mb-3">Get quick access to check pool updates!</p>
+        <p className="text-xs text-slate-400">Tap <strong>Share</strong> then <strong>"Add to Home Screen"</strong></p>
+    </div>
+);
 
 // ============================================================================
 // MAIN COMPONENT
@@ -822,21 +624,20 @@ const BabyPoolDashboard: React.FC = () => {
 
     // Guest State
     const [newGuess, setNewGuess] = useState({ 
-        guesserName: '', 
-        date: '', 
-        time: '', 
-        weightLbs: 7, 
-        weightOz: 0, 
-        length: 20,
-        hairColor: 'Bald/None',
-        eyeColor: 'Blue',
-        gender: 'Surprise', 
-        suggestedName: '',
+        guesserName: '', date: '', time: '', 
+        weightLbs: 7, weightOz: 0, length: 20,
+        hairColor: 'Bald/None', eyeColor: 'Blue',
+        gender: 'Surprise', suggestedName: '',
         customAnswers: {} as Record<string, string>
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasGuessed, setHasGuessed] = useState(false);
     const [mySubmittedGuess, setMySubmittedGuess] = useState<BabyGuess | null>(null);
+
+    // Name Poll State
+    const [nameVotes, setNameVotes] = useState<Record<string, number>>({});
+    const [hasVotedName, setHasVotedName] = useState(false);
+    const [myNameVote, setMyNameVote] = useState<string | null>(null);
 
     // Admin State
     const [adminMode, setAdminMode] = useState(false);
@@ -855,7 +656,7 @@ const BabyPoolDashboard: React.FC = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [personalizedGuestName, setPersonalizedGuestName] = useState<string | null>(null);
 
-    // Check if user can edit (7 days before due date)
+    // Computed values
     const canEditGuess = useMemo(() => {
         if (!pool) return false;
         const dueDate = new Date(pool.dueDate);
@@ -864,20 +665,24 @@ const BabyPoolDashboard: React.FC = () => {
         return new Date() < cutoffDate;
     }, [pool]);
 
-    // Get the guest share URL (without admin key)
+    const isDeadlinePassed = useMemo(() => {
+        if (!pool?.guessDeadline) return false;
+        return new Date() > new Date(pool.guessDeadline);
+    }, [pool]);
+
     const getGuestShareUrl = useCallback(() => {
         if (!pool) return '';
         const baseUrl = window.location.origin + window.location.pathname;
         return `${baseUrl}#poolId=${pool.poolId}`;
     }, [pool]);
 
-    // Get personalized link for a specific guest
     const getPersonalLink = useCallback((name: string) => {
         if (!pool) return '';
         const baseUrl = window.location.origin + window.location.pathname;
         return `${baseUrl}#poolId=${pool.poolId}&guestName=${encodeURIComponent(name)}`;
     }, [pool]);
 
+    // Effects
     useEffect(() => {
         const dismissed = localStorage.getItem('bp_home_prompt_dismissed');
         if (!dismissed && pool && !adminMode) {
@@ -890,7 +695,6 @@ const BabyPoolDashboard: React.FC = () => {
         localStorage.setItem('bp_home_prompt_dismissed', 'true');
     };
 
-    // Load pool from URL hash
     useEffect(() => {
         const hash = window.location.hash.slice(1);
         const params = new URLSearchParams(hash);
@@ -904,25 +708,25 @@ const BabyPoolDashboard: React.FC = () => {
                 setAdminMode(true);
                 const savedInvitees = localStorage.getItem(`bp_invitees_${poolId}`);
                 if (savedInvitees) {
-                    try {
-                        setInvitees(JSON.parse(savedInvitees));
-                    } catch (e) { console.error("Failed to load invitees"); }
+                    try { setInvitees(JSON.parse(savedInvitees)); } catch {}
                 }
             }
             if (guestName) {
                 const decodedName = decodeURIComponent(guestName);
                 setNewGuess(prev => ({ ...prev, guesserName: decodedName }));
                 setPersonalizedGuestName(decodedName);
-                // Show welcome splash for personalized links (only if not already guessed)
                 const myGuessId = localStorage.getItem(`bp_my_guess_${poolId}`);
-                if (!myGuessId) {
-                    setShowWelcomeSplash(true);
-                }
+                if (!myGuessId) setShowWelcomeSplash(true);
             }
             
             const myGuessId = localStorage.getItem(`bp_my_guess_${poolId}`);
-            if (myGuessId) {
-                setHasGuessed(true);
+            if (myGuessId) setHasGuessed(true);
+
+            // Load name vote
+            const savedVote = localStorage.getItem(`bp_name_vote_${poolId}`);
+            if (savedVote) {
+                setHasVotedName(true);
+                setMyNameVote(savedVote);
             }
         } else {
             window.location.href = '/baby-pool.html';
@@ -940,6 +744,9 @@ const BabyPoolDashboard: React.FC = () => {
             const data = await getPool(id, key);
             setPool(data);
             
+            // Load name votes from pool data
+            if (data.nameVotes) setNameVotes(data.nameVotes);
+            
             const myGuessId = localStorage.getItem(`bp_my_guess_${id}`);
             if (myGuessId) {
                 const myGuess = data.guesses.find(g => g.id === myGuessId);
@@ -952,7 +759,7 @@ const BabyPoolDashboard: React.FC = () => {
             if (data.result) {
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#f59e0b', '#3b82f6'] });
             }
-        } catch (err) {
+        } catch {
             setError("Could not load baby pool. Check the link and try again.");
         } finally {
             setLoading(false);
@@ -960,23 +767,17 @@ const BabyPoolDashboard: React.FC = () => {
     };
 
     const handleGuessSubmit = async () => {
-        if (!pool || !newGuess.guesserName || !newGuess.date) return alert("Please fill in required fields!");
+        if (!pool || !newGuess.guesserName || !newGuess.date) return alert("Please fill in your name and date!");
         setIsSubmitting(true);
         try {
-            const submission = { ...newGuess };
-            const result = await submitGuess(pool.poolId, submission);
-            
-            if (result?.id) {
-                localStorage.setItem(`bp_my_guess_${pool.poolId}`, result.id);
-            }
-            
+            const result = await submitGuess(pool.poolId, { ...newGuess });
+            if (result?.id) localStorage.setItem(`bp_my_guess_${pool.poolId}`, result.id);
             await loadPool(pool.poolId);
             setHasGuessed(true);
             setIsEditMode(false);
-            setMySubmittedGuess({ ...submission, id: result?.id || Date.now().toString() } as BabyGuess);
-            
+            setMySubmittedGuess({ ...newGuess, id: result?.id || Date.now().toString() } as BabyGuess);
             trackEvent('guess_submitted', { poolId: pool.poolId, isEdit: isEditMode });
-        } catch (err) {
+        } catch {
             alert("Failed to submit guess.");
         } finally {
             setIsSubmitting(false);
@@ -985,7 +786,6 @@ const BabyPoolDashboard: React.FC = () => {
 
     const handleEditGuess = () => {
         if (mySubmittedGuess) {
-            // Pre-fill the form with existing guess
             setNewGuess({
                 guesserName: mySubmittedGuess.guesserName,
                 date: mySubmittedGuess.date,
@@ -1004,6 +804,16 @@ const BabyPoolDashboard: React.FC = () => {
         }
     };
 
+    const handleNameVote = (name: string) => {
+        if (!pool || hasVotedName) return;
+        const newVotes = { ...nameVotes, [name]: (nameVotes[name] || 0) + 1 };
+        setNameVotes(newVotes);
+        setHasVotedName(true);
+        setMyNameVote(name);
+        localStorage.setItem(`bp_name_vote_${pool.poolId}`, name);
+        trackEvent('name_vote', { poolId: pool.poolId, name });
+    };
+
     const handleBirthDeclare = async () => {
         if (!pool || !pool.adminKey) return;
         setIsSubmitting(true);
@@ -1011,7 +821,7 @@ const BabyPoolDashboard: React.FC = () => {
             await declareBirth(pool.poolId, pool.adminKey, birthData);
             trackEvent('birth_declared', { poolId: pool.poolId });
             window.location.reload();
-        } catch (err) {
+        } catch {
             alert("Failed to update status.");
             setIsSubmitting(false);
         }
@@ -1023,9 +833,7 @@ const BabyPoolDashboard: React.FC = () => {
         setNewInviteeName('');
     };
 
-    const removeInvitee = (id: string) => {
-        setInvitees(invitees.filter(i => i.id !== id));
-    };
+    const removeInvitee = (id: string) => setInvitees(invitees.filter(i => i.id !== id));
 
     const copyLink = (text: string, id?: string) => {
         navigator.clipboard.writeText(text).then(() => {
@@ -1033,99 +841,69 @@ const BabyPoolDashboard: React.FC = () => {
                 setCopiedLinkId(id);
                 setTimeout(() => setCopiedLinkId(null), 2000);
             } else {
-                alert("Link copied to clipboard!");
+                alert("Link copied!");
             }
         });
     };
 
     const shareWhatsApp = (name: string) => {
         const link = getPersonalLink(name);
-        const text = `Hi ${name}! 🍼 Join the Baby Pool for ${pool?.babyName}. Guess the due date, weight & more!\n\nMake your prediction here: ${link}`;
+        const text = `Hi ${name}! 🍼 Join the Baby Pool for ${pool?.babyName}. Guess the due date, weight & more!\n\n${link}`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     };
 
     const shareEmail = (name: string) => {
         const link = getPersonalLink(name);
         const subject = encodeURIComponent(`Join ${pool?.babyName}'s Baby Pool! 🍼`);
-        const body = encodeURIComponent(`Hi ${name}!\n\nYou're invited to join our Baby Pool guessing game for ${pool?.babyName}!\n\nGuess the due date, weight, gender, and more. The closest guess wins!\n\nMake your prediction here: ${link}\n\nGood luck! 🎉`);
-        window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+        const body = encodeURIComponent(`Hi ${name}!\n\nYou're invited to join our Baby Pool for ${pool?.babyName}!\n\nMake your prediction here: ${link}\n\nGood luck! 🎉`);
+        window.open(`mailto:?subject=${subject}&body=${body}`);
     };
 
     const openPersonalLink = (name: string) => {
         const link = getPersonalLink(name);
-        console.log('Opening personal link:', link); // Debug log
+        console.log('Opening personal link:', link);
         window.open(link, '_blank', 'noopener,noreferrer');
     };
 
-    const myRanking = useMemo(() => {
-        if (!pool || !mySubmittedGuess) return null;
-        const guessIndex = pool.guesses.findIndex(g => g.id === mySubmittedGuess.id);
-        if (guessIndex === -1) return null;
-        return {
-            rank: pool.guesses.length - guessIndex,
-            total: pool.guesses.length
-        };
-    }, [pool, mySubmittedGuess]);
-
-    const handleRetryLoad = () => {
-        setLoading(true);
-        setError(null);
-        const hash = window.location.hash.slice(1);
-        const params = new URLSearchParams(hash);
-        const poolId = params.get('poolId');
-        const adminKey = params.get('adminKey');
-        if (poolId) {
-            loadPool(poolId, adminKey);
-        }
-    };
-
-    // Loading state
+    // Loading & Error states
     if (loading) return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-            <Loader2 className="animate-spin w-10 h-10 text-emerald-600 mb-4"/>
-            <p className="text-slate-500">Loading your baby pool...</p>
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <Loader2 className="animate-spin text-emerald-500" size={48}/>
         </div>
     );
 
-    // Error state
     if (error || !pool) return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
-            <div className="bg-white rounded-2xl p-8 shadow-lg text-center max-w-md">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <X className="text-red-500" size={32}/>
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+            <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md text-center">
+                <AlertCircle className="mx-auto text-red-400 mb-4" size={48}/>
                 <h2 className="text-xl font-bold text-slate-800 mb-2">Pool Not Found</h2>
-                <p className="text-slate-600 mb-4">{error || "This baby pool doesn't exist or the link is incorrect."}</p>
-                <div className="flex flex-col gap-3">
-                    <button onClick={handleRetryLoad} className="w-full bg-slate-100 text-slate-700 font-bold py-3 px-6 rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
-                        <RefreshCw size={18} /> Retry Loading
-                    </button>
-                    <a href="/baby-pool.html" className="inline-block w-full bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-emerald-700 transition-colors">
-                        Create a New Pool
-                    </a>
-                </div>
+                <p className="text-slate-600 mb-4">{error || "Could not load baby pool. Check the link and try again."}</p>
+                <button onClick={() => window.location.reload()} className="bg-slate-800 text-white px-6 py-2 rounded-xl font-bold mr-2">
+                    <RefreshCw className="inline mr-2" size={16}/> Retry
+                </button>
+                <a href="/baby-pool.html" className="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold inline-block mt-2">Create New Pool</a>
             </div>
         </div>
     );
 
-    // ============================================================================
-    // RENDER POOL DASHBOARD
-    // ============================================================================
-    
     const t = THEMES[pool.theme as ThemeKey] || THEMES.sage;
-    const isCompleted = pool.status === 'completed';
-    const sortedGuesses = isCompleted && pool.result 
-        ? [...pool.guesses].map(g => ({ ...g, score: calculateScore(g, pool.result!, pool) })).sort((a,b) => (b.score || 0) - (a.score || 0))
-        : [...pool.guesses].reverse(); 
-    
     const fields = pool.includeFields || { time: true, weight: true, length: true, hair: true, eye: true, gender: true };
+    const isCompleted = !!pool.result;
+    const sortedGuesses = isCompleted 
+        ? [...pool.guesses].sort((a, b) => (b.score || 0) - (a.score || 0))
+        : pool.guesses;
     const guestShareUrl = getGuestShareUrl();
+    const unitSystem = pool.unitSystem || 'imperial';
+
+    // Input style helper - GREEN when has value
+    const inputStyle = (hasValue: boolean) => `w-full p-3 pl-10 border rounded-xl transition ${
+        hasValue ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-200' : 'bg-slate-50 border-slate-200'
+    }`;
 
     return (
         <div className={`min-h-screen font-sans ${t.bg}`}>
             <Header />
 
-            {/* Welcome Splash for Personalized Links */}
             {showWelcomeSplash && pool && personalizedGuestName && (
                 <WelcomeSplash 
                     guestName={personalizedGuestName}
@@ -1138,66 +916,69 @@ const BabyPoolDashboard: React.FC = () => {
 
             <div className="max-w-3xl mx-auto p-4 pb-20">
                 
-                {/* Personalized Greeting (after splash dismissed) */}
+                {/* Personalized Greeting */}
                 {!adminMode && personalizedGuestName && !showWelcomeSplash && (
                     <div className="bg-gradient-to-r from-emerald-50 to-sky-50 rounded-2xl p-4 mb-6 border border-emerald-100 text-center">
                         <p className="text-emerald-800 font-medium">
                             Welcome, <span className="font-bold">{personalizedGuestName}</span>! 
-                            {pool?.parentNames && <span className="text-slate-600"> • Invited by {pool.parentNames}</span>}
+                            {pool.parentNames && <span className="text-slate-600"> • Invited by {pool.parentNames}</span>}
                         </p>
                     </div>
                 )}
 
                 {/* HERO HEADER */}
-                <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-6 border-b-8 ${t.border.replace('border', 'border-b')}`}>
-                    <div className={`${t.primary} p-8 text-center text-white relative overflow-hidden`}>
-                        {pool.theme === 'midnight' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30"></div>}
-                        {pool.theme === 'confetti' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/confetti.png')] opacity-20"></div>}
-                        <div className="relative z-10">
-                            <h1 className="text-4xl md:text-6xl font-black font-serif mb-2 drop-shadow-md">{pool.babyName}</h1>
-                            {pool.parentNames && <p className="text-white/80 font-medium text-lg mb-4">Celebrating {pool.parentNames}</p>}
-                            
-                            <div className="flex flex-wrap justify-center gap-3 mt-4">
-                                <span className="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md flex items-center gap-1 text-sm font-bold"><Calendar size={14}/> Due: {pool.dueDate}</span>
-                                <span className="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md flex items-center gap-1 text-sm font-bold"><User size={14}/> {pool.guesses.length} Guesses</span>
-                            </div>
+                <div className={`${t.primary} rounded-3xl p-8 text-center text-white mb-8 shadow-lg relative overflow-hidden`}>
+                    <div className="text-5xl mb-3">{t.illustration}</div>
+                    <h1 className="text-3xl md:text-4xl font-black font-serif mb-1">{pool.babyName}</h1>
+                    {pool.parentNames && <p className="text-white/80 text-sm mb-4">Celebrating {pool.parentNames}</p>}
+                    {pool.isMultiples && (
+                        <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-3">
+                            {'👶'.repeat(pool.multiplesCount || 2)} {pool.multiplesCount === 2 ? 'Twins' : 'Triplets'}!
+                        </span>
+                    )}
+                    <div className="flex flex-wrap justify-center gap-2 mt-2">
+                        {pool.dueDate && (
+                            <span className="bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                <Calendar size={12}/> Due: {formatDate(pool.dueDate)}
+                            </span>
+                        )}
+                        <span className="bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                            <Users size={12}/> {pool.guesses.length} Guesses
+                        </span>
+                    </div>
+                </div>
+
+                {/* ADMIN TOOLBAR */}
+                {adminMode && !isCompleted && (
+                    <div className={`${t.secondary} p-4 rounded-2xl mb-6 border ${t.border} flex flex-wrap items-center justify-between gap-3`}>
+                        <span className={`font-bold ${t.accent} flex items-center gap-2`}><Lock size={16}/> ORGANIZER MODE</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => copyLink(guestShareUrl)} className="bg-white text-slate-700 font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2 hover:bg-slate-50 border">
+                                <Copy size={14}/> Copy Share Link
+                            </button>
+                            <button onClick={() => setShowQRModal(true)} className="bg-white text-slate-700 font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2 hover:bg-slate-50 border">
+                                <QrCode size={14}/> QR Code
+                            </button>
+                            <button onClick={() => setShowAdminModal(true)} className={`${t.primary} text-white font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2`}>
+                                <Sparkles size={14}/> Declare Birth
+                            </button>
                         </div>
                     </div>
-                    
-                    {/* ADMIN PANEL */}
-                    {adminMode && !isCompleted && (
-                        <div className="bg-amber-50 border-b border-amber-100 p-4">
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
-                                    <Lock size={16}/> ORGANIZER MODE
-                                </div>
-                                <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center">
-                                    <button 
-                                        onClick={() => copyLink(guestShareUrl)} 
-                                        className="flex-1 md:flex-none bg-white border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-100 flex items-center gap-2"
-                                    >
-                                        <Copy size={14}/> Copy Share Link
-                                    </button>
-                                    <button 
-                                        onClick={() => setShowQRModal(true)} 
-                                        className="flex-1 md:flex-none bg-white border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-100 flex items-center gap-2"
-                                    >
-                                        <QrCode size={14}/> QR Code
-                                    </button>
-                                    <button 
-                                        onClick={() => setShowAdminModal(true)} 
-                                        className="flex-1 md:flex-none bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-600 shadow-sm flex items-center gap-2"
-                                    >
-                                        <Baby size={14}/> Declare Birth
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                )}
 
                 {/* ADMIN QUICK STATS */}
                 {adminMode && !isCompleted && <AdminQuickStats pool={pool} />}
+
+                {/* PROGRESS BAR */}
+                {!isCompleted && (
+                    <ProgressBar current={pool.guesses.length} target={pool.targetGuessCount || 25} theme={t} />
+                )}
+
+                {/* PRIZE DISPLAY */}
+                {pool.prizeDescription && <PrizeDisplay prize={pool.prizeDescription} theme={t} />}
+
+                {/* DEADLINE BANNER */}
+                {pool.guessDeadline && <DeadlineBanner deadline={pool.guessDeadline} isPast={isDeadlinePassed} />}
 
                 {/* WHAT'S WINNING - Organizer Summary */}
                 {adminMode && !isCompleted && pool.guesses.length > 0 && (
@@ -1205,34 +986,38 @@ const BabyPoolDashboard: React.FC = () => {
                 )}
 
                 {/* NO GUESSES REMINDER FOR ADMIN */}
-                {adminMode && !isCompleted && pool.guesses.length === 0 && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8 text-center">
-                        <AlertCircle className="mx-auto text-blue-500 mb-3" size={32}/>
+                {adminMode && pool.guesses.length === 0 && !isCompleted && (
+                    <div className="bg-blue-50 p-6 rounded-2xl border border-blue-200 mb-8 text-center">
+                        <AlertCircle className="mx-auto text-blue-400 mb-3" size={40}/>
                         <h3 className="font-bold text-blue-900 text-lg mb-2">No guesses yet!</h3>
-                        <p className="text-blue-700 text-sm mb-4">
-                            Share your baby pool link with friends and family to start collecting predictions.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                            <button 
-                                onClick={() => copyLink(guestShareUrl)} 
-                                className="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700"
-                            >
-                                <Link2 size={18}/> Copy Share Link
+                        <p className="text-blue-700 mb-4">Share your pool link to start collecting predictions.</p>
+                        <div className="flex justify-center gap-3">
+                            <button onClick={() => copyLink(guestShareUrl)} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm flex items-center gap-2">
+                                <Copy size={14}/> Copy Share Link
                             </button>
-                            <button 
-                                onClick={() => setShowQRModal(true)} 
-                                className="bg-white border-2 border-blue-600 text-blue-600 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-50"
-                            >
-                                <QrCode size={18}/> Show QR Code
+                            <button onClick={() => setShowQRModal(true)} className="bg-white text-blue-600 border border-blue-300 font-bold py-2 px-6 rounded-xl text-sm flex items-center gap-2">
+                                <QrCode size={14}/> Show QR Code
                             </button>
                         </div>
                     </div>
                 )}
 
-                {/* COUNTDOWN (Only if active) */}
-                {!isCompleted && <PoolCountdown dueDate={pool.dueDate} theme={t} />}
+                {/* COUNTDOWN */}
+                {pool.dueDate && !isCompleted && <PoolCountdown dueDate={pool.dueDate} theme={t} />}
 
-                {/* MY PREDICTION CARD (if user already guessed) */}
+                {/* NAME POLL */}
+                {pool.enableNamePoll && pool.nameOptions && pool.nameOptions.length > 0 && !isCompleted && (
+                    <NamePollCard 
+                        nameOptions={pool.nameOptions}
+                        votes={nameVotes}
+                        onVote={handleNameVote}
+                        hasVoted={hasVotedName}
+                        myVote={myNameVote}
+                        theme={t}
+                    />
+                )}
+
+                {/* MY PREDICTION CARD (if user already guessed) - Shows ONLY their guess */}
                 {hasGuessed && mySubmittedGuess && !isCompleted && (
                     <PostVoteResultsCard 
                         guess={mySubmittedGuess} 
@@ -1241,183 +1026,85 @@ const BabyPoolDashboard: React.FC = () => {
                         pool={pool}
                         theme={t}
                         onEdit={handleEditGuess}
-                        canEdit={canEditGuess}
+                        canEdit={canEditGuess && !isDeadlinePassed}
                     />
                 )}
 
-                {/* GROUP STATS SCORECARD */}
-                {!isCompleted && pool.guesses.length >= 3 && (
-                    <GroupStatsCard guesses={pool.guesses} theme={t} fields={fields} />
-                )}
-
-                {/* ADMIN - PERSONAL LINKS GENERATOR */}
+                {/* ADMIN SHARE SECTION */}
                 {adminMode && !isCompleted && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-                        <button 
-                            onClick={() => setShowShareSection(!showShareSection)}
-                            className="w-full p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
-                        >
-                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                <Share2 size={20} className={t.accent}/> Invite Guests with Personal Links
-                            </h3>
-                            {showShareSection ? <ChevronUp size={20} className="text-slate-400"/> : <ChevronDown size={20} className="text-slate-400"/>}
+                    <div className={`bg-white rounded-2xl border ${t.border} mb-8 shadow-sm overflow-hidden`}>
+                        <button onClick={() => setShowShareSection(!showShareSection)} className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50">
+                            <span className="font-bold text-slate-700 flex items-center gap-2">
+                                <Share2 size={18}/> Invite Guests with Personal Links
+                            </span>
+                            {showShareSection ? <ChevronUp size={20}/> : <ChevronDown size={20}/>}
                         </button>
                         
                         {showShareSection && (
-                            <div className="p-6">
-                                <p className="text-sm text-slate-500 mb-4">Create personalized links for each guest. Their name will be pre-filled!</p>
+                            <div className="p-4 pt-0 space-y-4">
+                                <p className="text-slate-500 text-sm">Create personalized links for each guest. Their name will be pre-filled!</p>
                                 
-                                {/* Quick Share URL */}
-                                <div className="bg-slate-50 p-4 rounded-xl mb-6 border border-slate-100">
-                                    <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Generic Share Link</label>
+                                <div className="bg-slate-50 p-3 rounded-xl">
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Generic Share Link</label>
                                     <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            readOnly 
-                                            value={guestShareUrl}
-                                            className="flex-1 p-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 truncate"
-                                        />
-                                        <button 
-                                            onClick={() => copyLink(guestShareUrl)} 
-                                            className="bg-slate-800 text-white px-4 rounded-lg font-bold hover:bg-slate-900 flex items-center gap-2"
-                                        >
-                                            <Copy size={16}/>
+                                        <input type="text" value={guestShareUrl} readOnly className="flex-1 p-2 bg-white border rounded-lg text-sm text-slate-600"/>
+                                        <button onClick={() => copyLink(guestShareUrl)} className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1">
+                                            <Copy size={14}/>
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* Add Invitee */}
-                                <div className="flex gap-2 mb-6">
+                                <div className="flex gap-2">
                                     <input 
                                         type="text" 
-                                        placeholder="Enter guest name (e.g. Grandma)" 
-                                        value={newInviteeName}
+                                        value={newInviteeName} 
                                         onChange={e => setNewInviteeName(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && addInvitee()}
-                                        className="flex-1 p-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+                                        onKeyPress={e => e.key === 'Enter' && addInvitee()}
+                                        placeholder="Enter guest name (e.g. Grandma)" 
+                                        className="flex-1 p-3 border rounded-xl bg-slate-50"
                                     />
-                                    <button onClick={addInvitee} className="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-emerald-700">Add</button>
+                                    <button onClick={addInvitee} className={`${t.primary} text-white font-bold px-6 rounded-xl`}>Add</button>
                                 </div>
 
-                                {/* Invitee List */}
-                                <div className="space-y-2">
-                                    {invitees.map(invitee => {
-                                        const personalLink = getPersonalLink(invitee.name);
-                                        const isCopied = copiedLinkId === invitee.id;
-                                        
-                                        return (
-                                            <div key={invitee.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                                <span className="font-bold text-slate-700">{invitee.name}</span>
+                                {invitees.length > 0 && (
+                                    <div className="space-y-2">
+                                        {invitees.map(inv => (
+                                            <div key={inv.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl">
+                                                <span className="font-bold text-slate-700">{inv.name}</span>
                                                 <div className="flex gap-1">
-                                                    <button 
-                                                        onClick={() => copyLink(personalLink, invitee.id)} 
-                                                        className={`p-2 rounded transition-colors ${isCopied ? 'bg-emerald-100 text-emerald-600' : 'bg-white border hover:bg-slate-100 text-slate-600'}`} 
-                                                        title="Copy Link"
-                                                    >
-                                                        {isCopied ? <Check size={16}/> : <Copy size={16}/>}
+                                                    <button onClick={() => copyLink(getPersonalLink(inv.name), inv.id)} className={`p-2 rounded-lg text-slate-500 hover:bg-white ${copiedLinkId === inv.id ? 'bg-emerald-100 text-emerald-600' : ''}`} title="Copy">
+                                                        {copiedLinkId === inv.id ? <Check size={16}/> : <Copy size={16}/>}
                                                     </button>
-                                                    <button 
-                                                        onClick={() => openPersonalLink(invitee.name)} 
-                                                        className="p-2 bg-white border hover:bg-slate-100 rounded text-slate-600" 
-                                                        title="Open Link"
-                                                    >
+                                                    <button onClick={() => openPersonalLink(inv.name)} className="p-2 rounded-lg text-slate-500 hover:bg-white" title="Open">
                                                         <ExternalLink size={16}/>
                                                     </button>
-                                                    <button 
-                                                        onClick={() => shareEmail(invitee.name)} 
-                                                        className="p-2 bg-blue-500 hover:bg-blue-600 rounded text-white" 
-                                                        title="Send Email"
-                                                    >
+                                                    <button onClick={() => shareEmail(inv.name)} className="p-2 rounded-lg bg-blue-500 text-white" title="Email">
                                                         <Mail size={16}/>
                                                     </button>
-                                                    <button 
-                                                        onClick={() => shareWhatsApp(invitee.name)} 
-                                                        className="p-2 bg-green-500 hover:bg-green-600 rounded text-white" 
-                                                        title="WhatsApp"
-                                                    >
+                                                    <button onClick={() => shareWhatsApp(inv.name)} className="p-2 rounded-lg bg-green-500 text-white" title="WhatsApp">
                                                         <MessageCircle size={16}/>
                                                     </button>
-                                                    <button 
-                                                        onClick={() => removeInvitee(invitee.id)} 
-                                                        className="p-2 text-slate-400 hover:text-red-500" 
-                                                        title="Remove"
-                                                    >
+                                                    <button onClick={() => removeInvitee(inv.id)} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50" title="Delete">
                                                         <Trash2 size={16}/>
                                                     </button>
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                    {invitees.length === 0 && (
-                                        <p className="text-center text-slate-400 py-4 text-sm">
-                                            Add guest names above to create personalized links
-                                        </p>
-                                    )}
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* RESULT CARD (IF BORN) */}
-                {isCompleted && pool.result && (
-                    <div className={`bg-white rounded-3xl p-8 shadow-lg border-4 ${t.border} mb-8 text-center relative overflow-hidden`}>
-                        <div className={`absolute top-0 left-0 w-full h-2 ${t.primary}`}></div>
-                        <h2 className={`text-2xl font-bold ${t.text} font-serif mb-6`}>🎉 Welcome {pool.result.actualName}!</h2>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                            <div className="p-3 bg-slate-50 rounded-xl"><div className="text-xs text-slate-400 uppercase font-bold">Date/Time</div><div className="font-bold text-slate-700">{pool.result.date} @ {pool.result.time}</div></div>
-                            <div className="p-3 bg-slate-50 rounded-xl"><div className="text-xs text-slate-400 uppercase font-bold">Stats</div><div className="font-bold text-slate-700">{pool.result.weightLbs}lb {pool.result.weightOz}oz • {pool.result.length}"</div></div>
-                            <div className="p-3 bg-slate-50 rounded-xl"><div className="text-xs text-slate-400 uppercase font-bold">Features</div><div className="font-bold text-slate-700">{pool.result.hairColor} Hair • {pool.result.eyeColor} Eyes</div></div>
-                        </div>
-                        {pool.result.photoLink && (
-                            <a href={pool.result.photoLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline bg-blue-50 px-4 py-2 rounded-full">
-                                <Instagram size={18}/> See Baby Photos
-                            </a>
-                        )}
-                    </div>
-                )}
-
-                {/* ADMIN ACTIONS: Declare Birth / Enter Results */}
-                {adminMode && !isCompleted && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-orange-200 p-6 mb-8">
-                        <div className="flex flex-col items-center text-center">
-                            <h3 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
-                                <Settings size={22} className="text-orange-500"/> Enter Results & Declare Birth
-                            </h3>
-                            <p className="text-slate-600 mb-6 max-w-md">
-                                When the baby arrives, click below to enter the final stats and calculate the winner automatically!
-                            </p>
-                            <button 
-                                onClick={() => setShowAdminModal(true)} 
-                                className="bg-orange-500 hover:bg-orange-600 text-white text-lg font-bold py-4 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all flex items-center gap-2"
-                            >
-                                <Baby size={24}/> Declare Birth / Enter Results
-                            </button>
-                            
-                            {!adminWantsToGuess && (
-                                <button 
-                                    onClick={() => setAdminWantsToGuess(true)} 
-                                    className="mt-6 text-slate-500 hover:text-slate-700 font-medium underline text-sm"
-                                >
-                                    I also want to make a prediction (show guessing form)
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* GUESS FORM (IF ACTIVE) */}
-                {!isCompleted && !hasGuessed && (!adminMode || adminWantsToGuess) && (
+                {/* GUESS FORM */}
+                {!isCompleted && !hasGuessed && !isDeadlinePassed && (!adminMode || adminWantsToGuess) && (
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
                         <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                             <PlusCircle size={20} className={t.accent}/> 
-                            {isEditMode ? "Edit Your Prediction" : adminMode ? "Make a Prediction (As Organizer)" : "Cast Your Vote"}
+                            {isEditMode ? "Edit Your Prediction" : "Cast Your Vote"}
                         </h3>
-                        {personalizedGuestName && !adminMode && (
-                            <p className="text-slate-500 text-sm mb-4">
-                                Make your best guess, {personalizedGuestName}! The closest prediction wins. 🏆
-                            </p>
-                        )}
+                        {personalizedGuestName && <p className="text-slate-500 text-sm mb-4">Make your best guess, {personalizedGuestName}! 🏆</p>}
 
                         {/* YOUR INFO */}
                         <div className="mb-6">
@@ -1427,85 +1114,59 @@ const BabyPoolDashboard: React.FC = () => {
                             <div className="relative">
                                 <User className="absolute left-3 top-3.5 text-slate-400" size={18}/>
                                 <input 
-                                    type="text" 
-                                    placeholder="Your Name" 
+                                    type="text" placeholder="Your Name" 
                                     value={newGuess.guesserName} 
                                     onChange={e => setNewGuess({...newGuess, guesserName: e.target.value})} 
-                                    className="w-full p-3 pl-10 border rounded-xl bg-slate-50"
+                                    className={inputStyle(!!newGuess.guesserName)}
                                     disabled={!!personalizedGuestName}
                                 />
                             </div>
                         </div>
 
                         {/* WHEN WILL BABY ARRIVE */}
-                        <div className="mb-6">
-                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                📅 When Will Baby Arrive?
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                    <input 
-                                        type="date" 
-                                        value={newGuess.date} 
-                                        onChange={e => setNewGuess({...newGuess, date: e.target.value})} 
-                                        className="w-full p-3 pl-10 border rounded-xl bg-slate-50"
-                                    />
-                                </div>
-                                {fields.time && (
+                        {pool.dueDate && (
+                            <div className="mb-6">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">📅 When Will Baby Arrive?</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="relative">
-                                        <Clock className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                        <input 
-                                            type="time" 
-                                            value={newGuess.time} 
-                                            onChange={e => setNewGuess({...newGuess, time: e.target.value})} 
-                                            className="w-full p-3 pl-10 border rounded-xl bg-slate-50"
-                                            placeholder="Time of birth"
-                                        />
+                                        <Calendar className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                        <input type="date" value={newGuess.date} onChange={e => setNewGuess({...newGuess, date: e.target.value})} className={inputStyle(!!newGuess.date)}/>
                                     </div>
-                                )}
+                                    {fields.time && (
+                                        <div className="relative">
+                                            <Clock className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                            <input type="time" value={newGuess.time} onChange={e => setNewGuess({...newGuess, time: e.target.value})} className={inputStyle(!!newGuess.time)}/>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* BABY'S STATS */}
                         {(fields.weight || fields.length) && (
                             <div className="mb-6">
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    ⚖️ Baby's Stats
+                                    ⚖️ Baby's Stats 
+                                    {unitSystem === 'metric' && <span className="text-emerald-500 text-[10px]">(metric)</span>}
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {fields.weight && (
-                                        <div>
-                                            <label className="text-xs text-slate-500 mb-1 block">Weight</label>
-                                            <div className="flex gap-2 items-center">
-                                                <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
-                                                    <Scale size={18} className="text-slate-400 mr-2"/>
-                                                    <input type="number" value={newGuess.weightLbs} onChange={e => setNewGuess({...newGuess, weightLbs: parseInt(e.target.value) || 0})} className="w-full p-3 bg-transparent outline-none" min="0" max="15"/>
-                                                    <span className="text-xs font-bold text-slate-400">lbs</span>
-                                                </div>
-                                                <div className="flex-1 flex items-center bg-slate-50 border rounded-xl px-3">
-                                                    <input type="number" value={newGuess.weightOz} onChange={e => setNewGuess({...newGuess, weightOz: parseInt(e.target.value) || 0})} className="w-full p-3 bg-transparent outline-none" min="0" max="15"/>
-                                                    <span className="text-xs font-bold text-slate-400">oz</span>
-                                                </div>
+                                        <div className="flex gap-2 items-center">
+                                            <div className={`flex-1 flex items-center border rounded-xl px-3 ${newGuess.weightLbs > 0 ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-200'}`}>
+                                                <Scale size={18} className="text-slate-400 mr-2"/>
+                                                <input type="number" value={newGuess.weightLbs} onChange={e => setNewGuess({...newGuess, weightLbs: parseInt(e.target.value) || 0})} className="w-full p-3 bg-transparent outline-none" min="0" max="15"/>
+                                                <span className="text-xs font-bold text-slate-400">{unitSystem === 'metric' ? 'kg' : 'lbs'}</span>
+                                            </div>
+                                            <div className={`flex-1 flex items-center border rounded-xl px-3 ${newGuess.weightOz > 0 ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-200'}`}>
+                                                <input type="number" value={newGuess.weightOz} onChange={e => setNewGuess({...newGuess, weightOz: parseInt(e.target.value) || 0})} className="w-full p-3 bg-transparent outline-none" min="0" max="15"/>
+                                                <span className="text-xs font-bold text-slate-400">{unitSystem === 'metric' ? 'g' : 'oz'}</span>
                                             </div>
                                         </div>
                                     )}
                                     {fields.length && (
-                                        <div>
-                                            <label className="text-xs text-slate-500 mb-1 block">Length</label>
-                                            <div className="relative">
-                                                <Ruler className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                                <input 
-                                                    type="number" 
-                                                    value={newGuess.length} 
-                                                    onChange={e => setNewGuess({...newGuess, length: parseFloat(e.target.value) || 0})} 
-                                                    className="w-full p-3 pl-10 border rounded-xl bg-slate-50" 
-                                                    placeholder="Length in inches"
-                                                    step="0.5"
-                                                    min="15"
-                                                    max="25"
-                                                />
-                                            </div>
+                                        <div className="relative">
+                                            <Ruler className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                            <input type="number" value={newGuess.length} onChange={e => setNewGuess({...newGuess, length: parseFloat(e.target.value) || 0})} className={inputStyle(newGuess.length > 0)} placeholder={`Length (${unitSystem === 'metric' ? 'cm' : 'inches'})`} step="0.5" min="15" max="60"/>
                                         </div>
                                     )}
                                 </div>
@@ -1515,28 +1176,19 @@ const BabyPoolDashboard: React.FC = () => {
                         {/* BABY'S APPEARANCE */}
                         {(fields.gender || fields.hair || fields.eye) && (
                             <div className="mb-6">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    👶 Baby's Appearance
-                                </h4>
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">👶 Baby's Appearance</h4>
                                 
                                 {fields.gender && (
                                     <div className="mb-4">
-                                        <label className="text-xs text-slate-500 mb-2 block">Gender</label>
                                         <div className="flex gap-3">
                                             {['Boy', 'Girl', 'Surprise'].map(g => (
-                                                <button 
-                                                    key={g} 
-                                                    onClick={() => setNewGuess({...newGuess, gender: g})} 
-                                                    className={`flex-1 py-3 rounded-xl border-2 font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-                                                        newGuess.gender === g 
-                                                            ? g === 'Boy' 
-                                                                ? 'bg-blue-50 text-blue-600 border-blue-400' 
-                                                                : g === 'Girl' 
-                                                                    ? 'bg-pink-50 text-pink-500 border-pink-400' 
-                                                                    : 'bg-slate-800 text-white border-slate-800'
-                                                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
-                                                    }`}
-                                                >
+                                                <button key={g} onClick={() => setNewGuess({...newGuess, gender: g})} className={`flex-1 py-3 rounded-xl border-2 font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                                                    newGuess.gender === g 
+                                                        ? g === 'Boy' ? 'bg-blue-50 text-blue-600 border-blue-400' 
+                                                            : g === 'Girl' ? 'bg-pink-50 text-pink-500 border-pink-400' 
+                                                            : 'bg-slate-800 text-white border-slate-800'
+                                                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                                                }`}>
                                                     {g === 'Boy' && '💙'} {g === 'Girl' && '💗'} {g === 'Surprise' && '🎁'} {g}
                                                 </button>
                                             ))}
@@ -1546,25 +1198,19 @@ const BabyPoolDashboard: React.FC = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {fields.hair && (
-                                        <div>
-                                            <label className="text-xs text-slate-500 mb-1 block">Hair Color</label>
-                                            <div className="relative">
-                                                <Scissors className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                                <select value={newGuess.hairColor} onChange={e => setNewGuess({...newGuess, hairColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none cursor-pointer">
-                                                    {HAIR_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
-                                                </select>
-                                            </div>
+                                        <div className="relative">
+                                            <Scissors className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                            <select value={newGuess.hairColor} onChange={e => setNewGuess({...newGuess, hairColor: e.target.value})} className={inputStyle(newGuess.hairColor !== 'Bald/None')}>
+                                                {HAIR_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
                                         </div>
                                     )}
                                     {fields.eye && (
-                                        <div>
-                                            <label className="text-xs text-slate-500 mb-1 block">Eye Color</label>
-                                            <div className="relative">
-                                                <Eye className="absolute left-3 top-3.5 text-slate-400" size={18}/>
-                                                <select value={newGuess.eyeColor} onChange={e => setNewGuess({...newGuess, eyeColor: e.target.value})} className="w-full p-3 pl-10 border rounded-xl bg-slate-50 appearance-none cursor-pointer">
-                                                    {EYE_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
-                                                </select>
-                                            </div>
+                                        <div className="relative">
+                                            <Eye className="absolute left-3 top-3.5 text-slate-400" size={18}/>
+                                            <select value={newGuess.eyeColor} onChange={e => setNewGuess({...newGuess, eyeColor: e.target.value})} className={inputStyle(newGuess.eyeColor !== 'Blue')}>
+                                                {EYE_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
                                         </div>
                                     )}
                                 </div>
@@ -1573,85 +1219,47 @@ const BabyPoolDashboard: React.FC = () => {
 
                         {/* NAME GUESS */}
                         <div className="mb-6">
-                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                ✨ Name Guess (Optional)
-                            </h4>
-                            <input 
-                                type="text" 
-                                placeholder="What do you think they'll name the baby?" 
-                                value={newGuess.suggestedName} 
-                                onChange={e => setNewGuess({...newGuess, suggestedName: e.target.value})} 
-                                className="w-full p-3 border rounded-xl bg-slate-50"
-                            />
+                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">✨ Name Guess (Optional)</h4>
+                            <input type="text" placeholder="What do you think they'll name the baby?" value={newGuess.suggestedName} onChange={e => setNewGuess({...newGuess, suggestedName: e.target.value})} className={inputStyle(!!newGuess.suggestedName).replace('pl-10', '')}/>
                         </div>
 
-                        {/* CUSTOM QUESTIONS */}
-                        {pool.customQuestions && pool.customQuestions.length > 0 && (
-                            <div className="mb-6">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    <HelpCircle size={14}/> Bonus Predictions
-                                </h4>
-                                <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                    {pool.customQuestions.map((q, i) => (
-                                        <div key={i}>
-                                            <label className="block text-xs font-bold text-slate-500 mb-1">{q}</label>
-                                            <input 
-                                                type="text" 
-                                                value={newGuess.customAnswers?.[i] || ''} 
-                                                onChange={e => {
-                                                    const answers = { ...newGuess.customAnswers, [i]: e.target.value };
-                                                    setNewGuess({ ...newGuess, customAnswers: answers });
-                                                }}
-                                                className="w-full p-2 border rounded-lg bg-white text-sm"
-                                                placeholder="Your answer..."
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <button 
-                            onClick={handleGuessSubmit} 
-                            disabled={isSubmitting} 
-                            className={`w-full ${t.primary} hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-md transition-all transform active:scale-95 text-lg flex items-center justify-center gap-2`}
-                        >
-                            {isSubmitting ? (
-                                <><Loader2 className="animate-spin" size={20}/> Submitting...</>
-                            ) : isEditMode ? (
-                                <><Edit3 size={20}/> Update My Prediction</>
-                            ) : (
-                                <><Sparkles size={20}/> Submit My Prediction</>
-                            )}
+                        <button onClick={handleGuessSubmit} disabled={isSubmitting} className={`w-full ${t.primary} hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-md transition-all transform active:scale-95 text-lg flex items-center justify-center gap-2`}>
+                            {isSubmitting ? <><Loader2 className="animate-spin" size={20}/> Submitting...</> 
+                                : isEditMode ? <><Edit3 size={20}/> Update My Prediction</> 
+                                : <><Sparkles size={20}/> Submit My Prediction</>}
                         </button>
 
                         {isEditMode && (
-                            <button 
-                                onClick={() => { setIsEditMode(false); setHasGuessed(true); }}
-                                className="w-full text-slate-500 font-medium py-3 mt-2 hover:text-slate-700"
-                            >
+                            <button onClick={() => { setIsEditMode(false); setHasGuessed(true); }} className="w-full text-slate-500 font-medium py-3 mt-2 hover:text-slate-700">
                                 Cancel Edit
                             </button>
                         )}
                     </div>
                 )}
 
-                {/* LEADERBOARD */}
+                {/* LEADERBOARD - Shows all guesses (not just user's) */}
                 <div className="space-y-4">
-                    <h3 className="font-bold text-slate-700 px-2 flex items-center gap-2"><Trophy size={18}/> {isCompleted ? 'Final Results' : 'Recent Guesses'}</h3>
+                    <h3 className="font-bold text-slate-700 px-2 flex items-center gap-2">
+                        <Trophy size={18}/> {isCompleted ? 'Final Results' : 'All Guesses'}
+                    </h3>
                     {sortedGuesses.map((g, i) => (
-                        <div key={g.id} className={`bg-white p-4 rounded-xl border shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${isCompleted && i===0 ? 'border-yellow-400 bg-yellow-50' : 'border-slate-100'}`}>
+                        <div key={g.id} className={`bg-white p-4 rounded-xl border shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                            isCompleted && i === 0 ? 'border-yellow-400 bg-yellow-50' : 
+                            mySubmittedGuess?.id === g.id ? `border-2 ${t.border}` : 'border-slate-100'
+                        }`}>
                             <div className="flex items-center gap-4 w-full">
                                 {isCompleted && <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-bold ${i===0?'bg-yellow-400 text-white':'bg-slate-100 text-slate-500'}`}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i+1}</div>}
                                 <div className="flex-1 min-w-0">
-                                    <div className="font-bold text-slate-800 flex justify-between">
-                                        <span className="truncate">{g.guesserName}</span>
+                                    <div className="font-bold text-slate-800 flex justify-between items-center">
+                                        <span className="truncate flex items-center gap-2">
+                                            {g.guesserName}
+                                            {mySubmittedGuess?.id === g.id && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">You</span>}
+                                        </span>
                                         {isCompleted && <span className="text-slate-600 font-black">{g.score}pts</span>}
                                     </div>
                                     <div className="text-xs text-slate-500 flex flex-wrap gap-2 mt-1">
                                         <span className="bg-slate-100 px-2 py-0.5 rounded">{formatDate(g.date)}</span>
                                         {fields.weight && <span className="bg-slate-100 px-2 py-0.5 rounded">{g.weightLbs}lb {g.weightOz}oz</span>}
-                                        {g.suggestedName && <span className="bg-slate-100 px-2 py-0.5 rounded">"{g.suggestedName}"</span>}
                                         {fields.gender && <span className="bg-slate-100 px-2 py-0.5 rounded">{g.gender}</span>}
                                     </div>
                                 </div>
@@ -1661,31 +1269,13 @@ const BabyPoolDashboard: React.FC = () => {
                     {sortedGuesses.length === 0 && <div className="text-center text-slate-400 py-8">No guesses yet. Be the first!</div>}
                 </div>
 
-                {/* GIFTS & REGISTRY (IF CONFIGURED) */}
-                {(pool.registryLink || pool.diaperFundLink) && (
-                    <div className={`mt-12 p-6 bg-white rounded-2xl border-2 ${t.border} shadow-sm`}>
-                        <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2"><Gift size={20} className="text-orange-500"/> Registry & Gifts</h3>
-                        <p className="text-slate-600 text-sm mb-4">Want to send a gift?</p>
-                        
-                        <div className="grid sm:grid-cols-2 gap-4">
-                            {pool.registryLink && (
-                                <a href={pool.registryLink} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-slate-800 text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-900 transition-colors text-sm">
-                                    <Gift size={16}/> View Registry
-                                </a>
-                            )}
-                            {pool.diaperFundLink && (
-                                <a href={pool.diaperFundLink} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-emerald-600 transition-colors text-sm">
-                                    <DollarSign size={16}/> Diaper Fund
-                                </a>
-                            )}
-                        </div>
-                    </div>
-                )}
+                {/* REGISTRY SECTION FOR PARTICIPANTS */}
+                {!adminMode && <RegistrySection pool={pool} theme={t} country={country} />}
 
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
             </div>
 
-            {/* ADMIN BIRTH DECLARATION MODAL */}
+            {/* MODALS */}
             {showAdminModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl p-6 max-w-md w-full overflow-y-auto max-h-[90vh]">
@@ -1697,10 +1287,8 @@ const BabyPoolDashboard: React.FC = () => {
                                 <input type="time" value={birthData.time} onChange={e => setBirthData({...birthData, time: e.target.value})} className="w-full p-3 border rounded-xl"/>
                             </div>
                             <div className="grid grid-cols-3 gap-3">
-                                <div className="col-span-2 flex gap-2">
-                                    <input type="number" placeholder="Lbs" value={birthData.weightLbs} onChange={e => setBirthData({...birthData, weightLbs: parseInt(e.target.value) || 0})} className="w-full p-3 border rounded-xl"/>
-                                    <input type="number" placeholder="Oz" value={birthData.weightOz} onChange={e => setBirthData({...birthData, weightOz: parseInt(e.target.value) || 0})} className="w-full p-3 border rounded-xl"/>
-                                </div>
+                                <input type="number" placeholder="Lbs" value={birthData.weightLbs} onChange={e => setBirthData({...birthData, weightLbs: parseInt(e.target.value) || 0})} className="w-full p-3 border rounded-xl"/>
+                                <input type="number" placeholder="Oz" value={birthData.weightOz} onChange={e => setBirthData({...birthData, weightOz: parseInt(e.target.value) || 0})} className="w-full p-3 border rounded-xl"/>
                                 <select value={birthData.gender} onChange={e => setBirthData({...birthData, gender: e.target.value})} className="w-full p-3 border rounded-xl">
                                     <option value="">Gender</option><option>Boy</option><option>Girl</option>
                                 </select>
@@ -1714,7 +1302,7 @@ const BabyPoolDashboard: React.FC = () => {
                                     <option value="">Eye Color</option>{EYE_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
-                            <input type="text" placeholder="Photo Link (Instagram/FB/Google Photos)" value={birthData.photoLink} onChange={e => setBirthData({...birthData, photoLink: e.target.value})} className="w-full p-3 border rounded-xl"/>
+                            <input type="text" placeholder="Photo Link (optional)" value={birthData.photoLink} onChange={e => setBirthData({...birthData, photoLink: e.target.value})} className="w-full p-3 border rounded-xl"/>
                             
                             <button onClick={handleBirthDeclare} disabled={isSubmitting} className="w-full bg-green-600 text-white font-bold py-3 rounded-xl mt-2 flex items-center justify-center gap-2">
                                 {isSubmitting ? <Loader2 className="animate-spin" size={18}/> : <Baby size={18}/>}
@@ -1726,16 +1314,7 @@ const BabyPoolDashboard: React.FC = () => {
                 </div>
             )}
 
-            {/* QR CODE MODAL */}
-            {showQRModal && pool && (
-                <QRCodeModal 
-                    url={guestShareUrl}
-                    babyName={pool.babyName}
-                    onClose={() => setShowQRModal(false)}
-                />
-            )}
-
-            {/* ADD TO HOME SCREEN PROMPT */}
+            {showQRModal && pool && <QRCodeModal url={guestShareUrl} babyName={pool.babyName} onClose={() => setShowQRModal(false)} />}
             {showHomePrompt && <AddToHomePrompt onDismiss={dismissHomePrompt} />}
 
             <Footer />

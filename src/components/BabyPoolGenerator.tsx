@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { 
     Calendar, Gift, Loader2, PlusCircle, CheckCircle, Palette, 
     DollarSign, HelpCircle, List, CheckSquare, Square, Star, 
-    ChevronRight, X, ExternalLink, Sparkles
+    ChevronRight, X, ExternalLink, Sparkles, Trophy, Users,
+    Heart, Link2, Trash2, Globe, Baby
 } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
@@ -16,16 +16,16 @@ import { createPool } from '../services/babyPoolService';
 
 export type ThemeKey = 'sage' | 'ocean' | 'blush' | 'lavender' | 'roseGold' | 'midnight' | 'teddy' | 'cotton' | 'confetti';
 
-export const THEMES: Record<ThemeKey, { name: string, bg: string, primary: string, secondary: string, accent: string, text: string, border: string }> = {
-    sage: { name: 'Sage & Sand', bg: 'bg-[#f0fdf4]', primary: 'bg-emerald-600', secondary: 'bg-emerald-100', accent: 'text-emerald-700', text: 'text-emerald-900', border: 'border-emerald-200' },
-    ocean: { name: 'Ocean Breeze', bg: 'bg-[#f0f9ff]', primary: 'bg-sky-600', secondary: 'bg-sky-100', accent: 'text-sky-700', text: 'text-sky-900', border: 'border-sky-200' },
-    blush: { name: 'Sweet Blush', bg: 'bg-[#fff1f2]', primary: 'bg-rose-400', secondary: 'bg-rose-100', accent: 'text-rose-600', text: 'text-rose-900', border: 'border-rose-200' },
-    cotton: { name: 'Cotton Candy', bg: 'bg-pink-50', primary: 'bg-pink-500', secondary: 'bg-pink-100', accent: 'text-pink-600', text: 'text-pink-900', border: 'border-pink-200' },
-    lavender: { name: 'Lavender Dream', bg: 'bg-[#faf5ff]', primary: 'bg-violet-500', secondary: 'bg-violet-100', accent: 'text-violet-700', text: 'text-violet-900', border: 'border-violet-200' },
-    roseGold: { name: 'Rose Gold', bg: 'bg-gradient-to-br from-rose-50 via-white to-orange-50', primary: 'bg-gradient-to-r from-rose-400 to-orange-300', secondary: 'bg-rose-50', accent: 'text-rose-500', text: 'text-slate-800', border: 'border-orange-100' },
-    midnight: { name: 'Midnight Star', bg: 'bg-gradient-to-b from-slate-900 to-indigo-900', primary: 'bg-indigo-500', secondary: 'bg-indigo-800/50', accent: 'text-yellow-400', text: 'text-white', border: 'border-indigo-800' },
-    teddy: { name: 'Classic Teddy', bg: 'bg-[#fffbeb]', primary: 'bg-amber-700', secondary: 'bg-amber-100', accent: 'text-amber-800', text: 'text-amber-900', border: 'border-amber-200' },
-    confetti: { name: 'Confetti Party', bg: 'bg-white', primary: 'bg-gradient-to-r from-red-400 via-yellow-400 to-blue-400', secondary: 'bg-slate-100', accent: 'text-blue-600', text: 'text-slate-900', border: 'border-slate-200' }
+export const THEMES: Record<ThemeKey, { name: string, bg: string, primary: string, secondary: string, accent: string, text: string, border: string, illustration: string }> = {
+    sage: { name: 'Sage & Sand', bg: 'bg-[#f0fdf4]', primary: 'bg-emerald-600', secondary: 'bg-emerald-100', accent: 'text-emerald-700', text: 'text-emerald-900', border: 'border-emerald-200', illustration: '🌿' },
+    ocean: { name: 'Ocean Breeze', bg: 'bg-[#f0f9ff]', primary: 'bg-sky-600', secondary: 'bg-sky-100', accent: 'text-sky-700', text: 'text-sky-900', border: 'border-sky-200', illustration: '🐋' },
+    blush: { name: 'Sweet Blush', bg: 'bg-[#fff1f2]', primary: 'bg-rose-400', secondary: 'bg-rose-100', accent: 'text-rose-600', text: 'text-rose-900', border: 'border-rose-200', illustration: '🌸' },
+    cotton: { name: 'Cotton Candy', bg: 'bg-pink-50', primary: 'bg-pink-500', secondary: 'bg-pink-100', accent: 'text-pink-600', text: 'text-pink-900', border: 'border-pink-200', illustration: '🍭' },
+    lavender: { name: 'Lavender Dream', bg: 'bg-[#faf5ff]', primary: 'bg-violet-500', secondary: 'bg-violet-100', accent: 'text-violet-700', text: 'text-violet-900', border: 'border-violet-200', illustration: '💜' },
+    roseGold: { name: 'Rose Gold', bg: 'bg-gradient-to-br from-rose-50 via-white to-orange-50', primary: 'bg-gradient-to-r from-rose-400 to-orange-300', secondary: 'bg-rose-50', accent: 'text-rose-500', text: 'text-slate-800', border: 'border-orange-100', illustration: '✨' },
+    midnight: { name: 'Midnight Star', bg: 'bg-gradient-to-b from-slate-900 to-indigo-900', primary: 'bg-indigo-500', secondary: 'bg-indigo-800/50', accent: 'text-yellow-400', text: 'text-white', border: 'border-indigo-800', illustration: '🌙' },
+    teddy: { name: 'Classic Teddy', bg: 'bg-[#fffbeb]', primary: 'bg-amber-700', secondary: 'bg-amber-100', accent: 'text-amber-800', text: 'text-amber-900', border: 'border-amber-200', illustration: '🧸' },
+    confetti: { name: 'Confetti Party', bg: 'bg-white', primary: 'bg-gradient-to-r from-red-400 via-yellow-400 to-blue-400', secondary: 'bg-slate-100', accent: 'text-blue-600', text: 'text-slate-900', border: 'border-slate-200', illustration: '🎉' }
 };
 
 // Amazon Affiliate Links by Country
@@ -53,6 +53,14 @@ export const detectCountry = (): string => {
     if (lang.includes('GB') || lang.includes('UK')) return 'UK';
     if (lang.includes('CA')) return 'CA';
     return 'US';
+};
+
+// Unit Systems
+export type UnitSystem = 'imperial' | 'metric';
+
+export const UNIT_LABELS = {
+    imperial: { weight: 'lbs/oz', length: 'inches', weightUnit: 'lb', lengthUnit: 'in' },
+    metric: { weight: 'kg/g', length: 'cm', weightUnit: 'kg', lengthUnit: 'cm' }
 };
 
 // ============================================================================
@@ -115,7 +123,6 @@ const AmazonRegistryModal: React.FC<{
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-3xl p-8 max-w-md w-full relative overflow-hidden animate-fade-in">
-                {/* Confetti decoration */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-pink-400 to-purple-400"></div>
                 
                 <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
@@ -178,6 +185,42 @@ const AmazonRegistryModal: React.FC<{
     );
 };
 
+// --- Link Input Row with Visual Feedback ---
+const LinkInputRow: React.FC<{
+    label: string;
+    placeholder: string;
+    value: string;
+    onChange: (val: string) => void;
+    icon: React.ReactNode;
+    hint?: string;
+}> = ({ label, placeholder, value, onChange, icon, hint }) => {
+    const hasValue = value.trim().length > 0;
+    
+    return (
+        <div>
+            <label className="font-bold text-slate-700 block mb-2">{label}</label>
+            <div className={`relative transition-all ${hasValue ? 'ring-2 ring-emerald-200 rounded-xl' : ''}`}>
+                <div className="absolute left-4 top-4 text-slate-400">{icon}</div>
+                <input 
+                    type="text" 
+                    value={value} 
+                    onChange={e => onChange(e.target.value)} 
+                    className={`w-full p-4 pl-10 rounded-xl border transition ${
+                        hasValue 
+                            ? 'bg-emerald-50 border-emerald-300' 
+                            : 'bg-slate-50 border-slate-200 focus:border-slate-800'
+                    } focus:ring-0 outline-none`}
+                    placeholder={placeholder}
+                />
+                {hasValue && (
+                    <CheckCircle className="absolute right-4 top-4 text-emerald-500" size={18}/>
+                )}
+            </div>
+            {hint && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
+        </div>
+    );
+};
+
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
@@ -185,11 +228,12 @@ const AmazonRegistryModal: React.FC<{
 const BabyPoolGenerator: React.FC = () => {
     const [country] = useState(detectCountry());
     
-    // Setup State
+    // Setup State with ALL new fields
     const [setupData, setSetupData] = useState({ 
         babyName: '', 
         parentNames: '',
         dueDate: '', 
+        dueDateUnknown: false,
         theme: 'sage' as ThemeKey, 
         registryLink: '',
         diaperFundLink: '',
@@ -201,8 +245,22 @@ const BabyPoolGenerator: React.FC = () => {
             eye: true,
             gender: true
         },
-        customQuestions: ['', '', ''] 
+        customQuestions: ['', '', ''],
+        // NEW FIELDS
+        unitSystem: 'imperial' as UnitSystem,
+        isMultiples: false,
+        multiplesCount: 2,
+        prizeDescription: '',
+        guessDeadline: '',
+        nameOptions: [] as string[],
+        enableNamePoll: false,
+        additionalLinks: [] as { label: string, url: string }[],
+        targetGuessCount: 25,
     });
+    
+    const [newNameOption, setNewNameOption] = useState('');
+    const [newLinkLabel, setNewLinkLabel] = useState('');
+    const [newLinkUrl, setNewLinkUrl] = useState('');
     
     const [activeTab, setActiveTab] = useState<'details' | 'style' | 'registry'>('details');
     const [isCreating, setIsCreating] = useState(false);
@@ -212,42 +270,63 @@ const BabyPoolGenerator: React.FC = () => {
     const toggleField = (field: keyof typeof setupData.includeFields) => {
         setSetupData(prev => ({
             ...prev,
-            includeFields: {
-                ...prev.includeFields,
-                [field]: !prev.includeFields[field]
-            }
+            includeFields: { ...prev.includeFields, [field]: !prev.includeFields[field] }
         }));
     };
 
+    const addNameOption = () => {
+        if (!newNameOption.trim() || setupData.nameOptions.length >= 10) return;
+        setSetupData(prev => ({ ...prev, nameOptions: [...prev.nameOptions, newNameOption.trim()] }));
+        setNewNameOption('');
+    };
+
+    const removeNameOption = (index: number) => {
+        setSetupData(prev => ({ ...prev, nameOptions: prev.nameOptions.filter((_, i) => i !== index) }));
+    };
+
+    const addAdditionalLink = () => {
+        if (!newLinkLabel.trim() || !newLinkUrl.trim() || setupData.additionalLinks.length >= 5) return;
+        setSetupData(prev => ({ ...prev, additionalLinks: [...prev.additionalLinks, { label: newLinkLabel.trim(), url: newLinkUrl.trim() }] }));
+        setNewLinkLabel('');
+        setNewLinkUrl('');
+    };
+
+    const removeAdditionalLink = (index: number) => {
+        setSetupData(prev => ({ ...prev, additionalLinks: prev.additionalLinks.filter((_, i) => i !== index) }));
+    };
+
     const handleCreate = async () => {
-        if (!setupData.babyName || !setupData.dueDate) {
-            alert("Please enter a name and due date in the Details tab!");
+        if (!setupData.babyName) {
+            alert("Please enter a name for the baby!");
+            setActiveTab('details');
+            return;
+        }
+        if (!setupData.dueDate && !setupData.dueDateUnknown) {
+            alert("Please enter a due date or check 'Due date unknown'");
             setActiveTab('details');
             return;
         }
         setIsCreating(true);
         try {
-            // Filter empty custom questions
             const cleanQuestions = setupData.customQuestions.filter(q => q.trim() !== '');
-            // Update createPool service to return the full object, the service wrapper handles the json().
             const responseData = await createPool({ ...setupData, customQuestions: cleanQuestions });
             
             const { poolId, adminKey, pool } = responseData;
 
-            // LOCAL HANDOFF: Save to sessionStorage to avoid race condition on redirect
             if (pool) {
-                try {
-                    sessionStorage.setItem(`bp_new_pool_${poolId}`, JSON.stringify(pool));
-                } catch (e) { console.error("Session storage full", e); }
+                try { sessionStorage.setItem(`bp_new_pool_${poolId}`, JSON.stringify(pool)); } 
+                catch (e) { console.error("Session storage full", e); }
             }
             
-            // Store pending data and show Amazon modal
             setPendingPoolData({ poolId, adminKey });
             setShowAmazonModal(true);
             
             trackEvent('pool_created', { 
                 theme: setupData.theme, 
-                fieldsEnabled: Object.keys(setupData.includeFields).filter(k => setupData.includeFields[k as keyof typeof setupData.includeFields]) 
+                isMultiples: setupData.isMultiples,
+                hasNamePoll: setupData.enableNamePoll,
+                hasPrize: !!setupData.prizeDescription,
+                unitSystem: setupData.unitSystem
             });
         } catch (err) {
             alert("Failed to create pool. Please try again.");
@@ -257,29 +336,22 @@ const BabyPoolGenerator: React.FC = () => {
 
     const finishPoolCreation = () => {
         if (pendingPoolData) {
-            // Update hash to navigate to the dashboard
             window.location.hash = `poolId=${pendingPoolData.poolId}&adminKey=${pendingPoolData.adminKey}`;
         }
     };
 
     const previewTheme = THEMES[setupData.theme];
+    const hasValue = (val: string | boolean) => typeof val === 'boolean' ? val : val?.trim().length > 0;
     
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             <Header />
             
-            {/* Amazon Registry Modal */}
             {showAmazonModal && (
                 <AmazonRegistryModal 
                     country={country}
-                    onClose={() => {
-                        setShowAmazonModal(false);
-                        finishPoolCreation();
-                    }}
-                    onSkip={() => {
-                        setShowAmazonModal(false);
-                        finishPoolCreation();
-                    }}
+                    onClose={() => { setShowAmazonModal(false); finishPoolCreation(); }}
+                    onSkip={() => { setShowAmazonModal(false); finishPoolCreation(); }}
                 />
             )}
             
@@ -298,8 +370,6 @@ const BabyPoolGenerator: React.FC = () => {
             </div>
 
             <div className="max-w-6xl mx-auto p-4 md:p-8">
-                
-                {/* What is a Baby Pool Explainer */}
                 <BabyPoolExplainer />
 
                 <div className="grid lg:grid-cols-2 gap-8 items-start">
@@ -310,181 +380,337 @@ const BabyPoolGenerator: React.FC = () => {
                         <div className="flex border-b border-slate-100 overflow-x-auto">
                             <button onClick={() => setActiveTab('details')} className={`flex-1 py-4 px-4 font-bold text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'details' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>1. Details</button>
                             <button onClick={() => setActiveTab('style')} className={`flex-1 py-4 px-4 font-bold text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'style' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>2. Game & Style</button>
-                            <button onClick={() => setActiveTab('registry')} className={`flex-1 py-4 px-4 font-bold text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'registry' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>3. Registry & More</button>
+                            <button onClick={() => setActiveTab('registry')} className={`flex-1 py-4 px-4 font-bold text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'registry' ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50' : 'text-slate-400 hover:text-slate-600'}`}>3. Links & Extras</button>
                         </div>
 
                         <div className="p-6 md:p-8 min-h-[400px]">
                             {/* TAB 1: DETAILS */}
                             {activeTab === 'details' && (
                                 <div className="space-y-6 animate-fade-in">
+                                    {/* Baby Name */}
                                     <div>
-                                        <label className="font-bold text-slate-700 block mb-2">Baby Name (or Placeholder)</label>
+                                        <label className="font-bold text-slate-700 block mb-2">Baby's Name (or Nickname)</label>
                                         <input 
                                             type="text" 
                                             value={setupData.babyName} 
                                             onChange={e => setSetupData({...setupData, babyName: e.target.value})} 
-                                            className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition" 
-                                            placeholder="e.g. Baby Smith"
+                                            className={`w-full p-4 rounded-xl border transition ${hasValue(setupData.babyName) ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-200' : 'bg-slate-50 border-slate-200 focus:border-slate-800'} focus:ring-0 outline-none`}
+                                            placeholder="e.g. Baby Smith, Little One, Peanut"
                                         />
                                     </div>
+
+                                    {/* Parent Names */}
                                     <div>
                                         <label className="font-bold text-slate-700 block mb-2">Parent Name(s)</label>
                                         <input 
                                             type="text" 
                                             value={setupData.parentNames} 
                                             onChange={e => setSetupData({...setupData, parentNames: e.target.value})} 
-                                            className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition" 
-                                            placeholder="e.g. Mary & Joe"
+                                            className={`w-full p-4 rounded-xl border transition ${hasValue(setupData.parentNames) ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-200' : 'bg-slate-50 border-slate-200 focus:border-slate-800'} focus:ring-0 outline-none`}
+                                            placeholder="e.g. Sarah & Mike, The Johnsons"
                                         />
                                         <p className="text-xs text-slate-400 mt-1">Shown on the invite link.</p>
                                     </div>
+
+                                    {/* Due Date */}
                                     <div>
-                                        <label className="font-bold text-slate-700 block mb-2">Due Date</label>
-                                        <input 
-                                            type="date" 
-                                            value={setupData.dueDate} 
-                                            onChange={e => setSetupData({...setupData, dueDate: e.target.value})} 
-                                            className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition"
-                                        />
+                                        <label className="font-bold text-slate-700 block mb-2">When is baby due? 🗓️</label>
+                                        {!setupData.dueDateUnknown && (
+                                            <input 
+                                                type="date" 
+                                                value={setupData.dueDate} 
+                                                onChange={e => setSetupData({...setupData, dueDate: e.target.value})} 
+                                                className={`w-full p-4 rounded-xl border transition ${hasValue(setupData.dueDate) ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-200' : 'bg-slate-50 border-slate-200 focus:border-slate-800'} focus:ring-0 outline-none`}
+                                            />
+                                        )}
+                                        <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={setupData.dueDateUnknown}
+                                                onChange={e => setSetupData({...setupData, dueDateUnknown: e.target.checked, dueDate: ''})}
+                                                className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                            />
+                                            <span className="text-sm text-slate-600">We don't know the due date yet</span>
+                                        </label>
+                                        {setupData.dueDateUnknown && (
+                                            <p className="text-xs text-amber-600 mt-2 bg-amber-50 p-2 rounded-lg">
+                                                💡 No worries! Guests will only guess weight, gender & other details. You can add the due date later.
+                                            </p>
+                                        )}
                                     </div>
-                                    <button 
-                                        onClick={() => setActiveTab('style')} 
-                                        className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors mt-4 flex items-center justify-center gap-2"
-                                    >
-                                        Next: Game & Style <ChevronRight size={18}/>
+
+                                    {/* Twins/Multiples Toggle */}
+                                    <div className="bg-gradient-to-r from-pink-50 to-blue-50 p-4 rounded-xl border border-slate-200">
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={setupData.isMultiples}
+                                                onChange={e => setSetupData({...setupData, isMultiples: e.target.checked})}
+                                                className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                            />
+                                            <div>
+                                                <span className="font-bold text-slate-700 flex items-center gap-2">
+                                                    <Baby size={18}/> Expecting Multiples? 👶👶
+                                                </span>
+                                                <span className="text-xs text-slate-500 block">Twins, triplets, etc.</span>
+                                            </div>
+                                        </label>
+                                        {setupData.isMultiples && (
+                                            <div className="mt-3 flex items-center gap-3">
+                                                <label className="text-sm text-slate-600">How many babies?</label>
+                                                <select 
+                                                    value={setupData.multiplesCount}
+                                                    onChange={e => setSetupData({...setupData, multiplesCount: parseInt(e.target.value)})}
+                                                    className="p-2 border rounded-lg bg-white"
+                                                >
+                                                    <option value={2}>Twins (2)</option>
+                                                    <option value={3}>Triplets (3)</option>
+                                                    <option value={4}>Quadruplets (4)</option>
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* International Units */}
+                                    <div>
+                                        <label className="font-bold text-slate-700 block mb-2 flex items-center gap-2">
+                                            <Globe size={18}/> Measurement Units
+                                        </label>
+                                        <div className="flex gap-3">
+                                            <button 
+                                                onClick={() => setSetupData({...setupData, unitSystem: 'imperial'})}
+                                                className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${setupData.unitSystem === 'imperial' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400'}`}
+                                            >
+                                                🇺🇸 Imperial (lbs, in)
+                                            </button>
+                                            <button 
+                                                onClick={() => setSetupData({...setupData, unitSystem: 'metric'})}
+                                                className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${setupData.unitSystem === 'metric' ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400'}`}
+                                            >
+                                                🌍 Metric (kg, cm)
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button onClick={() => setActiveTab('style')} className="w-full bg-slate-800 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-900 transition-all">
+                                        Next: Customize Game <ChevronRight size={18}/>
                                     </button>
                                 </div>
                             )}
 
                             {/* TAB 2: GAME & STYLE */}
                             {activeTab === 'style' && (
-                                <div className="space-y-8 animate-fade-in">
-                                    
-                                    {/* Field Toggles */}
-                                    <section>
-                                        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><List size={18}/> What do guests guess?</h3>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {[
-                                                { id: 'time', label: 'Time of Birth' },
-                                                { id: 'weight', label: 'Weight' },
-                                                { id: 'length', label: 'Length' },
-                                                { id: 'hair', label: 'Hair Color' },
-                                                { id: 'eye', label: 'Eye Color' },
-                                                { id: 'gender', label: 'Gender' },
-                                            ].map(field => (
+                                <div className="space-y-6 animate-fade-in">
+                                    {/* Theme Selector */}
+                                    <div>
+                                        <label className="font-bold text-slate-700 block mb-3 flex items-center gap-2"><Palette size={18}/> Choose a Theme</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {Object.entries(THEMES).map(([key, theme]) => (
                                                 <button 
-                                                    key={field.id} 
-                                                    onClick={() => toggleField(field.id as keyof typeof setupData.includeFields)}
-                                                    className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${setupData.includeFields[field.id as keyof typeof setupData.includeFields] ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : 'bg-white border-slate-100 text-slate-400'}`}
+                                                    key={key} 
+                                                    onClick={() => setSetupData({...setupData, theme: key as ThemeKey})}
+                                                    className={`p-3 rounded-xl border-2 text-left transition-all ${setupData.theme === key ? 'border-slate-800 ring-2 ring-slate-300' : 'border-slate-200 hover:border-slate-400'}`}
                                                 >
-                                                    {setupData.includeFields[field.id as keyof typeof setupData.includeFields] ? <CheckSquare size={20}/> : <Square size={20}/>}
-                                                    <span className="font-bold text-sm">{field.label}</span>
+                                                    <div className={`w-full h-8 rounded-lg mb-2 ${theme.primary}`}></div>
+                                                    <span className="text-xs font-medium text-slate-700 flex items-center gap-1">{theme.illustration} {theme.name}</span>
                                                 </button>
                                             ))}
                                         </div>
-                                    </section>
+                                    </div>
 
-                                    {/* Bonus Questions */}
-                                    <section>
-                                        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><HelpCircle size={18}/> Bonus Questions (Optional)</h3>
-                                        <div className="space-y-3">
+                                    {/* Field Toggles */}
+                                    <div>
+                                        <label className="font-bold text-slate-700 block mb-3 flex items-center gap-2"><List size={18}/> What can guests predict?</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {[
+                                                { key: 'gender', label: 'Gender', icon: '👶' },
+                                                { key: 'weight', label: 'Weight', icon: '⚖️' },
+                                                { key: 'length', label: 'Length', icon: '📏' },
+                                                { key: 'time', label: 'Time of Birth', icon: '🕐' },
+                                                { key: 'hair', label: 'Hair Color', icon: '💇' },
+                                                { key: 'eye', label: 'Eye Color', icon: '👁️' },
+                                            ].map(({ key, label, icon }) => (
+                                                <button 
+                                                    key={key} 
+                                                    onClick={() => toggleField(key as keyof typeof setupData.includeFields)} 
+                                                    className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all text-sm ${setupData.includeFields[key as keyof typeof setupData.includeFields] ? 'bg-emerald-50 border-emerald-400 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                                                >
+                                                    {setupData.includeFields[key as keyof typeof setupData.includeFields] ? <CheckSquare size={16} className="text-emerald-600"/> : <Square size={16}/>}
+                                                    {icon} {label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Guess Deadline */}
+                                    <div>
+                                        <label className="font-bold text-slate-700 block mb-2">⏰ Guessing Deadline (Optional)</label>
+                                        <input 
+                                            type="date" 
+                                            value={setupData.guessDeadline} 
+                                            onChange={e => setSetupData({...setupData, guessDeadline: e.target.value})} 
+                                            className={`w-full p-4 rounded-xl border transition ${hasValue(setupData.guessDeadline) ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-200' : 'bg-slate-50 border-slate-200 focus:border-slate-800'} focus:ring-0 outline-none`}
+                                        />
+                                        <p className="text-xs text-slate-400 mt-1">No new guesses after this date. Leave blank for no deadline.</p>
+                                    </div>
+
+                                    {/* Target Guess Count */}
+                                    <div>
+                                        <label className="font-bold text-slate-700 block mb-2">🎯 Guest Goal (for progress bar)</label>
+                                        <select 
+                                            value={setupData.targetGuessCount}
+                                            onChange={e => setSetupData({...setupData, targetGuessCount: parseInt(e.target.value)})}
+                                            className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800"
+                                        >
+                                            <option value={10}>10 guesses</option>
+                                            <option value={25}>25 guesses</option>
+                                            <option value={50}>50 guesses</option>
+                                            <option value={100}>100 guesses</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Custom Questions */}
+                                    <div>
+                                        <label className="font-bold text-slate-700 block mb-3 flex items-center gap-2"><HelpCircle size={18}/> Bonus Questions (Optional)</label>
+                                        <div className="space-y-2">
                                             {setupData.customQuestions.map((q, i) => (
                                                 <input 
                                                     key={i}
                                                     type="text" 
                                                     value={q} 
                                                     onChange={e => {
-                                                        const newQs = [...setupData.customQuestions];
-                                                        newQs[i] = e.target.value;
-                                                        setSetupData({...setupData, customQuestions: newQs});
-                                                    }} 
-                                                    className="w-full p-3 bg-slate-50 rounded-lg border border-slate-200 focus:border-slate-800 outline-none transition" 
-                                                    placeholder={`e.g. "Mom's nose or Dad's?"`}
+                                                        const updated = [...setupData.customQuestions];
+                                                        updated[i] = e.target.value;
+                                                        setSetupData({...setupData, customQuestions: updated});
+                                                    }}
+                                                    className={`w-full p-3 rounded-xl border text-sm ${q.trim() ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-200'}`}
+                                                    placeholder={`Bonus Q${i+1}: e.g. "First word?"`}
                                                 />
                                             ))}
                                         </div>
-                                    </section>
+                                    </div>
 
-                                    {/* Themes */}
-                                    <section>
-                                        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Palette size={18}/> Choose a Theme</h3>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                            {Object.entries(THEMES).map(([k, v]) => (
-                                                <button 
-                                                    key={k} 
-                                                    onClick={() => setSetupData({...setupData, theme: k as ThemeKey})} 
-                                                    className={`relative p-2 rounded-xl border-2 transition-all text-left group overflow-hidden ${setupData.theme === k ? 'border-slate-900 ring-1 ring-slate-900' : 'border-slate-100 hover:border-slate-300'}`}
-                                                >
-                                                    <div className={`h-10 w-full rounded-lg mb-2 ${v.bg} border border-slate-100`}></div>
-                                                    <span className="text-xs font-bold text-slate-700 block truncate">{v.name}</span>
-                                                    {setupData.theme === k && <div className="absolute top-1 right-1 bg-slate-900 text-white rounded-full p-0.5"><CheckCircle size={10}/></div>}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </section>
-
-                                    <button 
-                                        onClick={() => setActiveTab('registry')} 
-                                        className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        Next: Registry & More <ChevronRight size={18}/>
+                                    <button onClick={() => setActiveTab('registry')} className="w-full bg-slate-800 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-900 transition-all">
+                                        Next: Add Links <ChevronRight size={18}/>
                                     </button>
                                 </div>
                             )}
 
-                            {/* TAB 3: REGISTRY & EXTRAS */}
+                            {/* TAB 3: LINKS & EXTRAS */}
                             {activeTab === 'registry' && (
-                                <div className="space-y-8 animate-fade-in">
-                                    {/* Amazon Promo Block */}
-                                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-5 rounded-xl border border-orange-100 relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 bg-orange-200 text-orange-800 text-[10px] font-bold px-2 py-1 rounded-bl">SPONSORED</div>
-                                        <h3 className="font-bold text-orange-900 flex items-center gap-2 mb-2"><Gift size={18}/> Need a Registry?</h3>
-                                        <p className="text-sm text-orange-800 mb-3">
-                                            Prime members get a <strong>Free Welcome Box ({AMAZON_CONFIG[country]?.welcomeBoxValue || '$35'})</strong> + 15% completion discount!
-                                        </p>
-                                        <a 
-                                            href={AMAZON_CONFIG[country]?.link || AMAZON_CONFIG.US.link} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer" 
-                                            className="block w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-center rounded-lg text-sm font-bold transition-colors"
-                                        >
-                                            Create Free Amazon Registry
-                                        </a>
-                                    </div>
-
-                                    <div>
-                                        <label className="font-bold text-slate-700 block mb-2">Registry Link (Optional)</label>
+                                <div className="space-y-6 animate-fade-in">
+                                    
+                                    {/* Prize Section */}
+                                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-2xl border border-amber-200">
+                                        <label className="font-bold text-amber-900 block mb-2 flex items-center gap-2">
+                                            <Trophy size={18} className="text-amber-500"/> Winner's Prize (Optional)
+                                        </label>
                                         <input 
                                             type="text" 
-                                            value={setupData.registryLink} 
-                                            onChange={e => setSetupData({...setupData, registryLink: e.target.value})} 
-                                            className="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition" 
-                                            placeholder="Paste your registry link here..."
+                                            value={setupData.prizeDescription} 
+                                            onChange={e => setSetupData({...setupData, prizeDescription: e.target.value})} 
+                                            className={`w-full p-4 rounded-xl border transition ${hasValue(setupData.prizeDescription) ? 'bg-white border-amber-300 ring-2 ring-amber-200' : 'bg-white border-amber-200'} outline-none`}
+                                            placeholder="e.g. $25 Amazon gift card, Bragging rights!"
                                         />
+                                        <p className="text-xs text-amber-700 mt-2">
+                                            💡 <a href="https://sugarwish.com?ref=secretsantamatch" target="_blank" rel="noopener" className="underline font-medium">Need a prize? Get a Sugarwish gift card →</a>
+                                        </p>
                                     </div>
 
-                                    <div>
-                                        <label className="font-bold text-slate-700 block mb-2">Diaper Fund Link (Optional)</label>
-                                        <div className="relative">
-                                            <DollarSign className="absolute left-4 top-4 text-slate-400" size={18}/>
+                                    {/* Name Poll */}
+                                    <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-5 rounded-2xl border border-pink-200">
+                                        <label className="flex items-center gap-3 cursor-pointer mb-4">
                                             <input 
-                                                type="text" 
-                                                value={setupData.diaperFundLink} 
-                                                onChange={e => setSetupData({...setupData, diaperFundLink: e.target.value})} 
-                                                className="w-full p-4 pl-10 bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-800 focus:ring-0 outline-none transition" 
-                                                placeholder="Venmo, CashApp, or PayPal link"
+                                                type="checkbox" 
+                                                checked={setupData.enableNamePoll}
+                                                onChange={e => setSetupData({...setupData, enableNamePoll: e.target.checked})}
+                                                className="w-5 h-5 rounded border-slate-300 text-pink-600 focus:ring-pink-500"
                                             />
+                                            <div>
+                                                <span className="font-bold text-pink-900 flex items-center gap-2">
+                                                    <Heart size={18} className="text-pink-500"/> Help Us Pick a Name!
+                                                </span>
+                                                <span className="text-xs text-pink-700 block">Let guests vote on their favorite</span>
+                                            </div>
+                                        </label>
+
+                                        {setupData.enableNamePoll && (
+                                            <div className="space-y-3">
+                                                <div className="flex gap-2">
+                                                    <input 
+                                                        type="text"
+                                                        value={newNameOption}
+                                                        onChange={e => setNewNameOption(e.target.value)}
+                                                        onKeyPress={e => e.key === 'Enter' && addNameOption()}
+                                                        placeholder="Add a name..."
+                                                        className="flex-1 p-3 rounded-xl border border-pink-200 bg-white"
+                                                    />
+                                                    <button onClick={addNameOption} className="bg-pink-500 text-white px-4 rounded-xl font-bold hover:bg-pink-600">Add</button>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {setupData.nameOptions.map((name, i) => (
+                                                        <span key={i} className="bg-white px-3 py-1 rounded-full text-sm font-medium text-pink-800 border border-pink-200 flex items-center gap-2">
+                                                            {name}
+                                                            <button onClick={() => removeNameOption(i)} className="text-pink-400 hover:text-pink-600"><X size={14}/></button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Registry & Links */}
+                                    <div className="space-y-4">
+                                        <h4 className="font-bold text-slate-700 flex items-center gap-2"><Gift size={18}/> Helpful Links for Guests</h4>
+                                        
+                                        <LinkInputRow 
+                                            label="Baby Registry"
+                                            placeholder="https://amazon.com/registry/..."
+                                            value={setupData.registryLink}
+                                            onChange={val => setSetupData({...setupData, registryLink: val})}
+                                            icon={<Gift size={18}/>}
+                                        />
+
+                                        <LinkInputRow 
+                                            label="Diaper Fund / Cash Gift"
+                                            placeholder="Venmo, PayPal, or CashApp link"
+                                            value={setupData.diaperFundLink}
+                                            onChange={val => setSetupData({...setupData, diaperFundLink: val})}
+                                            icon={<DollarSign size={18}/>}
+                                        />
+
+                                        {/* Additional Links */}
+                                        {setupData.additionalLinks.map((link, i) => (
+                                            <div key={i} className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl">
+                                                <Link2 size={16} className="text-slate-400"/>
+                                                <span className="font-medium text-sm flex-1">{link.label}</span>
+                                                <button onClick={() => removeAdditionalLink(i)} className="text-slate-400 hover:text-red-500"><Trash2 size={16}/></button>
+                                            </div>
+                                        ))}
+
+                                        {/* Add Link */}
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300">
+                                            <p className="text-sm font-medium text-slate-600 mb-2">+ Add Another Link</p>
+                                            <div className="flex gap-2 mb-2">
+                                                <input type="text" value={newLinkLabel} onChange={e => setNewLinkLabel(e.target.value)} placeholder="Label" className="flex-1 p-2 rounded-lg border border-slate-200 text-sm"/>
+                                                <input type="text" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="https://..." className="flex-1 p-2 rounded-lg border border-slate-200 text-sm"/>
+                                            </div>
+                                            <button onClick={addAdditionalLink} disabled={!newLinkLabel.trim() || !newLinkUrl.trim()} className="w-full bg-slate-200 text-slate-600 font-medium py-2 rounded-lg text-sm hover:bg-slate-300 disabled:opacity-50">Add Link</button>
                                         </div>
-                                        <p className="text-xs text-slate-400 mt-1">Guests can click this to send cash gifts directly.</p>
+
+                                        {!setupData.registryLink && (
+                                            <div className="bg-orange-50 p-4 rounded-xl border border-orange-200">
+                                                <p className="text-sm text-orange-800 mb-2"><strong>💡 Don't have a registry yet?</strong></p>
+                                                <a href={AMAZON_CONFIG[country]?.link} target="_blank" rel="noopener" className="inline-flex items-center gap-2 text-orange-600 font-bold text-sm hover:underline">
+                                                    Create Free Amazon Registry ({AMAZON_CONFIG[country]?.welcomeBoxValue} Box!) <ExternalLink size={14}/>
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="pt-4 border-t border-slate-100">
                                         <p className="text-xs text-slate-400 mb-4 text-center">By creating a pool, you agree to our Terms. We may earn a commission from affiliate links.</p>
-                                        <button 
-                                            onClick={handleCreate} 
-                                            disabled={isCreating} 
-                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-100 transition-all transform hover:-translate-y-1 flex justify-center gap-2"
-                                        >
+                                        <button onClick={handleCreate} disabled={isCreating} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-1 flex justify-center gap-2">
                                             {isCreating ? <Loader2 className="animate-spin"/> : <PlusCircle />} Create My Baby Pool
                                         </button>
                                     </div>
@@ -499,58 +725,89 @@ const BabyPoolGenerator: React.FC = () => {
                             <span className="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Live Preview</span>
                         </div>
                         
-                        {/* Phone Frame */}
                         <div className={`relative mx-auto max-w-[360px] rounded-[2.5rem] border-8 border-slate-900 bg-slate-900 shadow-2xl overflow-hidden`}>
-                            {/* Phone Notch */}
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-slate-900 rounded-b-xl z-20"></div>
                             
-                            {/* Screen Content */}
                             <div className={`h-[650px] w-full bg-white overflow-y-auto no-scrollbar ${previewTheme.bg} relative`}>
-                                
-                                {/* Theme Header */}
                                 <div className={`${previewTheme.primary} pt-12 pb-8 px-6 text-center text-white relative rounded-b-[2rem] shadow-sm`}>
-                                    <h2 className="text-2xl font-black font-serif leading-tight mb-1">
-                                        {setupData.babyName || "Baby Name"}
-                                    </h2>
-                                    {setupData.parentNames && (
-                                        <p className="text-xs font-medium opacity-90 mb-3">Celebrating {setupData.parentNames}</p>
+                                    <div className="text-4xl mb-2">{previewTheme.illustration}</div>
+                                    <h2 className="text-2xl font-black font-serif leading-tight mb-1">{setupData.babyName || "Baby Name"}</h2>
+                                    {setupData.parentNames && <p className="text-xs font-medium opacity-90 mb-3">Celebrating {setupData.parentNames}</p>}
+                                    {setupData.isMultiples && (
+                                        <div className="inline-flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-xs mb-2">
+                                            {'👶'.repeat(setupData.multiplesCount)} {setupData.multiplesCount === 2 ? 'Twins' : 'Triplets'}!
+                                        </div>
                                     )}
-                                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold">
-                                        <Calendar size={12}/> Due: {setupData.dueDate || "Dec 25"}
-                                    </div>
+                                    {!setupData.dueDateUnknown && setupData.dueDate && (
+                                        <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold">
+                                            <Calendar size={12}/> Due: {setupData.dueDate}
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Preview Body */}
                                 <div className="p-4 space-y-4">
-                                    {/* Countdown Preview */}
-                                    <div className={`p-3 rounded-xl ${previewTheme.secondary} border ${previewTheme.border} text-center`}>
-                                        <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Baby Arrives In</p>
-                                        <div className="flex justify-center gap-2">
-                                            {['23', '14', '32', '05'].map((n, i) => (
-                                                <div key={i} className="bg-white/50 px-2 py-1 rounded text-sm font-black">{n}</div>
-                                            ))}
+                                    {/* Progress Bar */}
+                                    <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-xs font-bold text-slate-600">🎯 12 of {setupData.targetGuessCount} guesses</span>
+                                            <span className="text-xs text-slate-400">{Math.round((12/setupData.targetGuessCount)*100)}%</span>
+                                        </div>
+                                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className={`h-full ${previewTheme.primary} rounded-full`} style={{width: `${Math.min(100, (12/setupData.targetGuessCount)*100)}%`}}></div>
                                         </div>
                                     </div>
 
-                                    {/* Guess Form Preview */}
+                                    {setupData.prizeDescription && (
+                                        <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-center">
+                                            <Trophy className="mx-auto text-amber-500 mb-1" size={20}/>
+                                            <p className="text-xs font-bold text-amber-800">🏆 Prize: {setupData.prizeDescription}</p>
+                                        </div>
+                                    )}
+
+                                    {!setupData.dueDateUnknown && (
+                                        <div className={`p-3 rounded-xl ${previewTheme.secondary} border ${previewTheme.border} text-center`}>
+                                            <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Baby Arrives In</p>
+                                            <div className="flex justify-center gap-2">
+                                                {['23', '14', '32', '05'].map((n, i) => (
+                                                    <div key={i} className="bg-white/50 px-2 py-1 rounded text-sm font-black">{n}</div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {setupData.enableNamePoll && setupData.nameOptions.length > 0 && (
+                                        <div className="bg-pink-50 p-3 rounded-xl border border-pink-200">
+                                            <p className="text-xs font-bold text-pink-800 mb-2">💕 Vote for a Name!</p>
+                                            <div className="space-y-1">
+                                                {setupData.nameOptions.slice(0, 3).map((name, i) => (
+                                                    <div key={i} className="flex items-center gap-2">
+                                                        <div className="w-3 h-3 rounded-full border-2 border-pink-300"></div>
+                                                        <span className="text-xs text-pink-700">{name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3 opacity-80">
                                         <div className="h-8 bg-slate-100 rounded-lg w-full"></div>
                                         <div className="flex gap-2">
+                                            {!setupData.dueDateUnknown && <div className="h-8 bg-slate-100 rounded-lg flex-1"></div>}
                                             {setupData.includeFields.time && <div className="h-8 bg-slate-100 rounded-lg flex-1"></div>}
-                                            {setupData.includeFields.weight && <div className="h-8 bg-slate-100 rounded-lg flex-1"></div>}
                                         </div>
-                                        {(setupData.includeFields.length || setupData.includeFields.hair || setupData.includeFields.eye) && (
-                                            <div className="h-8 bg-slate-100 rounded-lg w-full"></div>
+                                        {setupData.includeFields.weight && (
+                                            <div className="h-8 bg-slate-100 rounded-lg w-full flex items-center justify-center text-xs text-slate-400">
+                                                {setupData.unitSystem === 'metric' ? 'kg / g' : 'lbs / oz'}
+                                            </div>
                                         )}
                                         {setupData.includeFields.gender && (
                                             <div className="flex gap-2">
-                                                <div className="h-8 bg-blue-50 rounded-lg flex-1 flex items-center justify-center text-xs text-blue-400">Boy</div>
-                                                <div className="h-8 bg-pink-50 rounded-lg flex-1 flex items-center justify-center text-xs text-pink-400">Girl</div>
+                                                <div className="h-8 bg-blue-50 rounded-lg flex-1 flex items-center justify-center text-xs text-blue-400">💙 Boy</div>
+                                                <div className="h-8 bg-pink-50 rounded-lg flex-1 flex items-center justify-center text-xs text-pink-400">💗 Girl</div>
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Leaderboard Placeholder */}
                                     <div className="space-y-2">
                                         <h4 className={`text-xs font-bold uppercase tracking-wider ${previewTheme.text}`}>Recent Guesses</h4>
                                         {[1, 2, 3].map(i => (
@@ -565,14 +822,12 @@ const BabyPoolGenerator: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Fab Button Mockup */}
                                 <div className={`absolute bottom-6 right-6 h-14 w-14 rounded-full shadow-lg ${previewTheme.primary} flex items-center justify-center text-white`}>
                                     <PlusCircle size={24} />
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
             <Footer />
