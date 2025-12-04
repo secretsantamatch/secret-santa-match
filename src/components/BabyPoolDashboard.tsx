@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
     Calendar, Scale, Clock, User, Trophy, Share2, Copy, Baby, 
     PlusCircle, CheckCircle, Instagram, Gift, Loader2, Lock, 
@@ -6,14 +6,16 @@ import {
     HelpCircle, BarChart3, Bookmark, Sparkles, X, RefreshCw,
     ExternalLink, Settings, Mail, QrCode, Download, AlertCircle,
     Users, ChevronDown, ChevronUp, Link2, Check, Edit3, Heart,
-    Target, Globe
+    Target, Globe, Award, Star, Zap, Crown, Camera, Book,
+    Send, PartyPopper, Medal, Flame, XCircle, AlertOctagon,
+    Image, FileImage, Play, Pause, Volume2, VolumeX
 } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
 import { trackEvent } from '../services/analyticsService';
-import { getPool, submitGuess, declareBirth } from '../services/babyPoolService';
-import type { BabyPool, BabyGuess } from '../types';
+import { getPool, submitGuess, declareBirth, cancelPool, addComment } from '../services/babyPoolService';
+import type { BabyPool, BabyGuess, Comment, Badge } from '../types';
 import confetti from 'canvas-confetti';
 import { THEMES, ThemeKey, AMAZON_CONFIG, detectCountry, UNIT_LABELS, UnitSystem } from './BabyPoolGenerator';
 
@@ -23,6 +25,28 @@ import { THEMES, ThemeKey, AMAZON_CONFIG, detectCountry, UNIT_LABELS, UnitSystem
 
 const HAIR_COLORS = ['Bald/None', 'Blonde', 'Brown', 'Black', 'Red', 'Strawberry Blonde'];
 const EYE_COLORS = ['Blue', 'Brown', 'Green', 'Hazel', 'Grey', 'Violet'];
+
+// Badge definitions
+const BADGES: Record<string, { name: string, icon: string, description: string, color: string }> = {
+    DATE_MASTER: { name: 'Date Whisperer', icon: '📅', description: 'Guessed the exact birth date!', color: 'from-purple-500 to-indigo-500' },
+    WEIGHT_WIZARD: { name: 'Weight Wizard', icon: '⚖️', description: 'Within 2oz of actual weight!', color: 'from-emerald-500 to-teal-500' },
+    TIME_KEEPER: { name: 'Time Keeper', icon: '⏰', description: 'Within 30 minutes of birth time!', color: 'from-blue-500 to-cyan-500' },
+    NAME_PSYCHIC: { name: 'Name Psychic', icon: '🔮', description: 'Guessed the baby\'s name!', color: 'from-pink-500 to-rose-500' },
+    GENDER_GURU: { name: 'Gender Guru', icon: '👶', description: 'Correctly predicted gender!', color: 'from-amber-500 to-orange-500' },
+    FIRST_GUESS: { name: 'Early Bird', icon: '🐣', description: 'First to make a prediction!', color: 'from-yellow-500 to-amber-500' },
+    GRAND_CHAMPION: { name: 'Grand Champion', icon: '👑', description: 'Overall winner with highest score!', color: 'from-yellow-400 via-amber-500 to-orange-500' },
+    RUNNER_UP: { name: 'Runner Up', icon: '🥈', description: 'Second place overall!', color: 'from-slate-400 to-slate-500' },
+    THIRD_PLACE: { name: 'Bronze Star', icon: '🥉', description: 'Third place overall!', color: 'from-amber-600 to-amber-700' },
+    PERFECT_SCORE: { name: 'Perfect Prediction', icon: '💎', description: 'Achieved a perfect score!', color: 'from-cyan-400 to-blue-500' },
+};
+
+// Photo book affiliate links
+const PHOTO_BOOK_PARTNERS = [
+    { name: 'Shutterfly', url: 'https://www.shutterfly.com/photo-books?ref=secretsantamatch', logo: '📸', discount: '50% off first book' },
+    { name: 'Mixbook', url: 'https://www.mixbook.com/photo-books?ref=secretsantamatch', logo: '📖', discount: 'Free shipping' },
+    { name: 'Artifact Uprising', url: 'https://www.artifactuprising.com?ref=secretsantamatch', logo: '🎨', discount: '15% off' },
+    { name: 'Chatbooks', url: 'https://chatbooks.com?ref=secretsantamatch', logo: '💬', discount: 'First book free' },
+];
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -72,6 +96,751 @@ const formatDate = (dateStr: string): string => {
 
 const generateQRCodeUrl = (url: string, size: number = 200): string => {
     return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`;
+};
+
+// ============================================================================
+// PHASE 2 COMPONENTS
+// ============================================================================
+
+// --- Calculate Badges for a Guess ---
+const calculateBadges = (guess: BabyGuess, result: NonNullable<BabyPool['result']>, allGuesses: BabyGuess[], pool: BabyPool): string[] => {
+    const badges: string[] = [];
+    const fields = pool.includeFields || { time: true, weight: true, length: true, hair: true, eye: true, gender: true };
+    
+    // Date Master - exact date
+    if (guess.date === result.date) badges.push('DATE_MASTER');
+    
+    // Weight Wizard - within 2oz
+    if (fields.weight) {
+        const gTotalOz = (guess.weightLbs * 16) + guess.weightOz;
+        const aTotalOz = (result.weightLbs * 16) + result.weightOz;
+        if (Math.abs(gTotalOz - aTotalOz) <= 2) badges.push('WEIGHT_WIZARD');
+    }
+    
+    // Time Keeper - within 30 minutes
+    if (fields.time && guess.time && result.time) {
+        const gTime = new Date(`2000-01-01T${guess.time}`).getTime();
+        const aTime = new Date(`2000-01-01T${result.time}`).getTime();
+        const minsDiff = Math.abs(gTime - aTime) / (1000 * 60);
+        if (minsDiff <= 30) badges.push('TIME_KEEPER');
+    }
+    
+    // Name Psychic
+    if (result.actualName && guess.suggestedName && 
+        result.actualName.toLowerCase().trim() === guess.suggestedName.toLowerCase().trim()) {
+        badges.push('NAME_PSYCHIC');
+    }
+    
+    // Gender Guru
+    if (fields.gender && guess.gender === result.gender) badges.push('GENDER_GURU');
+    
+    // First Guess (Early Bird)
+    const sortedByTime = [...allGuesses].sort((a, b) => 
+        new Date(a.submittedAt || '').getTime() - new Date(b.submittedAt || '').getTime()
+    );
+    if (sortedByTime[0]?.id === guess.id) badges.push('FIRST_GUESS');
+    
+    return badges;
+};
+
+// --- Live Results Reveal Modal ---
+const LiveResultsReveal: React.FC<{
+    pool: BabyPool,
+    result: NonNullable<BabyPool['result']>,
+    scoredGuesses: Array<BabyGuess & { score: number, badges: string[] }>,
+    theme: any,
+    onClose: () => void
+}> = ({ pool, result, scoredGuesses, theme, onClose }) => {
+    const [stage, setStage] = useState<'intro' | 'countdown' | 'reveal' | 'winner' | 'badges'>('intro');
+    const [countdownNum, setCountdownNum] = useState(3);
+    const [revealIndex, setRevealIndex] = useState(-1);
+    const [soundEnabled, setSoundEnabled] = useState(true);
+    
+    const winner = scoredGuesses[0];
+    const runnerUp = scoredGuesses[1];
+    const third = scoredGuesses[2];
+
+    // Play celebration sounds (optional)
+    const playSound = (type: 'drumroll' | 'reveal' | 'winner') => {
+        if (!soundEnabled) return;
+        // Sound effects would be played here - keeping it simple for now
+    };
+
+    const startReveal = () => {
+        setStage('countdown');
+        playSound('drumroll');
+    };
+
+    useEffect(() => {
+        if (stage === 'countdown' && countdownNum > 0) {
+            const timer = setTimeout(() => setCountdownNum(countdownNum - 1), 1000);
+            return () => clearTimeout(timer);
+        } else if (stage === 'countdown' && countdownNum === 0) {
+            setStage('reveal');
+            setRevealIndex(0);
+        }
+    }, [stage, countdownNum]);
+
+    useEffect(() => {
+        if (stage === 'reveal') {
+            // Reveal stats one by one
+            const statCount = 6; // date, time, weight, length, gender, name
+            if (revealIndex < statCount) {
+                const timer = setTimeout(() => {
+                    setRevealIndex(revealIndex + 1);
+                    playSound('reveal');
+                }, 800);
+                return () => clearTimeout(timer);
+            } else {
+                // All revealed, show winner
+                setTimeout(() => {
+                    setStage('winner');
+                    playSound('winner');
+                    // Confetti explosion!
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+                    setTimeout(() => confetti({ particleCount: 100, angle: 60, spread: 55, origin: { x: 0 } }), 200);
+                    setTimeout(() => confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 } }), 400);
+                }, 1000);
+            }
+        }
+    }, [stage, revealIndex]);
+
+    const statItems = [
+        { label: 'Born On', value: formatDate(result.date), icon: '📅' },
+        { label: 'Time', value: result.time || 'N/A', icon: '⏰' },
+        { label: 'Weight', value: `${result.weightLbs}lb ${result.weightOz}oz`, icon: '⚖️' },
+        { label: 'Length', value: result.length ? `${result.length}"` : 'N/A', icon: '📏' },
+        { label: 'Gender', value: result.gender, icon: result.gender === 'Boy' ? '💙' : '💗' },
+        { label: 'Name', value: result.actualName, icon: '✨' },
+    ];
+
+    return (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+            <div className="max-w-2xl w-full">
+                {/* Sound Toggle */}
+                <button 
+                    onClick={() => setSoundEnabled(!soundEnabled)}
+                    className="absolute top-4 right-4 text-white/60 hover:text-white p-2"
+                >
+                    {soundEnabled ? <Volume2 size={24}/> : <VolumeX size={24}/>}
+                </button>
+
+                {/* INTRO STAGE */}
+                {stage === 'intro' && (
+                    <div className="text-center animate-fade-in">
+                        <div className="text-8xl mb-6">🍼</div>
+                        <h1 className="text-4xl md:text-6xl font-black text-white mb-4 font-serif">
+                            {pool.babyName} Has Arrived!
+                        </h1>
+                        <p className="text-xl text-white/80 mb-8">Ready to see who won the baby pool?</p>
+                        <button 
+                            onClick={startReveal}
+                            className={`${theme.primary} text-white font-bold py-4 px-12 rounded-full text-xl shadow-2xl hover:scale-105 transition-transform flex items-center gap-3 mx-auto`}
+                        >
+                            <Play size={24}/> Reveal the Winner!
+                        </button>
+                        <button onClick={onClose} className="text-white/40 hover:text-white/60 mt-6 block mx-auto">
+                            Skip animation
+                        </button>
+                    </div>
+                )}
+
+                {/* COUNTDOWN STAGE */}
+                {stage === 'countdown' && (
+                    <div className="text-center">
+                        <div className="text-[200px] font-black text-white animate-pulse">
+                            {countdownNum || '🎉'}
+                        </div>
+                    </div>
+                )}
+
+                {/* REVEAL STAGE - Show stats one by one */}
+                {stage === 'reveal' && (
+                    <div className="bg-white rounded-3xl p-8 animate-fade-in">
+                        <div className="text-center mb-8">
+                            <h2 className="text-3xl font-black text-slate-800 mb-2">Meet {result.actualName}!</h2>
+                            <p className="text-slate-500">Born {formatDate(result.date)}</p>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {statItems.map((stat, i) => (
+                                <div 
+                                    key={i}
+                                    className={`bg-slate-50 p-4 rounded-xl text-center transition-all duration-500 ${
+                                        i <= revealIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                                    }`}
+                                >
+                                    <div className="text-3xl mb-2">{stat.icon}</div>
+                                    <p className="text-xs text-slate-400 uppercase font-bold">{stat.label}</p>
+                                    <p className="text-lg font-black text-slate-800">{stat.value}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-6 flex justify-center">
+                            <Loader2 className="animate-spin text-slate-400" size={32}/>
+                        </div>
+                    </div>
+                )}
+
+                {/* WINNER STAGE */}
+                {stage === 'winner' && (
+                    <div className="text-center animate-fade-in">
+                        <div className="bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-3xl p-8 shadow-2xl mb-6">
+                            <div className="text-6xl mb-4">👑</div>
+                            <p className="text-white/80 uppercase tracking-wider text-sm font-bold mb-2">The Winner Is</p>
+                            <h2 className="text-5xl md:text-6xl font-black text-white mb-4 font-serif">
+                                {winner?.guesserName || 'No guesses'}
+                            </h2>
+                            {winner && (
+                                <div className="bg-white/20 rounded-xl p-4 inline-block">
+                                    <p className="text-white font-bold">Score: {winner.score} points</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Runner ups */}
+                        {(runnerUp || third) && (
+                            <div className="flex justify-center gap-4 mb-6">
+                                {runnerUp && (
+                                    <div className="bg-slate-200 rounded-xl p-4 text-center">
+                                        <div className="text-2xl mb-1">🥈</div>
+                                        <p className="font-bold text-slate-700">{runnerUp.guesserName}</p>
+                                        <p className="text-sm text-slate-500">{runnerUp.score} pts</p>
+                                    </div>
+                                )}
+                                {third && (
+                                    <div className="bg-amber-100 rounded-xl p-4 text-center">
+                                        <div className="text-2xl mb-1">🥉</div>
+                                        <p className="font-bold text-amber-800">{third.guesserName}</p>
+                                        <p className="text-sm text-amber-600">{third.score} pts</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <button 
+                            onClick={() => setStage('badges')}
+                            className="bg-white text-slate-800 font-bold py-3 px-8 rounded-full hover:bg-slate-100 transition-colors"
+                        >
+                            View All Badges & Results →
+                        </button>
+                    </div>
+                )}
+
+                {/* BADGES STAGE */}
+                {stage === 'badges' && (
+                    <div className="bg-white rounded-3xl p-6 max-h-[80vh] overflow-y-auto animate-fade-in">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-black text-slate-800">🏅 Badges Awarded</h2>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                                <X size={24}/>
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            {scoredGuesses.slice(0, 10).map((guess, i) => (
+                                <div key={guess.id} className={`p-4 rounded-xl border-2 ${i === 0 ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                                                i === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500' :
+                                                i === 1 ? 'bg-slate-400' :
+                                                i === 2 ? 'bg-amber-600' : 'bg-slate-300'
+                                            }`}>
+                                                {i + 1}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-800">{guess.guesserName}</p>
+                                                <p className="text-sm text-slate-500">{guess.score} points</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {guess.badges.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {guess.badges.map(badgeKey => {
+                                                const badge = BADGES[badgeKey];
+                                                return badge ? (
+                                                    <span key={badgeKey} className={`bg-gradient-to-r ${badge.color} text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1`}>
+                                                        {badge.icon} {badge.name}
+                                                    </span>
+                                                ) : null;
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        <button 
+                            onClick={onClose}
+                            className={`w-full ${theme.primary} text-white font-bold py-4 rounded-xl mt-6`}
+                        >
+                            Close
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// --- Birth Announcement Generator ---
+const BirthAnnouncementCard: React.FC<{
+    pool: BabyPool,
+    result: NonNullable<BabyPool['result']>,
+    winner: BabyGuess | null,
+    theme: any
+}> = ({ pool, result, winner, theme }) => {
+    const [copied, setCopied] = useState(false);
+    const [showShareOptions, setShowShareOptions] = useState(false);
+    const cardRef = useRef<HTMLDivElement>(null);
+
+    const announcementText = `🎉 ${result.actualName} is here!\n\n` +
+        `📅 Born: ${formatDate(result.date)}${result.time ? ` at ${result.time}` : ''}\n` +
+        `⚖️ Weight: ${result.weightLbs}lb ${result.weightOz}oz\n` +
+        `📏 Length: ${result.length ? `${result.length}"` : 'N/A'}\n` +
+        `👶 Gender: ${result.gender}\n\n` +
+        (winner ? `🏆 Baby Pool Winner: ${winner.guesserName}!\n\n` : '') +
+        `Welcome to the world, ${result.actualName}! 💕`;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(announcementText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `${result.actualName} is here!`,
+                    text: announcementText,
+                    url: window.location.href
+                });
+            } catch {}
+        } else {
+            setShowShareOptions(true);
+        }
+    };
+
+    // Generate shareable image (basic canvas version)
+    const downloadImage = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1080;
+        canvas.height = 1080;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 1080, 1080);
+        gradient.addColorStop(0, '#fef3c7');
+        gradient.addColorStop(1, '#fce7f3');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1080, 1080);
+
+        // Decorative circles
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.beginPath();
+        ctx.arc(100, 100, 150, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(980, 980, 200, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Baby emoji
+        ctx.font = '120px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('👶', 540, 200);
+
+        // "Welcome" text
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 48px system-ui';
+        ctx.fillText('Welcome to the world', 540, 320);
+
+        // Baby name
+        ctx.font = 'bold 80px Georgia';
+        ctx.fillText(result.actualName, 540, 440);
+
+        // Stats
+        ctx.font = '36px system-ui';
+        ctx.fillStyle = '#475569';
+        ctx.fillText(`📅 ${formatDate(result.date)}`, 540, 560);
+        ctx.fillText(`⚖️ ${result.weightLbs}lb ${result.weightOz}oz`, 540, 620);
+        if (result.length) ctx.fillText(`📏 ${result.length} inches`, 540, 680);
+
+        // Gender heart
+        ctx.font = '80px serif';
+        ctx.fillText(result.gender === 'Boy' ? '💙' : '💗', 540, 800);
+
+        // Winner
+        if (winner) {
+            ctx.font = '28px system-ui';
+            ctx.fillStyle = '#78716c';
+            ctx.fillText(`🏆 Baby Pool Winner: ${winner.guesserName}`, 540, 920);
+        }
+
+        // Download
+        const link = document.createElement('a');
+        link.download = `${result.actualName}-birth-announcement.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        trackEvent('birth_announcement_download', { poolId: pool.poolId });
+    };
+
+    return (
+        <div className="bg-gradient-to-br from-amber-50 via-pink-50 to-purple-50 rounded-2xl border-2 border-amber-200 overflow-hidden mb-8">
+            {/* Preview Card */}
+            <div ref={cardRef} className="p-8 text-center">
+                <div className="text-6xl mb-4">👶</div>
+                <p className="text-slate-500 font-medium mb-2">Welcome to the world</p>
+                <h2 className="text-4xl font-black text-slate-800 font-serif mb-6">{result.actualName}</h2>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div className="bg-white/60 p-3 rounded-xl">
+                        <p className="text-xs text-slate-400">Born</p>
+                        <p className="font-bold text-slate-800">{formatDate(result.date)}</p>
+                    </div>
+                    <div className="bg-white/60 p-3 rounded-xl">
+                        <p className="text-xs text-slate-400">Weight</p>
+                        <p className="font-bold text-slate-800">{result.weightLbs}lb {result.weightOz}oz</p>
+                    </div>
+                    <div className="bg-white/60 p-3 rounded-xl">
+                        <p className="text-xs text-slate-400">Length</p>
+                        <p className="font-bold text-slate-800">{result.length ? `${result.length}"` : 'N/A'}</p>
+                    </div>
+                    <div className={`p-3 rounded-xl ${result.gender === 'Boy' ? 'bg-blue-100' : 'bg-pink-100'}`}>
+                        <p className="text-xs text-slate-400">Gender</p>
+                        <p className={`font-bold ${result.gender === 'Boy' ? 'text-blue-600' : 'text-pink-500'}`}>
+                            {result.gender === 'Boy' ? '💙' : '💗'} {result.gender}
+                        </p>
+                    </div>
+                </div>
+
+                {winner && (
+                    <div className="bg-amber-100 border border-amber-200 rounded-xl p-4 inline-block">
+                        <p className="text-amber-800 font-bold">🏆 Baby Pool Winner: {winner.guesserName}</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Actions */}
+            <div className="bg-white p-4 border-t border-amber-100">
+                <div className="flex flex-wrap gap-2">
+                    <button onClick={handleShare} className={`flex-1 ${theme.primary} text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2`}>
+                        <Share2 size={18}/> Share Announcement
+                    </button>
+                    <button onClick={downloadImage} className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-200">
+                        <Download size={18}/> Download Image
+                    </button>
+                    <button onClick={handleCopy} className="bg-slate-100 text-slate-700 font-bold py-3 px-4 rounded-xl hover:bg-slate-200">
+                        {copied ? <Check size={18}/> : <Copy size={18}/>}
+                    </button>
+                </div>
+            </div>
+
+            {/* Share Options Modal */}
+            {showShareOptions && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={() => setShowShareOptions(false)}>
+                    <div className="bg-white rounded-2xl p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+                        <h3 className="font-bold text-xl text-slate-800 mb-4">Share Announcement</h3>
+                        <div className="space-y-2">
+                            <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent(announcementText)}`} target="_blank" rel="noopener" className="w-full bg-green-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2">
+                                <MessageCircle size={18}/> WhatsApp
+                            </a>
+                            <a href={`https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(announcementText)}`} target="_blank" rel="noopener" className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2">
+                                Facebook
+                            </a>
+                            <a href={`mailto:?subject=${encodeURIComponent(`${result.actualName} is here!`)}&body=${encodeURIComponent(announcementText)}`} className="w-full bg-slate-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2">
+                                <Mail size={18}/> Email
+                            </a>
+                        </div>
+                        <button onClick={() => setShowShareOptions(false)} className="w-full text-slate-500 py-3 mt-2">Cancel</button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// --- Comments/Wishes Wall ---
+const CommentsWall: React.FC<{
+    poolId: string,
+    comments: Comment[],
+    theme: any,
+    onAddComment: (name: string, message: string) => Promise<void>
+}> = ({ poolId, comments, theme, onAddComment }) => {
+    const [showForm, setShowForm] = useState(false);
+    const [name, setName] = useState('');
+    const [message, setMessage] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [expandedComments, setExpandedComments] = useState(false);
+
+    const displayComments = expandedComments ? comments : comments.slice(0, 5);
+
+    const handleSubmit = async () => {
+        if (!name.trim() || !message.trim()) return;
+        setIsSubmitting(true);
+        try {
+            await onAddComment(name.trim(), message.trim());
+            setName('');
+            setMessage('');
+            setShowForm(false);
+        } catch (e) {
+            alert('Failed to add comment');
+        }
+        setIsSubmitting(false);
+    };
+
+    return (
+        <div className={`bg-white rounded-2xl border ${theme.border} overflow-hidden mb-8`}>
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                    <MessageCircle size={20} className={theme.accent}/> 
+                    💬 Wishes & Messages ({comments.length})
+                </h3>
+                <button 
+                    onClick={() => setShowForm(!showForm)}
+                    className={`${theme.primary} text-white font-bold py-2 px-4 rounded-lg text-sm flex items-center gap-1`}
+                >
+                    <PlusCircle size={16}/> Add Wish
+                </button>
+            </div>
+
+            {/* Add Comment Form */}
+            {showForm && (
+                <div className="p-4 bg-slate-50 border-b border-slate-100">
+                    <input
+                        type="text"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        placeholder="Your name"
+                        className="w-full p-3 rounded-lg border border-slate-200 mb-2"
+                    />
+                    <textarea
+                        value={message}
+                        onChange={e => setMessage(e.target.value)}
+                        placeholder="Write your message or wish for the parents..."
+                        className="w-full p-3 rounded-lg border border-slate-200 mb-2 h-24 resize-none"
+                    />
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={handleSubmit}
+                            disabled={isSubmitting || !name.trim() || !message.trim()}
+                            className={`flex-1 ${theme.primary} text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50`}
+                        >
+                            {isSubmitting ? <Loader2 className="animate-spin" size={16}/> : <Send size={16}/>}
+                            Post Message
+                        </button>
+                        <button onClick={() => setShowForm(false)} className="px-4 py-2 text-slate-500 hover:text-slate-700">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Comments List */}
+            <div className="divide-y divide-slate-100">
+                {displayComments.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400">
+                        <Heart size={32} className="mx-auto mb-2 opacity-50"/>
+                        <p>No messages yet. Be the first to leave a wish!</p>
+                    </div>
+                ) : (
+                    displayComments.map((comment, i) => (
+                        <div key={comment.id || i} className="p-4 hover:bg-slate-50 transition-colors">
+                            <div className="flex items-start gap-3">
+                                <div className={`w-10 h-10 rounded-full ${theme.secondary} flex items-center justify-center font-bold ${theme.accent}`}>
+                                    {comment.authorName.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-bold text-slate-800">{comment.authorName}</span>
+                                        <span className="text-xs text-slate-400">
+                                            {comment.createdAt ? formatDate(comment.createdAt) : 'Just now'}
+                                        </span>
+                                    </div>
+                                    <p className="text-slate-600">{comment.message}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {comments.length > 5 && (
+                <button 
+                    onClick={() => setExpandedComments(!expandedComments)}
+                    className="w-full p-3 text-center text-slate-500 hover:text-slate-700 border-t border-slate-100"
+                >
+                    {expandedComments ? 'Show Less' : `View all ${comments.length} messages`}
+                </button>
+            )}
+        </div>
+    );
+};
+
+// --- Cancel Pool Modal ---
+const CancelPoolModal: React.FC<{
+    poolId: string,
+    babyName: string,
+    onConfirm: () => Promise<void>,
+    onClose: () => void
+}> = ({ poolId, babyName, onConfirm, onClose }) => {
+    const [confirmText, setConfirmText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (confirmText !== 'DELETE') return;
+        setIsDeleting(true);
+        try {
+            await onConfirm();
+        } catch {
+            alert('Failed to cancel pool');
+            setIsDeleting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 animate-fade-in">
+                <div className="text-center mb-6">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <AlertOctagon className="text-red-500" size={32}/>
+                    </div>
+                    <h2 className="text-2xl font-black text-slate-800 mb-2">Cancel Baby Pool?</h2>
+                    <p className="text-slate-500">
+                        This will permanently delete <strong>{babyName}</strong>'s baby pool and all {' '}
+                        guesses. This cannot be undone.
+                    </p>
+                </div>
+
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                    <p className="text-sm text-red-700 mb-2">Type <strong>DELETE</strong> to confirm:</p>
+                    <input
+                        type="text"
+                        value={confirmText}
+                        onChange={e => setConfirmText(e.target.value)}
+                        placeholder="DELETE"
+                        className="w-full p-3 border-2 border-red-200 rounded-lg text-center font-mono uppercase"
+                    />
+                </div>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleDelete}
+                        disabled={confirmText !== 'DELETE' || isDeleting}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                        {isDeleting ? <Loader2 className="animate-spin" size={18}/> : <Trash2 size={18}/>}
+                        Delete Forever
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200"
+                    >
+                        Keep Pool
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Photo Book Integration ---
+const PhotoBookPromo: React.FC<{ babyName: string, result?: BabyPool['result'] }> = ({ babyName, result }) => {
+    const isCompleted = !!result;
+    
+    return (
+        <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 rounded-2xl border border-purple-200 overflow-hidden mb-8">
+            <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                        <Book className="text-white" size={24}/>
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-slate-800 text-lg">📸 Create a Keepsake Photo Book</h3>
+                        <p className="text-sm text-slate-500">
+                            {isCompleted 
+                                ? `Capture ${result?.actualName || babyName}'s first moments forever`
+                                : "Turn this special time into a beautiful memory book"
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                    {PHOTO_BOOK_PARTNERS.map((partner, i) => (
+                        <a
+                            key={i}
+                            href={partner.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => trackEvent('photo_book_click', { partner: partner.name })}
+                            className="bg-white p-4 rounded-xl border border-slate-200 hover:border-purple-300 hover:shadow-md transition-all group"
+                        >
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-2xl">{partner.logo}</span>
+                                <span className="font-bold text-slate-800 group-hover:text-purple-600">{partner.name}</span>
+                            </div>
+                            <p className="text-xs text-emerald-600 font-medium">{partner.discount}</p>
+                        </a>
+                    ))}
+                </div>
+
+                <p className="text-xs text-slate-400 text-center mt-4">
+                    Affiliate links help keep Baby Pool Generator free! 💕
+                </p>
+            </div>
+        </div>
+    );
+};
+
+// --- Badges Display for Completed Pool ---
+const BadgesShowcase: React.FC<{
+    scoredGuesses: Array<BabyGuess & { score: number, badges: string[] }>,
+    theme: any
+}> = ({ scoredGuesses, theme }) => {
+    // Collect all unique badges awarded
+    const allBadges = new Map<string, string[]>();
+    scoredGuesses.forEach(guess => {
+        guess.badges.forEach(badge => {
+            if (!allBadges.has(badge)) allBadges.set(badge, []);
+            allBadges.get(badge)!.push(guess.guesserName);
+        });
+    });
+
+    if (allBadges.size === 0) return null;
+
+    return (
+        <div className={`bg-white rounded-2xl border ${theme.border} overflow-hidden mb-8`}>
+            <div className="p-4 border-b border-slate-100">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                    <Award size={20} className={theme.accent}/> 🏅 Badges Awarded
+                </h3>
+            </div>
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                {Array.from(allBadges.entries()).map(([badgeKey, winners]) => {
+                    const badge = BADGES[badgeKey];
+                    if (!badge) return null;
+                    return (
+                        <div key={badgeKey} className={`bg-gradient-to-r ${badge.color} p-4 rounded-xl text-white`}>
+                            <div className="flex items-center gap-3">
+                                <span className="text-3xl">{badge.icon}</span>
+                                <div>
+                                    <p className="font-bold">{badge.name}</p>
+                                    <p className="text-xs opacity-80">{badge.description}</p>
+                                    <p className="text-sm mt-1 font-medium">
+                                        {winners.slice(0, 3).join(', ')}
+                                        {winners.length > 3 && ` +${winners.length - 3} more`}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
 };
 
 // ============================================================================
@@ -804,6 +1573,12 @@ const BabyPoolDashboard: React.FC = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [personalizedGuestName, setPersonalizedGuestName] = useState<string | null>(null);
 
+    // Phase 2 State
+    const [showResultsReveal, setShowResultsReveal] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [hasSeenReveal, setHasSeenReveal] = useState(false);
+
     // Computed values
     const canEditGuess = useMemo(() => {
         if (!pool) return false;
@@ -816,6 +1591,84 @@ const BabyPoolDashboard: React.FC = () => {
     const isDeadlinePassed = useMemo(() => {
         if (!pool?.guessDeadline) return false;
         return new Date() > new Date(pool.guessDeadline);
+    }, [pool]);
+
+    // Calculate scored guesses with badges for completed pools
+    const scoredGuesses = useMemo(() => {
+        if (!pool?.result) return [];
+        return pool.guesses
+            .map(guess => {
+                const score = calculateScore(guess, pool.result!, pool);
+                const badges = calculateBadges(guess, pool.result!, pool.guesses, pool);
+                
+                // Add placement badges
+                return { ...guess, score, badges };
+            })
+            .sort((a, b) => b.score - a.score)
+            .map((guess, index) => {
+                // Add placement badges after sorting
+                const placementBadges = [...guess.badges];
+                if (index === 0) placementBadges.push('GRAND_CHAMPION');
+                if (index === 1) placementBadges.push('RUNNER_UP');
+                if (index === 2) placementBadges.push('THIRD_PLACE');
+                if (guess.score >= 150) placementBadges.push('PERFECT_SCORE');
+                return { ...guess, badges: placementBadges };
+            });
+    }, [pool]);
+
+    // Handle adding a comment
+    const handleAddComment = async (authorName: string, message: string) => {
+        if (!pool) return;
+        const newComment: Comment = {
+            id: Date.now().toString(),
+            authorName,
+            message,
+            createdAt: new Date().toISOString()
+        };
+        // In production, this would call the API
+        try {
+            // await addComment(pool.poolId, authorName, message);
+            setComments(prev => [...prev, newComment]);
+            trackEvent('comment_added', { poolId: pool.poolId });
+        } catch (e) {
+            throw e;
+        }
+    };
+
+    // Handle canceling pool
+    const handleCancelPool = async () => {
+        if (!pool) return;
+        try {
+            // await cancelPool(pool.poolId, adminKey);
+            trackEvent('pool_cancelled', { poolId: pool.poolId });
+            // Clear local storage and redirect
+            localStorage.removeItem(`bp_my_guess_${pool.poolId}`);
+            localStorage.removeItem(`bp_invitees_${pool.poolId}`);
+            window.location.hash = '';
+            window.location.reload();
+        } catch (e) {
+            throw e;
+        }
+    };
+
+    // Show results reveal for newly completed pools
+    useEffect(() => {
+        if (pool?.status === 'completed' && pool?.result && !hasSeenReveal) {
+            const seenKey = `bp_seen_reveal_${pool.poolId}`;
+            const alreadySeen = localStorage.getItem(seenKey);
+            if (!alreadySeen) {
+                setShowResultsReveal(true);
+                setHasSeenReveal(true);
+                localStorage.setItem(seenKey, 'true');
+            }
+        }
+    }, [pool, hasSeenReveal]);
+
+    // Load comments (in production from API)
+    useEffect(() => {
+        if (pool?.comments) {
+            setComments(pool.comments);
+        }
     }, [pool]);
 
     const getGuestShareUrl = useCallback(() => {
@@ -1062,6 +1915,27 @@ const BabyPoolDashboard: React.FC = () => {
                 />
             )}
 
+            {/* LIVE RESULTS REVEAL MODAL */}
+            {showResultsReveal && pool?.result && scoredGuesses.length > 0 && (
+                <LiveResultsReveal
+                    pool={pool}
+                    result={pool.result}
+                    scoredGuesses={scoredGuesses}
+                    theme={t}
+                    onClose={() => setShowResultsReveal(false)}
+                />
+            )}
+
+            {/* CANCEL POOL MODAL */}
+            {showCancelModal && pool && (
+                <CancelPoolModal
+                    poolId={pool.poolId}
+                    babyName={pool.babyName}
+                    onConfirm={handleCancelPool}
+                    onClose={() => setShowCancelModal(false)}
+                />
+            )}
+
             <div className="max-w-3xl mx-auto p-4 pb-20">
                 
                 {/* Personalized Greeting */}
@@ -1100,7 +1974,7 @@ const BabyPoolDashboard: React.FC = () => {
                 {adminMode && !isCompleted && (
                     <div className={`${t.secondary} p-4 rounded-2xl mb-6 border ${t.border} flex flex-wrap items-center justify-between gap-3`}>
                         <span className={`font-bold ${t.accent} flex items-center gap-2`}><Lock size={16}/> ORGANIZER MODE</span>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             <button onClick={() => copyLink(guestShareUrl)} className="bg-white text-slate-700 font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2 hover:bg-slate-50 border">
                                 <Copy size={14}/> Copy Share Link
                             </button>
@@ -1109,6 +1983,24 @@ const BabyPoolDashboard: React.FC = () => {
                             </button>
                             <button onClick={() => setShowAdminModal(true)} className={`${t.primary} text-white font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2`}>
                                 <Sparkles size={14}/> Declare Birth
+                            </button>
+                            <button onClick={() => setShowCancelModal(true)} className="bg-red-50 text-red-600 font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2 hover:bg-red-100 border border-red-200">
+                                <XCircle size={14}/> Cancel Pool
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ADMIN TOOLBAR FOR COMPLETED POOLS */}
+                {adminMode && isCompleted && (
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-2xl mb-6 border border-amber-200 flex flex-wrap items-center justify-between gap-3">
+                        <span className="font-bold text-amber-800 flex items-center gap-2"><Trophy size={16}/> POOL COMPLETED</span>
+                        <div className="flex flex-wrap gap-2">
+                            <button onClick={() => setShowResultsReveal(true)} className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2 hover:from-amber-600 hover:to-orange-600">
+                                <Play size={14}/> Replay Results Reveal
+                            </button>
+                            <button onClick={() => copyLink(guestShareUrl)} className="bg-white text-slate-700 font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2 hover:bg-slate-50 border">
+                                <Share2 size={14}/> Share Results
                             </button>
                         </div>
                     </div>
@@ -1417,6 +2309,32 @@ const BabyPoolDashboard: React.FC = () => {
                     ))}
                     {sortedGuesses.length === 0 && <div className="text-center text-slate-400 py-8">No guesses yet. Be the first!</div>}
                 </div>
+
+                {/* BADGES SHOWCASE (Completed Pools) */}
+                {isCompleted && scoredGuesses.length > 0 && (
+                    <BadgesShowcase scoredGuesses={scoredGuesses} theme={t} />
+                )}
+
+                {/* BIRTH ANNOUNCEMENT GENERATOR (Completed Pools) */}
+                {isCompleted && pool.result && (
+                    <BirthAnnouncementCard 
+                        pool={pool}
+                        result={pool.result}
+                        winner={scoredGuesses[0] || null}
+                        theme={t}
+                    />
+                )}
+
+                {/* COMMENTS/WISHES WALL */}
+                <CommentsWall 
+                    poolId={pool.poolId}
+                    comments={comments}
+                    theme={t}
+                    onAddComment={handleAddComment}
+                />
+
+                {/* PHOTO BOOK INTEGRATION */}
+                <PhotoBookPromo babyName={pool.babyName} result={pool.result} />
 
                 {/* REGISTRY SECTION FOR PARTICIPANTS */}
                 {!adminMode && <RegistrySection pool={pool} theme={t} country={country} />}

@@ -322,6 +322,21 @@ export interface Comment {
     createdAt: string;
 }
 
+// --- Badge ---
+export interface Badge {
+    key: string;
+    name: string;
+    icon: string;
+    description: string;
+    color: string;
+}
+
+// --- Scored Guess (with badges) ---
+export interface ScoredGuess extends BabyGuess {
+    score: number;
+    badges: string[];
+}
+
 // ============================================================================
 // API REQUEST/RESPONSE TYPES
 // ============================================================================
