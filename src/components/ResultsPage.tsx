@@ -9,6 +9,7 @@ import ConfirmationModal from './ConfirmationModal';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
+import GiftGuidesSection from './GiftGuidesSection';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
 import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, Clock, ShieldCheck, ExternalLink, Flame, Zap } from 'lucide-react';
@@ -486,6 +487,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                                     <p className="text-xs text-slate-400">Check back later! {currentMatch.receiver.name} might update this soon.</p>
                                                                 </div>
                                                             )}
+
+                                                            {/* GIFT GUIDES - NEW ADDITION */}
+                                                            <GiftGuidesSection variant="compact" />
 
                                                             {/* Dynamic Ad: Contextual Match */}
                                                             {ContextualPromoData && (

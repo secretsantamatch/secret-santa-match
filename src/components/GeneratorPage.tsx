@@ -15,6 +15,7 @@ import SocialProof from './SocialProof';
 import VideoTutorial from './VideoTutorial';
 import ShareTool from './ShareTool';
 import FeaturedResources from './FeaturedResources';
+import GiftGuidesSection from './GiftGuidesSection';
 import { generateMatches } from '../services/matchService';
 import { trackEvent } from '../services/analyticsService';
 import { Users, ScrollText, Palette, Shuffle, AlertTriangle, ArrowRight } from 'lucide-react';
@@ -378,6 +379,8 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onComplete, initialData }
                         The easiest way to organize a gift exchange. No emails or sign-ups required!
                     </p>
                 </div>
+                 <GiftGuidesSection />
+
 
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
                 <div className="max-w-5xl mx-auto px-4 md:px-8"><HowItWorks /><VideoTutorial /></div>
