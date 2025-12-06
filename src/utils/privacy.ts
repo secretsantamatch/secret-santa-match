@@ -8,6 +8,18 @@ const EU_TIMEZONES = [
     'Europe/Ljubljana', 'Europe/Madrid', 'Europe/Stockholm', 'Europe/London', 'Europe/Zurich', 'Atlantic/Reykjavik'
 ];
 
+// Major US Timezones for targeted affiliate content
+const US_TIMEZONES = [
+    'America/New_York', 'America/Detroit', 'America/Kentucky/Louisville', 'America/Kentucky/Monticello', 
+    'America/Indiana/Indianapolis', 'America/Indiana/Vincennes', 'America/Indiana/Winamac', 
+    'America/Indiana/Marengo', 'America/Indiana/Petersburg', 'America/Indiana/Vevay', 
+    'America/Chicago', 'America/Indiana/Tell_City', 'America/Indiana/Knox', 'America/Menominee', 
+    'America/North_Dakota/Center', 'America/North_Dakota/New_Salem', 'America/North_Dakota/Beulah', 
+    'America/Denver', 'America/Boise', 'America/Phoenix', 'America/Los_Angeles', 'America/Anchorage', 
+    'America/Juneau', 'America/Sitka', 'America/Yakutat', 'America/Nome', 'America/Adak', 
+    'America/Metlakatla', 'Pacific/Honolulu'
+];
+
 export const isEuVisitor = (): boolean => {
     try {
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -19,6 +31,16 @@ export const isEuVisitor = (): boolean => {
                (timeZone.startsWith('Europe/') && !timeZone.includes('Moscow')); 
     } catch (e) {
         return false; // Default to permissible (US-style) if detection fails
+    }
+};
+
+export const isUSVisitor = (): boolean => {
+    try {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (!timeZone) return false;
+        return US_TIMEZONES.includes(timeZone);
+    } catch (e) {
+        return false;
     }
 };
 
