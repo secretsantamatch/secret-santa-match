@@ -63,7 +63,7 @@ const GiftGuidesSection: React.FC<GiftGuidesSectionProps> = ({ variant = 'full',
                 <h3 className="font-bold text-lg text-slate-800 leading-tight mb-2 group-hover:text-red-700 transition-colors">
                     Best Ugly Christmas Sweaters & Jumpers
                 </h3>
-                <p className="text-sm text-slate-500 mb-4">LED light-ups, 3D designs & contest winners. Order now for 24h shipping.</p>
+                <p className="text-sm text-slate-500 mb-4">Selling out fast! LED light-ups & 3D designs. Order now for Next Day Delivery.</p>
                 <div className="mt-auto flex items-center text-sm font-bold text-red-600 gap-1 group-hover:gap-2 transition-all">
                     Shop Collection <ArrowRight size={16} />
                 </div>
