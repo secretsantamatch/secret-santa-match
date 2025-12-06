@@ -6,12 +6,20 @@ import { trackEvent } from '../services/analyticsService';
 interface GiftGuidesSectionProps {
     variant?: 'compact' | 'full';
     display?: 'all' | 'sweaters' | 'white-elephant';
+    source?: string;
 }
 
-const GiftGuidesSection: React.FC<GiftGuidesSectionProps> = ({ variant = 'full', display = 'all' }) => {
+const GiftGuidesSection: React.FC<GiftGuidesSectionProps> = ({ 
+    variant = 'full', 
+    display = 'all',
+    source = 'unknown'
+}) => {
     
     const handleGuideClick = (guideName: string) => {
-        trackEvent('affiliate_guide_click', { guide: guideName });
+        trackEvent('affiliate_guide_click', { 
+            guide: guideName,
+            source: source
+        });
     };
 
     const WhiteElephantCard = (

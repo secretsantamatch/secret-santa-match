@@ -5,6 +5,7 @@ import { getGameState, updateGameState, sendReaction } from '../services/whiteEl
 import type { WEGame, WEReaction } from '../types';
 import Header from './Header';
 import Footer from './Footer';
+import GiftGuidesSection from './GiftGuidesSection';
 import { generateWETurnNumbersPdf, generateWEGameLogPdf } from '../services/pdfService';
 import { RefreshCw, Play, History, Gift, RotateCcw, Download, Share2, Users, CheckCircle, Volume2, VolumeX, Copy, Lock, Smartphone, BarChart3, X, Image as ImageIcon, AlertTriangle, Trophy, Flame, Printer, ArrowRight, ShoppingBag } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
@@ -485,15 +486,15 @@ const WhiteElephantDashboard: React.FC = () => {
         let maxSteals = 0;
         let topGift = null;
         Object.entries(game.giftStealCounts).forEach(([giftName, count]) => {
-            if (count > maxSteals) {
-                maxSteals = count;
+            if ((count as number) > maxSteals) {
+                maxSteals = (count as number);
                 topGift = giftName;
             }
         });
         return topGift ? { name: topGift, count: maxSteals } : null;
     };
     const mostStolen = getMostStolenGift();
-    const totalSteals = game ? Object.values(game.giftStealCounts || {}).reduce((a, b) => a + b, 0) : 0;
+    const totalSteals = game ? (Object.values(game.giftStealCounts || {}) as number[]).reduce((a, b) => a + b, 0) : 0;
 
     const handleLogOpen = () => {
         if (!activePlayer) return;
@@ -662,6 +663,13 @@ const WhiteElephantDashboard: React.FC = () => {
                             </div>
                         )}
                     </>
+                )}
+
+                {/* GIFT GUIDES (Only visible if game hasn't started) */}
+                {!game.isStarted && (
+                    <div className="mb-8">
+                        <GiftGuidesSection source="white_elephant_dashboard" />
+                    </div>
                 )}
 
                 {/* DASHBOARD HEADER */}
