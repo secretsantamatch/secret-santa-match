@@ -28,7 +28,7 @@ export default defineConfig({
         'creative-ways-to-give-gift-cards': resolve(__dirname, 'creative-ways-to-give-gift-cards.html'),
         'gift-card-etiquette': resolve(__dirname, 'gift-card-etiquette.html'),
         'ultimate-guide-buying-gift-cards': resolve(__dirname, 'ultimate-guide-buying-gift-cards.html'),
-
+        'best-skincare-gifts': resolve(__dirname, 'best-skincare-gifts.html'),
       }
     }
   },
