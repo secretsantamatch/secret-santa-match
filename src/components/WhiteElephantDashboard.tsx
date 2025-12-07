@@ -328,10 +328,18 @@ const WhiteElephantDashboard: React.FC = () => {
     };
 
     const fetchGame = async (id: string) => {
+        // Pausing logic: If we recently updated manually, skip polling to prevent race conditions (flickering)
         if (Date.now() - lastManualUpdate.current < 2000 || isUpdatingRef.current) return;
+        
         try {
             const data = await getGameState(id);
             if (data) {
+                // Safety check: If the fetched game state has LESS history than our local state, it's stale. Ignore it.
+                if (gameRef.current && data.history.length < gameRef.current.history.length) {
+                    // This happens when the server read replica hasn't caught up to the write yet.
+                    return;
+                }
+
                 const prevGame = gameRef.current;
                 if (!prevGame && data.isStarted) {
                     hasStartedRef.current = true;
@@ -375,6 +383,11 @@ const WhiteElephantDashboard: React.FC = () => {
         } finally {
             setIsActionLoading(false);
             isUpdatingRef.current = false;
+            // CRITICAL: Reset the grace period timestamp to NOW.
+            // This ensures we continue to pause polling for another 2s AFTER the update finishes,
+            // giving the backend time to become consistent.
+            lastManualUpdate.current = Date.now(); 
+            
             setShowStealModal(false);
             setShowOpenModal(false);
             setShowEndGameModal(false);
