@@ -1,5 +1,55 @@
 [
-     {
+  {
+            "id": "ugly-sweaters-2025",
+            "type": "Guide & Tips",
+            "title": "Best Ugly Christmas Sweaters 2025: Contest Winners & LED Lights",
+            "description": "Don't settle for boring knitwear. We found the funniest, brightest, and most ridiculous ugly Christmas sweaters guaranteed to win your party contest.",
+            "thumbnailUrl": "https://m.media-amazon.com/images/I/81GpRbu3CtL._AC_SX679_.jpg",
+            "linkUrl": "/ugly-christmas-sweaters.html",
+            "lastUpdated": "Dec 6, 2025",
+            "keywords": ["ugly sweater", "christmas", "party", "clothing", "funny"]
+        },    
+    {
+            "id": "white-elephant-stolen-2025-new",
+            "type": "Guide & Tips",
+            "title": "25 White Elephant Gifts That Actually Get Stolen",
+            "description": "Based on 10,000+ games, these gifts get stolen 3.2x more often. From back scratchers to toilet shot glasses—see what actually works.",
+            "thumbnailUrl": "/posts/white-elephant-gifts-under-20-thumb.webp",
+            "linkUrl": "/white-elephant-gifts-that-get-stolen.html",
+            "lastUpdated": "Nov 23, 2025",
+            "keywords": ["white elephant", "gifts", "best gifts", "funny", "stolen"]
+        },  
+       {
+            "id": "gift-card-etiquette-2025",
+            "type": "Article",
+            "title": "Gift Card Etiquette 2025: How Much to Spend & When They're Appropriate",
+            "description": "Is $25 enough? Is it rude for a wedding? The complete guide to gift card social norms and spending tiers by relationship.",
+            "thumbnailUrl": "/posts/gift-card-data-thumb.webp",
+            "linkUrl": "/gift-card-etiquette.html",
+            "lastUpdated": "Nov 22, 2025",
+            "keywords": ["gift cards", "etiquette", "guide", "spending", "rules"]
+        },
+        {
+            "id": "digital-vs-physical-2025",
+            "type": "Article",
+            "title": "Digital vs. Physical Gift Cards: Which Should You Give in 2025?",
+            "description": "48% of shoppers have gone digital, but 54% still prefer physical. We break down the pros, cons, and safety of each format.",
+            "thumbnailUrl": "/posts/gift-card-data-thumb.webp",
+            "linkUrl": "/digital-vs-physical-gift-cards.html",
+            "lastUpdated": "Nov 22, 2025",
+            "keywords": ["gift cards", "digital", "guide", "shopping", "comparison"]
+        },
+        {
+            "id": "gift-card-data-2025",
+            "type": "Article",
+            "title": "Are Gift Cards Still a Good Gift in 2025? The Data Says Yes.",
+            "description": "90% of people say yes, but $23 billion goes unused. We analyzed the data to settle the gift card debate once and for all.",
+            "thumbnailUrl": "/posts/gift-card-data-thumb.webp",
+            "linkUrl": "/are-gift-cards-good-gifts.html",
+            "lastUpdated": "Nov 20, 2025",
+            "keywords": ["gift cards", "data", "statistics", "guide", "shopping"]
+        },  
+  {
             "id": "comparison-guide",
             "type": "Article",
             "title": "The Complete 2025 Guide: Paper vs Apps for Secret Santa",
