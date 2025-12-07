@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Footer from './Footer';
-import { Star, Sparkles, ShoppingBag, Heart, ShieldCheck, Zap } from 'lucide-react';
+import { Star, Sparkles, ShoppingBag, Heart, ShieldCheck, Zap, Clock } from 'lucide-react';
 import { trackEvent } from '../services/analyticsService';
 
 interface Product {
@@ -150,6 +150,35 @@ const PRODUCTS: Product[] = [
 ];
 
 const SkincarePage: React.FC = () => {
+    const [timeLeft, setTimeLeft] = useState<{days: number, hours: number, minutes: number, seconds: number} | null>(null);
+
+    useEffect(() => {
+        const updateTimer = () => {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            let targetDate = new Date(currentYear, 11, 25); // Dec 25
+
+            // If past Christmas, stop countdown or reset? For now, if past, hide.
+            if (now > targetDate) {
+                setTimeLeft(null);
+                return;
+            }
+
+            const difference = targetDate.getTime() - now.getTime();
+            
+            setTimeLeft({
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((difference / 1000 / 60) % 60),
+                seconds: Math.floor((difference / 1000) % 60)
+            });
+        };
+
+        updateTimer(); // Run once immediately
+        const timer = setInterval(updateTimer, 1000);
+
+        return () => clearInterval(timer);
+    }, []);
     
     const handleProductClick = (productName: string) => {
         trackEvent('affiliate_click', {
@@ -163,8 +192,20 @@ const SkincarePage: React.FC = () => {
         <div className="bg-rose-50 min-h-screen font-sans">
             <Header />
             
+            {/* CHRISTMAS COUNTDOWN BANNER */}
+            {timeLeft && (
+                <div className="bg-gradient-to-r from-rose-600 to-red-600 text-white px-4 py-2 text-center text-sm font-bold tracking-wide shadow-md sticky top-16 z-30">
+                    <div className="flex items-center justify-center gap-2">
+                        <Clock size={16} className="animate-pulse" />
+                        <span>
+                            Christmas Countdown: <span className="tabular-nums font-mono bg-white/20 px-1 rounded mx-1">{timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s</span> left to find the perfect gift!
+                        </span>
+                    </div>
+                </div>
+            )}
+            
             {/* Hero Section */}
-            <header className="relative pt-16 pb-12 px-4 text-center overflow-hidden bg-white">
+            <header className="relative pt-12 pb-12 px-4 text-center overflow-hidden bg-white">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-300 via-pink-400 to-rose-300"></div>
                 
                 <div className="max-w-4xl mx-auto relative z-10">
