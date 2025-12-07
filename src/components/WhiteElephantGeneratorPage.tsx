@@ -4,6 +4,7 @@ import { produce } from 'immer';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
+import GiftGuidesSection from './GiftGuidesSection';
 import { trackEvent } from '../services/analyticsService';
 import { createGame } from '../services/whiteElephantService';
 import type { WEParticipant, WERules, WETheme } from '../types';
@@ -207,6 +208,8 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                         <span className="block mt-2 text-yellow-300 font-bold">Free • No Sign-Up • Live Dashboard</span>
                     </p>
                 </div>
+
+                <GiftGuidesSection source="white_elephant_setup" />
                 
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
                 

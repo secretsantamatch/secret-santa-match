@@ -9,12 +9,13 @@ import ConfirmationModal from './ConfirmationModal';
 import Header from './Header';
 import Footer from './Footer';
 import AdBanner from './AdBanner';
+import GiftGuidesSection from './GiftGuidesSection';
 import { trackEvent } from '../services/analyticsService';
 import { generateMatches } from '../services/matchService';
 import { Share2, Gift, Shuffle, Loader2, Copy, Check, ChevronDown, RefreshCw, Clock, ShieldCheck, ExternalLink, Flame, Zap } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import LinkPreview from './LinkPreview';
-import { shouldTrackByDefault, isEuVisitor } from '../utils/privacy';
+import { shouldTrackByDefault, isEuVisitor, isUSVisitor } from '../utils/privacy';
 import { getBestPromo } from '../services/promoEngine';
 import { SmartAd } from './AdWidgets';
 import { URGENCY_CONFIG } from '../data/adConfig';
@@ -116,6 +117,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
 
     const isOrganizer = !currentParticipantId;
     const pagePath = isOrganizer ? '/secret-santa/organizer-dashboard' : '/secret-santa/reveal';
+
+    // Geo Check for Ugly Sweaters
+    const isUS = isUSVisitor();
 
     const { p: participantsFromUrl, matches: matchIds, exclusions, assignments, id: exchangeId } = data;
     
@@ -486,6 +490,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({ data, currentParticipantId, o
                                                                     <p className="text-xs text-slate-400">Check back later! {currentMatch.receiver.name} might update this soon.</p>
                                                                 </div>
                                                             )}
+
+                                                            {/* FEATURED: Ugly Sweater Guide (Only for US) */}
+                                                            {isUS && <GiftGuidesSection display="sweaters" variant="compact" />}
 
                                                             {/* Dynamic Ad: Contextual Match */}
                                                             {ContextualPromoData && (
