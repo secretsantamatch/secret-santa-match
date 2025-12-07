@@ -73,6 +73,16 @@ const PRODUCTS: Product[] = [
         image: 'https://m.media-amazon.com/images/I/618xEfBkX5L._AC_SL1500_.jpg',
         link: 'https://amzn.to/4oJsvR0'
     },
+    {
+        id: 'medicube-golden-capsule',
+        title: 'Medicube Deep Vitamin C Golden Capsule',
+        description: 'Liposome capsules for wrinkles and radiance. A transparent gel that bursts with hydration.',
+        whyWeLoveIt: 'Looks beautiful in the jar, feels even better on the skin. Luxury hydration.',
+        rating: 4.7,
+        reviews: '900+',
+        image: 'https://m.media-amazon.com/images/I/71m8aGBgXqL._SL1500_.jpg',
+        link: 'https://amzn.to/4prFpEm'
+    },
     // --- CLEAN BEAUTY (LilyAna) ---
     {
         id: 'lilyana-vit-c',
@@ -260,7 +270,7 @@ const SkincarePage: React.FC = () => {
                             <div>
                                 <h4 className="font-bold text-slate-800 text-sm mb-1">Support Our Free Tools</h4>
                                 <p className="text-xs text-slate-500 leading-relaxed">
-                                    As an Amazon Associate, we earn from qualifying purchases. This means if you click a link and buy something (usually within 24 hours), we may earn a small commission at no extra cost to you. This support is what keeps our Secret Santa Generator 100% free for everyone. Thank you!
+                                    As an Amazon Associate, we earn from qualifying purchases. This means if you click a link and buy something, we may earn a small commission at no extra cost to you. This support is what keeps our Secret Santa Generator 100% free for everyone. Thank you!
                                 </p>
                             </div>
                         </div>
