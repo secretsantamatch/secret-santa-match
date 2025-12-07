@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
-import { Star, Sparkles, ShoppingBag, Heart, Clock, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Star, Sparkles, ShoppingBag, Heart, ShieldCheck, Zap } from 'lucide-react';
 import { trackEvent } from '../services/analyticsService';
 
 interface Product {
@@ -20,17 +20,17 @@ interface Product {
 // DATA
 // ----------------------------------------------------------------------
 const PRODUCTS: Product[] = [
-    // --- VIRAL HITS ---
+    // --- TOP PICKS ---
     {
-        id: 'cosrx-snail',
-        title: 'COSRX Snail Mucin 96% Power Repairing Essence',
-        description: 'The viral Korean skincare secret that hydrates, repairs, and soothes damaged skin. Lightweight and fast-absorbing.',
-        whyWeLoveIt: 'It gives that "glass skin" glow without feeling greasy. A holy grail for hydration.',
+        id: 'lilyana-retinol',
+        title: 'LilyAna Naturals Retinol Cream for Face',
+        description: 'Powerful anti-aging formula with Hyaluronic Acid & Vitamin E. Targets fine lines, wrinkles, and uneven skin tone to reveal a more youthful, radiant complexion while deeply hydrating.',
+        whyWeLoveIt: 'A night cream that works while you sleep to restore and renew. Gentle enough for daily use but powerful enough to see results.',
         rating: 4.8,
         reviews: '55,000+',
         image: 'https://m.media-amazon.com/images/I/710iAtk0KnL._SL1500_.jpg',
-        link: 'https://www.amazon.com/dp/B09H9HW2JR?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1II2EI3QO7H8U&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1II2EI3QO7H8U_1765115507136',
-        badge: 'Viral Hit'
+        link: 'https://www.amazon.com/dp/B09H9HW2JR?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.1II2EI3QO7H8U&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.1II2EI3QO7H8U_1765129040141',
+        badge: 'Best Seller'
     },
     {
         id: 'medicube-booster',
@@ -72,16 +72,6 @@ const PRODUCTS: Product[] = [
         reviews: '850+',
         image: 'https://m.media-amazon.com/images/I/618xEfBkX5L._AC_SL1500_.jpg',
         link: 'https://amzn.to/4oJsvR0'
-    },
-    {
-        id: 'medicube-golden-capsule',
-        title: 'Medicube Deep Vitamin C Golden Capsule',
-        description: 'Liposome capsules for wrinkles and radiance. A transparent gel that bursts with hydration.',
-        whyWeLoveIt: 'Looks beautiful in the jar, feels even better on the skin. Luxury hydration.',
-        rating: 4.7,
-        reviews: '900+',
-        image: 'https://m.media-amazon.com/images/I/71m8aGBgXqL._SL1500_.jpg',
-        link: 'https://amzn.to/4prFpEm'
     },
     // --- CLEAN BEAUTY (LilyAna) ---
     {
@@ -130,12 +120,12 @@ const PRODUCTS: Product[] = [
     {
         id: 'pumice-valley-balm',
         title: 'Pumice Valley Natural Foot Balm',
-        description: 'Intensely hydrating blend for dry, cracked heels. Creates a protective barrier to prevent moisture loss.',
-        whyWeLoveIt: 'Use it overnight with socks for baby-soft feet by morning.',
+        description: 'Natural Lavender formula that repairs dry, cracked heels. Crafted from 100% cold-pressed oils for deep hydration and restoration.',
+        whyWeLoveIt: 'Apply before bedtime—the slow-absorbing formula works overnight for baby-soft feet by morning.',
         rating: 4.6,
         reviews: '8,500+',
-        image: 'https://m.media-amazon.com/images/I/61v0yy13n+L._AC_SL1080_.jpg',
-        link: 'https://www.amazon.com/dp/B08YZBBVGK?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.RH9SM7L22DFL&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.RH9SM7L22DFL_1765116271913'
+        image: 'https://m.media-amazon.com/images/I/61JIYCXKz8L._SL1500_.jpg',
+        link: 'https://www.amazon.com/dp/B0D81KGRXY?ref=t_ac_view_request_product_image&campaignId=amzn1.campaign.2UF9E3C30DG4O&linkCode=tr1&tag=secretsant09e-20&linkId=amzn1.campaign.2UF9E3C30DG4O_1765129227561'
     },
     {
         id: 'medicube-spray',
@@ -163,16 +153,6 @@ const SkincarePage: React.FC = () => {
         <div className="bg-rose-50 min-h-screen font-sans">
             <Header />
             
-            {/* URGENCY BANNER */}
-            <div className="bg-amber-100 border-b border-amber-200 text-amber-900 px-4 py-3 text-center text-sm font-medium">
-                <div className="flex items-center justify-center gap-2 max-w-4xl mx-auto">
-                    <Clock size={16} className="text-amber-700 animate-pulse" />
-                    <span>
-                        <strong>24-Hour Deal Rule:</strong> To secure these prices and support our free tools, please complete your purchase within 24 hours of clicking "View on Amazon". Carts often reset after this window!
-                    </span>
-                </div>
-            </div>
-
             {/* Hero Section */}
             <header className="relative pt-16 pb-12 px-4 text-center overflow-hidden bg-white">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-300 via-pink-400 to-rose-300"></div>
@@ -267,9 +247,6 @@ const SkincarePage: React.FC = () => {
                                 >
                                     View on Amazon <ShoppingBag size={16} />
                                 </a>
-                                <p className="text-[10px] text-center text-slate-400 mt-2">
-                                    *Complete purchase within 24h
-                                </p>
                             </div>
                         </div>
                     ))}
@@ -279,11 +256,11 @@ const SkincarePage: React.FC = () => {
                 <div className="mt-16 text-center max-w-3xl mx-auto">
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm inline-block text-left">
                         <div className="flex items-start gap-3">
-                            <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={20} />
+                            <Zap className="text-amber-500 shrink-0 mt-0.5" size={20} fill="currentColor" />
                             <div>
-                                <h4 className="font-bold text-slate-800 text-sm mb-1">A Note on Affiliate Support</h4>
+                                <h4 className="font-bold text-slate-800 text-sm mb-1">Support Our Free Tools</h4>
                                 <p className="text-xs text-slate-500 leading-relaxed">
-                                    We carefully select every product we feature based on reviews and trends. As an Amazon Associate, we earn a small commission if you buy through our links, at no extra cost to you. <strong>Important:</strong> Amazon commissions are only credited if you complete your purchase within 24 hours of adding an item to your cart. This support keeps our Secret Santa tools 100% free. Thank you!
+                                    As an Amazon Associate, we earn from qualifying purchases. This means if you click a link and buy something (usually within 24 hours), we may earn a small commission at no extra cost to you. This support is what keeps our Secret Santa Generator 100% free for everyone. Thank you!
                                 </p>
                             </div>
                         </div>
