@@ -46,7 +46,12 @@ const GiftGuidesSection: React.FC<GiftGuidesSectionProps> = ({
             </div>
 
             <div className="flex flex-1 flex-col justify-center p-6">
-                <h3 className="font-serif text-2xl font-bold text-slate-800 leading-tight mb-2 group-hover:text-emerald-600 transition-colors">
+                <div className="mb-2">
+                    <span className="inline-block rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                        Most Popular
+                    </span>
+                </div>
+                <h3 className="font-serif text-xl font-bold text-slate-900 leading-tight mb-2 group-hover:text-emerald-600 transition-colors">
                     25 White Elephant Gifts That Actually Get Stolen
                 </h3>
                 <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
@@ -84,7 +89,12 @@ const GiftGuidesSection: React.FC<GiftGuidesSectionProps> = ({
             </div>
 
             <div className="flex flex-1 flex-col justify-center p-6">
-                <h3 className="font-serif text-2xl font-bold text-slate-800 leading-tight mb-2 group-hover:text-red-600 transition-colors">
+                <div className="mb-2">
+                    <span className="inline-block rounded-md bg-red-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-red-600">
+                        Selling Fast
+                    </span>
+                </div>
+                <h3 className="font-serif text-xl font-bold text-slate-900 leading-tight mb-2 group-hover:text-red-600 transition-colors">
                     Best Ugly Christmas Sweaters 2025
                 </h3>
                 <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
@@ -121,7 +131,12 @@ const GiftGuidesSection: React.FC<GiftGuidesSectionProps> = ({
             </div>
 
             <div className="flex flex-1 flex-col justify-center p-6">
-                <h3 className="font-serif text-2xl font-bold text-slate-800 leading-tight mb-2 group-hover:text-rose-500 transition-colors">
+                <div className="mb-2">
+                    <span className="inline-block rounded-md bg-rose-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-600">
+                        Viral Hits
+                    </span>
+                </div>
+                <h3 className="font-serif text-xl font-bold text-slate-900 leading-tight mb-2 group-hover:text-rose-500 transition-colors">
                     Best Viral Skincare Gifts 2025
                 </h3>
                 <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
@@ -138,7 +153,7 @@ const GiftGuidesSection: React.FC<GiftGuidesSectionProps> = ({
         <section className={`w-full ${display === 'all' ? 'max-w-7xl' : 'max-w-5xl'} mx-auto ${variant === 'compact' ? 'my-8' : 'my-16'} px-4`}>
             {variant === 'full' && display === 'all' && (
                 <div className="flex flex-col items-center gap-3 mb-10 text-center">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-1.5 text-sm font-bold text-red-600 ring-1 ring-red-100">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-1.5 text-sm font-bold text-red-600 ring-1 ring-red-100 animate-pulse">
                         <ShoppingBag size={14} /> Gift Guides
                     </div>
                     <h2 className="text-3xl md:text-4xl font-black text-slate-900 font-serif">Trending Holiday Deals</h2>
