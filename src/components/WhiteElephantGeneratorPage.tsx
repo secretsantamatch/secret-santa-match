@@ -11,6 +11,7 @@ import type { WEParticipant, WERules, WETheme } from '../types';
 import { Users, Settings, PartyPopper, PlusCircle, Trash2, ArrowRight, Gift, AlertCircle, CheckCircle, Calendar, Building, HelpCircle, Video, MapPin, Dices, BookOpen } from 'lucide-react';
 import CookieConsentBanner from './CookieConsentBanner';
 import { shouldTrackByDefault } from '../utils/privacy';
+import VideoTutorial from './VideoTutorial';
 
 const FaqItem: React.FC<{ question: string; children: React.ReactNode }> = ({ question, children }) => (
     <div className="border-b border-slate-200 py-4">
@@ -213,6 +214,10 @@ const WhiteElephantGeneratorPage: React.FC = () => {
                 
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
                 
+                <div className="max-w-5xl mx-auto px-4 md:px-8 mb-10">
+                    <VideoTutorial videoId="IrbcusTbr9s" title="How to Host a White Elephant Exchange" />
+                </div>
+
                 <div ref={generatorRef} className="max-w-4xl mx-auto -mt-10 px-4 relative z-10">
                      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
                         

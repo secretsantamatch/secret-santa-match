@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ShareButtons from './ShareButtons';
 import InstallPWAButton from './InstallPWAButton';
@@ -52,7 +53,7 @@ const Footer: React.FC<FooterProps> = ({ showInstallButton, onInstallClick }) =>
                             <li><a href="/generator.html" className="text-slate-400 hover:text-white transition-colors">Secret Santa Generator</a></li>
                             <li><a href="/white-elephant-generator.html" className="text-slate-400 hover:text-white transition-colors">White Elephant Tool</a></li>
                             <li><a href="/free-printables.html" className="text-slate-400 hover:text-white transition-colors">Free Printables Hub</a></li>
-                            <li><a href="/" className="text-slate-400 hover:text-white transition-colors">Holiday Blog</a></li>
+                            <li><a href="/best-skincare-gifts.html" className="text-rose-300 hover:text-rose-100 transition-colors font-semibold">✨ Viral Skincare Gifts</a></li>
                             <li><a href="/holiday-budget-calculator.html" className="text-slate-400 hover:text-white transition-colors">Budget Calculator</a></li>
                         </ul>
                     </div>
