@@ -1,4 +1,5 @@
-const CACHE_NAME = 'v5'; // Incremented version
+
+const CACHE_NAME = 'v6'; // Incremented version to force cache invalidation
 const urlsToCache = [
   '/',
   '/generator.html',
@@ -9,7 +10,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-  // Skip waiting forces the waiting service worker to become the active service worker
+  // Forces the waiting service worker to become the active service worker
   self.skipWaiting(); 
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -18,6 +19,13 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
+});
+
+// Allow the frontend to trigger a skipWaiting manually if needed
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', event => {

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -38,15 +39,55 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
-// PWA Service Worker Registration
+// PWA Service Worker Registration & Auto-Update
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
         console.log('ServiceWorker registration successful with scope: ', registration.scope);
+
+        // 1. Check if there's already a waiting worker (an update downloaded but waiting)
+        if (registration.waiting) {
+            console.log('New version waiting. Forcing update...');
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            window.location.reload();
+            return;
+        }
+
+        // 2. Listen for new workers installing
+        registration.onupdatefound = () => {
+            const installingWorker = registration.installing;
+            if (installingWorker == null) return;
+
+            installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                        // New update available. Force refresh.
+                        console.log('New content is available; please refresh.');
+                        // Send message to SW to skip waiting
+                        if (registration.waiting) {
+                             registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                        }
+                        // Reload page
+                        window.location.reload();
+                    } else {
+                        console.log('Content is cached for offline use.');
+                    }
+                }
+            };
+        };
       })
       .catch(error => {
         console.log('ServiceWorker registration failed: ', error);
+      });
+      
+      // 3. Ensure controller change triggers reload
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+        }
       });
   });
 }
