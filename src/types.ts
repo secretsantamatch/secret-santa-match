@@ -47,6 +47,7 @@ export interface PotluckEvent {
     // New Settings
     allowGuestEditing?: boolean; // Default true
     editLockDays?: number; // 0 = no lock, 1 = 1 day before, etc.
+    hideNamesFromGuests?: boolean; // Default false. If true, guests see "A Guest" instead of names.
 }
 
 // --- SECRET SANTA TYPES ---

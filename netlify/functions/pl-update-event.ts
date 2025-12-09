@@ -19,7 +19,7 @@ export default async (req: Request, context: Context) => {
         }
 
         // Apply updates (Only allow specific fields)
-        const allowedFields = ['title', 'date', 'time', 'location', 'description', 'dietaryNotes', 'theme', 'allowGuestEditing', 'editLockDays'];
+        const allowedFields = ['title', 'date', 'time', 'location', 'description', 'dietaryNotes', 'theme', 'allowGuestEditing', 'editLockDays', 'hideNamesFromGuests'];
         
         let hasChanges = false;
         allowedFields.forEach(field => {

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer, ExternalLink, Flag } from 'lucide-react';
+import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer, ExternalLink, Flag, Smartphone, MessageCircle, Mail } from 'lucide-react';
 import { getPotluck, addDish, removeDish, updatePotluckEvent } from '../services/potluckService';
 import type { PotluckEvent, PotluckCategory, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -162,8 +162,8 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const [showEditEventModal, setShowEditEventModal] = useState(false);
     const [lastAddedDishLink, setLastAddedDishLink] = useState('');
     
-    // View State for Admin
-    const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+    // View State for Admin - Default to 'list' based on feedback
+    const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
     const [isAdminView, setIsAdminView] = useState(false); 
     
     const [selectedCategory, setSelectedCategory] = useState<PotluckCategory | null>(null);
@@ -373,7 +373,8 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
             description: event?.description,
             dietaryNotes: event?.dietaryNotes,
             allowGuestEditing: event?.allowGuestEditing,
-            editLockDays: event?.editLockDays
+            editLockDays: event?.editLockDays,
+            hideNamesFromGuests: event?.hideNamesFromGuests
         });
         setShowEditEventModal(true);
     };
@@ -403,6 +404,17 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         navigator.clipboard.writeText(text);
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
+    };
+    
+    // Sharing Actions
+    const handleShare = (type: 'sms' | 'whatsapp' | 'email') => {
+        if (!event) return;
+        const url = window.location.href.split('#')[0] + `#id=${publicId}`;
+        const msg = `Join my Potluck: ${event.title}! Sign up here: ${url}`;
+        
+        if (type === 'sms') window.open(`sms:?body=${encodeURIComponent(msg)}`);
+        if (type === 'whatsapp') window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+        if (type === 'email') window.open(`mailto:?subject=${encodeURIComponent("Join my Potluck: " + event.title)}&body=${encodeURIComponent(msg)}`);
     };
 
     const addToCalendar = () => {
@@ -447,28 +459,35 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const styles = THEME_STYLES[event.theme || 'classic'] || THEME_STYLES.classic;
     const shareLink = window.location.href.split('#')[0] + `#id=${publicId}`;
     const organizerLink = window.location.href; // Since we are in the admin view, the current URL has the key
+    
+    // Privacy Helper: Determine what name to display
+    const getDisplayName = (dish: any) => {
+        if (isAdmin || myDishKeys[dish.id]) return dish.guestName;
+        if (event.hideNamesFromGuests) return "A Guest";
+        return dish.guestName;
+    };
 
     return (
         <div 
             className={`min-h-screen pb-24 ${styles.bg}`}
             style={{ 
                 backgroundImage: styles.pattern,
-                backgroundSize: '40px 40px' // Ensure pattern repeats nicely
+                backgroundSize: '40px 40px' 
             }}
         >
-            {/* ADMIN TOOLBAR - Persistent Top Bar */}
+            {/* ADMIN TOOLBAR - HIGH CONTRAST */}
             {isAdmin && (
-                <div className="bg-slate-900 text-white p-3 sticky top-0 z-50 shadow-md">
+                <div className="bg-[#1a1a1a] text-yellow-400 p-3 sticky top-0 z-50 shadow-md border-b-2 border-yellow-500">
                     <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
                         <div className="flex items-center gap-2">
-                            <span className="bg-yellow-400 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded">ADMIN</span>
-                            <span className="font-medium">You are the Organizer.</span>
+                            <span className="bg-yellow-500 text-black text-[11px] font-black px-2 py-0.5 rounded uppercase tracking-wider">ADMIN</span>
+                            <span className="font-bold text-white">You are the Organizer.</span>
                         </div>
                         <div className="flex items-center gap-4">
-                            <span className="hidden sm:inline text-slate-400 text-xs">Save this page to edit later.</span>
+                            <span className="hidden sm:inline text-white/70 text-xs">Save this link to manage your event.</span>
                             <button 
                                 onClick={() => copyLink(organizerLink)}
-                                className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-xs font-bold"
+                                className="flex items-center gap-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 px-3 py-1.5 rounded border border-yellow-500/50 transition-colors text-xs font-bold"
                             >
                                 <Lock size={12}/> {isCopied ? 'Link Saved!' : 'Copy Admin Link'}
                             </button>
@@ -546,133 +565,153 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     )}
                 </div>
 
-                {/* --- ORGANIZER CONTROLS (ADMIN ONLY) --- */}
-                {isAdmin && (
-                    <div className="mb-10 space-y-6">
-                        
-                        {/* INVITE GUESTS CARD (Primary Action) */}
-                        <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-slate-100 flex flex-col md:flex-row items-center gap-6 transform hover:-translate-y-1 transition-transform duration-300">
-                            <div className={`flex-shrink-0 p-5 rounded-full text-white shadow-lg ${styles.headerBg}`}>
-                                <Share2 size={32} />
-                            </div>
-                            <div className="flex-1 text-center md:text-left">
-                                <h3 className="text-xl font-bold text-slate-800">Invite Your Guests</h3>
-                                <p className="text-slate-600 text-sm mt-1">Send this public link to your friends so they can sign up!</p>
-                            </div>
-                            <button 
-                                onClick={() => copyLink(shareLink)} 
-                                className={`px-8 py-4 rounded-xl font-bold text-white shadow-md transition-all active:scale-95 flex items-center gap-2 ${isCopied ? 'bg-green-600' : `${styles.accentBtn}`}`}
-                            >
-                                {isCopied ? <Check size={20}/> : <LinkIcon size={20}/>}
-                                {isCopied ? 'Link Copied!' : 'Copy Guest Link'}
-                            </button>
+                {/* --- INVITE & SHARING CARD (For Everyone) --- */}
+                {/* Changed: Always visible but styled differently for admin/guest to encourage sharing */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-slate-100 mb-10 transform hover:-translate-y-1 transition-transform duration-300">
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                        <div className={`flex-shrink-0 p-4 rounded-full text-white shadow-lg ${styles.headerBg}`}>
+                            <Share2 size={24} />
                         </div>
-
-                        {/* MASTER LIST CONTROLS */}
-                        <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4 mt-8">
-                            <div>
-                                <h3 className={`font-black text-2xl flex items-center gap-2 font-serif text-slate-800`}>
-                                    <ChefHat className={styles.iconColor} size={28}/> Master Dish List
-                                </h3>
-                            </div>
-                            
-                            <div className="flex items-center gap-3">
-                                <button 
-                                    onClick={() => setIsAdminView(!isAdminView)}
-                                    className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100"
-                                >
-                                    {isAdminView ? <EyeOff size={14} /> : <Eye size={14} />}
-                                    {isAdminView ? 'View as Guest' : 'Back to Admin View'}
-                                </button>
-                                
-                                {isAdminView && (
-                                    <>
-                                        <button 
-                                            onClick={downloadCSV}
-                                            className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
-                                        >
-                                            <Download size={14} /> CSV
-                                        </button>
-                                        <button 
-                                            onClick={handlePdfDownload}
-                                            className="text-xs font-bold text-red-600 flex items-center gap-1 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
-                                        >
-                                            <Download size={14} /> PDF
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                            
-                            {isAdminView && (
-                                <div className="flex bg-white rounded-lg border border-slate-200 p-1">
-                                    <button 
-                                        onClick={() => setViewMode('cards')}
-                                        className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                                        title="Card View"
-                                    >
-                                        <Grid size={18} />
-                                    </button>
-                                    <button 
-                                        onClick={() => setViewMode('list')}
-                                        className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                                        title="List View"
-                                    >
-                                        <List size={18} />
-                                    </button>
-                                </div>
-                            )}
+                        <div className="flex-1 text-center md:text-left">
+                            <h3 className="text-xl font-bold text-slate-800">Invite Your Guests</h3>
+                            <p className="text-slate-600 text-sm mt-1">Send this public link to your friends so they can sign up!</p>
                         </div>
+                        <button 
+                            onClick={() => copyLink(shareLink)} 
+                            className={`px-6 py-3 rounded-xl font-bold text-white shadow-md transition-all active:scale-95 flex items-center gap-2 w-full md:w-auto justify-center ${isCopied ? 'bg-green-600' : `${styles.accentBtn}`}`}
+                        >
+                            {isCopied ? <Check size={20}/> : <LinkIcon size={20}/>}
+                            {isCopied ? 'Link Copied!' : 'Copy Guest Link'}
+                        </button>
+                    </div>
+                    
+                    {/* Expanded Sharing Options */}
+                    <div className="grid grid-cols-3 gap-3 mt-6 border-t pt-4">
+                        <button onClick={() => handleShare('sms')} className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors">
+                            <Smartphone size={20} className="text-blue-500" />
+                            <span className="text-[10px] font-bold uppercase">Text</span>
+                        </button>
+                        <button onClick={() => handleShare('whatsapp')} className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors">
+                            <MessageCircle size={20} className="text-green-500" />
+                            <span className="text-[10px] font-bold uppercase">WhatsApp</span>
+                        </button>
+                        <button onClick={() => handleShare('email')} className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors">
+                            <Mail size={20} className="text-red-500" />
+                            <span className="text-[10px] font-bold uppercase">Email</span>
+                        </button>
+                    </div>
+                </div>
 
-                        {/* MASTER LIST TABLE (ONLY VISIBLE IN LIST MODE + ADMIN VIEW) */}
-                        {isAdminView && viewMode === 'list' && (
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                <table className="w-full text-sm text-left">
-                                    <thead className={`${styles.headerBg} text-white font-bold uppercase text-xs`}>
-                                        <tr>
-                                            <th className="p-4">Dish</th>
-                                            <th className="p-4">Guest</th>
-                                            <th className="p-4">Category</th>
-                                            <th className="p-4">Notes</th>
-                                            <th className="p-4 text-right">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {event.dishes.length === 0 ? (
-                                            <tr><td colSpan={5} className="p-8 text-center text-slate-400 italic">No dishes added yet.</td></tr>
-                                        ) : (
-                                            event.dishes.map(dish => {
-                                                const catName = event.categories.find(c => c.id === dish.categoryId)?.name || 'Unknown';
-                                                return (
-                                                    <tr key={dish.id} className="hover:bg-slate-50 transition-colors">
-                                                        <td className="p-4 font-bold text-slate-800">{dish.dishName}</td>
-                                                        <td className="p-4 text-slate-600">{dish.guestName}</td>
-                                                        <td className="p-4 text-slate-500"><span className="bg-slate-100 px-2 py-1 rounded text-xs">{catName}</span></td>
-                                                        <td className="p-4">
-                                                            <div className="flex gap-1">
-                                                                {dish.dietary.map(d => (
-                                                                    <span key={d} className="text-[10px] bg-white border px-1.5 py-0.5 rounded">{DIETARY_OPTIONS.find(o=>o.id===d)?.icon}</span>
-                                                                ))}
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-4 text-right">
-                                                            <button onClick={() => handleDeleteDish(dish.id)} className="text-slate-300 hover:text-red-500 p-1"><Trash2 size={16}/></button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                {/* --- MASTER LIST CONTROLS --- */}
+                <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4 mt-8">
+                    <div>
+                        <h3 className={`font-black text-2xl flex items-center gap-2 font-serif ${styles.headerText}`}>
+                            <ChefHat className={styles.iconColor} size={28}/> Master Dish List
+                        </h3>
+                        {event.hideNamesFromGuests && !isAdmin && (
+                            <p className="text-xs text-slate-500 mt-1 italic">Guest names are hidden by the host.</p>
                         )}
                     </div>
+                    
+                    <div className="flex items-center gap-3">
+                        {isAdmin && (
+                            <button 
+                                onClick={() => setIsAdminView(!isAdminView)}
+                                className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100"
+                            >
+                                {isAdminView ? <EyeOff size={14} /> : <Eye size={14} />}
+                                {isAdminView ? 'View as Guest' : 'Back to Admin View'}
+                            </button>
+                        )}
+                        
+                        <div className="flex gap-2">
+                             <button 
+                                onClick={downloadCSV}
+                                className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
+                            >
+                                <Download size={14} /> CSV
+                            </button>
+                            <button 
+                                onClick={handlePdfDownload}
+                                className="text-xs font-bold text-red-600 flex items-center gap-1 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
+                            >
+                                <Download size={14} /> PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="flex bg-white rounded-lg border border-slate-200 p-1">
+                        <button 
+                            onClick={() => setViewMode('cards')}
+                            className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Card View"
+                        >
+                            <Grid size={18} />
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="List View"
+                        >
+                            <List size={18} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* --- LIST VIEW (Default) --- */}
+                {viewMode === 'list' && (
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className={`${styles.headerBg} text-white font-bold uppercase text-xs`}>
+                                <tr>
+                                    <th className="p-4 whitespace-nowrap">Dish</th>
+                                    <th className="p-4 whitespace-nowrap">Guest</th>
+                                    <th className="p-4 whitespace-nowrap">Category</th>
+                                    <th className="p-4 whitespace-nowrap">Notes</th>
+                                    <th className="p-4 text-right whitespace-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {event.dishes.length === 0 ? (
+                                    <tr><td colSpan={5} className="p-8 text-center text-slate-400 italic">No dishes added yet.</td></tr>
+                                ) : (
+                                    event.dishes.map(dish => {
+                                        const catName = event.categories.find(c => c.id === dish.categoryId)?.name || 'Unknown';
+                                        const isOwner = myDishKeys[dish.id];
+                                        return (
+                                            <tr key={dish.id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="p-4 font-bold text-slate-800">{dish.dishName}</td>
+                                                <td className="p-4 text-slate-600">{getDisplayName(dish)}</td>
+                                                <td className="p-4 text-slate-500"><span className="bg-slate-100 px-2 py-1 rounded text-xs whitespace-nowrap">{catName}</span></td>
+                                                <td className="p-4">
+                                                    <div className="flex gap-1">
+                                                        {dish.dietary.map(d => (
+                                                            <span key={d} className="text-[10px] bg-white border px-1.5 py-0.5 rounded whitespace-nowrap">{DIETARY_OPTIONS.find(o=>o.id===d)?.icon}</span>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-right">
+                                                    {(isAdmin || isOwner) && (
+                                                        <button 
+                                                            onClick={() => handleDeleteDish(dish.id)} 
+                                                            className={`text-slate-300 hover:text-red-500 p-1 ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            title={isEditLocked && !isAdmin ? 'Editing Locked' : 'Delete'}
+                                                        >
+                                                            {isEditLocked && !isAdmin ? <Lock size={16}/> : <Trash2 size={16}/>}
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
-
-                <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
-
-                {/* --- MENU CARDS (STANDARD VIEW / GUEST VIEW) --- */}
-                {/* Show if NOT admin, OR if admin turned off AdminView, OR if admin is in Card mode */}
-                {(!isAdmin || !isAdminView || viewMode === 'cards') && (
+                
+                {/* --- CARD VIEW --- */}
+                {viewMode === 'cards' && (
                     <div className="space-y-8">
                         {event.categories.map(category => {
                             const categoryDishes = event.dishes.filter(d => d.categoryId === category.id);
@@ -700,13 +739,14 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                                 {category.requestedItems.map(req => {
                                                     const isTaken = !!req.takenByDishId;
                                                     const takenByDish = isTaken ? event.dishes.find(d => d.id === req.takenByDishId) : null;
+                                                    const takenName = takenByDish ? getDisplayName(takenByDish) : 'Taken';
 
                                                     return (
                                                         <div key={req.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${isTaken ? 'bg-slate-100 text-slate-400 border-slate-200 line-through decoration-slate-400' : 'bg-white border-yellow-200 text-slate-700 shadow-sm'}`}>
                                                             <span>{req.name}</span>
                                                             {isTaken ? (
                                                                 <span className="text-[10px] no-underline bg-slate-200 px-1.5 rounded text-slate-500">
-                                                                    {takenByDish?.guestName || 'Taken'}
+                                                                    {takenName}
                                                                 </span>
                                                             ) : (
                                                                 <button 
@@ -736,7 +776,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                                         )}
                                                     </div>
                                                     <div className="text-sm text-slate-500 flex items-center gap-2 flex-wrap mt-1">
-                                                        <span className="font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full text-xs">by {dish.guestName}</span>
+                                                        <span className="font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full text-xs">by {getDisplayName(dish)}</span>
                                                         {dish.dietary.map(dt => {
                                                             const tag = DIETARY_OPTIONS.find(o => o.id === dt);
                                                             return tag ? (
@@ -766,26 +806,46 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                         )}
                                     </div>
 
-                                    {(!isAdmin || !isAdminView) && (
-                                        <div className="p-3 bg-slate-50/50 border-t border-slate-100">
-                                            <button 
-                                                onClick={() => openAddModal(category)}
-                                                disabled={isFull}
-                                                className={`w-full py-3 rounded-xl border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${
-                                                    isFull 
-                                                    ? 'border-slate-200 text-slate-400 cursor-not-allowed' 
-                                                    : `border-slate-300 text-slate-500 hover:bg-white hover:${styles.cardBorder} hover:text-slate-800`
-                                                }`}
-                                            >
-                                                {isFull ? <span className="flex items-center gap-2"><Lock size={16}/> Category Full</span> : <span className="flex items-center gap-2"><Plus size={18}/> Bring Something Else</span>}
-                                            </button>
-                                        </div>
-                                    )}
+                                    {/* ADD BUTTON ALWAYS VISIBLE IN CARDS */}
+                                    <div className="p-3 bg-slate-50/50 border-t border-slate-100">
+                                        <button 
+                                            onClick={() => openAddModal(category)}
+                                            disabled={isFull}
+                                            className={`w-full py-3 rounded-xl border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${
+                                                isFull 
+                                                ? 'border-slate-200 text-slate-400 cursor-not-allowed' 
+                                                : `border-slate-300 text-slate-500 hover:bg-white hover:${styles.cardBorder} hover:text-slate-800`
+                                            }`}
+                                        >
+                                            {isFull ? <span className="flex items-center gap-2"><Lock size={16}/> Category Full</span> : <span className="flex items-center gap-2"><Plus size={18}/> Bring Something Else</span>}
+                                        </button>
+                                    </div>
                                 </div>
                             );
                         })}
                     </div>
                 )}
+                
+                {/* Floating Action Button for List View */}
+                {viewMode === 'list' && (
+                     <div className="fixed bottom-6 right-6 z-40">
+                        <div className="relative group">
+                            <button 
+                                className={`w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-white ${styles.accentBtn} transition-transform hover:scale-110`}
+                                onClick={() => {
+                                    // Default to first non-full category
+                                    const firstOpenCat = event.categories.find(c => !c.limit || event.dishes.filter(d => d.categoryId === c.id).length < c.limit);
+                                    if(firstOpenCat) openAddModal(firstOpenCat);
+                                }}
+                            >
+                                <Plus size={28} />
+                            </button>
+                            {/* Category Quick Select Menu could go here, but keeping it simple for now */}
+                        </div>
+                     </div>
+                )}
+
+                <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
 
                 {/* ADD DISH MODAL */}
                 {showAddModal && selectedCategory && (
@@ -800,6 +860,27 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                 {dishForm.fulfillmentId && (
                                     <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm font-medium border border-yellow-200 flex items-center gap-2">
                                         <Check size={16} /> You are signing up to bring: <strong>{dishForm.dish}</strong>
+                                    </div>
+                                )}
+                                
+                                {viewMode === 'list' && (
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+                                        <select 
+                                            value={selectedCategory.id}
+                                            onChange={e => {
+                                                const cat = event.categories.find(c => c.id === e.target.value);
+                                                if(cat) setSelectedCategory(cat);
+                                            }}
+                                            className="w-full p-3 border rounded-lg outline-none bg-slate-50"
+                                            disabled={!!dishForm.fulfillmentId}
+                                        >
+                                            {event.categories.map(c => (
+                                                <option key={c.id} value={c.id} disabled={c.limit > 0 && event.dishes.filter(d => d.categoryId === c.id).length >= c.limit}>
+                                                    {c.name} {c.limit > 0 ? `(${event.dishes.filter(d => d.categoryId === c.id).length}/${c.limit})` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                 )}
 
@@ -933,15 +1014,27 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dietary Notes</label>
                                     <input type="text" value={editForm.dietaryNotes} onChange={e => setEditForm({...editForm, dietaryNotes: e.target.value})} className="w-full p-2 border rounded" />
                                 </div>
-                                <div className="border-t pt-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="block text-xs font-bold text-slate-700 uppercase">Allow Guest Editing</label>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={editForm.allowGuestEditing} 
-                                            onChange={e => setEditForm({...editForm, allowGuestEditing: e.target.checked})}
-                                        />
+                                
+                                <div className="border-t pt-4 space-y-3">
+                                    <h4 className="text-sm font-bold text-slate-800">Privacy & Editing Settings</h4>
+                                    
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-xs font-bold text-slate-600">Hide Guest Names</label>
+                                        <div className="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                                            <input type="checkbox" name="toggleNames" id="toggleNames" checked={editForm.hideNamesFromGuests} onChange={e => setEditForm({...editForm, hideNamesFromGuests: e.target.checked})} className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                            <label htmlFor="toggleNames" className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer ${editForm.hideNamesFromGuests ? 'bg-green-500' : 'bg-gray-300'}`}></label>
+                                        </div>
                                     </div>
+                                    <p className="text-[10px] text-slate-400 -mt-2">If checked, guests will see "A Guest" instead of names.</p>
+                                    
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-xs font-bold text-slate-600">Allow Guest Editing</label>
+                                        <div className="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                                            <input type="checkbox" name="toggleEdit" id="toggleEdit" checked={editForm.allowGuestEditing} onChange={e => setEditForm({...editForm, allowGuestEditing: e.target.checked})} className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                            <label htmlFor="toggleEdit" className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer ${editForm.allowGuestEditing ? 'bg-green-500' : 'bg-gray-300'}`}></label>
+                                        </div>
+                                    </div>
+
                                     {editForm.allowGuestEditing && (
                                         <div>
                                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Lock editing X days before:</label>
@@ -958,13 +1051,18 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                         </div>
                                     )}
                                 </div>
+                                
                                 <button 
                                     onClick={handleUpdateEvent}
                                     disabled={isSubmitting}
-                                    className={`w-full ${styles.accentBtn} text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2`}
+                                    className={`w-full ${styles.accentBtn} text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 mt-4`}
                                 >
                                     {isSubmitting ? <Loader2 className="animate-spin" /> : <Save size={18} />} Save Changes
                                 </button>
+                                <style>{`
+                                    .toggle-checkbox:checked { right: 0; border-color: #22c55e; }
+                                    .toggle-checkbox { right: auto; left: 0; border-color: #d1d5db; transition: all 0.3s; }
+                                `}</style>
                             </div>
                         </div>
                     </div>
