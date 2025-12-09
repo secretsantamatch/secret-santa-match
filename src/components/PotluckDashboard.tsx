@@ -4,6 +4,7 @@ import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2,
 import { getPotluck, addDish, removeDish, updatePotluckEvent } from '../services/potluckService';
 import type { PotluckEvent, PotluckCategory, PotluckDish, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
+import { generatePotluckPdf } from '../services/pdfService';
 import AdBanner from './AdBanner';
 
 interface PotluckDashboardProps {
@@ -27,14 +28,15 @@ const SUGGESTIONS = [
     "Pulled Pork Sliders", "Pasta Salad", "Veggie Tray", "Cookies", "Sangria"
 ];
 
-const THEME_STYLES: Record<PotluckTheme, { bg: string, header: string, text: string, accent: string, card: string, pattern?: string }> = {
-    classic: { bg: 'bg-[#fff7ed]', header: 'bg-slate-900', text: 'text-orange-900', accent: 'bg-orange-600', card: 'border-orange-200' },
-    picnic: { bg: 'bg-[#f0fdf4]', header: 'bg-emerald-900', text: 'text-emerald-900', accent: 'bg-emerald-600', card: 'border-emerald-200', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/40px 40px' },
-    corporate: { bg: 'bg-[#f8fafc]', header: 'bg-slate-800', text: 'text-slate-900', accent: 'bg-slate-600', card: 'border-slate-200' },
-    fiesta: { bg: 'bg-[#fdf2f8]', header: 'bg-pink-900', text: 'text-pink-900', accent: 'bg-pink-600', card: 'border-pink-200', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px' },
-    minimal: { bg: 'bg-[#fafafa]', header: 'bg-black', text: 'text-gray-900', accent: 'bg-black', card: 'border-gray-200' },
-    thanksgiving: { bg: 'bg-[#fffbeb]', header: 'bg-amber-900', text: 'text-amber-900', accent: 'bg-amber-600', card: 'border-amber-200', pattern: 'radial-gradient(circle, #fcd34d 1px, transparent 1px) 0 0/20px 20px' },
-    christmas: { bg: 'bg-[#fef2f2]', header: 'bg-red-900', text: 'text-red-900', accent: 'bg-red-600', card: 'border-red-200', pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fef2f2 10px, #fef2f2 20px)' },
+// Refined Themes - Using specific colors for dynamic UI elements
+const THEME_STYLES: Record<PotluckTheme, { bg: string, header: string, text: string, accent: string, accentText: string, card: string, pattern?: string, iconColor: string }> = {
+    classic: { bg: 'bg-[#fff7ed]', header: 'bg-orange-600', text: 'text-orange-900', accent: 'bg-orange-600', accentText: 'text-orange-600', card: 'border-orange-200', iconColor: 'text-orange-500' },
+    picnic: { bg: 'bg-[#f0fdf4]', header: 'bg-emerald-600', text: 'text-emerald-900', accent: 'bg-emerald-600', accentText: 'text-emerald-600', card: 'border-emerald-200', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/40px 40px', iconColor: 'text-emerald-500' },
+    corporate: { bg: 'bg-[#f8fafc]', header: 'bg-slate-700', text: 'text-slate-900', accent: 'bg-slate-600', accentText: 'text-slate-600', card: 'border-slate-200', iconColor: 'text-slate-500' },
+    fiesta: { bg: 'bg-[#fdf2f8]', header: 'bg-pink-600', text: 'text-pink-900', accent: 'bg-pink-600', accentText: 'text-pink-600', card: 'border-pink-200', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px', iconColor: 'text-pink-500' },
+    minimal: { bg: 'bg-[#fafafa]', header: 'bg-black', text: 'text-gray-900', accent: 'bg-black', accentText: 'text-black', card: 'border-gray-200', iconColor: 'text-gray-600' },
+    thanksgiving: { bg: 'bg-[#fffbeb]', header: 'bg-amber-700', text: 'text-amber-900', accent: 'bg-amber-600', accentText: 'text-amber-600', card: 'border-amber-200', pattern: 'radial-gradient(circle, #fcd34d 1px, transparent 1px) 0 0/20px 20px', iconColor: 'text-amber-600' },
+    christmas: { bg: 'bg-[#fef2f2]', header: 'bg-red-700', text: 'text-red-900', accent: 'bg-red-600', accentText: 'text-red-600', card: 'border-red-200', pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fef2f2 10px, #fef2f2 20px)', iconColor: 'text-red-600' },
 };
 
 const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey }) => {
@@ -51,7 +53,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     
     // View State for Admin
     const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
-    const [isAdminView, setIsAdminView] = useState(false); // Controls hiding/showing cards for admin
+    const [isAdminView, setIsAdminView] = useState(false); 
     
     const [selectedCategory, setSelectedCategory] = useState<PotluckCategory | null>(null);
     const [dishForm, setDishForm] = useState({ name: '', dish: '', dietary: [] as string[], fulfillmentId: undefined as string | undefined });
@@ -70,7 +72,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
             } catch (e) {}
         }
 
-        // Auto-switch to admin view if key present
         if (adminKey) setIsAdminView(true);
 
         const hash = window.location.hash;
@@ -120,7 +121,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 setLastAddedDishLink(link);
             }
 
-            // Optimistic Update
             let updatedCategories = event.categories;
             if (dishForm.fulfillmentId) {
                 updatedCategories = event.categories.map(cat => {
@@ -186,7 +186,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         setIsSubmitting(true);
         try {
             const updatedEvent = await updatePotluckEvent(event.publicId, adminKey, editForm);
-            // Merge response to keep dishes/categories populated if server returned partial
             setEvent({ ...event, ...updatedEvent, dishes: event.dishes, categories: event.categories }); 
             setShowEditEventModal(false);
             setToastMsg("Event updated successfully!");
@@ -265,6 +264,12 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         trackEvent('potluck_csv_download');
     };
 
+    const handlePdfDownload = () => {
+        if (!event) return;
+        generatePotluckPdf(event);
+        trackEvent('potluck_pdf_download');
+    };
+
     if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-orange-500" size={40}/></div>;
     if (error || !event) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
@@ -297,12 +302,12 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                 className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg text-white transition-colors flex items-center gap-2 text-xs font-bold" 
                                 title="Edit Event Details"
                             >
-                                <Edit2 size={14} /> Edit Event Details
+                                <Edit2 size={14} /> Edit Event
                             </button>
                         )}
                         <h1 className="text-3xl md:text-5xl font-black font-serif mb-2">{event.title}</h1>
                         {isAdmin && (
-                            <div className="inline-block bg-yellow-400/20 border border-yellow-400/50 px-3 py-1 rounded-full text-xs font-bold text-yellow-100 uppercase tracking-widest mb-4">
+                            <div className="inline-block bg-white/20 border border-white/40 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
                                 Organizer Dashboard
                             </div>
                         )}
@@ -319,15 +324,15 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                 rel="noreferrer"
                                 className="mt-4 inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-lg text-sm font-bold border border-white/20 hover:bg-white/20 transition-colors"
                             >
-                                <MapPin size={16} className="text-red-400" />
+                                <MapPin size={16} className="text-white" />
                                 {event.location}
                             </a>
                         )}
                         
                         {event.dietaryNotes && (
                             <div className="mt-4 flex justify-center">
-                                <div className="inline-flex items-center gap-2 bg-yellow-500/20 backdrop-blur px-4 py-2 rounded-lg text-sm font-bold border border-yellow-400/50 text-yellow-50">
-                                    <AlertCircle size={16} className="text-yellow-400" />
+                                <div className="inline-flex items-center gap-2 bg-yellow-500/20 backdrop-blur px-4 py-2 rounded-lg text-sm font-bold border border-yellow-400/50 text-white">
+                                    <AlertCircle size={16} className="text-yellow-300" />
                                     Note: {event.dietaryNotes}
                                 </div>
                             </div>
@@ -356,8 +361,8 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     <div className="mb-10 space-y-6">
                         
                         {/* SHARE CARD */}
-                        <div className="bg-white p-6 rounded-2xl shadow-lg border border-orange-100 flex flex-col md:flex-row items-center gap-6">
-                            <div className="flex-shrink-0 bg-orange-100 p-4 rounded-full text-orange-600">
+                        <div className={`bg-white p-6 rounded-2xl shadow-lg border ${styles.card} flex flex-col md:flex-row items-center gap-6`}>
+                            <div className={`flex-shrink-0 p-4 rounded-full text-white ${styles.accent}`}>
                                 <Share2 size={32} />
                             </div>
                             <div className="flex-1 text-center md:text-left">
@@ -366,7 +371,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             </div>
                             <button 
                                 onClick={() => copyLink(shareLink)} 
-                                className={`px-8 py-4 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 ${isCopied ? 'bg-green-600' : 'bg-orange-600 hover:bg-orange-700'}`}
+                                className={`px-8 py-4 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 ${isCopied ? 'bg-green-600' : `${styles.accent} hover:opacity-90`}`}
                             >
                                 {isCopied ? <Check size={20}/> : <Copy size={20}/>}
                                 {isCopied ? 'Link Copied!' : 'Copy Guest Link'}
@@ -376,14 +381,13 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                         {/* MASTER LIST HEADER */}
                         <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4">
                             <div>
-                                <h3 className="font-black text-slate-800 text-2xl flex items-center gap-2 font-serif">
-                                    <ChefHat className="text-slate-400" size={28}/> Master Dish List
+                                <h3 className={`font-black text-2xl flex items-center gap-2 font-serif ${styles.text}`}>
+                                    <ChefHat className={styles.iconColor} size={28}/> Master Dish List
                                 </h3>
                                 <p className="text-sm text-slate-500 mt-1">Manage all contributions in one place.</p>
                             </div>
                             
                             <div className="flex items-center gap-3">
-                                {/* Toggle View Mode */}
                                 <button 
                                     onClick={() => setIsAdminView(!isAdminView)}
                                     className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100"
@@ -391,19 +395,25 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                     {isAdminView ? <EyeOff size={14} /> : <Eye size={14} />}
                                     {isAdminView ? 'View as Guest' : 'Back to Admin View'}
                                 </button>
-
-                                {/* Download CSV */}
+                                
                                 {isAdminView && (
-                                    <button 
-                                        onClick={downloadCSV}
-                                        className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
+                                    <>
+                                        <button 
+                                            onClick={downloadCSV}
+                                            className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
+                                        >
+                                            <Download size={14} /> CSV
+                                        </button>
+                                        <button 
+                                            onClick={handlePdfDownload}
+                                            className="text-xs font-bold text-red-600 flex items-center gap-1 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
+                                        >
+                                            <Download size={14} /> PDF
+                                        </button>
+                                    </>
                                 )}
                             </div>
                             
-                            {/* Table/Card Toggle for Master List */}
                             {isAdminView && (
                                 <div className="flex bg-white rounded-lg border border-slate-200 p-1">
                                     <button 
@@ -428,7 +438,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                         {isAdminView && viewMode === 'list' && (
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                 <table className="w-full text-sm text-left">
-                                    <thead className="bg-slate-800 text-slate-200 font-bold uppercase text-xs">
+                                    <thead className={`${styles.header} text-white font-bold uppercase text-xs`}>
                                         <tr>
                                             <th className="p-4">Dish</th>
                                             <th className="p-4">Guest</th>
@@ -481,8 +491,8 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             
                             return (
                                 <div key={category.id} className={`bg-white rounded-2xl shadow-sm border ${styles.card} overflow-hidden`}>
-                                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                                        <h3 className={`font-bold text-xl font-serif ${styles.text.replace('text-', 'text-opacity-80 text-')}`}>{category.name}</h3>
+                                    <div className={`p-4 border-b ${styles.card} ${styles.bg} bg-opacity-30 flex justify-between items-center`}>
+                                        <h3 className={`font-bold text-xl font-serif ${styles.text}`}>{category.name}</h3>
                                         {category.limit ? (
                                             <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                                                 {categoryDishes.length} / {category.limit} Filled
@@ -499,7 +509,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                             <div className="flex flex-wrap gap-2">
                                                 {category.requestedItems.map(req => {
                                                     const isTaken = !!req.takenByDishId;
-                                                    // Find the dish that took it to show who
                                                     const takenByDish = isTaken ? event.dishes.find(d => d.id === req.takenByDishId) : null;
 
                                                     return (
@@ -548,7 +557,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                                         })}
                                                     </div>
                                                 </div>
-                                                {/* Show delete if admin OR if I own this dish (key check) */}
                                                 {(isAdmin || myDishKeys[dish.id]) && (
                                                     <button onClick={() => handleDeleteDish(dish.id)} className="text-slate-300 hover:text-red-500 p-2 transition-colors">
                                                         <Trash2 size={18} />
@@ -564,7 +572,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                         )}
                                     </div>
 
-                                    {/* Hide the "Add Dish" button if we are in strict Admin View mode (unless toggled to view as guest) */}
                                     {(!isAdmin || !isAdminView) && (
                                         <div className="p-3 bg-slate-50/50 border-t border-slate-100">
                                             <button 
@@ -629,7 +636,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                         onChange={e => setDishForm({...dishForm, dish: e.target.value})}
                                         className="w-full p-3 border rounded-lg focus:border-orange-500 outline-none"
                                         placeholder="e.g. Spicy Meatballs"
-                                        readOnly={!!dishForm.fulfillmentId} // Lock if fulfilling request
+                                        readOnly={!!dishForm.fulfillmentId} 
                                     />
                                 </div>
 
@@ -703,7 +710,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 {showEditEventModal && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
-                            <div className="bg-slate-800 p-4 flex justify-between items-center text-white">
+                            <div className={`${styles.header} p-4 flex justify-between items-center text-white`}>
                                 <h3 className="font-bold flex items-center gap-2"><Edit2 size={20}/> Edit Event Details</h3>
                                 <button onClick={() => setShowEditEventModal(false)}><X size={24}/></button>
                             </div>
@@ -735,7 +742,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                 <button 
                                     onClick={handleUpdateEvent}
                                     disabled={isSubmitting}
-                                    className="w-full bg-slate-900 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
+                                    className={`w-full ${styles.accent} text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2`}
                                 >
                                     {isSubmitting ? <Loader2 className="animate-spin" /> : <Save size={18} />} Save Changes
                                 </button>
