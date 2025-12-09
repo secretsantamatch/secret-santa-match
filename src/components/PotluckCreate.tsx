@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, ChefHat, Plus, Trash2, ArrowRight, Loader2, List, Settings, Palette, PlusCircle, X, MapPin, Clock, HelpCircle, AlertCircle, Minus, Infinity, Lock, Unlock } from 'lucide-react';
 import { createPotluck } from '../services/potluckService';
@@ -338,6 +337,8 @@ const PotluckCreate: React.FC = () => {
                                                         <option value={0}>Never lock (Always editable)</option>
                                                         <option value={1}>1 day before event</option>
                                                         <option value={2}>2 days before event</option>
+                                                        <option value={3}>3 days before event</option>
+                                                        <option value={5}>5 days before event</option>
                                                         <option value={7}>1 week before event</option>
                                                     </select>
                                                     <span className="text-xs text-slate-500">

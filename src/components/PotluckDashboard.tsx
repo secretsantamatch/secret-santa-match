@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer, ExternalLink, Flag, Smartphone, MessageCircle, Mail, ArrowRight, Pencil, Ghost, CheckCircle } from 'lucide-react';
 import { getPotluck, addDish, removeDish, updatePotluckEvent } from '../services/potluckService';
@@ -531,605 +530,630 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                  <div className="fixed top-20 right-10 text-6xl animate-pulse pointer-events-none opacity-40 z-0">👻</div>
             )}
             
-            <div className="max-w-4xl mx-auto p-4 md:p-8 relative z-10">
-                
-                {toastMsg && (
-                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl z-50 flex items-center gap-2 animate-fade-in">
-                        <Check size={18} className="text-green-400"/> {toastMsg}
-                    </div>
-                )}
-
-                {/* --- HEADER CARD --- */}
-                <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-8 border ${styles.cardBorder}`}>
-                    <div className={`${styles.headerBg} p-8 text-center text-white relative group`}>
-                        {isAdmin && (
-                            <button 
-                                onClick={openEditModal} 
-                                className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg text-white transition-colors flex items-center gap-2 text-xs font-bold" 
-                                title="Edit Event Details"
-                            >
-                                <Edit2 size={14} /> Edit Event
-                            </button>
-                        )}
-                        
-                        {timeLeft && (
-                            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 animate-pulse">
-                                <Timer size={14}/> {timeLeft.days} {timeLeft.label} Until Feast
-                            </div>
-                        )}
-                        
-                        <h1 className="text-3xl md:text-5xl font-black font-serif mb-2 drop-shadow-sm">{event.title}</h1>
-                        
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-white/90 font-medium">
-                            <span className="flex items-center gap-1.5"><Calendar size={18}/> {new Date(event.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-                            {event.time && <span className="flex items-center gap-1.5"><Clock size={18}/> {event.time}</span>}
-                            <span className="flex items-center gap-1.5"><User size={18}/> Hosted by {event.hostName}</span>
-                        </div>
-                        
-                        {event.location && (
-                             <a 
-                                href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="mt-4 inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-lg text-sm font-bold border border-white/20 hover:bg-white/20 transition-colors"
-                            >
-                                <MapPin size={16} className="text-white" />
-                                {event.location}
-                            </a>
-                        )}
-                        
-                        {event.dietaryNotes && (
-                            <div className="mt-4 flex justify-center">
-                                <div className="inline-flex items-center gap-2 bg-yellow-500/20 backdrop-blur px-4 py-2 rounded-lg text-sm font-bold border border-yellow-400/50 text-white">
-                                    <AlertCircle size={16} className="text-yellow-300" />
-                                    Note: {event.dietaryNotes}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex justify-center gap-3 mt-6">
-                             <button onClick={addToCalendar} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2">
-                                <CalendarCheck size={14}/> Add to Calendar
-                            </button>
-                        </div>
-                    </div>
-                    {event.description && (
-                        <div className={`p-6 ${styles.bg} ${styles.headerText} text-center border-b ${styles.cardBorder} italic relative group`}>
-                            "{event.description}"
+            {/* PAGE-WITHIN-PAGE CONTAINER */}
+            <div className="max-w-5xl mx-auto p-4 md:p-6 relative z-10">
+                <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border-4 border-white/50 p-6 md:p-10">
+                    
+                    {toastMsg && (
+                        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl z-50 flex items-center gap-2 animate-fade-in">
+                            <Check size={18} className="text-green-400"/> {toastMsg}
                         </div>
                     )}
-                </div>
 
-                {/* --- INVITE & SHARING CARD (Admin Only) --- */}
-                {isAdmin && (
-                    <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-slate-100 mb-6 transform hover:-translate-y-1 transition-transform duration-300">
-                        <div className="flex flex-col md:flex-row items-center gap-6">
-                            <div className={`flex-shrink-0 p-4 rounded-full text-white shadow-lg ${styles.headerBg}`}>
-                                <Share2 size={24} />
+                    {/* --- HEADER CARD --- */}
+                    <div className={`bg-white rounded-2xl shadow-md overflow-hidden mb-8 border ${styles.cardBorder}`}>
+                        <div className={`${styles.headerBg} p-8 text-center text-white relative group`}>
+                            {isAdmin && (
+                                <button 
+                                    onClick={openEditModal} 
+                                    className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg text-white transition-colors flex items-center gap-2 text-xs font-bold" 
+                                    title="Edit Event Details"
+                                >
+                                    <Edit2 size={14} /> Edit Event
+                                </button>
+                            )}
+                            
+                            {timeLeft && (
+                                <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 animate-pulse">
+                                    <Timer size={14}/> {timeLeft.days} {timeLeft.label} Until Feast
+                                </div>
+                            )}
+                            
+                            <h1 className="text-3xl md:text-5xl font-black font-serif mb-2 drop-shadow-sm">{event.title}</h1>
+                            
+                            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-white/90 font-medium">
+                                <span className="flex items-center gap-1.5"><Calendar size={18}/> {new Date(event.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+                                {event.time && <span className="flex items-center gap-1.5"><Clock size={18}/> {event.time}</span>}
+                                <span className="flex items-center gap-1.5"><User size={18}/> Hosted by {event.hostName}</span>
                             </div>
-                            <div className="flex-1 text-center md:text-left">
-                                <h3 className="text-xl font-bold text-slate-800">Invite Your Guests</h3>
-                                <p className="text-slate-600 text-sm mt-1">Send this public link to your guests so they can sign up!</p>
+                            
+                            {event.location && (
+                                 <a 
+                                    href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="mt-4 inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-lg text-sm font-bold border border-white/20 hover:bg-white/20 transition-colors"
+                                >
+                                    <MapPin size={16} className="text-white" />
+                                    {event.location}
+                                </a>
+                            )}
+                            
+                            {event.dietaryNotes && (
+                                <div className="mt-4 flex justify-center">
+                                    <div className="inline-flex items-center gap-2 bg-yellow-500/20 backdrop-blur px-4 py-2 rounded-lg text-sm font-bold border border-yellow-400/50 text-white">
+                                        <AlertCircle size={16} className="text-yellow-300" />
+                                        Note: {event.dietaryNotes}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex justify-center gap-3 mt-6">
+                                 <button onClick={addToCalendar} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2">
+                                    <CalendarCheck size={14}/> Add to Calendar
+                                </button>
                             </div>
-                            <button 
-                                onClick={() => copyLink(shareLink)} 
-                                className={`px-6 py-3 rounded-xl font-bold text-white shadow-md transition-all active:scale-95 flex items-center gap-2 w-full md:w-auto justify-center ${isCopied ? 'bg-green-600' : `${styles.accentBtn}`}`}
-                            >
-                                {isCopied ? <Check size={20}/> : <LinkIcon size={20}/>}
-                                {isCopied ? 'Link Copied!' : 'Copy Guest Link'}
-                            </button>
+                        </div>
+                        {event.description && (
+                            <div className={`p-6 ${styles.bg} ${styles.headerText} text-center border-b ${styles.cardBorder} italic relative group`}>
+                                "{event.description}"
+                            </div>
+                        )}
+                    </div>
+
+                    {/* --- INVITE & SHARING CARD (Admin Only) --- */}
+                    {isAdmin && (
+                        <div className="bg-white p-6 rounded-2xl shadow-md border border-slate-100 mb-6 transform hover:-translate-y-1 transition-transform duration-300">
+                            <div className="flex flex-col md:flex-row items-center gap-6">
+                                <div className={`flex-shrink-0 p-4 rounded-full text-white shadow-lg ${styles.headerBg}`}>
+                                    <Share2 size={24} />
+                                </div>
+                                <div className="flex-1 text-center md:text-left">
+                                    <h3 className="text-xl font-bold text-slate-800">Invite Your Guests</h3>
+                                    <p className="text-slate-600 text-sm mt-1">Send this public link to your guests so they can sign up!</p>
+                                </div>
+                                <button 
+                                    onClick={() => copyLink(shareLink)} 
+                                    className={`px-6 py-3 rounded-xl font-bold text-white shadow-md transition-all active:scale-95 flex items-center gap-2 w-full md:w-auto justify-center ${isCopied ? 'bg-green-600' : `${styles.accentBtn}`}`}
+                                >
+                                    {isCopied ? <Check size={20}/> : <LinkIcon size={20}/>}
+                                    {isCopied ? 'Link Copied!' : 'Copy Guest Link'}
+                                </button>
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-3 mt-6 border-t pt-4">
+                                <button onClick={() => handleShare('sms')} className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors">
+                                    <Smartphone size={20} className="text-blue-500" />
+                                    <span className="text-[10px] font-bold uppercase">Text</span>
+                                </button>
+                                <button onClick={() => handleShare('whatsapp')} className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors">
+                                    <MessageCircle size={20} className="text-green-500" />
+                                    <span className="text-[10px] font-bold uppercase">WhatsApp</span>
+                                </button>
+                                <button onClick={() => handleShare('email')} className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors">
+                                    <Mail size={20} className="text-red-500" />
+                                    <span className="text-[10px] font-bold uppercase">Email</span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* --- ADMIN MASTER LINK (Only Visible to Admin) --- */}
+                    {isAdmin && (
+                        <div className="bg-amber-50 border-2 border-amber-200 border-dashed rounded-xl p-5 mb-10 flex flex-col md:flex-row items-center gap-4 justify-between">
+                             <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1 text-amber-800 font-bold">
+                                    <Lock size={18} /> Organizer Master Key
+                                </div>
+                                <p className="text-amber-700 text-sm">
+                                    This is your private control panel link. <span className="font-extrabold underline">Do not share this.</span>
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2 w-full md:w-auto">
+                                <input type="text" readOnly value={organizerLink} className="flex-1 text-xs text-slate-500 border rounded p-2 bg-white truncate outline-none w-full md:w-64" />
+                                <button onClick={() => copyLink(organizerLink)} className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded text-xs font-bold flex items-center gap-1 whitespace-nowrap">
+                                    <Copy size={14}/> Copy
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* --- MASTER LIST CONTROLS --- */}
+                    <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4 mt-8">
+                        <div>
+                            <h3 className={`font-black text-2xl flex items-center gap-2 font-serif ${styles.headerText}`}>
+                                <ChefHat className={styles.iconColor} size={28}/> Master Dish List
+                            </h3>
+                            {event.hideNamesFromGuests && !isAdmin && (
+                                <p className="text-xs text-slate-500 mt-1 italic">Guest names are hidden by the host.</p>
+                            )}
                         </div>
                         
-                        <div className="grid grid-cols-3 gap-3 mt-6 border-t pt-4">
-                            <button onClick={() => handleShare('sms')} className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors">
-                                <Smartphone size={20} className="text-blue-500" />
-                                <span className="text-[10px] font-bold uppercase">Text</span>
-                            </button>
-                            <button onClick={() => handleShare('whatsapp')} className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors">
-                                <MessageCircle size={20} className="text-green-500" />
-                                <span className="text-[10px] font-bold uppercase">WhatsApp</span>
-                            </button>
-                            <button onClick={() => handleShare('email')} className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors">
-                                <Mail size={20} className="text-red-500" />
-                                <span className="text-[10px] font-bold uppercase">Email</span>
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* --- ADMIN MASTER LINK (Only Visible to Admin) --- */}
-                {isAdmin && (
-                    <div className="bg-amber-50 border-2 border-amber-200 border-dashed rounded-xl p-5 mb-10 flex flex-col md:flex-row items-center gap-4 justify-between">
-                         <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1 text-amber-800 font-bold">
-                                <Lock size={18} /> Organizer Master Key
-                            </div>
-                            <p className="text-amber-700 text-sm">
-                                This is your private control panel link. <span className="font-extrabold underline">Do not share this.</span>
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2 w-full md:w-auto">
-                            <input type="text" readOnly value={organizerLink} className="flex-1 text-xs text-slate-500 border rounded p-2 bg-white truncate outline-none w-full md:w-64" />
-                            <button onClick={() => copyLink(organizerLink)} className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded text-xs font-bold flex items-center gap-1 whitespace-nowrap">
-                                <Copy size={14}/> Copy
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* --- MASTER LIST CONTROLS --- */}
-                <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4 mt-8">
-                    <div>
-                        <h3 className={`font-black text-2xl flex items-center gap-2 font-serif ${styles.headerText}`}>
-                            <ChefHat className={styles.iconColor} size={28}/> Master Dish List
-                        </h3>
-                        {event.hideNamesFromGuests && !isAdmin && (
-                            <p className="text-xs text-slate-500 mt-1 italic">Guest names are hidden by the host.</p>
-                        )}
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                        {isAdmin && (
-                            <>
-                                <button 
-                                    onClick={() => setIsAdminView(!isAdminView)}
-                                    className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100"
-                                >
-                                    {isAdminView ? <EyeOff size={14} /> : <Eye size={14} />}
-                                    {isAdminView ? 'View as Guest' : 'Back to Admin View'}
-                                </button>
-                                <div className="flex gap-2">
-                                     <button 
-                                        onClick={downloadCSV}
-                                        className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
-                                    >
-                                        <Download size={14} /> CSV
-                                    </button>
+                        <div className="flex items-center gap-3">
+                            {isAdmin && (
+                                <>
                                     <button 
-                                        onClick={handlePdfDownload}
-                                        className="text-xs font-bold text-red-600 flex items-center gap-1 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
+                                        onClick={() => setIsAdminView(!isAdminView)}
+                                        className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100"
                                     >
-                                        <Download size={14} /> PDF
+                                        {isAdminView ? <EyeOff size={14} /> : <Eye size={14} />}
+                                        {isAdminView ? 'View as Guest' : 'Back to Admin View'}
                                     </button>
-                                </div>
-                            </>
-                        )}
+                                    <div className="flex gap-2">
+                                         <button 
+                                            onClick={downloadCSV}
+                                            className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
+                                        >
+                                            <Download size={14} /> CSV
+                                        </button>
+                                        <button 
+                                            onClick={handlePdfDownload}
+                                            className="text-xs font-bold text-red-600 flex items-center gap-1 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
+                                        >
+                                            <Download size={14} /> PDF
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        
+                        <div className="flex bg-white rounded-lg border border-slate-200 p-1">
+                            <button 
+                                onClick={() => setViewMode('cards')}
+                                className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                                title="Card View"
+                            >
+                                <Grid size={18} />
+                            </button>
+                            <button 
+                                onClick={() => setViewMode('list')}
+                                className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                                title="List View"
+                            >
+                                <List size={18} />
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div className="flex bg-white rounded-lg border border-slate-200 p-1">
-                        <button 
-                            onClick={() => setViewMode('cards')}
-                            className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                            title="Card View"
-                        >
-                            <Grid size={18} />
-                        </button>
-                        <button 
-                            onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                            title="List View"
-                        >
-                            <List size={18} />
-                        </button>
-                    </div>
-                </div>
 
-                {/* --- LIST VIEW --- */}
-                {viewMode === 'list' && (
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-                        <div className={`${styles.headerBg} h-2 w-full`}></div>
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
-                                <tr>
-                                    <th className="p-4 whitespace-nowrap">Dish</th>
-                                    <th className="p-4 whitespace-nowrap">Guest</th>
-                                    <th className="p-4 whitespace-nowrap">Category</th>
-                                    <th className="p-4 whitespace-nowrap">Notes</th>
-                                    <th className="p-4 text-right whitespace-nowrap">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {event.dishes.length === 0 ? (
-                                    <tr><td colSpan={5} className="p-8 text-center text-slate-400 italic">No dishes added yet.</td></tr>
-                                ) : (
-                                    event.dishes.map(dish => {
-                                        const catName = event.categories.find(c => c.id === dish.categoryId)?.name || 'Unknown';
-                                        const isOwner = myDishKeys[dish.id];
-                                        return (
-                                            <tr key={dish.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="p-4 font-bold text-slate-800">{dish.dishName}</td>
-                                                <td className="p-4 text-slate-600">{getDisplayName(dish)}</td>
-                                                <td className="p-4 text-slate-500"><span className="bg-slate-100 px-2 py-1 rounded text-xs whitespace-nowrap">{catName}</span></td>
-                                                <td className="p-4">
-                                                    <div className="flex gap-1">
-                                                        {dish.dietary.map(d => (
-                                                            <span key={d} className="text-[10px] bg-white border px-1.5 py-0.5 rounded whitespace-nowrap">{DIETARY_OPTIONS.find(o=>o.id===d)?.icon}</span>
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-right">
-                                                    {(isAdmin || isOwner) && (
-                                                        <div className="flex justify-end gap-2">
-                                                             <button 
-                                                                onClick={() => openEditDishModal(dish)} 
-                                                                className={`text-slate-400 hover:text-blue-500 p-1 ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                                disabled={isEditLocked && !isAdmin}
-                                                                title="Edit"
+                    {/* --- LIST VIEW --- */}
+                    {viewMode === 'list' && (
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                            <div className={`${styles.headerBg} h-2 w-full`}></div>
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
+                                    <tr>
+                                        <th className="p-4 whitespace-nowrap">Dish</th>
+                                        <th className="p-4 whitespace-nowrap">Guest</th>
+                                        <th className="p-4 whitespace-nowrap">Category</th>
+                                        <th className="p-4 whitespace-nowrap">Notes</th>
+                                        <th className="p-4 text-right whitespace-nowrap">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {event.dishes.length === 0 ? (
+                                        <tr><td colSpan={5} className="p-8 text-center text-slate-400 italic">No dishes added yet.</td></tr>
+                                    ) : (
+                                        event.dishes.map(dish => {
+                                            const catName = event.categories.find(c => c.id === dish.categoryId)?.name || 'Unknown';
+                                            const isOwner = myDishKeys[dish.id];
+                                            return (
+                                                <tr key={dish.id} className="hover:bg-slate-50 transition-colors">
+                                                    <td className="p-4 font-bold text-slate-800">{dish.dishName}</td>
+                                                    <td className="p-4 text-slate-600">{getDisplayName(dish)}</td>
+                                                    <td className="p-4 text-slate-500"><span className="bg-slate-100 px-2 py-1 rounded text-xs whitespace-nowrap">{catName}</span></td>
+                                                    <td className="p-4">
+                                                        <div className="flex gap-1">
+                                                            {dish.dietary.map(d => (
+                                                                <span key={d} className="text-[10px] bg-white border px-1.5 py-0.5 rounded whitespace-nowrap">{DIETARY_OPTIONS.find(o=>o.id===d)?.icon}</span>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-right">
+                                                        {(isAdmin || isOwner) && (
+                                                            <div className="flex justify-end gap-2">
+                                                                 <button 
+                                                                    onClick={() => openEditDishModal(dish)} 
+                                                                    className={`text-slate-400 hover:text-blue-500 p-1 ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                    disabled={isEditLocked && !isAdmin}
+                                                                    title="Edit"
+                                                                >
+                                                                    <Pencil size={16}/>
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleDeleteDish(dish.id)} 
+                                                                    className={`text-slate-400 hover:text-red-500 p-1 ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                    disabled={isEditLocked && !isAdmin}
+                                                                    title="Delete"
+                                                                >
+                                                                    <Trash2 size={16}/>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                    
+                    {/* --- CARD VIEW --- */}
+                    {viewMode === 'cards' && (
+                        <div className="space-y-8">
+                            {event.categories.map(category => {
+                                const categoryDishes = event.dishes.filter(d => d.categoryId === category.id);
+                                const limit = category.limit || 0;
+                                const isFull = limit > 0 && categoryDishes.length >= limit;
+                                
+                                return (
+                                    <div key={category.id} className={`bg-white rounded-2xl shadow-sm border ${styles.cardBorder} overflow-hidden`}>
+                                        {/* Category Header */}
+                                        <div className={`p-4 border-b ${styles.cardBorder} ${styles.bg} flex justify-between items-center`}>
+                                            <h3 className={`font-bold text-xl font-serif ${styles.headerText}`}>{category.name}</h3>
+                                            {limit > 0 ? (
+                                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                    {categoryDishes.length} / {limit} Filled
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Unlimited</span>
+                                            )}
+                                        </div>
+                                        
+                                        {/* REQUESTED ITEMS SECTION - REDESIGNED */}
+                                        {category.requestedItems && category.requestedItems.length > 0 && (
+                                            <div className="p-4 bg-yellow-50/50 border-b border-yellow-100">
+                                                <p className="text-xs font-bold text-yellow-700 uppercase mb-3 flex items-center gap-1"><Flag size={12}/> Host Requested:</p>
+                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                    {category.requestedItems.map(req => {
+                                                        const isTaken = !!req.takenByDishId;
+                                                        const takenByDish = isTaken ? event.dishes.find(d => d.id === req.takenByDishId) : null;
+                                                        const takenName = takenByDish ? getDisplayName(takenByDish) : 'Taken';
+
+                                                        return (
+                                                            <button 
+                                                                key={req.id} 
+                                                                onClick={() => !isTaken && openAddModal(category, req)}
+                                                                disabled={isTaken}
+                                                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all group relative overflow-hidden ${
+                                                                    isTaken 
+                                                                    ? 'bg-slate-50 border-slate-200 cursor-default opacity-60' 
+                                                                    : 'bg-white border-dashed border-yellow-300 hover:bg-yellow-50 hover:border-yellow-500 hover:shadow-md cursor-pointer'
+                                                                }`}
                                                             >
-                                                                <Pencil size={16}/>
+                                                                {isTaken && (
+                                                                    <div className="absolute inset-0 flex items-center justify-center bg-slate-100/80 backdrop-blur-[1px] z-10">
+                                                                         <span className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200 shadow-sm">Taken by {takenName}</span>
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                <span className="font-bold text-slate-800 text-lg mb-2">{req.name}</span>
+                                                                
+                                                                {!isTaken && (
+                                                                    <>
+                                                                        <div className="bg-yellow-100 text-yellow-700 rounded-full p-1.5 group-hover:scale-110 transition-transform mb-1">
+                                                                           <Plus size={18} />
+                                                                        </div>
+                                                                        <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-wider">Bring This</span>
+                                                                    </>
+                                                                )}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="divide-y divide-slate-100">
+                                            {categoryDishes.map(dish => (
+                                                <div key={dish.id} className="p-4 flex items-start justify-between group hover:bg-slate-50 transition-colors">
+                                                    <div>
+                                                        <div className="font-bold text-slate-800 text-lg flex items-center gap-2">
+                                                            {dish.dishName}
+                                                            {category.requestedItems?.some(r => r.takenByDishId === dish.id) && (
+                                                                <span title="Host Requested" className="flex items-center">
+                                                                    <Sparkles size={14} className="text-yellow-500" />
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-sm text-slate-500 flex items-center gap-2 flex-wrap mt-1">
+                                                            <span className="font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full text-xs">by {getDisplayName(dish)}</span>
+                                                            {dish.dietary.map(dt => {
+                                                                const tag = DIETARY_OPTIONS.find(o => o.id === dt);
+                                                                return tag ? (
+                                                                    <span key={dt} title={tag.label} className={`text-[10px] px-1.5 py-0.5 rounded border ${tag.color.replace('text-', 'border-').replace('100', '200')} bg-white`}>
+                                                                        {tag.icon} {tag.label}
+                                                                    </span>
+                                                                ) : null;
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                    {(isAdmin || myDishKeys[dish.id]) && (
+                                                        <div className="flex gap-2">
+                                                            <button 
+                                                                onClick={() => openEditDishModal(dish)} 
+                                                                className={`text-slate-300 hover:text-blue-500 p-2 transition-colors ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                disabled={isEditLocked && !isAdmin}
+                                                            >
+                                                                <Pencil size={18} />
                                                             </button>
                                                             <button 
                                                                 onClick={() => handleDeleteDish(dish.id)} 
-                                                                className={`text-slate-400 hover:text-red-500 p-1 ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                className={`text-slate-300 hover:text-red-500 p-2 transition-colors ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                                 disabled={isEditLocked && !isAdmin}
-                                                                title="Delete"
                                                             >
-                                                                <Trash2 size={16}/>
+                                                                <Trash2 size={18} />
                                                             </button>
                                                         </div>
                                                     )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-                
-                {/* --- CARD VIEW --- */}
-                {viewMode === 'cards' && (
-                    <div className="space-y-8">
-                        {event.categories.map(category => {
-                            const categoryDishes = event.dishes.filter(d => d.categoryId === category.id);
-                            const limit = category.limit || 0;
-                            const isFull = limit > 0 && categoryDishes.length >= limit;
-                            
-                            return (
-                                <div key={category.id} className={`bg-white rounded-2xl shadow-sm border ${styles.cardBorder} overflow-hidden`}>
-                                    {/* Category Header */}
-                                    <div className={`p-4 border-b ${styles.cardBorder} ${styles.bg} flex justify-between items-center`}>
-                                        <h3 className={`font-bold text-xl font-serif ${styles.headerText}`}>{category.name}</h3>
-                                        {limit > 0 ? (
-                                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                                {categoryDishes.length} / {limit} Filled
-                                            </span>
-                                        ) : (
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Unlimited</span>
-                                        )}
-                                    </div>
-                                    
-                                    {/* REQUESTED ITEMS SECTION */}
-                                    {category.requestedItems && category.requestedItems.length > 0 && (
-                                        <div className="p-4 bg-yellow-50 border-b border-yellow-100">
-                                            <p className="text-xs font-bold text-yellow-700 uppercase mb-2 flex items-center gap-1"><Flag size={12}/> Host Requested:</p>
-                                            <div className="flex flex-wrap gap-2">
-                                                {category.requestedItems.map(req => {
-                                                    const isTaken = !!req.takenByDishId;
-                                                    const takenByDish = isTaken ? event.dishes.find(d => d.id === req.takenByDishId) : null;
-                                                    const takenName = takenByDish ? getDisplayName(takenByDish) : 'Taken';
+                                                </div>
+                                            ))}
+                                            
+                                            {categoryDishes.length === 0 && (
+                                                <div className="p-6 text-center text-slate-400 italic text-sm">
+                                                    No dishes yet. Be the first!
+                                                </div>
+                                            )}
+                                        </div>
 
+                                        {/* ADD BUTTON ALWAYS VISIBLE IN CARDS */}
+                                        <div className="p-3 bg-slate-50/50 border-t border-slate-100">
+                                            <button 
+                                                onClick={() => openAddModal(category)}
+                                                disabled={isFull}
+                                                className={`w-full py-3 rounded-xl border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${
+                                                    isFull 
+                                                    ? 'border-slate-200 text-slate-400 cursor-not-allowed' 
+                                                    : `border-slate-300 text-slate-500 hover:bg-white hover:${styles.cardBorder} hover:text-slate-800`
+                                                }`}
+                                            >
+                                                {isFull ? (
+                                                    <span className="flex items-center gap-2"><Lock size={16}/> Category Full</span>
+                                                ) : (
+                                                    <span className="flex items-center gap-2">
+                                                        <Plus size={18}/> 
+                                                        {categoryDishes.length === 0 ? `Add the First ${category.name.replace(/s$/, '')}` : 'Bring Something Else'}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    
+                    {/* Floating Action Button for List View */}
+                    {viewMode === 'list' && (
+                         <div className="fixed bottom-6 right-6 z-40">
+                            <div className="relative group">
+                                <button 
+                                    className={`w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-white ${styles.accentBtn} transition-transform hover:scale-110`}
+                                    onClick={() => {
+                                        const firstOpenCat = event.categories.find(c => {
+                                            const limit = c.limit || 0;
+                                            const count = event.dishes.filter(d => d.categoryId === c.id).length;
+                                            return limit === 0 || count < limit;
+                                        });
+                                        if(firstOpenCat) openAddModal(firstOpenCat);
+                                    }}
+                                >
+                                    <Plus size={28} />
+                                </button>
+                            </div>
+                         </div>
+                    )}
+
+                    <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
+
+                    {/* ADD/EDIT DISH MODAL */}
+                    {showAddModal && selectedCategory && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
+                                <div className={`${styles.modalHeader} p-4 flex justify-between items-center text-white`}>
+                                    <h3 className="font-bold flex items-center gap-2">
+                                        <Utensils size={20}/> {editingDishId ? 'Edit Dish' : dishForm.fulfillmentId ? 'I\'ll Bring This!' : 'Bring a Dish'}
+                                    </h3>
+                                    <button onClick={() => setShowAddModal(false)}><X size={24}/></button>
+                                </div>
+                                
+                                <div className="p-6 space-y-4">
+                                    {dishForm.fulfillmentId && !editingDishId && (
+                                        <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm font-medium border border-yellow-200 flex items-center gap-2">
+                                            <Check size={16} /> You are signing up to bring: <strong>{dishForm.dish}</strong>
+                                        </div>
+                                    )}
+                                    
+                                    {viewMode === 'list' && !editingDishId && (
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+                                            <select 
+                                                value={selectedCategory.id}
+                                                onChange={e => {
+                                                    const cat = event.categories.find(c => c.id === e.target.value);
+                                                    if(cat) setSelectedCategory(cat);
+                                                }}
+                                                className="w-full p-3 border rounded-lg outline-none bg-slate-50"
+                                                disabled={!!dishForm.fulfillmentId}
+                                            >
+                                                {event.categories.map(c => {
+                                                    const limit = c.limit || 0;
+                                                    const currentCount = event.dishes.filter(d => d.categoryId === c.id).length;
+                                                    const isFull = limit > 0 && currentCount >= limit;
                                                     return (
-                                                        <div key={req.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${isTaken ? 'bg-slate-100 text-slate-400 border-slate-200 line-through decoration-slate-400' : 'bg-white border-yellow-200 text-slate-700 shadow-sm'}`}>
-                                                            <span>{req.name}</span>
-                                                            {isTaken ? (
-                                                                <span className="text-[10px] no-underline bg-slate-200 px-1.5 rounded text-slate-500">
-                                                                    {takenName}
-                                                                </span>
-                                                            ) : (
-                                                                <button 
-                                                                    onClick={() => openAddModal(category, req)}
-                                                                    className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded font-bold"
-                                                                >
-                                                                    Bring This
-                                                                </button>
-                                                            )}
-                                                        </div>
+                                                        <option key={c.id} value={c.id} disabled={isFull}>
+                                                            {c.name} {limit > 0 ? `(${currentCount}/${limit})` : ''}
+                                                        </option>
                                                     );
                                                 })}
-                                            </div>
+                                            </select>
                                         </div>
                                     )}
 
-                                    <div className="divide-y divide-slate-100">
-                                        {categoryDishes.map(dish => (
-                                            <div key={dish.id} className="p-4 flex items-start justify-between group hover:bg-slate-50 transition-colors">
-                                                <div>
-                                                    <div className="font-bold text-slate-800 text-lg flex items-center gap-2">
-                                                        {dish.dishName}
-                                                        {category.requestedItems?.some(r => r.takenByDishId === dish.id) && (
-                                                            <span title="Host Requested" className="flex items-center">
-                                                                <Sparkles size={14} className="text-yellow-500" />
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-sm text-slate-500 flex items-center gap-2 flex-wrap mt-1">
-                                                        <span className="font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full text-xs">by {getDisplayName(dish)}</span>
-                                                        {dish.dietary.map(dt => {
-                                                            const tag = DIETARY_OPTIONS.find(o => o.id === dt);
-                                                            return tag ? (
-                                                                <span key={dt} title={tag.label} className={`text-[10px] px-1.5 py-0.5 rounded border ${tag.color.replace('text-', 'border-').replace('100', '200')} bg-white`}>
-                                                                    {tag.icon} {tag.label}
-                                                                </span>
-                                                            ) : null;
-                                                        })}
-                                                    </div>
-                                                </div>
-                                                {(isAdmin || myDishKeys[dish.id]) && (
-                                                    <div className="flex gap-2">
-                                                        <button 
-                                                            onClick={() => openEditDishModal(dish)} 
-                                                            className={`text-slate-300 hover:text-blue-500 p-2 transition-colors ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                            disabled={isEditLocked && !isAdmin}
-                                                        >
-                                                            <Pencil size={18} />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleDeleteDish(dish.id)} 
-                                                            className={`text-slate-300 hover:text-red-500 p-2 transition-colors ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                            disabled={isEditLocked && !isAdmin}
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                        
-                                        {categoryDishes.length === 0 && (
-                                            <div className="p-6 text-center text-slate-400 italic text-sm">
-                                                No dishes yet. Be the first!
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* ADD BUTTON ALWAYS VISIBLE IN CARDS */}
-                                    <div className="p-3 bg-slate-50/50 border-t border-slate-100">
-                                        <button 
-                                            onClick={() => openAddModal(category)}
-                                            disabled={isFull}
-                                            className={`w-full py-3 rounded-xl border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${
-                                                isFull 
-                                                ? 'border-slate-200 text-slate-400 cursor-not-allowed' 
-                                                : `border-slate-300 text-slate-500 hover:bg-white hover:${styles.cardBorder} hover:text-slate-800`
-                                            }`}
-                                        >
-                                            {isFull ? <span className="flex items-center gap-2"><Lock size={16}/> Category Full</span> : <span className="flex items-center gap-2"><Plus size={18}/> Bring Something Else</span>}
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-                
-                {/* Floating Action Button for List View */}
-                {viewMode === 'list' && (
-                     <div className="fixed bottom-6 right-6 z-40">
-                        <div className="relative group">
-                            <button 
-                                className={`w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-white ${styles.accentBtn} transition-transform hover:scale-110`}
-                                onClick={() => {
-                                    const firstOpenCat = event.categories.find(c => {
-                                        const limit = c.limit || 0;
-                                        const count = event.dishes.filter(d => d.categoryId === c.id).length;
-                                        return limit === 0 || count < limit;
-                                    });
-                                    if(firstOpenCat) openAddModal(firstOpenCat);
-                                }}
-                            >
-                                <Plus size={28} />
-                            </button>
-                        </div>
-                     </div>
-                )}
-
-                <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
-
-                {/* ADD/EDIT DISH MODAL */}
-                {showAddModal && selectedCategory && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
-                            <div className={`${styles.modalHeader} p-4 flex justify-between items-center text-white`}>
-                                <h3 className="font-bold flex items-center gap-2">
-                                    <Utensils size={20}/> {editingDishId ? 'Edit Dish' : dishForm.fulfillmentId ? 'I\'ll Bring This!' : 'Bring a Dish'}
-                                </h3>
-                                <button onClick={() => setShowAddModal(false)}><X size={24}/></button>
-                            </div>
-                            
-                            <div className="p-6 space-y-4">
-                                {dishForm.fulfillmentId && !editingDishId && (
-                                    <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm font-medium border border-yellow-200 flex items-center gap-2">
-                                        <Check size={16} /> You are signing up to bring: <strong>{dishForm.dish}</strong>
-                                    </div>
-                                )}
-                                
-                                {viewMode === 'list' && !editingDishId && (
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
-                                        <select 
-                                            value={selectedCategory.id}
-                                            onChange={e => {
-                                                const cat = event.categories.find(c => c.id === e.target.value);
-                                                if(cat) setSelectedCategory(cat);
-                                            }}
-                                            className="w-full p-3 border rounded-lg outline-none bg-slate-50"
-                                            disabled={!!dishForm.fulfillmentId}
-                                        >
-                                            {event.categories.map(c => {
-                                                const limit = c.limit || 0;
-                                                const currentCount = event.dishes.filter(d => d.categoryId === c.id).length;
-                                                const isFull = limit > 0 && currentCount >= limit;
-                                                return (
-                                                    <option key={c.id} value={c.id} disabled={isFull}>
-                                                        {c.name} {limit > 0 ? `(${currentCount}/${limit})` : ''}
-                                                    </option>
-                                                );
-                                            })}
-                                        </select>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Your Name</label>
+                                        <input 
+                                            autoFocus
+                                            type="text" 
+                                            value={dishForm.name}
+                                            onChange={e => setDishForm({...dishForm, name: e.target.value})}
+                                            className="w-full p-3 border-2 border-slate-200 rounded-lg outline-none focus:border-orange-400 transition"
+                                            placeholder="e.g. Sarah"
+                                        />
                                     </div>
-                                )}
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Your Name</label>
-                                    <input 
-                                        autoFocus
-                                        type="text" 
-                                        value={dishForm.name}
-                                        onChange={e => setDishForm({...dishForm, name: e.target.value})}
-                                        className="w-full p-3 border-2 border-slate-200 rounded-lg outline-none focus:border-orange-400 transition"
-                                        placeholder="e.g. Sarah"
-                                    />
-                                </div>
-                                
-                                {!dishForm.fulfillmentId && (
+                                    
+                                    {!dishForm.fulfillmentId && (
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dish Name</label>
+                                            <div className="relative">
+                                                <input 
+                                                    type="text" 
+                                                    value={dishForm.dish}
+                                                    onChange={e => setDishForm({...dishForm, dish: e.target.value})}
+                                                    className="w-full p-3 border-2 border-slate-200 rounded-lg outline-none focus:border-orange-400 transition"
+                                                    placeholder="e.g. Deviled Eggs"
+                                                />
+                                                <button 
+                                                    onClick={() => setDishForm({...dishForm, dish: SUGGESTIONS[Math.floor(Math.random()*SUGGESTIONS.length)]})}
+                                                    className="absolute right-2 top-2 text-xs text-orange-500 font-bold bg-orange-50 px-2 py-1 rounded hover:bg-orange-100"
+                                                >
+                                                    Suggestion?
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dish Name</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text" 
-                                                value={dishForm.dish}
-                                                onChange={e => setDishForm({...dishForm, dish: e.target.value})}
-                                                className="w-full p-3 border-2 border-slate-200 rounded-lg outline-none focus:border-orange-400 transition"
-                                                placeholder="e.g. Deviled Eggs"
-                                            />
-                                            <button 
-                                                onClick={() => setDishForm({...dishForm, dish: SUGGESTIONS[Math.floor(Math.random()*SUGGESTIONS.length)]})}
-                                                className="absolute right-2 top-2 text-xs text-orange-500 font-bold bg-orange-50 px-2 py-1 rounded hover:bg-orange-100"
-                                            >
-                                                Suggestion?
-                                            </button>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Dietary Info (Optional)</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {DIETARY_OPTIONS.map(opt => (
+                                                <button
+                                                    key={opt.id}
+                                                    onClick={() => toggleDietary(opt.id)}
+                                                    className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${dishForm.dietary.includes(opt.id) ? opt.color + ' ring-2 ring-offset-1' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-white'}`}
+                                                >
+                                                    {opt.icon} {opt.label}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
-                                )}
-                                
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Dietary Info (Optional)</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {DIETARY_OPTIONS.map(opt => (
-                                            <button
-                                                key={opt.id}
-                                                onClick={() => toggleDietary(opt.id)}
-                                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${dishForm.dietary.includes(opt.id) ? opt.color + ' ring-2 ring-offset-1' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-white'}`}
-                                            >
-                                                {opt.icon} {opt.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
 
-                                <button 
-                                    onClick={handleSaveDish}
-                                    disabled={!dishForm.name || !dishForm.dish || isSubmitting}
-                                    className={`w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 ${styles.accentBtn} disabled:opacity-50`}
-                                >
-                                    {isSubmitting ? <Loader2 className="animate-spin"/> : editingDishId ? 'Save Changes' : 'Bring It!'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* SUCCESS MODAL */}
-                {showSuccessModal && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-                        <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
-                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-                                <Check size={32} strokeWidth={3} />
-                            </div>
-                            <h3 className="text-2xl font-black text-slate-800 mb-2">Dish Added!</h3>
-                            <p className="text-slate-500 mb-6">Thanks for signing up!</p>
-                            
-                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-6 text-left">
-                                <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2 flex items-center gap-1"><Lock size={12}/> Edit Link (Save This!)</p>
-                                <p className="text-xs text-blue-600 mb-3 leading-relaxed">
-                                    If you need to change your dish from another device, you'll need this private link.
-                                </p>
-                                <div className="flex gap-2">
-                                    <input type="text" readOnly value={lastAddedDishLink} className="flex-1 p-2 text-xs bg-white border border-blue-200 rounded text-slate-500 truncate" />
                                     <button 
-                                        onClick={() => copyLink(lastAddedDishLink)}
-                                        className={`px-3 py-1 text-xs font-bold rounded transition-colors ${isCopied ? 'bg-green-600 text-white' : 'bg-blue-200 text-blue-800 hover:bg-blue-300'}`}
+                                        onClick={handleSaveDish}
+                                        disabled={!dishForm.name || !dishForm.dish || isSubmitting}
+                                        className={`w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 ${styles.accentBtn} disabled:opacity-50`}
                                     >
-                                        {isCopied ? 'Copied!' : 'Copy'}
+                                        {isSubmitting ? <Loader2 className="animate-spin"/> : editingDishId ? 'Save Changes' : 'Bring It!'}
                                     </button>
                                 </div>
                             </div>
-
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center mb-6">
-                                <p className="text-xs text-slate-800 mb-2 font-bold uppercase">Pro Tip</p>
-                                <p className="text-xs text-slate-600 leading-relaxed">
-                                    If you ever return and see a blank page, try opening in Incognito mode or clearing your cache. Browsers sometimes hold onto old versions!
-                                </p>
-                            </div>
-
-                            <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800">
-                                Done
-                            </button>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* EDIT EVENT MODAL */}
-                {showEditEventModal && isAdmin && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-                        <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-                            <div className={`${styles.modalHeader} p-4 flex justify-between items-center text-white`}>
-                                <h3 className="font-bold">Edit Event Details</h3>
-                                <button onClick={() => setShowEditEventModal(false)}><X size={24}/></button>
-                            </div>
-                            <div className="p-6 overflow-y-auto flex-1 space-y-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Event Name</label>
-                                    <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 border rounded-lg"/>
+                    {/* SUCCESS MODAL */}
+                    {showSuccessModal && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
+                                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+                                    <Check size={32} strokeWidth={3} />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
-                                        <input type="date" value={editForm.date} onChange={e => setEditForm({...editForm, date: e.target.value})} className="w-full p-3 border rounded-lg"/>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Time</label>
-                                        <input type="text" value={editForm.time} onChange={e => setEditForm({...editForm, time: e.target.value})} className="w-full p-3 border rounded-lg"/>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
-                                    <input type="text" value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})} className="w-full p-3 border rounded-lg"/>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dietary Notes</label>
-                                    <input type="text" value={editForm.dietaryNotes} onChange={e => setEditForm({...editForm, dietaryNotes: e.target.value})} className="w-full p-3 border rounded-lg"/>
-                                </div>
+                                <h3 className="text-2xl font-black text-slate-800 mb-2">Dish Added!</h3>
+                                <p className="text-slate-500 mb-6">Thanks for signing up!</p>
                                 
-                                <div className="pt-4 border-t space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="font-bold text-sm">Allow Guest Editing</span>
-                                        <input type="checkbox" checked={editForm.allowGuestEditing} onChange={e => setEditForm({...editForm, allowGuestEditing: e.target.checked})} className="w-5 h-5"/>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="font-bold text-sm">Hide Guest Names (Privacy)</span>
-                                        <input type="checkbox" checked={editForm.hideNamesFromGuests} onChange={e => setEditForm({...editForm, hideNamesFromGuests: e.target.checked})} className="w-5 h-5"/>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Lock Editing Before Event</label>
-                                        <select value={editForm.editLockDays} onChange={e => setEditForm({...editForm, editLockDays: parseInt(e.target.value)})} className="w-full p-2 border rounded">
-                                            <option value={0}>Never Lock</option>
-                                            <option value={1}>1 Day Before</option>
-                                            <option value={2}>2 Days Before</option>
-                                        </select>
+                                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-6 text-left">
+                                    <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2 flex items-center gap-1"><Lock size={12}/> Edit Link (Save This!)</p>
+                                    <p className="text-xs text-blue-600 mb-3 leading-relaxed">
+                                        If you need to change your dish from another device, you'll need this private link.
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <input type="text" readOnly value={lastAddedDishLink} className="flex-1 p-2 text-xs bg-white border border-blue-200 rounded text-slate-500 truncate" />
+                                        <button 
+                                            onClick={() => copyLink(lastAddedDishLink)}
+                                            className={`px-3 py-1 text-xs font-bold rounded transition-colors ${isCopied ? 'bg-green-600 text-white' : 'bg-blue-200 text-blue-800 hover:bg-blue-300'}`}
+                                        >
+                                            {isCopied ? 'Copied!' : 'Copy'}
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="p-4 border-t bg-slate-50 flex justify-end gap-3">
-                                <button onClick={() => setShowEditEventModal(false)} className="px-4 py-2 text-slate-500 font-bold">Cancel</button>
-                                <button onClick={handleUpdateEvent} disabled={isSubmitting} className="px-6 py-2 bg-slate-900 text-white font-bold rounded-lg">{isSubmitting ? 'Saving...' : 'Save Changes'}</button>
+
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center mb-6">
+                                    <p className="text-xs text-slate-800 mb-2 font-bold uppercase">Pro Tip</p>
+                                    <p className="text-xs text-slate-600 leading-relaxed">
+                                        If you ever return and see a blank page, try opening in Incognito mode or clearing your cache. Browsers sometimes hold onto old versions!
+                                    </p>
+                                </div>
+
+                                <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800">
+                                    Done
+                                </button>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
+
+                    {/* EDIT EVENT MODAL */}
+                    {showEditEventModal && isAdmin && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                                <div className={`${styles.modalHeader} p-4 flex justify-between items-center text-white`}>
+                                    <h3 className="font-bold">Edit Event Details</h3>
+                                    <button onClick={() => setShowEditEventModal(false)}><X size={24}/></button>
+                                </div>
+                                <div className="p-6 overflow-y-auto flex-1 space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Event Name</label>
+                                        <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 border rounded-lg"/>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
+                                            <input type="date" value={editForm.date} onChange={e => setEditForm({...editForm, date: e.target.value})} className="w-full p-3 border rounded-lg"/>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Time</label>
+                                            <input type="text" value={editForm.time} onChange={e => setEditForm({...editForm, time: e.target.value})} className="w-full p-3 border rounded-lg"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
+                                        <input type="text" value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})} className="w-full p-3 border rounded-lg"/>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dietary Notes</label>
+                                        <input type="text" value={editForm.dietaryNotes} onChange={e => setEditForm({...editForm, dietaryNotes: e.target.value})} className="w-full p-3 border rounded-lg"/>
+                                    </div>
+                                    
+                                    <div className="pt-4 border-t space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-bold text-sm">Allow Guest Editing</span>
+                                            <input type="checkbox" checked={editForm.allowGuestEditing} onChange={e => setEditForm({...editForm, allowGuestEditing: e.target.checked})} className="w-5 h-5"/>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-bold text-sm">Hide Guest Names (Privacy)</span>
+                                            <input type="checkbox" checked={editForm.hideNamesFromGuests} onChange={e => setEditForm({...editForm, hideNamesFromGuests: e.target.checked})} className="w-5 h-5"/>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Lock Editing Before Event</label>
+                                            <select value={editForm.editLockDays} onChange={e => setEditForm({...editForm, editLockDays: parseInt(e.target.value)})} className="w-full p-2 border rounded">
+                                                <option value={0}>Never Lock</option>
+                                                <option value={1}>1 Day Before</option>
+                                                <option value={2}>2 Days Before</option>
+                                                <option value={3}>3 Days Before</option>
+                                                <option value={5}>5 Days Before</option>
+                                                <option value={7}>1 Week Before</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-4 border-t bg-slate-50 flex justify-end gap-3">
+                                    <button onClick={() => setShowEditEventModal(false)} className="px-4 py-2 text-slate-500 font-bold">Cancel</button>
+                                    <button onClick={handleUpdateEvent} disabled={isSubmitting} className="px-6 py-2 bg-slate-900 text-white font-bold rounded-lg">{isSubmitting ? 'Saving...' : 'Save Changes'}</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
