@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, Info, Flag, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer } from 'lucide-react';
+import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer, ExternalLink, Flag } from 'lucide-react';
 import { getPotluck, addDish, removeDish, updatePotluckEvent } from '../services/potluckService';
-import type { PotluckEvent, PotluckCategory, PotluckDish, PotluckTheme } from '../types';
+import type { PotluckEvent, PotluckCategory, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
 import { generatePotluckPdf } from '../services/pdfService';
 import AdBanner from './AdBanner';
@@ -28,18 +28,126 @@ const SUGGESTIONS = [
     "Pulled Pork Sliders", "Pasta Salad", "Veggie Tray", "Cookies", "Sangria"
 ];
 
-// Refined Themes - Using specific colors for dynamic UI elements
-const THEME_STYLES: Record<PotluckTheme, { bg: string, header: string, text: string, accent: string, accentText: string, card: string, pattern?: string, iconColor: string, modalGradient: string }> = {
-    classic: { bg: 'bg-[#fff7ed]', header: 'bg-orange-600', text: 'text-orange-900', accent: 'bg-orange-600', accentText: 'text-orange-600', card: 'border-orange-200', iconColor: 'text-orange-500', modalGradient: 'bg-gradient-to-r from-orange-600 to-amber-600' },
-    picnic: { bg: 'bg-[#f0fdf4]', header: 'bg-emerald-600', text: 'text-emerald-900', accent: 'bg-emerald-600', accentText: 'text-emerald-600', card: 'border-emerald-200', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/40px 40px', iconColor: 'text-emerald-500', modalGradient: 'bg-gradient-to-r from-emerald-500 to-green-600' },
-    corporate: { bg: 'bg-[#f8fafc]', header: 'bg-slate-700', text: 'text-slate-900', accent: 'bg-slate-600', accentText: 'text-slate-600', card: 'border-slate-200', iconColor: 'text-slate-500', modalGradient: 'bg-gradient-to-r from-slate-700 to-slate-900' },
-    fiesta: { bg: 'bg-[#fdf2f8]', header: 'bg-pink-600', text: 'text-pink-900', accent: 'bg-pink-600', accentText: 'text-pink-600', card: 'border-pink-200', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px', iconColor: 'text-pink-500', modalGradient: 'bg-gradient-to-r from-pink-500 to-rose-600' },
-    minimal: { bg: 'bg-[#fafafa]', header: 'bg-black', text: 'text-gray-900', accent: 'bg-black', accentText: 'text-black', card: 'border-gray-200', iconColor: 'text-gray-600', modalGradient: 'bg-gradient-to-r from-gray-800 to-black' },
-    thanksgiving: { bg: 'bg-[#fffbeb]', header: 'bg-amber-700', text: 'text-amber-900', accent: 'bg-amber-600', accentText: 'text-amber-600', card: 'border-amber-200', pattern: 'radial-gradient(circle, #fcd34d 1px, transparent 1px) 0 0/20px 20px', iconColor: 'text-amber-600', modalGradient: 'bg-gradient-to-r from-amber-600 to-orange-700' },
-    christmas: { bg: 'bg-[#fef2f2]', header: 'bg-red-700', text: 'text-red-900', accent: 'bg-red-600', accentText: 'text-red-600', card: 'border-red-200', pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fef2f2 10px, #fef2f2 20px)', iconColor: 'text-red-600', modalGradient: 'bg-gradient-to-r from-red-600 to-green-700' },
-    bbq: { bg: 'bg-red-50', header: 'bg-red-800', text: 'text-red-900', accent: 'bg-red-700', accentText: 'text-red-700', card: 'border-red-300', pattern: 'repeating-linear-gradient(0deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px)', iconColor: 'text-red-700', modalGradient: 'bg-gradient-to-r from-red-700 to-red-900' },
-    spooky: { bg: 'bg-slate-900', header: 'bg-purple-900', text: 'text-purple-100', accent: 'bg-orange-600', accentText: 'text-orange-500', card: 'border-purple-800 bg-slate-800', pattern: 'repeating-linear-gradient(45deg, #1e293b 0, #1e293b 10px, #0f172a 10px, #0f172a 20px)', iconColor: 'text-orange-500', modalGradient: 'bg-gradient-to-r from-purple-900 to-orange-700' },
-    baby: { bg: 'bg-sky-50', header: 'bg-sky-500', text: 'text-sky-900', accent: 'bg-sky-500', accentText: 'text-sky-600', card: 'border-sky-200', pattern: 'radial-gradient(#e0f2fe 15%, transparent 16%) 0 0/20px 20px', iconColor: 'text-sky-500', modalGradient: 'bg-gradient-to-r from-sky-400 to-blue-500' },
+// --- UPGRADED THEME ENGINE ---
+// Uses CSS background patterns for distinct looks
+const THEME_STYLES: Record<PotluckTheme, { 
+    bg: string, 
+    headerBg: string, 
+    headerText: string,
+    accentBtn: string,
+    cardBorder: string,
+    pattern: string,
+    iconColor: string,
+    modalHeader: string
+}> = {
+    classic: { 
+        bg: 'bg-orange-50', 
+        headerBg: 'bg-gradient-to-r from-orange-600 to-amber-600', 
+        headerText: 'text-orange-900', 
+        accentBtn: 'bg-orange-600 hover:bg-orange-700', 
+        cardBorder: 'border-orange-200', 
+        pattern: 'radial-gradient(#fed7aa 1px, transparent 1px) 0 0/20px 20px', // Simple dots
+        iconColor: 'text-orange-500', 
+        modalHeader: 'bg-gradient-to-r from-orange-600 to-amber-600' 
+    },
+    picnic: { 
+        bg: 'bg-emerald-50', 
+        headerBg: 'bg-gradient-to-r from-emerald-600 to-green-600', 
+        headerText: 'text-emerald-900', 
+        accentBtn: 'bg-emerald-600 hover:bg-emerald-700', 
+        cardBorder: 'border-emerald-200', 
+        // Green Gingham
+        pattern: 'repeating-linear-gradient(0deg, transparent, transparent 19px, #a7f3d0 19px, #a7f3d0 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #a7f3d0 19px, #a7f3d0 20px)', 
+        iconColor: 'text-emerald-500', 
+        modalHeader: 'bg-gradient-to-r from-emerald-500 to-green-600' 
+    },
+    corporate: { 
+        bg: 'bg-slate-100', 
+        headerBg: 'bg-gradient-to-r from-slate-700 to-slate-900', 
+        headerText: 'text-slate-900', 
+        accentBtn: 'bg-slate-700 hover:bg-slate-800', 
+        cardBorder: 'border-slate-200', 
+        // Subtle Grid
+        pattern: 'linear-gradient(#e2e8f0 1px, transparent 1px) 0 0/40px 40px, linear-gradient(90deg, #e2e8f0 1px, transparent 1px) 0 0/40px 40px',
+        iconColor: 'text-slate-500', 
+        modalHeader: 'bg-gradient-to-r from-slate-700 to-slate-900' 
+    },
+    fiesta: { 
+        bg: 'bg-pink-50', 
+        headerBg: 'bg-gradient-to-r from-pink-500 to-rose-600', 
+        headerText: 'text-pink-900', 
+        accentBtn: 'bg-pink-600 hover:bg-pink-700', 
+        cardBorder: 'border-pink-200', 
+        // Zig Zag
+        pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px', 
+        iconColor: 'text-pink-500', 
+        modalHeader: 'bg-gradient-to-r from-pink-500 to-rose-600' 
+    },
+    minimal: { 
+        bg: 'bg-gray-50', 
+        headerBg: 'bg-black', 
+        headerText: 'text-gray-900', 
+        accentBtn: 'bg-black hover:bg-gray-800', 
+        cardBorder: 'border-gray-200', 
+        pattern: '', // Plain
+        iconColor: 'text-gray-600', 
+        modalHeader: 'bg-black' 
+    },
+    thanksgiving: { 
+        bg: 'bg-amber-50', 
+        headerBg: 'bg-gradient-to-r from-amber-700 to-orange-800', 
+        headerText: 'text-amber-900', 
+        accentBtn: 'bg-amber-700 hover:bg-amber-800', 
+        cardBorder: 'border-amber-200', 
+        // Dotted Fall
+        pattern: 'radial-gradient(#fbbf24 1.5px, transparent 1.5px) 0 0/24px 24px', 
+        iconColor: 'text-amber-700', 
+        modalHeader: 'bg-gradient-to-r from-amber-600 to-orange-700' 
+    },
+    christmas: { 
+        bg: 'bg-red-50', 
+        headerBg: 'bg-gradient-to-r from-red-700 to-green-700', 
+        headerText: 'text-red-900', 
+        accentBtn: 'bg-red-700 hover:bg-red-800', 
+        cardBorder: 'border-red-200', 
+        // Candy Cane Stripes
+        pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fecaca 10px, #fecaca 20px)', 
+        iconColor: 'text-red-600', 
+        modalHeader: 'bg-gradient-to-r from-red-600 to-green-700' 
+    },
+    bbq: { 
+        bg: 'bg-red-50', 
+        headerBg: 'bg-gradient-to-r from-red-700 to-red-900', 
+        headerText: 'text-red-900', 
+        accentBtn: 'bg-red-700 hover:bg-red-800', 
+        cardBorder: 'border-red-300', 
+        // Red Gingham
+        pattern: 'repeating-linear-gradient(0deg, transparent, transparent 19px, #fca5a5 19px, #fca5a5 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #fca5a5 19px, #fca5a5 20px)', 
+        iconColor: 'text-red-700', 
+        modalHeader: 'bg-gradient-to-r from-red-700 to-red-900' 
+    },
+    spooky: { 
+        bg: 'bg-slate-900', 
+        headerBg: 'bg-gradient-to-r from-purple-900 to-orange-700', 
+        headerText: 'text-purple-100', 
+        accentBtn: 'bg-orange-600 hover:bg-orange-700', 
+        cardBorder: 'border-purple-900 bg-slate-800 text-white', 
+        // Dark Stripes
+        pattern: 'repeating-linear-gradient(45deg, #1e293b 0, #1e293b 10px, #0f172a 10px, #0f172a 20px)', 
+        iconColor: 'text-orange-500', 
+        modalHeader: 'bg-gradient-to-r from-purple-900 to-orange-700' 
+    },
+    baby: { 
+        bg: 'bg-sky-50', 
+        headerBg: 'bg-gradient-to-r from-sky-400 to-blue-500', 
+        headerText: 'text-sky-900', 
+        accentBtn: 'bg-sky-500 hover:bg-sky-600', 
+        cardBorder: 'border-sky-200', 
+        // Polka Dots
+        pattern: 'radial-gradient(#bfdbfe 2px, transparent 2px) 0 0/30px 30px', 
+        iconColor: 'text-sky-500', 
+        modalHeader: 'bg-gradient-to-r from-sky-400 to-blue-500' 
+    },
 };
 
 const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey }) => {
@@ -129,21 +237,16 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 }
             };
             calculateTime();
-            const timer = setInterval(calculateTime, 60000); // Update every minute is enough for days
+            const timer = setInterval(calculateTime, 60000); 
             return () => clearInterval(timer);
         }
     }, [event]);
 
-    // Helper to parse "6:00 PM" to "18:00"
     const convertTime12to24 = (time12h: string) => {
         const [time, modifier] = time12h.split(' ');
         let [hours, minutes] = time.split(':');
-        if (hours === '12') {
-            hours = '00';
-        }
-        if (modifier === 'PM') {
-            hours = (parseInt(hours, 10) + 12).toString();
-        }
+        if (hours === '12') hours = '00';
+        if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
         return `${hours}:${minutes}`;
     };
 
@@ -191,7 +294,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const isEditLocked = useMemo(() => {
         if (!event || !event.date) return false;
         if (!event.allowGuestEditing && !adminKey) return true;
-        if (adminKey) return false; // Admins always bypass lock
+        if (adminKey) return false; 
         
         const daysLock = event.editLockDays || 0;
         if (daysLock === 0) return false;
@@ -206,7 +309,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const handleDeleteDish = async (dishId: string) => {
         const editKey = myDishKeys[dishId];
         
-        // Lock check for guests
         if (!adminKey && isEditLocked) {
             alert("Editing is now locked for this event. Please contact the host.");
             return;
@@ -344,15 +446,37 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const isAdmin = !!adminKey;
     const styles = THEME_STYLES[event.theme || 'classic'] || THEME_STYLES.classic;
     const shareLink = window.location.href.split('#')[0] + `#id=${publicId}`;
+    const organizerLink = window.location.href; // Since we are in the admin view, the current URL has the key
 
     return (
         <div 
             className={`min-h-screen pb-24 ${styles.bg}`}
             style={{ 
                 backgroundImage: styles.pattern,
-                backgroundBlendMode: 'multiply'
+                backgroundSize: '40px 40px' // Ensure pattern repeats nicely
             }}
         >
+            {/* ADMIN TOOLBAR - Persistent Top Bar */}
+            {isAdmin && (
+                <div className="bg-slate-900 text-white p-3 sticky top-0 z-50 shadow-md">
+                    <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
+                        <div className="flex items-center gap-2">
+                            <span className="bg-yellow-400 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded">ADMIN</span>
+                            <span className="font-medium">You are the Organizer.</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="hidden sm:inline text-slate-400 text-xs">Save this page to edit later.</span>
+                            <button 
+                                onClick={() => copyLink(organizerLink)}
+                                className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-xs font-bold"
+                            >
+                                <Lock size={12}/> {isCopied ? 'Link Saved!' : 'Copy Admin Link'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-4xl mx-auto p-4 md:p-8 relative z-10">
                 
                 {toastMsg && (
@@ -362,8 +486,8 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 )}
 
                 {/* --- HEADER CARD --- */}
-                <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-8 border ${styles.card}`}>
-                    <div className={`${styles.header} p-8 text-center text-white relative group`}>
+                <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-8 border ${styles.cardBorder}`}>
+                    <div className={`${styles.headerBg} p-8 text-center text-white relative group`}>
                         {isAdmin && (
                             <button 
                                 onClick={openEditModal} 
@@ -380,12 +504,8 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             </div>
                         )}
                         
-                        <h1 className="text-3xl md:text-5xl font-black font-serif mb-2">{event.title}</h1>
-                        {isAdmin && (
-                            <div className="inline-block bg-white/20 border border-white/40 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
-                                Organizer Dashboard
-                            </div>
-                        )}
+                        <h1 className="text-3xl md:text-5xl font-black font-serif mb-2 drop-shadow-sm">{event.title}</h1>
+                        
                         <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-white/90 font-medium">
                             <span className="flex items-center gap-1.5"><Calendar size={18}/> {new Date(event.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
                             {event.time && <span className="flex items-center gap-1.5"><Clock size={18}/> {event.time}</span>}
@@ -420,13 +540,8 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                         </div>
                     </div>
                     {event.description && (
-                        <div className={`p-6 ${styles.bg} ${styles.text} text-center border-b ${styles.card} italic relative group`}>
+                        <div className={`p-6 ${styles.bg} ${styles.headerText} text-center border-b ${styles.cardBorder} italic relative group`}>
                             "{event.description}"
-                            {isAdmin && (
-                                <button onClick={openEditModal} className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Edit2 size={14} />
-                                </button>
-                            )}
                         </div>
                     )}
                 </div>
@@ -435,31 +550,30 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 {isAdmin && (
                     <div className="mb-10 space-y-6">
                         
-                        {/* SHARE CARD */}
-                        <div className={`bg-white p-6 rounded-2xl shadow-lg border ${styles.card} flex flex-col md:flex-row items-center gap-6`}>
-                            <div className={`flex-shrink-0 p-4 rounded-full text-white ${styles.accent}`}>
+                        {/* INVITE GUESTS CARD (Primary Action) */}
+                        <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-slate-100 flex flex-col md:flex-row items-center gap-6 transform hover:-translate-y-1 transition-transform duration-300">
+                            <div className={`flex-shrink-0 p-5 rounded-full text-white shadow-lg ${styles.headerBg}`}>
                                 <Share2 size={32} />
                             </div>
                             <div className="flex-1 text-center md:text-left">
                                 <h3 className="text-xl font-bold text-slate-800">Invite Your Guests</h3>
-                                <p className="text-slate-600 text-sm mt-1">Share this link so guests can sign up. (Don't worry, they can't delete other people's dishes!)</p>
+                                <p className="text-slate-600 text-sm mt-1">Send this public link to your friends so they can sign up!</p>
                             </div>
                             <button 
                                 onClick={() => copyLink(shareLink)} 
-                                className={`px-8 py-4 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 ${isCopied ? 'bg-green-600' : `${styles.accent} hover:opacity-90`}`}
+                                className={`px-8 py-4 rounded-xl font-bold text-white shadow-md transition-all active:scale-95 flex items-center gap-2 ${isCopied ? 'bg-green-600' : `${styles.accentBtn}`}`}
                             >
-                                {isCopied ? <Check size={20}/> : <Copy size={20}/>}
+                                {isCopied ? <Check size={20}/> : <LinkIcon size={20}/>}
                                 {isCopied ? 'Link Copied!' : 'Copy Guest Link'}
                             </button>
                         </div>
 
-                        {/* MASTER LIST HEADER */}
-                        <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4">
+                        {/* MASTER LIST CONTROLS */}
+                        <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4 mt-8">
                             <div>
-                                <h3 className={`font-black text-2xl flex items-center gap-2 font-serif ${styles.text}`}>
+                                <h3 className={`font-black text-2xl flex items-center gap-2 font-serif text-slate-800`}>
                                     <ChefHat className={styles.iconColor} size={28}/> Master Dish List
                                 </h3>
-                                <p className="text-sm text-slate-500 mt-1">Manage all contributions in one place.</p>
                             </div>
                             
                             <div className="flex items-center gap-3">
@@ -513,7 +627,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                         {isAdminView && viewMode === 'list' && (
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                 <table className="w-full text-sm text-left">
-                                    <thead className={`${styles.header} text-white font-bold uppercase text-xs`}>
+                                    <thead className={`${styles.headerBg} text-white font-bold uppercase text-xs`}>
                                         <tr>
                                             <th className="p-4">Dish</th>
                                             <th className="p-4">Guest</th>
@@ -565,9 +679,10 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             const isFull = category.limit ? categoryDishes.length >= category.limit : false;
                             
                             return (
-                                <div key={category.id} className={`bg-white rounded-2xl shadow-sm border ${styles.card} overflow-hidden`}>
-                                    <div className={`p-4 border-b ${styles.card} ${styles.bg} bg-opacity-30 flex justify-between items-center`}>
-                                        <h3 className={`font-bold text-xl font-serif ${styles.text}`}>{category.name}</h3>
+                                <div key={category.id} className={`bg-white rounded-2xl shadow-sm border ${styles.cardBorder} overflow-hidden`}>
+                                    {/* Category Header */}
+                                    <div className={`p-4 border-b ${styles.cardBorder} ${styles.bg} flex justify-between items-center`}>
+                                        <h3 className={`font-bold text-xl font-serif ${styles.headerText}`}>{category.name}</h3>
                                         {category.limit ? (
                                             <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                                                 {categoryDishes.length} / {category.limit} Filled
@@ -659,7 +774,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                                 className={`w-full py-3 rounded-xl border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${
                                                     isFull 
                                                     ? 'border-slate-200 text-slate-400 cursor-not-allowed' 
-                                                    : `border-slate-300 text-slate-500 hover:bg-white hover:border-${styles.accent.replace('bg-', '')} hover:text-slate-800`
+                                                    : `border-slate-300 text-slate-500 hover:bg-white hover:${styles.cardBorder} hover:text-slate-800`
                                                 }`}
                                             >
                                                 {isFull ? <span className="flex items-center gap-2"><Lock size={16}/> Category Full</span> : <span className="flex items-center gap-2"><Plus size={18}/> Bring Something Else</span>}
@@ -676,7 +791,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 {showAddModal && selectedCategory && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
-                            <div className={`${styles.modalGradient} p-4 flex justify-between items-center text-white`}>
+                            <div className={`${styles.modalHeader} p-4 flex justify-between items-center text-white`}>
                                 <h3 className="font-bold flex items-center gap-2"><Utensils size={20}/> {dishForm.fulfillmentId ? 'I\'ll Bring This!' : 'Bring a Dish'}</h3>
                                 <button onClick={() => setShowAddModal(false)}><X size={24}/></button>
                             </div>
@@ -741,7 +856,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                 <button 
                                     onClick={handleAddDish}
                                     disabled={isSubmitting || !dishForm.name || !dishForm.dish}
-                                    className={`w-full ${styles.accent} hover:opacity-90 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none`}
+                                    className={`w-full ${styles.accentBtn} text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none`}
                                 >
                                     {isSubmitting ? <Loader2 className="animate-spin"/> : <Check />} Confirm
                                 </button>
@@ -789,7 +904,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 {showEditEventModal && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
-                            <div className={`${styles.modalGradient} p-4 flex justify-between items-center text-white`}>
+                            <div className={`${styles.modalHeader} p-4 flex justify-between items-center text-white`}>
                                 <h3 className="font-bold flex items-center gap-2"><Edit2 size={20}/> Edit Event Details</h3>
                                 <button onClick={() => setShowEditEventModal(false)}><X size={24}/></button>
                             </div>
@@ -846,7 +961,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                 <button 
                                     onClick={handleUpdateEvent}
                                     disabled={isSubmitting}
-                                    className={`w-full ${styles.accent} text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2`}
+                                    className={`w-full ${styles.accentBtn} text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2`}
                                 >
                                     {isSubmitting ? <Loader2 className="animate-spin" /> : <Save size={18} />} Save Changes
                                 </button>
