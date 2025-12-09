@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, ChefHat, Plus, Trash2, ArrowRight, Loader2, List, Settings, Palette, PlusCircle, X, MapPin, Clock, HelpCircle, AlertCircle, Minus, Infinity } from 'lucide-react';
+import { Calendar, ChefHat, Plus, Trash2, ArrowRight, Loader2, List, Settings, Palette, PlusCircle, X, MapPin, Clock, HelpCircle, AlertCircle, Minus, Infinity, Lock, Unlock } from 'lucide-react';
 import { createPotluck } from '../services/potluckService';
 import type { PotluckCategory, PotluckItemRequest, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -22,6 +22,9 @@ const THEMES: { id: PotluckTheme; name: string; color: string; border: string; b
     { id: 'corporate', name: 'Corporate/Office', color: 'text-slate-900', border: 'border-slate-500', bg: 'bg-slate-50' },
     { id: 'fiesta', name: 'Fiesta Party', color: 'text-pink-900', border: 'border-pink-500', bg: 'bg-pink-50', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px' },
     { id: 'minimal', name: 'Modern Minimal', color: 'text-gray-900', border: 'border-gray-800', bg: 'bg-white' },
+    { id: 'bbq', name: 'BBQ / Cookout', color: 'text-red-800', border: 'border-red-700', bg: 'bg-red-50', pattern: 'repeating-linear-gradient(0deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px)' }, // Gingham
+    { id: 'spooky', name: 'Spooky / Halloween', color: 'text-purple-900', border: 'border-purple-800', bg: 'bg-slate-100', pattern: 'repeating-linear-gradient(45deg, #e2e8f0 0, #e2e8f0 10px, #f1f5f9 10px, #f1f5f9 20px)' },
+    { id: 'baby', name: 'Baby Shower', color: 'text-sky-700', border: 'border-sky-400', bg: 'bg-sky-50', pattern: 'radial-gradient(#e0f2fe 15%, transparent 16%) 0 0/20px 20px' },
 ];
 
 const CARD_COLORS = [
@@ -38,6 +41,7 @@ const CARD_COLORS = [
 const PotluckCreate: React.FC = () => {
     const [step, setStep] = useState(1);
     const [isCreating, setIsCreating] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         title: '',
         hostName: '',
@@ -47,36 +51,36 @@ const PotluckCreate: React.FC = () => {
         description: '',
         dietaryNotes: '',
         theme: 'classic' as PotluckTheme,
-        categories: DEFAULT_CATEGORIES
+        categories: DEFAULT_CATEGORIES,
+        allowGuestEditing: true,
+        editLockDays: 1
     });
 
     const [newItemText, setNewItemText] = useState<{ [key: string]: string }>({});
 
-    // Apply body background class when theme changes to ensure full coverage
-    useEffect(() => {
-        const activeTheme = THEMES.find(t => t.id === formData.theme) || THEMES[0];
-        // Note: In a real app we might use a context or a layout wrapper, but here we'll just style the main container
-    }, [formData.theme]);
-
     const handleCreate = async () => {
-        if (!formData.title || !formData.date || !formData.hostName) {
-            alert("Please fill in all required fields (Event Name, Host Name, Date).");
-            setStep(1);
-            return;
-        }
         setIsCreating(true);
         try {
             const result = await createPotluck(formData);
             trackEvent('potluck_created', { 
                 category_count: formData.categories.length,
-                theme: formData.theme
+                theme: formData.theme,
+                guest_editing: formData.allowGuestEditing
             });
             window.location.hash = `id=${result.publicId}&admin=${result.adminKey}`;
         } catch (error) {
             console.error(error);
-            alert("Failed to create event. Please try again.");
+            setError("Failed to create event. Please try again.");
             setIsCreating(false);
         }
+    };
+
+    const validateStep1 = () => {
+        if (!formData.title.trim()) { setError("Please enter an Event Name."); return false; }
+        if (!formData.hostName.trim()) { setError("Please enter a Host Name."); return false; }
+        if (!formData.date) { setError("Please select a Date."); return false; }
+        setError(null);
+        return true;
     };
 
     const updateCategory = (index: number, field: keyof PotluckCategory, value: string | number) => {
@@ -124,25 +128,18 @@ const PotluckCreate: React.FC = () => {
 
     const activeTheme = THEMES.find(t => t.id === formData.theme) || THEMES[0];
 
-    // Helper for tabs
-    const TabButton = ({ num, label }: { num: number, label: string }) => (
-        <button
-            onClick={() => setStep(num)}
-            className={`flex-1 py-4 text-center text-sm font-bold transition-all relative ${
-                step === num 
-                ? 'text-slate-900 bg-white' 
-                : 'text-slate-500 bg-slate-50 hover:bg-slate-100'
-            }`}
-        >
+    // Helper for tabs - Now non-interactive buttons
+    const TabIndicator = ({ num, label }: { num: number, label: string }) => (
+        <div className={`flex-1 py-4 text-center text-sm font-bold relative transition-colors ${step === num ? 'text-slate-900 bg-white' : 'text-slate-400 bg-slate-50'}`}>
             <span className={`mr-2 inline-flex items-center justify-center w-6 h-6 rounded-full text-xs ${step === num ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-500'}`}>{num}</span>
             {label}
             {step === num && <div className="absolute bottom-0 left-0 w-full h-1 bg-red-500"></div>}
-        </button>
+        </div>
     );
 
     return (
         <div 
-            className={`min-h-screen -mt-20 pt-20 ${activeTheme.bg}`} // extend background to cover header area roughly
+            className={`min-h-screen -mt-20 pt-20 ${activeTheme.bg}`}
             style={{ 
                 backgroundImage: activeTheme.pattern ? activeTheme.pattern : undefined,
                 backgroundBlendMode: 'multiply' 
@@ -150,25 +147,31 @@ const PotluckCreate: React.FC = () => {
         >
             <div className="max-w-4xl mx-auto p-4 md:p-8">
                 <div className="text-center mb-8 relative z-10">
-                    <h1 className={`text-4xl md:text-6xl font-black font-serif mb-3 ${activeTheme.color} drop-shadow-sm`}>
+                    <h1 className={`text-4xl md:text-6xl font-black font-serif mb-3 ${activeTheme.color} drop-shadow-sm bg-white/60 backdrop-blur-sm rounded-xl py-2 px-6 inline-block`}>
                         Potluck Planner
                     </h1>
-                    <p className={`${activeTheme.color} text-lg opacity-90 font-medium`}>
+                    <p className={`${activeTheme.color} text-lg opacity-90 font-medium bg-white/60 backdrop-blur-sm rounded-lg py-1 px-4 inline-block mt-2`}>
                         Create a beautiful, free sign-up sheet for your feast.
                     </p>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 relative z-10">
                     
-                    {/* CLEAN TABS */}
+                    {/* TABS (Visual Only) */}
                     <div className="flex border-b border-slate-200">
-                        <TabButton num={1} label="Details" />
-                        <TabButton num={2} label="Theme" />
-                        <TabButton num={3} label="Menu" />
+                        <TabIndicator num={1} label="Details" />
+                        <TabIndicator num={2} label="Theme & Settings" />
+                        <TabIndicator num={3} label="Menu" />
                     </div>
 
                     <div className="p-6 md:p-10 min-h-[400px]">
                         
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-50 text-red-700 border-l-4 border-red-500 rounded flex items-center gap-2">
+                                <AlertCircle size={20} /> {error}
+                            </div>
+                        )}
+
                         {/* STEP 1: DETAILS */}
                         {step === 1 && (
                             <div className="space-y-6 animate-fade-in">
@@ -198,6 +201,7 @@ const PotluckCreate: React.FC = () => {
                                         <label className="block text-sm font-bold text-slate-500 uppercase mb-1">Date *</label>
                                         <input 
                                             type="date" 
+                                            min={new Date().toISOString().split('T')[0]}
                                             className="w-full p-3 border-2 border-slate-200 rounded-xl outline-none transition focus:border-slate-400"
                                             value={formData.date}
                                             onChange={e => setFormData({...formData, date: e.target.value})}
@@ -246,7 +250,7 @@ const PotluckCreate: React.FC = () => {
                                 
                                 <div className="flex justify-end pt-4">
                                     <button 
-                                        onClick={() => setStep(2)}
+                                        onClick={() => validateStep1() && setStep(2)}
                                         className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
                                     >
                                         Next Step <ArrowRight size={18} />
@@ -255,7 +259,7 @@ const PotluckCreate: React.FC = () => {
                             </div>
                         )}
 
-                        {/* STEP 2: CUSTOMIZATION */}
+                        {/* STEP 2: THEME & SETTINGS */}
                         {step === 2 && (
                             <div className="space-y-8 animate-fade-in">
                                 <div>
@@ -267,9 +271,8 @@ const PotluckCreate: React.FC = () => {
                                             <button
                                                 key={theme.id}
                                                 onClick={() => setFormData({...formData, theme: theme.id})}
-                                                className={`relative overflow-hidden p-1 rounded-xl transition-all text-left group h-24 flex flex-col ${formData.theme === theme.id ? 'ring-2 ring-offset-2 ring-red-500' : 'hover:opacity-90'}`}
+                                                className={`relative overflow-hidden p-1 rounded-xl transition-all text-left group h-24 flex flex-col ${formData.theme === theme.id ? 'ring-2 ring-offset-2 ring-red-500 shadow-md' : 'hover:opacity-90 hover:shadow-sm'}`}
                                             >
-                                                {/* Theme Preview Box */}
                                                 <div 
                                                     className={`absolute inset-0 ${theme.bg}`} 
                                                     style={{ 
@@ -289,9 +292,6 @@ const PotluckCreate: React.FC = () => {
                                     <label className="block text-lg font-bold text-slate-700 mb-2 flex items-center gap-2">
                                         <AlertCircle size={20} className="text-amber-500" /> Dietary Restrictions & Notes
                                     </label>
-                                    <p className="text-sm text-slate-500 mb-3">
-                                        Any global rules? (e.g. "Nut-Free Facility", "Vegetarian Only")
-                                    </p>
                                     <input 
                                         type="text" 
                                         className="w-full p-4 border-2 border-slate-200 rounded-xl outline-none transition focus:border-slate-400 bg-white"
@@ -299,6 +299,58 @@ const PotluckCreate: React.FC = () => {
                                         value={formData.dietaryNotes}
                                         onChange={e => setFormData({...formData, dietaryNotes: e.target.value})}
                                     />
+                                </div>
+                                
+                                <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
+                                    <h3 className="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                        <Settings size={20} /> Guest Controls
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="font-bold text-sm text-slate-700">Allow Guest Editing</div>
+                                                <div className="text-xs text-slate-500">Guests can delete/edit their own dishes after adding.</div>
+                                            </div>
+                                            <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                                <input 
+                                                    type="checkbox" 
+                                                    name="toggle" 
+                                                    id="toggle" 
+                                                    checked={formData.allowGuestEditing}
+                                                    onChange={(e) => setFormData({...formData, allowGuestEditing: e.target.checked})}
+                                                    className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                                                />
+                                                <label htmlFor="toggle" className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${formData.allowGuestEditing ? 'bg-green-500' : 'bg-gray-300'}`}></label>
+                                            </div>
+                                        </div>
+                                        
+                                        {formData.allowGuestEditing && (
+                                            <div className="pt-2 border-t border-slate-200">
+                                                <label className="block text-sm font-bold text-slate-700 mb-1">
+                                                    Lock editing before event?
+                                                </label>
+                                                <div className="flex items-center gap-3">
+                                                    <select 
+                                                        value={formData.editLockDays} 
+                                                        onChange={(e) => setFormData({...formData, editLockDays: parseInt(e.target.value)})}
+                                                        className="p-2 border border-slate-300 rounded-lg text-sm bg-white"
+                                                    >
+                                                        <option value={0}>Never lock (Always editable)</option>
+                                                        <option value={1}>1 day before event</option>
+                                                        <option value={2}>2 days before event</option>
+                                                        <option value={7}>1 week before event</option>
+                                                    </select>
+                                                    <span className="text-xs text-slate-500">
+                                                        {formData.editLockDays === 0 ? <Unlock size={14}/> : <Lock size={14}/>}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <style>{`
+                                        .toggle-checkbox:checked { right: 0; border-color: #22c55e; }
+                                        .toggle-checkbox { right: auto; left: 0; border-color: #d1d5db; transition: all 0.3s; }
+                                    `}</style>
                                 </div>
 
                                 <div className="flex justify-between pt-4">

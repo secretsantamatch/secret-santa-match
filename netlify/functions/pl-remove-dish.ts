@@ -28,6 +28,29 @@ export default async (req: Request, context: Context) => {
             return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403 });
         }
 
+        // --- NEW: Edit Lock Logic for Non-Admins ---
+        if (!isAdmin) {
+            // Check if editing is disabled entirely
+            if (event.allowGuestEditing === false) {
+                return new Response(JSON.stringify({ error: 'Guest editing is disabled by host.' }), { status: 403 });
+            }
+
+            // Check if within lock window
+            if (event.editLockDays && event.editLockDays > 0 && event.date) {
+                const eventDate = new Date(event.date); // e.g. "2023-12-25" (UTC midnight)
+                // Normalize date to prevent timezone confusion (simplified comparison)
+                const now = new Date();
+                
+                // Calculate lock threshold date
+                const lockDate = new Date(eventDate);
+                lockDate.setDate(eventDate.getDate() - event.editLockDays);
+                
+                if (now > lockDate) {
+                    return new Response(JSON.stringify({ error: 'Editing is Locked: Too close to event date.' }), { status: 403 });
+                }
+            }
+        }
+
         // Remove the dish
         event.dishes = event.dishes.filter((d: any) => d.id !== dishId);
         

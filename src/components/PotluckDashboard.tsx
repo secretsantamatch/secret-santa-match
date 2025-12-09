@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, Info, Flag, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, Info, Flag, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer } from 'lucide-react';
 import { getPotluck, addDish, removeDish, updatePotluckEvent } from '../services/potluckService';
 import type { PotluckEvent, PotluckCategory, PotluckDish, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -29,14 +29,17 @@ const SUGGESTIONS = [
 ];
 
 // Refined Themes - Using specific colors for dynamic UI elements
-const THEME_STYLES: Record<PotluckTheme, { bg: string, header: string, text: string, accent: string, accentText: string, card: string, pattern?: string, iconColor: string }> = {
-    classic: { bg: 'bg-[#fff7ed]', header: 'bg-orange-600', text: 'text-orange-900', accent: 'bg-orange-600', accentText: 'text-orange-600', card: 'border-orange-200', iconColor: 'text-orange-500' },
-    picnic: { bg: 'bg-[#f0fdf4]', header: 'bg-emerald-600', text: 'text-emerald-900', accent: 'bg-emerald-600', accentText: 'text-emerald-600', card: 'border-emerald-200', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/40px 40px', iconColor: 'text-emerald-500' },
-    corporate: { bg: 'bg-[#f8fafc]', header: 'bg-slate-700', text: 'text-slate-900', accent: 'bg-slate-600', accentText: 'text-slate-600', card: 'border-slate-200', iconColor: 'text-slate-500' },
-    fiesta: { bg: 'bg-[#fdf2f8]', header: 'bg-pink-600', text: 'text-pink-900', accent: 'bg-pink-600', accentText: 'text-pink-600', card: 'border-pink-200', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px', iconColor: 'text-pink-500' },
-    minimal: { bg: 'bg-[#fafafa]', header: 'bg-black', text: 'text-gray-900', accent: 'bg-black', accentText: 'text-black', card: 'border-gray-200', iconColor: 'text-gray-600' },
-    thanksgiving: { bg: 'bg-[#fffbeb]', header: 'bg-amber-700', text: 'text-amber-900', accent: 'bg-amber-600', accentText: 'text-amber-600', card: 'border-amber-200', pattern: 'radial-gradient(circle, #fcd34d 1px, transparent 1px) 0 0/20px 20px', iconColor: 'text-amber-600' },
-    christmas: { bg: 'bg-[#fef2f2]', header: 'bg-red-700', text: 'text-red-900', accent: 'bg-red-600', accentText: 'text-red-600', card: 'border-red-200', pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fef2f2 10px, #fef2f2 20px)', iconColor: 'text-red-600' },
+const THEME_STYLES: Record<PotluckTheme, { bg: string, header: string, text: string, accent: string, accentText: string, card: string, pattern?: string, iconColor: string, modalGradient: string }> = {
+    classic: { bg: 'bg-[#fff7ed]', header: 'bg-orange-600', text: 'text-orange-900', accent: 'bg-orange-600', accentText: 'text-orange-600', card: 'border-orange-200', iconColor: 'text-orange-500', modalGradient: 'bg-gradient-to-r from-orange-600 to-amber-600' },
+    picnic: { bg: 'bg-[#f0fdf4]', header: 'bg-emerald-600', text: 'text-emerald-900', accent: 'bg-emerald-600', accentText: 'text-emerald-600', card: 'border-emerald-200', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/40px 40px', iconColor: 'text-emerald-500', modalGradient: 'bg-gradient-to-r from-emerald-500 to-green-600' },
+    corporate: { bg: 'bg-[#f8fafc]', header: 'bg-slate-700', text: 'text-slate-900', accent: 'bg-slate-600', accentText: 'text-slate-600', card: 'border-slate-200', iconColor: 'text-slate-500', modalGradient: 'bg-gradient-to-r from-slate-700 to-slate-900' },
+    fiesta: { bg: 'bg-[#fdf2f8]', header: 'bg-pink-600', text: 'text-pink-900', accent: 'bg-pink-600', accentText: 'text-pink-600', card: 'border-pink-200', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px', iconColor: 'text-pink-500', modalGradient: 'bg-gradient-to-r from-pink-500 to-rose-600' },
+    minimal: { bg: 'bg-[#fafafa]', header: 'bg-black', text: 'text-gray-900', accent: 'bg-black', accentText: 'text-black', card: 'border-gray-200', iconColor: 'text-gray-600', modalGradient: 'bg-gradient-to-r from-gray-800 to-black' },
+    thanksgiving: { bg: 'bg-[#fffbeb]', header: 'bg-amber-700', text: 'text-amber-900', accent: 'bg-amber-600', accentText: 'text-amber-600', card: 'border-amber-200', pattern: 'radial-gradient(circle, #fcd34d 1px, transparent 1px) 0 0/20px 20px', iconColor: 'text-amber-600', modalGradient: 'bg-gradient-to-r from-amber-600 to-orange-700' },
+    christmas: { bg: 'bg-[#fef2f2]', header: 'bg-red-700', text: 'text-red-900', accent: 'bg-red-600', accentText: 'text-red-600', card: 'border-red-200', pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fef2f2 10px, #fef2f2 20px)', iconColor: 'text-red-600', modalGradient: 'bg-gradient-to-r from-red-600 to-green-700' },
+    bbq: { bg: 'bg-red-50', header: 'bg-red-800', text: 'text-red-900', accent: 'bg-red-700', accentText: 'text-red-700', card: 'border-red-300', pattern: 'repeating-linear-gradient(0deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px)', iconColor: 'text-red-700', modalGradient: 'bg-gradient-to-r from-red-700 to-red-900' },
+    spooky: { bg: 'bg-slate-900', header: 'bg-purple-900', text: 'text-purple-100', accent: 'bg-orange-600', accentText: 'text-orange-500', card: 'border-purple-800 bg-slate-800', pattern: 'repeating-linear-gradient(45deg, #1e293b 0, #1e293b 10px, #0f172a 10px, #0f172a 20px)', iconColor: 'text-orange-500', modalGradient: 'bg-gradient-to-r from-purple-900 to-orange-700' },
+    baby: { bg: 'bg-sky-50', header: 'bg-sky-500', text: 'text-sky-900', accent: 'bg-sky-500', accentText: 'text-sky-600', card: 'border-sky-200', pattern: 'radial-gradient(#e0f2fe 15%, transparent 16%) 0 0/20px 20px', iconColor: 'text-sky-500', modalGradient: 'bg-gradient-to-r from-sky-400 to-blue-500' },
 };
 
 const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey }) => {
@@ -63,6 +66,9 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
     // Edit Event Form
     const [editForm, setEditForm] = useState<Partial<PotluckEvent>>({});
+
+    // Countdown State
+    const [timeLeft, setTimeLeft] = useState<{days: number, label: string} | null>(null);
 
     useEffect(() => {
         const stored = localStorage.getItem(`potluck_keys_${publicId}`);
@@ -107,6 +113,40 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         return () => clearInterval(interval);
     }, [publicId, adminKey]);
 
+    useEffect(() => {
+        if (event && event.date) {
+            const calculateTime = () => {
+                const eventDate = new Date(`${event.date}T${event.time ? convertTime12to24(event.time) : '00:00:00'}`);
+                const now = new Date();
+                const diff = eventDate.getTime() - now.getTime();
+                
+                if (diff > 0) {
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const label = days === 1 ? 'Day' : 'Days';
+                    setTimeLeft({ days: days + (diff % (1000 * 60 * 60 * 24) > 0 ? 1 : 0), label });
+                } else {
+                    setTimeLeft(null); // Event started or passed
+                }
+            };
+            calculateTime();
+            const timer = setInterval(calculateTime, 60000); // Update every minute is enough for days
+            return () => clearInterval(timer);
+        }
+    }, [event]);
+
+    // Helper to parse "6:00 PM" to "18:00"
+    const convertTime12to24 = (time12h: string) => {
+        const [time, modifier] = time12h.split(' ');
+        let [hours, minutes] = time.split(':');
+        if (hours === '12') {
+            hours = '00';
+        }
+        if (modifier === 'PM') {
+            hours = (parseInt(hours, 10) + 12).toString();
+        }
+        return `${hours}:${minutes}`;
+    };
+
     const handleAddDish = async () => {
         if (!event || !selectedCategory || !dishForm.name || !dishForm.dish) return;
         setIsSubmitting(true);
@@ -148,8 +188,30 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         }
     };
 
+    const isEditLocked = useMemo(() => {
+        if (!event || !event.date) return false;
+        if (!event.allowGuestEditing && !adminKey) return true;
+        if (adminKey) return false; // Admins always bypass lock
+        
+        const daysLock = event.editLockDays || 0;
+        if (daysLock === 0) return false;
+
+        const eventDate = new Date(event.date);
+        const lockDate = new Date(eventDate);
+        lockDate.setDate(eventDate.getDate() - daysLock);
+        
+        return new Date() > lockDate;
+    }, [event, adminKey]);
+
     const handleDeleteDish = async (dishId: string) => {
         const editKey = myDishKeys[dishId];
+        
+        // Lock check for guests
+        if (!adminKey && isEditLocked) {
+            alert("Editing is now locked for this event. Please contact the host.");
+            return;
+        }
+
         if (!adminKey && !editKey) return;
         if (!confirm("Remove this dish from the list?")) return;
 
@@ -176,8 +238,12 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
             });
 
             setEvent({ ...event!, categories: updatedCategories, dishes: event!.dishes.filter(d => d.id !== dishId) });
-        } catch (e) {
-            alert("Failed to delete.");
+        } catch (e: any) {
+             if (e.message?.includes("Locked")) {
+                alert("Editing is now locked for this event.");
+             } else {
+                alert("Failed to delete.");
+             }
         }
     };
 
@@ -203,7 +269,9 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
             time: event?.time,
             location: event?.location,
             description: event?.description,
-            dietaryNotes: event?.dietaryNotes
+            dietaryNotes: event?.dietaryNotes,
+            allowGuestEditing: event?.allowGuestEditing,
+            editLockDays: event?.editLockDays
         });
         setShowEditEventModal(true);
     };
@@ -237,7 +305,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
     const addToCalendar = () => {
         if (!event) return;
-        const start = new Date(event.date + (event.time ? ' ' + event.time : '')).toISOString().replace(/-|:|\.\d\d\d/g, "");
+        const start = new Date(event.date + (event.time ? ' ' + convertTime12to24(event.time) : '')).toISOString().replace(/-|:|\.\d\d\d/g, "");
         const details = encodeURIComponent(event.description || "Potluck!");
         const location = encodeURIComponent(event.location || "");
         const title = encodeURIComponent(event.title);
@@ -305,6 +373,13 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                 <Edit2 size={14} /> Edit Event
                             </button>
                         )}
+                        
+                        {timeLeft && (
+                            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 animate-pulse">
+                                <Timer size={14}/> {timeLeft.days} {timeLeft.label} Until Feast
+                            </div>
+                        )}
+                        
                         <h1 className="text-3xl md:text-5xl font-black font-serif mb-2">{event.title}</h1>
                         {isAdmin && (
                             <div className="inline-block bg-white/20 border border-white/40 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
@@ -367,7 +442,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             </div>
                             <div className="flex-1 text-center md:text-left">
                                 <h3 className="text-xl font-bold text-slate-800">Invite Your Guests</h3>
-                                <p className="text-slate-600 text-sm mt-1">Share this link so guests can sign up.</p>
+                                <p className="text-slate-600 text-sm mt-1">Share this link so guests can sign up. (Don't worry, they can't delete other people's dishes!)</p>
                             </div>
                             <button 
                                 onClick={() => copyLink(shareLink)} 
@@ -558,8 +633,12 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                                     </div>
                                                 </div>
                                                 {(isAdmin || myDishKeys[dish.id]) && (
-                                                    <button onClick={() => handleDeleteDish(dish.id)} className="text-slate-300 hover:text-red-500 p-2 transition-colors">
-                                                        <Trash2 size={18} />
+                                                    <button 
+                                                        onClick={() => handleDeleteDish(dish.id)} 
+                                                        className={`text-slate-300 hover:text-red-500 p-2 transition-colors ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        title={isEditLocked && !isAdmin ? 'Editing Locked' : 'Delete'}
+                                                    >
+                                                        {isEditLocked && !isAdmin ? <Lock size={16}/> : <Trash2 size={18} />}
                                                     </button>
                                                 )}
                                             </div>
@@ -597,7 +676,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 {showAddModal && selectedCategory && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
-                            <div className={`${styles.header} p-4 flex justify-between items-center text-white`}>
+                            <div className={`${styles.modalGradient} p-4 flex justify-between items-center text-white`}>
                                 <h3 className="font-bold flex items-center gap-2"><Utensils size={20}/> {dishForm.fulfillmentId ? 'I\'ll Bring This!' : 'Bring a Dish'}</h3>
                                 <button onClick={() => setShowAddModal(false)}><X size={24}/></button>
                             </div>
@@ -710,7 +789,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 {showEditEventModal && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
-                            <div className={`${styles.header} p-4 flex justify-between items-center text-white`}>
+                            <div className={`${styles.modalGradient} p-4 flex justify-between items-center text-white`}>
                                 <h3 className="font-bold flex items-center gap-2"><Edit2 size={20}/> Edit Event Details</h3>
                                 <button onClick={() => setShowEditEventModal(false)}><X size={24}/></button>
                             </div>
@@ -738,6 +817,31 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dietary Notes</label>
                                     <input type="text" value={editForm.dietaryNotes} onChange={e => setEditForm({...editForm, dietaryNotes: e.target.value})} className="w-full p-2 border rounded" />
+                                </div>
+                                <div className="border-t pt-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-xs font-bold text-slate-700 uppercase">Allow Guest Editing</label>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={editForm.allowGuestEditing} 
+                                            onChange={e => setEditForm({...editForm, allowGuestEditing: e.target.checked})}
+                                        />
+                                    </div>
+                                    {editForm.allowGuestEditing && (
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Lock editing X days before:</label>
+                                            <select 
+                                                value={editForm.editLockDays}
+                                                onChange={e => setEditForm({...editForm, editLockDays: parseInt(e.target.value)})}
+                                                className="w-full p-2 border rounded text-sm"
+                                            >
+                                                <option value={0}>Never</option>
+                                                <option value={1}>1 Day</option>
+                                                <option value={2}>2 Days</option>
+                                                <option value={7}>1 Week</option>
+                                            </select>
+                                        </div>
+                                    )}
                                 </div>
                                 <button 
                                     onClick={handleUpdateEvent}

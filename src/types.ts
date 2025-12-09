@@ -3,7 +3,7 @@ import type React from 'react';
 
 // --- POTLUCK TYPES ---
 
-export type PotluckTheme = 'classic' | 'corporate' | 'picnic' | 'fiesta' | 'minimal' | 'thanksgiving' | 'christmas';
+export type PotluckTheme = 'classic' | 'corporate' | 'picnic' | 'fiesta' | 'minimal' | 'thanksgiving' | 'christmas' | 'bbq' | 'spooky' | 'baby';
 
 export interface PotluckItemRequest {
     id: string;
@@ -43,6 +43,10 @@ export interface PotluckEvent {
     categories: PotluckCategory[];
     dishes: PotluckDish[];
     createdAt: string;
+    
+    // New Settings
+    allowGuestEditing?: boolean; // Default true
+    editLockDays?: number; // 0 = no lock, 1 = 1 day before, etc.
 }
 
 // --- SECRET SANTA TYPES ---
