@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, Info, Flag, MapPin, Clock, CalendarCheck, Link as LinkIcon } from 'lucide-react';
+import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, Info, Flag, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid } from 'lucide-react';
 import { getPotluck, addDish, removeDish } from '../services/potluckService';
 import type { PotluckEvent, PotluckCategory, PotluckDish, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -49,6 +49,9 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const [showAddModal, setShowAddModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [lastAddedDishLink, setLastAddedDishLink] = useState('');
+    
+    // View State for Admin
+    const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
     
     const [selectedCategory, setSelectedCategory] = useState<PotluckCategory | null>(null);
     // fulfillmentId tracks which "Requested Item" this dish fulfills
@@ -226,6 +229,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
     const isAdmin = !!adminKey;
     const styles = THEME_STYLES[event.theme || 'classic'] || THEME_STYLES.classic;
+    const shareLink = window.location.href.split('&')[0]; // Remove admin key for sharing
 
     return (
         <div className={`min-h-screen pb-24 ${styles.bg}`}>
@@ -237,7 +241,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     </div>
                 )}
 
-                {/* Header Card */}
+                {/* --- HEADER CARD --- */}
                 <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-8 border ${styles.card}`}>
                     <div className={`${styles.header} p-8 text-center text-white relative`}>
                         <h1 className="text-3xl md:text-5xl font-black font-serif mb-4">{event.title}</h1>
@@ -272,15 +276,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                              <button onClick={addToCalendar} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2">
                                 <CalendarCheck size={14}/> Add to Calendar
                             </button>
-                            {isAdmin && (
-                                <div className="bg-white/10 backdrop-blur-md px-3 py-2 rounded-xl border border-white/20 inline-flex items-center gap-3">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-white/70 flex items-center gap-1"><Lock size={12}/> Admin</span>
-                                    <div className="h-4 w-px bg-white/20"></div>
-                                    <button onClick={() => copyLink(window.location.href.split('&')[0])} className="bg-white text-slate-900 px-3 py-1 rounded-lg text-xs font-bold hover:bg-orange-100 transition-colors flex items-center gap-1">
-                                        {isCopied ? <Check size={14}/> : <Copy size={14}/>} {isCopied ? 'Copied' : 'Copy Link'}
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     </div>
                     {event.description && (
@@ -290,116 +285,208 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     )}
                 </div>
 
+                {/* --- ORGANIZER CONTROLS (ADMIN ONLY) --- */}
+                {isAdmin && (
+                    <div className="mb-10 space-y-6">
+                        
+                        {/* SHARE CARD */}
+                        <div className="bg-white p-6 rounded-2xl shadow-lg border border-orange-100 flex flex-col md:flex-row items-center gap-6">
+                            <div className="flex-shrink-0 bg-orange-100 p-4 rounded-full text-orange-600">
+                                <Share2 size={32} />
+                            </div>
+                            <div className="flex-1 text-center md:text-left">
+                                <h3 className="text-xl font-bold text-slate-800">Invite Your Guests</h3>
+                                <p className="text-slate-600 text-sm mt-1">Share this link so guests can sign up. (Don't worry, they can't delete other people's dishes!)</p>
+                            </div>
+                            <button 
+                                onClick={() => copyLink(shareLink)} 
+                                className={`px-8 py-4 rounded-xl font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 ${isCopied ? 'bg-green-600' : 'bg-orange-600 hover:bg-orange-700'}`}
+                            >
+                                {isCopied ? <Check size={20}/> : <Copy size={20}/>}
+                                {isCopied ? 'Link Copied!' : 'Copy Guest Link'}
+                            </button>
+                        </div>
+
+                        {/* MASTER LIST TOGGLE */}
+                        <div className="flex justify-between items-end border-b border-slate-200 pb-2">
+                            <h3 className="font-bold text-slate-700 text-lg flex items-center gap-2">
+                                <ChefHat className="text-slate-400"/> Master Dish List
+                            </h3>
+                            <div className="flex bg-white rounded-lg border border-slate-200 p-1">
+                                <button 
+                                    onClick={() => setViewMode('cards')}
+                                    className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="Card View"
+                                >
+                                    <Grid size={18} />
+                                </button>
+                                <button 
+                                    onClick={() => setViewMode('list')}
+                                    className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                                    title="List View"
+                                >
+                                    <List size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* MASTER LIST TABLE (ONLY VISIBLE IN LIST MODE) */}
+                        {viewMode === 'list' && (
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
+                                        <tr>
+                                            <th className="p-4">Dish</th>
+                                            <th className="p-4">Guest</th>
+                                            <th className="p-4">Category</th>
+                                            <th className="p-4">Notes</th>
+                                            <th className="p-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {event.dishes.length === 0 ? (
+                                            <tr><td colSpan={5} className="p-8 text-center text-slate-400 italic">No dishes added yet.</td></tr>
+                                        ) : (
+                                            event.dishes.map(dish => {
+                                                const catName = event.categories.find(c => c.id === dish.categoryId)?.name || 'Unknown';
+                                                return (
+                                                    <tr key={dish.id} className="hover:bg-slate-50 transition-colors">
+                                                        <td className="p-4 font-bold text-slate-800">{dish.dishName}</td>
+                                                        <td className="p-4 text-slate-600">{dish.guestName}</td>
+                                                        <td className="p-4 text-slate-500"><span className="bg-slate-100 px-2 py-1 rounded text-xs">{catName}</span></td>
+                                                        <td className="p-4">
+                                                            <div className="flex gap-1">
+                                                                {dish.dietary.map(d => (
+                                                                    <span key={d} className="text-[10px] bg-white border px-1.5 py-0.5 rounded">{DIETARY_OPTIONS.find(o=>o.id===d)?.icon}</span>
+                                                                ))}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4 text-right">
+                                                            <button onClick={() => handleDeleteDish(dish.id)} className="text-slate-300 hover:text-red-500 p-1"><Trash2 size={16}/></button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
 
-                {/* Menu Sections */}
-                <div className="space-y-8">
-                    {event.categories.map(category => {
-                        const categoryDishes = event.dishes.filter(d => d.categoryId === category.id);
-                        const isFull = category.limit ? categoryDishes.length >= category.limit : false;
-                        
-                        return (
-                            <div key={category.id} className={`bg-white rounded-2xl shadow-sm border ${styles.card} overflow-hidden`}>
-                                <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                                    <h3 className={`font-bold text-xl font-serif ${styles.text.replace('text-', 'text-opacity-80 text-')}`}>{category.name}</h3>
-                                    {category.limit ? (
-                                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                            {categoryDishes.length} / {category.limit} Filled
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Unlimited</span>
-                                    )}
-                                </div>
-                                
-                                {/* REQUESTED ITEMS SECTION */}
-                                {category.requestedItems && category.requestedItems.length > 0 && (
-                                    <div className="p-4 bg-yellow-50 border-b border-yellow-100">
-                                        <p className="text-xs font-bold text-yellow-700 uppercase mb-2 flex items-center gap-1"><Flag size={12}/> Host Requested:</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {category.requestedItems.map(req => {
-                                                const isTaken = !!req.takenByDishId;
-                                                // Find the dish that took it to show who
-                                                const takenByDish = isTaken ? event.dishes.find(d => d.id === req.takenByDishId) : null;
+                {/* --- MENU CARDS (STANDARD VIEW) --- */}
+                {viewMode === 'cards' && (
+                    <div className="space-y-8">
+                        {event.categories.map(category => {
+                            const categoryDishes = event.dishes.filter(d => d.categoryId === category.id);
+                            const isFull = category.limit ? categoryDishes.length >= category.limit : false;
+                            
+                            return (
+                                <div key={category.id} className={`bg-white rounded-2xl shadow-sm border ${styles.card} overflow-hidden`}>
+                                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                                        <h3 className={`font-bold text-xl font-serif ${styles.text.replace('text-', 'text-opacity-80 text-')}`}>{category.name}</h3>
+                                        {category.limit ? (
+                                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                {categoryDishes.length} / {category.limit} Filled
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Unlimited</span>
+                                        )}
+                                    </div>
+                                    
+                                    {/* REQUESTED ITEMS SECTION */}
+                                    {category.requestedItems && category.requestedItems.length > 0 && (
+                                        <div className="p-4 bg-yellow-50 border-b border-yellow-100">
+                                            <p className="text-xs font-bold text-yellow-700 uppercase mb-2 flex items-center gap-1"><Flag size={12}/> Host Requested:</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {category.requestedItems.map(req => {
+                                                    const isTaken = !!req.takenByDishId;
+                                                    // Find the dish that took it to show who
+                                                    const takenByDish = isTaken ? event.dishes.find(d => d.id === req.takenByDishId) : null;
 
-                                                return (
-                                                    <div key={req.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${isTaken ? 'bg-slate-100 text-slate-400 border-slate-200 line-through decoration-slate-400' : 'bg-white border-yellow-200 text-slate-700 shadow-sm'}`}>
-                                                        <span>{req.name}</span>
-                                                        {isTaken ? (
-                                                            <span className="text-[10px] no-underline bg-slate-200 px-1.5 rounded text-slate-500">
-                                                                {takenByDish?.guestName || 'Taken'}
+                                                    return (
+                                                        <div key={req.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${isTaken ? 'bg-slate-100 text-slate-400 border-slate-200 line-through decoration-slate-400' : 'bg-white border-yellow-200 text-slate-700 shadow-sm'}`}>
+                                                            <span>{req.name}</span>
+                                                            {isTaken ? (
+                                                                <span className="text-[10px] no-underline bg-slate-200 px-1.5 rounded text-slate-500">
+                                                                    {takenByDish?.guestName || 'Taken'}
+                                                                </span>
+                                                            ) : (
+                                                                <button 
+                                                                    onClick={() => openAddModal(category, req)}
+                                                                    className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded font-bold"
+                                                                >
+                                                                    Bring This
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="divide-y divide-slate-100">
+                                        {categoryDishes.map(dish => (
+                                            <div key={dish.id} className="p-4 flex items-start justify-between group hover:bg-slate-50 transition-colors">
+                                                <div>
+                                                    <div className="font-bold text-slate-800 text-lg flex items-center gap-2">
+                                                        {dish.dishName}
+                                                        {category.requestedItems?.some(r => r.takenByDishId === dish.id) && (
+                                                            <span title="Host Requested" className="flex items-center">
+                                                                <Sparkles size={14} className="text-yellow-500" />
                                                             </span>
-                                                        ) : (
-                                                            <button 
-                                                                onClick={() => openAddModal(category, req)}
-                                                                className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded font-bold"
-                                                            >
-                                                                Bring This
-                                                            </button>
                                                         )}
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="divide-y divide-slate-100">
-                                    {categoryDishes.map(dish => (
-                                        <div key={dish.id} className="p-4 flex items-start justify-between group hover:bg-slate-50 transition-colors">
-                                            <div>
-                                                <div className="font-bold text-slate-800 text-lg flex items-center gap-2">
-                                                    {dish.dishName}
-                                                    {category.requestedItems?.some(r => r.takenByDishId === dish.id) && (
-                                                        <span title="Host Requested" className="flex items-center">
-                                                            <Sparkles size={14} className="text-yellow-500" />
-                                                        </span>
-                                                    )}
+                                                    <div className="text-sm text-slate-500 flex items-center gap-2 flex-wrap mt-1">
+                                                        <span className="font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full text-xs">by {dish.guestName}</span>
+                                                        {dish.dietary.map(dt => {
+                                                            const tag = DIETARY_OPTIONS.find(o => o.id === dt);
+                                                            return tag ? (
+                                                                <span key={dt} title={tag.label} className={`text-[10px] px-1.5 py-0.5 rounded border ${tag.color.replace('text-', 'border-').replace('100', '200')} bg-white`}>
+                                                                    {tag.icon} {tag.label}
+                                                                </span>
+                                                            ) : null;
+                                                        })}
+                                                    </div>
                                                 </div>
-                                                <div className="text-sm text-slate-500 flex items-center gap-2 flex-wrap mt-1">
-                                                    <span className="font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full text-xs">by {dish.guestName}</span>
-                                                    {dish.dietary.map(dt => {
-                                                        const tag = DIETARY_OPTIONS.find(o => o.id === dt);
-                                                        return tag ? (
-                                                            <span key={dt} title={tag.label} className={`text-[10px] px-1.5 py-0.5 rounded border ${tag.color.replace('text-', 'border-').replace('100', '200')} bg-white`}>
-                                                                {tag.icon} {tag.label}
-                                                            </span>
-                                                        ) : null;
-                                                    })}
-                                                </div>
+                                                {/* Show delete if admin OR if I own this dish (key check) */}
+                                                {(isAdmin || myDishKeys[dish.id]) && (
+                                                    <button onClick={() => handleDeleteDish(dish.id)} className="text-slate-300 hover:text-red-500 p-2 transition-colors">
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
                                             </div>
-                                            {/* Show delete if admin OR if I own this dish (key check) */}
-                                            {(isAdmin || myDishKeys[dish.id]) && (
-                                                <button onClick={() => handleDeleteDish(dish.id)} className="text-slate-300 hover:text-red-500 p-2 transition-colors">
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}
-                                    
-                                    {categoryDishes.length === 0 && (
-                                        <div className="p-6 text-center text-slate-400 italic text-sm">
-                                            No dishes yet. Be the first!
-                                        </div>
-                                    )}
-                                </div>
+                                        ))}
+                                        
+                                        {categoryDishes.length === 0 && (
+                                            <div className="p-6 text-center text-slate-400 italic text-sm">
+                                                No dishes yet. Be the first!
+                                            </div>
+                                        )}
+                                    </div>
 
-                                <div className="p-3 bg-slate-50/50 border-t border-slate-100">
-                                    <button 
-                                        onClick={() => openAddModal(category)}
-                                        disabled={isFull}
-                                        className={`w-full py-3 rounded-xl border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${
-                                            isFull 
-                                            ? 'border-slate-200 text-slate-400 cursor-not-allowed' 
-                                            : `border-slate-300 text-slate-500 hover:bg-white hover:border-${styles.accent.replace('bg-', '')} hover:text-slate-800`
-                                        }`}
-                                    >
-                                        {isFull ? <span className="flex items-center gap-2"><Lock size={16}/> Category Full</span> : <span className="flex items-center gap-2"><Plus size={18}/> Bring Something Else</span>}
-                                    </button>
+                                    <div className="p-3 bg-slate-50/50 border-t border-slate-100">
+                                        <button 
+                                            onClick={() => openAddModal(category)}
+                                            disabled={isFull}
+                                            className={`w-full py-3 rounded-xl border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${
+                                                isFull 
+                                                ? 'border-slate-200 text-slate-400 cursor-not-allowed' 
+                                                : `border-slate-300 text-slate-500 hover:bg-white hover:border-${styles.accent.replace('bg-', '')} hover:text-slate-800`
+                                            }`}
+                                        >
+                                            {isFull ? <span className="flex items-center gap-2"><Lock size={16}/> Category Full</span> : <span className="flex items-center gap-2"><Plus size={18}/> Bring Something Else</span>}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* ADD DISH MODAL */}
                 {showAddModal && selectedCategory && (

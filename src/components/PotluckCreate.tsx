@@ -125,7 +125,7 @@ const PotluckCreate: React.FC = () => {
             onClick={() => setStep(num)}
             className={`flex-1 py-3 text-center text-sm font-bold rounded-t-xl transition-all border-b-2 ${
                 step === num 
-                ? 'bg-white ' + activeTheme.color + ' ' + activeTheme.border.replace('border', 'border-b-4') 
+                ? `bg-white ${activeTheme.color} ${activeTheme.border.replace('border', 'border-b-4')}` 
                 : 'bg-transparent opacity-60 hover:opacity-80 border-transparent'
             }`}
         >
@@ -140,10 +140,10 @@ const PotluckCreate: React.FC = () => {
                 <p className={`${activeTheme.color} opacity-80 text-lg`}>Create a beautiful, free sign-up sheet for your feast.</p>
             </div>
 
-            <div className={`bg-white rounded-3xl shadow-xl border-2 ${activeTheme.border.replace('border', 'border-opacity-20')} overflow-hidden`}>
+            <div className={`bg-white rounded-3xl shadow-xl border-2 ${activeTheme.border}/20 overflow-hidden`}>
                 
                 {/* TABS */}
-                <div className={`${activeTheme.bg} flex px-4 pt-4 gap-2 border-b ${activeTheme.border.replace('border', 'border-opacity-10')}`}>
+                <div className={`${activeTheme.bg} flex px-4 pt-4 gap-2 border-b ${activeTheme.border}/10`}>
                     <TabButton num={1} label="Details" />
                     <TabButton num={2} label="Theme & Diet" />
                     <TabButton num={3} label="Menu" />
@@ -158,7 +158,7 @@ const PotluckCreate: React.FC = () => {
                                 <label className="block text-sm font-bold text-slate-500 uppercase mb-1">Event Name *</label>
                                 <input 
                                     type="text" 
-                                    className={`w-full p-4 text-lg font-bold border-2 rounded-xl outline-none transition ${activeTheme.bg} ${activeTheme.border.replace('border', 'focus:border')}`}
+                                    className={`w-full p-4 text-lg font-bold border-2 rounded-xl outline-none transition ${activeTheme.bg} ${activeTheme.border.replace('border-', 'focus:border-')}`}
                                     placeholder="e.g. Friendsgiving 2025"
                                     value={formData.title}
                                     onChange={e => setFormData({...formData, title: e.target.value})}
@@ -241,9 +241,9 @@ const PotluckCreate: React.FC = () => {
                     {step === 2 && (
                         <div className="space-y-8 animate-fade-in">
                             <div>
-                                <label className="block text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                <h3 className="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
                                     <Palette size={20} /> Choose a Theme
-                                </label>
+                                </h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     {THEMES.map(theme => (
                                         <button
