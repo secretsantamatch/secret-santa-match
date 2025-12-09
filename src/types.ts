@@ -27,6 +27,7 @@ export interface PotluckDish {
     timestamp: number;
     fulfillmentId?: string; // ID of the PotluckItemRequest this satisfies
     editKey?: string; // Only available to owner locally or on creation response
+    votes?: number; // New: Vote count
 }
 
 export interface PotluckEvent {
@@ -48,6 +49,7 @@ export interface PotluckEvent {
     allowGuestEditing?: boolean; // Default true
     editLockDays?: number; // 0 = no lock, 1 = 1 day before, etc.
     hideNamesFromGuests?: boolean; // Default false. If true, guests see "A Guest" instead of names.
+    votingEnabled?: boolean; // New: Enable "Best Dish" voting
 }
 
 // --- SECRET SANTA TYPES ---

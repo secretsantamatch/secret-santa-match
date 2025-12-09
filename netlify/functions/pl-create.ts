@@ -30,7 +30,8 @@ export default async (req: Request, context: Context) => {
             dishes: [],
             allowGuestEditing: data.allowGuestEditing !== false, // default true
             editLockDays: typeof data.editLockDays === 'number' ? data.editLockDays : 1,
-            hideNamesFromGuests: !!data.hideNamesFromGuests // default false
+            hideNamesFromGuests: !!data.hideNamesFromGuests, // default false
+            votingEnabled: !!data.votingEnabled // default false
         };
 
         const store = getStore({ name: 'potluck-events', consistency: 'strong' });

@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer, ExternalLink, Flag, Smartphone, MessageCircle, Mail, ArrowRight, Pencil, Ghost, CheckCircle, Shield, Settings } from 'lucide-react';
-import { getPotluck, addDish, removeDish, updatePotluckEvent } from '../services/potluckService';
+import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer, ExternalLink, Flag, Smartphone, MessageCircle, Mail, ArrowRight, Pencil, Ghost, CheckCircle, Shield, Settings, Trophy, Heart } from 'lucide-react';
+import { getPotluck, addDish, removeDish, updatePotluckEvent, voteForDish } from '../services/potluckService';
 import type { PotluckEvent, PotluckCategory, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
 import { generatePotluckPdf } from '../services/pdfService';
 import AdBanner from './AdBanner';
+import confetti from 'canvas-confetti';
 
 interface PotluckDashboardProps {
     publicId: string;
@@ -151,7 +152,6 @@ const THEME_STYLES: Record<PotluckTheme, {
         iconColor: 'text-sky-500',
         progressBar: 'bg-sky-400'
     },
-    // --- NEW THEMES ---
     easter: { 
         bg: 'bg-purple-50', 
         glass: 'bg-white/90 backdrop-blur-md border-purple-100/50',
@@ -192,6 +192,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [myDishKeys, setMyDishKeys] = useState<Record<string, string>>({});
+    const [myVotedDishes, setMyVotedDishes] = useState<Set<string>>(new Set());
     
     // Modal State
     const [showAddModal, setShowAddModal] = useState(false);
@@ -235,6 +236,14 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         if (stored) {
             try {
                 setMyDishKeys(JSON.parse(stored));
+            } catch (e) {}
+        }
+        
+        // Load voted dishes
+        const voted = localStorage.getItem(`potluck_voted_${publicId}`);
+        if (voted) {
+            try {
+                setMyVotedDishes(new Set(JSON.parse(voted)));
             } catch (e) {}
         }
 
@@ -291,6 +300,52 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
             return () => clearInterval(timer);
         }
     }, [event]);
+
+    // --- LEADERBOARD LOGIC ---
+    const topDishes = useMemo(() => {
+        if (!event || !event.votingEnabled || !event.dishes) return [];
+        // Sort dishes by votes descending, then by time added
+        return [...event.dishes]
+            .filter(d => (d.votes || 0) > 0)
+            .sort((a, b) => (b.votes || 0) - (a.votes || 0))
+            .slice(0, 3); // Top 3
+    }, [event]);
+
+    const handleVote = async (dishId: string) => {
+        if (myVotedDishes.has(dishId)) return;
+        
+        // Optimistic UI update
+        const currentVotes = event?.dishes.find(d => d.id === dishId)?.votes || 0;
+        
+        // Update local state to prevent spam
+        const newVoted = new Set(myVotedDishes);
+        newVoted.add(dishId);
+        setMyVotedDishes(newVoted);
+        localStorage.setItem(`potluck_voted_${publicId}`, JSON.stringify(Array.from(newVoted)));
+
+        // Optimistically update event state for immediate feedback
+        if (event) {
+            const newDishes = event.dishes.map(d => 
+                d.id === dishId ? { ...d, votes: (d.votes || 0) + 1 } : d
+            );
+            setEvent({ ...event, dishes: newDishes });
+        }
+
+        // Trigger confetti for fun
+        confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.7 },
+            colors: ['#f59e0b', '#fbbf24', '#ffffff'] // Gold/Amber theme
+        });
+
+        try {
+            await voteForDish(publicId, dishId);
+            // Re-fetch handled by polling
+        } catch (e) {
+            console.error("Vote failed", e);
+        }
+    };
 
     const convertTime12to24 = (time12h: string) => {
         const [time, modifier] = time12h.split(' ');
@@ -411,7 +466,8 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
             dietaryNotes: event?.dietaryNotes,
             allowGuestEditing: event?.allowGuestEditing,
             editLockDays: event?.editLockDays,
-            hideNamesFromGuests: event?.hideNamesFromGuests
+            hideNamesFromGuests: event?.hideNamesFromGuests,
+            votingEnabled: event?.votingEnabled
         });
         setShowEditEventModal(true);
     };
@@ -482,11 +538,11 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
     const downloadCSV = () => {
         if (!event) return;
-        const headers = ['Category', 'Dish Name', 'Guest Name', 'Dietary Info'];
+        const headers = ['Category', 'Dish Name', 'Guest Name', 'Dietary Info', 'Votes'];
         const rows = event.dishes.map(d => {
             const cat = event.categories.find(c => c.id === d.categoryId)?.name || 'Unknown';
             const diet = d.dietary.map(dt => DIETARY_OPTIONS.find(o => o.id === dt)?.label).join(', ');
-            return [cat, d.dishName, d.guestName, diet].map(field => `"${field}"`).join(',');
+            return [cat, d.dishName, d.guestName, diet, d.votes || 0].map(field => `"${field}"`).join(',');
         });
         const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
         const encodedUri = encodeURI(csvContent);
@@ -802,7 +858,14 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                                 const isOwner = myDishKeys[dish.id];
                                                 return (
                                                     <tr key={dish.id} className="hover:bg-slate-50/80 transition-colors group">
-                                                        <td className="p-5 font-bold text-slate-800">{dish.dishName}</td>
+                                                        <td className="p-5 font-bold text-slate-800">
+                                                            {dish.dishName}
+                                                            {event.votingEnabled && (dish.votes || 0) > 0 && (
+                                                                <span className="ml-2 text-xs font-bold text-amber-500 flex items-center gap-1 inline-flex">
+                                                                    <Heart size={12} fill="currentColor" /> {dish.votes}
+                                                                </span>
+                                                            )}
+                                                        </td>
                                                         <td className="p-5 text-slate-600 font-medium">{getDisplayName(dish)}</td>
                                                         <td className="p-5 text-slate-500"><span className="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-wide text-slate-600 whitespace-nowrap">{catName}</span></td>
                                                         <td className="p-5">
@@ -910,59 +973,87 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                         )}
 
                                         <div className="divide-y divide-slate-50">
-                                            {categoryDishes.map(dish => (
-                                                <div key={dish.id} className="p-5 flex items-start justify-between group hover:bg-slate-50/80 transition-colors">
-                                                    <div>
-                                                        <div className="font-bold text-slate-800 text-lg flex items-center gap-2">
-                                                            {dish.dishName}
-                                                            {category.requestedItems?.some(r => r.takenByDishId === dish.id) && (
-                                                                <span title="Host Requested" className="flex items-center">
-                                                                    <Sparkles size={14} className="text-amber-500" />
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex items-center gap-3 flex-wrap mt-1.5">
-                                                            <div className="flex items-center gap-1.5">
-                                                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${styles.progressBar} opacity-80`}>
-                                                                    {getDisplayName(dish).charAt(0)}
-                                                                </div>
-                                                                <span className="text-sm font-medium text-slate-600">{getDisplayName(dish)}</span>
+                                            {categoryDishes.map(dish => {
+                                                const isTopDish = topDishes.some(td => td.id === dish.id);
+                                                
+                                                return (
+                                                    <div key={dish.id} className="p-5 flex items-start justify-between group hover:bg-slate-50/80 transition-colors">
+                                                        <div>
+                                                            <div className="font-bold text-slate-800 text-lg flex items-center gap-2">
+                                                                {dish.dishName}
+                                                                {category.requestedItems?.some(r => r.takenByDishId === dish.id) && (
+                                                                    <span title="Host Requested" className="flex items-center">
+                                                                        <Sparkles size={14} className="text-amber-500" />
+                                                                    </span>
+                                                                )}
+                                                                {isTopDish && event.votingEnabled && (
+                                                                    <span title="Top Voted Dish!" className="flex items-center">
+                                                                        <Trophy size={14} className="text-yellow-500" fill="currentColor" />
+                                                                    </span>
+                                                                )}
                                                             </div>
+                                                            <div className="flex items-center gap-3 flex-wrap mt-1.5">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${styles.progressBar} opacity-80`}>
+                                                                        {getDisplayName(dish).charAt(0)}
+                                                                    </div>
+                                                                    <span className="text-sm font-medium text-slate-600">{getDisplayName(dish)}</span>
+                                                                </div>
+                                                                
+                                                                {dish.dietary.length > 0 && (
+                                                                    <div className="flex gap-1">
+                                                                        {dish.dietary.map(dt => {
+                                                                            const tag = DIETARY_OPTIONS.find(o => o.id === dt);
+                                                                            return tag ? (
+                                                                                <span key={dt} title={tag.label} className={`text-[10px] px-1.5 py-0.5 rounded border ${tag.color.replace('text-', 'border-').replace('100', '200')} bg-white shadow-sm`}>
+                                                                                    {tag.icon}
+                                                                                </span>
+                                                                            ) : null;
+                                                                        })}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex items-center gap-3">
+                                                            {/* Voting Button */}
+                                                            {event.votingEnabled && (
+                                                                <div className="flex items-center gap-1">
+                                                                    <button 
+                                                                        onClick={() => handleVote(dish.id)}
+                                                                        disabled={myVotedDishes.has(dish.id)}
+                                                                        className={`p-1.5 rounded-full transition-all ${myVotedDishes.has(dish.id) ? 'text-rose-500 bg-rose-50' : 'text-slate-300 hover:text-rose-400 hover:bg-slate-100'}`}
+                                                                    >
+                                                                        <Heart size={18} fill={myVotedDishes.has(dish.id) ? "currentColor" : "none"} />
+                                                                    </button>
+                                                                    {(dish.votes || 0) > 0 && (
+                                                                        <span className="text-xs font-bold text-slate-500">{dish.votes}</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                             
-                                                            {dish.dietary.length > 0 && (
-                                                                <div className="flex gap-1">
-                                                                    {dish.dietary.map(dt => {
-                                                                        const tag = DIETARY_OPTIONS.find(o => o.id === dt);
-                                                                        return tag ? (
-                                                                            <span key={dt} title={tag.label} className={`text-[10px] px-1.5 py-0.5 rounded border ${tag.color.replace('text-', 'border-').replace('100', '200')} bg-white shadow-sm`}>
-                                                                                {tag.icon}
-                                                                            </span>
-                                                                        ) : null;
-                                                                    })}
+                                                            {(isAdmin || myDishKeys[dish.id]) && (
+                                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button 
+                                                                        onClick={() => openEditDishModal(dish)} 
+                                                                        className={`text-slate-300 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                        disabled={isEditLocked && !isAdmin}
+                                                                    >
+                                                                        <Pencil size={18} />
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => handleDeleteDish(dish.id)} 
+                                                                        className={`text-slate-300 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                        disabled={isEditLocked && !isAdmin}
+                                                                    >
+                                                                        <Trash2 size={18} />
+                                                                    </button>
                                                                 </div>
                                                             )}
                                                         </div>
                                                     </div>
-                                                    {(isAdmin || myDishKeys[dish.id]) && (
-                                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button 
-                                                                onClick={() => openEditDishModal(dish)} 
-                                                                className={`text-slate-300 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                                disabled={isEditLocked && !isAdmin}
-                                                            >
-                                                                <Pencil size={18} />
-                                                            </button>
-                                                            <button 
-                                                                onClick={() => handleDeleteDish(dish.id)} 
-                                                                className={`text-slate-300 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors ${isEditLocked && !isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                                disabled={isEditLocked && !isAdmin}
-                                                            >
-                                                                <Trash2 size={18} />
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                             
                                             {categoryDishes.length === 0 && (
                                                 <div className="p-8 text-center">
@@ -1215,6 +1306,25 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                         </p>
                                         
                                         <div className="space-y-4">
+                                            {/* Toggle: Voting */}
+                                            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                <div>
+                                                    <span className="font-bold text-sm text-slate-700 block flex items-center gap-1.5"><Heart size={14} className="text-amber-500"/> Recipe Voting</span>
+                                                    <span className="text-xs text-slate-500">Enable "Best Dish" heart button</span>
+                                                </div>
+                                                <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        name="voting-enabled" 
+                                                        id="voting-enabled" 
+                                                        checked={editForm.votingEnabled}
+                                                        onChange={(e) => setEditForm({...editForm, votingEnabled: e.target.checked})}
+                                                        className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                                                    />
+                                                    <label htmlFor="voting-enabled" className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${editForm.votingEnabled ? 'bg-amber-500' : 'bg-slate-300'}`}></label>
+                                                </div>
+                                            </div>
+
                                             {/* Toggle: Guest Editing */}
                                             <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
                                                 <div>

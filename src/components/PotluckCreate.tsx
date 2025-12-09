@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, ChefHat, Plus, Trash2, ArrowRight, Loader2, List, Settings, Palette, PlusCircle, X, MapPin, Clock, HelpCircle, AlertCircle, Minus, Infinity, Lock, Unlock } from 'lucide-react';
+import { Calendar, ChefHat, Plus, Trash2, ArrowRight, Loader2, List, Settings, Palette, PlusCircle, X, MapPin, Clock, HelpCircle, AlertCircle, Minus, Infinity, Lock, Unlock, Trophy } from 'lucide-react';
 import { createPotluck } from '../services/potluckService';
 import type { PotluckCategory, PotluckItemRequest, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -57,7 +57,8 @@ const PotluckCreate: React.FC = () => {
         theme: 'classic' as PotluckTheme,
         categories: DEFAULT_CATEGORIES,
         allowGuestEditing: true,
-        editLockDays: 1
+        editLockDays: 1,
+        votingEnabled: false
     });
 
     const [newItemText, setNewItemText] = useState<{ [key: string]: string }>({});
@@ -69,7 +70,8 @@ const PotluckCreate: React.FC = () => {
             trackEvent('potluck_created', { 
                 category_count: formData.categories.length,
                 theme: formData.theme,
-                guest_editing: formData.allowGuestEditing
+                guest_editing: formData.allowGuestEditing,
+                voting_enabled: formData.votingEnabled
             });
             window.location.hash = `id=${result.publicId}&admin=${result.adminKey}`;
         } catch (error) {
@@ -314,9 +316,28 @@ const PotluckCreate: React.FC = () => {
                                 
                                 <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
                                     <h3 className="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
-                                        <Settings size={20} /> Guest Controls
+                                        <Settings size={20} /> Guest Controls & Fun
                                     </h3>
                                     <div className="space-y-4">
+                                        {/* Voting Toggle */}
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="font-bold text-sm text-slate-700 flex items-center gap-1.5"><Trophy size={14} className="text-amber-500"/> Recipe Voting / Best Dish</div>
+                                                <div className="text-xs text-slate-500">Enable anonymous "Heart" voting to find the crowd favorite</div>
+                                            </div>
+                                            <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                                <input 
+                                                    type="checkbox" 
+                                                    name="toggle-vote" 
+                                                    id="toggle-vote" 
+                                                    checked={formData.votingEnabled}
+                                                    onChange={(e) => setFormData({...formData, votingEnabled: e.target.checked})}
+                                                    className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                                                />
+                                                <label htmlFor="toggle-vote" className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${formData.votingEnabled ? 'bg-amber-500' : 'bg-gray-300'}`}></label>
+                                            </div>
+                                        </div>
+
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <div className="font-bold text-sm text-slate-700">Allow Guest Editing</div>

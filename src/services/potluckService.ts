@@ -42,3 +42,12 @@ export const removeDish = async (publicId: string, dishId: string, adminKey?: st
     if (!res.ok) throw new Error('Failed to delete dish');
     return res.json();
 };
+
+export const voteForDish = async (publicId: string, dishId: string) => {
+    const res = await fetch('/.netlify/functions/pl-vote', {
+        method: 'POST',
+        body: JSON.stringify({ publicId, dishId })
+    });
+    if (!res.ok) throw new Error('Failed to vote');
+    return res.json();
+};
