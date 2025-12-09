@@ -1,11 +1,51 @@
+
 import type React from 'react';
 
-declare global {
-  interface Window {
-    gtag: (command: 'event', eventName: string, eventParams?: Record<string, any>) => void;
-    dataLayer: unknown[];
-  }
+// --- POTLUCK TYPES ---
+
+export type PotluckTheme = 'classic' | 'corporate' | 'picnic' | 'fiesta' | 'minimal';
+
+export interface PotluckItemRequest {
+    id: string;
+    name: string;
+    takenByDishId?: string; // If null, it's still needed
 }
+
+export interface PotluckCategory {
+    id: string;
+    name: string;
+    limit?: number;
+    requestedItems?: PotluckItemRequest[];
+}
+
+export interface PotluckDish {
+    id: string;
+    categoryId: string;
+    guestName: string;
+    dishName: string;
+    dietary: string[]; // 'gf', 'v', 'vg', 'df', 'nf'
+    timestamp: number;
+    fulfillmentId?: string; // ID of the PotluckItemRequest this satisfies
+    editKey?: string; // Only available to owner locally or on creation response
+}
+
+export interface PotluckEvent {
+    id: string; // adminKey
+    publicId: string; // read key
+    title: string;
+    date: string;
+    time?: string;
+    location?: string;
+    description: string;
+    hostName: string;
+    theme: PotluckTheme;
+    dietaryNotes?: string; // e.g. "Nut-free facility", "Halal only"
+    categories: PotluckCategory[];
+    dishes: PotluckDish[];
+    createdAt: string;
+}
+
+// --- SECRET SANTA TYPES ---
 
 export interface Participant {
   id: string;
@@ -51,7 +91,7 @@ export interface BackgroundOption {
 }
 
 export interface ExchangeData {
-  id?: string;
+  id: string; // Unique UUID for the exchange (used as Blob Key)
   p: Participant[];
   matches: { g: string; r: string }[];
   exclusions: Exclusion[];
@@ -83,6 +123,8 @@ export interface Resource {
     lastUpdated?: string;
     keywords?: string[];
 }
+
+// --- CALCULATOR TYPES ---
 
 export interface Debt {
     id: number;
@@ -157,7 +199,7 @@ export interface WEGame {
     isFinished: boolean;
     finalRound: boolean; 
     history: string[];
-    reactions: WEReaction[]; // New field for emojis
+    reactions: WEReaction[];
     giftState: Record<string, string>; // Maps Participant ID -> Gift Description
     createdAt: string;
     displacedPlayerId?: string | null;
@@ -165,45 +207,3 @@ export interface WEGame {
     lastThiefId?: string | null;
     giftStealCounts: Record<string, number>;
 }
-
-// --- POTLUCK TYPES ---
-
-export type PotluckTheme = 'classic' | 'corporate' | 'picnic' | 'fiesta' | 'minimal';
-
-export interface PotluckItemRequest {
-    id: string;
-    name: string;
-    takenByDishId?: string; // If null, it's still needed
-}
-
-export interface PotluckCategory {
-    id: string;
-    name: string;
-    limit?: number;
-    requestedItems?: PotluckItemRequest[];
-}
-
-export interface PotluckDish {
-    id: string;
-    categoryId: string;
-    guestName: string;
-    dishName: string;
-    dietary: string[]; // 'gf', 'v', 'vg', 'df', 'nf'
-    timestamp: number;
-    fulfillmentId?: string; // ID of the PotluckItemRequest this satisfies
-}
-
-export interface PotluckEvent {
-    id: string; // adminKey
-    publicId: string; // read key
-    title: string;
-    date: string;
-    time?: string;      // NEW
-    location?: string;  // NEW
-    description: string;
-    hostName: string;
-    theme: PotluckTheme;
-    dietaryNotes?: string; // e.g. "Nut-free facility", "Halal only"
-    categories: PotluckCategory[];
-    dishes: PotluckDish[];
-    createdAt: string;
