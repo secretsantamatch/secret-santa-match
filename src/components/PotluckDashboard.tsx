@@ -32,8 +32,10 @@ const THEME_STYLES: Record<PotluckTheme, { bg: string, header: string, text: str
     classic: { bg: 'bg-[#fff7ed]', header: 'bg-slate-900', text: 'text-orange-900', accent: 'bg-orange-600', card: 'border-orange-200' },
     picnic: { bg: 'bg-[#f0fdf4]', header: 'bg-emerald-900', text: 'text-emerald-900', accent: 'bg-emerald-600', card: 'border-emerald-200' },
     corporate: { bg: 'bg-[#f8fafc]', header: 'bg-slate-800', text: 'text-slate-900', accent: 'bg-slate-600', card: 'border-slate-200' },
-    fiesta: { bg: 'bg-[#fef2f2]', header: 'bg-red-900', text: 'text-red-900', accent: 'bg-red-600', card: 'border-red-200' },
+    fiesta: { bg: 'bg-[#fdf2f8]', header: 'bg-pink-900', text: 'text-pink-900', accent: 'bg-pink-600', card: 'border-pink-200' },
     minimal: { bg: 'bg-[#fafafa]', header: 'bg-black', text: 'text-gray-900', accent: 'bg-black', card: 'border-gray-200' },
+    thanksgiving: { bg: 'bg-[#fffbeb]', header: 'bg-amber-900', text: 'text-amber-900', accent: 'bg-amber-600', card: 'border-amber-200' },
+    christmas: { bg: 'bg-[#fef2f2]', header: 'bg-red-900', text: 'text-red-900', accent: 'bg-red-600', card: 'border-red-200' },
 };
 
 const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey }) => {
