@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, Info, Flag, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save } from 'lucide-react';
+import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, Info, Flag, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download } from 'lucide-react';
 import { getPotluck, addDish, removeDish, updatePotluckEvent } from '../services/potluckService';
 import type { PotluckEvent, PotluckCategory, PotluckDish, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -27,14 +27,14 @@ const SUGGESTIONS = [
     "Pulled Pork Sliders", "Pasta Salad", "Veggie Tray", "Cookies", "Sangria"
 ];
 
-const THEME_STYLES: Record<PotluckTheme, { bg: string, header: string, text: string, accent: string, card: string }> = {
+const THEME_STYLES: Record<PotluckTheme, { bg: string, header: string, text: string, accent: string, card: string, pattern?: string }> = {
     classic: { bg: 'bg-[#fff7ed]', header: 'bg-slate-900', text: 'text-orange-900', accent: 'bg-orange-600', card: 'border-orange-200' },
-    picnic: { bg: 'bg-[#f0fdf4]', header: 'bg-emerald-900', text: 'text-emerald-900', accent: 'bg-emerald-600', card: 'border-emerald-200' },
+    picnic: { bg: 'bg-[#f0fdf4]', header: 'bg-emerald-900', text: 'text-emerald-900', accent: 'bg-emerald-600', card: 'border-emerald-200', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/40px 40px' },
     corporate: { bg: 'bg-[#f8fafc]', header: 'bg-slate-800', text: 'text-slate-900', accent: 'bg-slate-600', card: 'border-slate-200' },
-    fiesta: { bg: 'bg-[#fdf2f8]', header: 'bg-pink-900', text: 'text-pink-900', accent: 'bg-pink-600', card: 'border-pink-200' },
+    fiesta: { bg: 'bg-[#fdf2f8]', header: 'bg-pink-900', text: 'text-pink-900', accent: 'bg-pink-600', card: 'border-pink-200', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px' },
     minimal: { bg: 'bg-[#fafafa]', header: 'bg-black', text: 'text-gray-900', accent: 'bg-black', card: 'border-gray-200' },
-    thanksgiving: { bg: 'bg-[#fffbeb]', header: 'bg-amber-900', text: 'text-amber-900', accent: 'bg-amber-600', card: 'border-amber-200' },
-    christmas: { bg: 'bg-[#fef2f2]', header: 'bg-red-900', text: 'text-red-900', accent: 'bg-red-600', card: 'border-red-200' },
+    thanksgiving: { bg: 'bg-[#fffbeb]', header: 'bg-amber-900', text: 'text-amber-900', accent: 'bg-amber-600', card: 'border-amber-200', pattern: 'radial-gradient(circle, #fcd34d 1px, transparent 1px) 0 0/20px 20px' },
+    christmas: { bg: 'bg-[#fef2f2]', header: 'bg-red-900', text: 'text-red-900', accent: 'bg-red-600', card: 'border-red-200', pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fef2f2 10px, #fef2f2 20px)' },
 };
 
 const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey }) => {
@@ -246,6 +246,25 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         window.open(url, '_blank');
     };
 
+    const downloadCSV = () => {
+        if (!event) return;
+        const headers = ['Category', 'Dish Name', 'Guest Name', 'Dietary Info'];
+        const rows = event.dishes.map(d => {
+            const cat = event.categories.find(c => c.id === d.categoryId)?.name || 'Unknown';
+            const diet = d.dietary.map(dt => DIETARY_OPTIONS.find(o => o.id === dt)?.label).join(', ');
+            return [cat, d.dishName, d.guestName, diet].map(field => `"${field}"`).join(',');
+        });
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `${event.title.replace(/\s+/g, '_')}_Potluck_List.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        trackEvent('potluck_csv_download');
+    };
+
     if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-orange-500" size={40}/></div>;
     if (error || !event) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
@@ -254,8 +273,14 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const shareLink = window.location.href.split('#')[0] + `#id=${publicId}`;
 
     return (
-        <div className={`min-h-screen pb-24 ${styles.bg}`}>
-            <div className="max-w-4xl mx-auto p-4 md:p-8">
+        <div 
+            className={`min-h-screen pb-24 ${styles.bg}`}
+            style={{ 
+                backgroundImage: styles.pattern,
+                backgroundBlendMode: 'multiply'
+            }}
+        >
+            <div className="max-w-4xl mx-auto p-4 md:p-8 relative z-10">
                 
                 {toastMsg && (
                     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl z-50 flex items-center gap-2 animate-fade-in">
@@ -267,11 +292,20 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-8 border ${styles.card}`}>
                     <div className={`${styles.header} p-8 text-center text-white relative group`}>
                         {isAdmin && (
-                            <button onClick={openEditModal} className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-2 rounded-full text-white transition-colors" title="Edit Event Details">
-                                <Edit2 size={18} />
+                            <button 
+                                onClick={openEditModal} 
+                                className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg text-white transition-colors flex items-center gap-2 text-xs font-bold" 
+                                title="Edit Event Details"
+                            >
+                                <Edit2 size={14} /> Edit Event Details
                             </button>
                         )}
-                        <h1 className="text-3xl md:text-5xl font-black font-serif mb-4">{event.title}</h1>
+                        <h1 className="text-3xl md:text-5xl font-black font-serif mb-2">{event.title}</h1>
+                        {isAdmin && (
+                            <div className="inline-block bg-yellow-400/20 border border-yellow-400/50 px-3 py-1 rounded-full text-xs font-bold text-yellow-100 uppercase tracking-widest mb-4">
+                                Organizer Dashboard
+                            </div>
+                        )}
                         <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-white/90 font-medium">
                             <span className="flex items-center gap-1.5"><Calendar size={18}/> {new Date(event.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
                             {event.time && <span className="flex items-center gap-1.5"><Clock size={18}/> {event.time}</span>}
@@ -339,20 +373,34 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             </button>
                         </div>
 
-                        {/* MASTER LIST TOGGLE */}
-                        <div className="flex justify-between items-end border-b border-slate-200 pb-2">
-                            <div className="flex items-center gap-4">
-                                <h3 className="font-bold text-slate-700 text-lg flex items-center gap-2">
-                                    <ChefHat className="text-slate-400"/> Master Dish List
+                        {/* MASTER LIST HEADER */}
+                        <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4">
+                            <div>
+                                <h3 className="font-black text-slate-800 text-2xl flex items-center gap-2 font-serif">
+                                    <ChefHat className="text-slate-400" size={28}/> Master Dish List
                                 </h3>
+                                <p className="text-sm text-slate-500 mt-1">Manage all contributions in one place.</p>
+                            </div>
+                            
+                            <div className="flex items-center gap-3">
                                 {/* Toggle View Mode */}
                                 <button 
                                     onClick={() => setIsAdminView(!isAdminView)}
-                                    className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline"
+                                    className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100"
                                 >
                                     {isAdminView ? <EyeOff size={14} /> : <Eye size={14} />}
                                     {isAdminView ? 'View as Guest' : 'Back to Admin View'}
                                 </button>
+
+                                {/* Download CSV */}
+                                {isAdminView && (
+                                    <button 
+                                        onClick={downloadCSV}
+                                        className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
+                                    >
+                                        <Download size={14} /> Download CSV
+                                    </button>
+                                )}
                             </div>
                             
                             {/* Table/Card Toggle for Master List */}
@@ -380,7 +428,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                         {isAdminView && viewMode === 'list' && (
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                 <table className="w-full text-sm text-left">
-                                    <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
+                                    <thead className="bg-slate-800 text-slate-200 font-bold uppercase text-xs">
                                         <tr>
                                             <th className="p-4">Dish</th>
                                             <th className="p-4">Guest</th>

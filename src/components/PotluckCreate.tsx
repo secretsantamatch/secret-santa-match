@@ -16,9 +16,9 @@ const DEFAULT_CATEGORIES: PotluckCategory[] = [
 
 const THEMES: { id: PotluckTheme; name: string; color: string; border: string; bg: string; pattern?: string }[] = [
     { id: 'classic', name: 'Classic Warmth', color: 'text-orange-900', border: 'border-orange-500', bg: 'bg-orange-50' },
-    { id: 'thanksgiving', name: 'Thanksgiving', color: 'text-amber-900', border: 'border-amber-600', bg: 'bg-amber-50', pattern: 'radial-gradient(circle, #fef3c7 1px, transparent 1px) 0 0/10px 10px' },
-    { id: 'christmas', name: 'Christmas', color: 'text-red-900', border: 'border-red-600', bg: 'bg-red-50', pattern: 'repeating-linear-gradient(45deg, #fecaca 0, #fecaca 1px, transparent 0, transparent 50%) 0 0/10px 10px' },
-    { id: 'picnic', name: 'Summer Picnic', color: 'text-emerald-900', border: 'border-emerald-500', bg: 'bg-emerald-50', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/20px 20px' },
+    { id: 'thanksgiving', name: 'Thanksgiving', color: 'text-amber-900', border: 'border-amber-600', bg: 'bg-amber-50', pattern: 'radial-gradient(circle, #fcd34d 1px, transparent 1px) 0 0/20px 20px' },
+    { id: 'christmas', name: 'Christmas', color: 'text-red-900', border: 'border-red-600', bg: 'bg-red-50', pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fef2f2 10px, #fef2f2 20px)' },
+    { id: 'picnic', name: 'Summer Picnic', color: 'text-emerald-900', border: 'border-emerald-500', bg: 'bg-emerald-50', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/40px 40px' },
     { id: 'corporate', name: 'Corporate/Office', color: 'text-slate-900', border: 'border-slate-500', bg: 'bg-slate-50' },
     { id: 'fiesta', name: 'Fiesta Party', color: 'text-pink-900', border: 'border-pink-500', bg: 'bg-pink-50', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px' },
     { id: 'minimal', name: 'Modern Minimal', color: 'text-gray-900', border: 'border-gray-800', bg: 'bg-white' },
@@ -134,16 +134,26 @@ const PotluckCreate: React.FC = () => {
     );
 
     return (
-        <div className={`max-w-4xl mx-auto p-4 md:p-8 transition-colors duration-500 rounded-3xl mt-4 ${activeTheme.bg}`}>
-            <div className="text-center mb-8">
-                <h1 className={`text-4xl md:text-5xl font-black font-serif mb-2 ${activeTheme.color}`}>Potluck Planner</h1>
-                <p className={`${activeTheme.color} opacity-80 text-lg`}>Create a beautiful, free sign-up sheet for your feast.</p>
+        <div 
+            className={`max-w-4xl mx-auto p-4 md:p-8 transition-colors duration-500 rounded-3xl mt-4 ${activeTheme.bg}`}
+            style={{ 
+                backgroundImage: activeTheme.pattern ? activeTheme.pattern : undefined,
+                backgroundBlendMode: 'multiply' 
+            }}
+        >
+            <div className="text-center mb-8 relative z-10">
+                <h1 className={`text-4xl md:text-5xl font-black font-serif mb-2 ${activeTheme.color} bg-white/80 inline-block px-4 py-1 rounded-xl backdrop-blur-sm`}>
+                    Potluck Planner
+                </h1>
+                <p className={`${activeTheme.color} opacity-80 text-lg bg-white/60 inline-block px-3 py-1 rounded-lg backdrop-blur-sm mt-2`}>
+                    Create a beautiful, free sign-up sheet for your feast.
+                </p>
             </div>
 
-            <div className={`bg-white rounded-3xl shadow-xl border-2 ${activeTheme.border}/20 overflow-hidden`}>
+            <div className={`bg-white rounded-3xl shadow-xl border-2 ${activeTheme.border}/20 overflow-hidden relative z-10`}>
                 
                 {/* TABS */}
-                <div className={`${activeTheme.bg} flex px-4 pt-4 gap-2 border-b ${activeTheme.border}/10`}>
+                <div className={`${activeTheme.bg} flex px-4 pt-4 gap-2 border-b ${activeTheme.border}/10`} style={{ backgroundImage: activeTheme.pattern, backgroundBlendMode: 'multiply' }}>
                     <TabButton num={1} label="Details" />
                     <TabButton num={2} label="Theme & Diet" />
                     <TabButton num={3} label="Menu" />
@@ -249,17 +259,22 @@ const PotluckCreate: React.FC = () => {
                                         <button
                                             key={theme.id}
                                             onClick={() => setFormData({...formData, theme: theme.id})}
-                                            className={`relative overflow-hidden p-4 rounded-xl border-2 text-sm font-bold transition-all text-left group ${formData.theme === theme.id ? theme.border + ' ring-2 ring-offset-2 ring-slate-200' : 'border-slate-100 hover:border-slate-300'}`}
+                                            className={`relative overflow-hidden p-4 rounded-xl border-2 text-sm font-bold transition-all text-left group h-24 flex flex-col justify-end ${formData.theme === theme.id ? theme.border + ' ring-2 ring-offset-2 ring-slate-200' : 'border-slate-100 hover:border-slate-300'}`}
+                                            style={{ 
+                                                backgroundImage: theme.pattern, 
+                                                backgroundColor: theme.bg.includes('white') ? '#ffffff' : undefined // Fallback for bg classes in style if needed
+                                            }}
                                         >
-                                            <div 
-                                                className={`absolute inset-0 opacity-20 ${theme.bg}`} 
-                                                style={{ background: theme.pattern ? `${theme.pattern}, ${theme.id === 'classic' ? '#fff7ed' : theme.id === 'picnic' ? '#f0fdf4' : theme.id === 'fiesta' ? '#fef2f2' : theme.id === 'thanksgiving' ? '#fffbeb' : theme.id === 'christmas' ? '#fef2f2' : '#f8fafc'}` : undefined }}
-                                            ></div>
-                                            <div className="relative z-10 flex flex-col h-full justify-between gap-2">
-                                                <div className={`w-8 h-8 rounded-full ${theme.bg} border-2 ${theme.border} flex items-center justify-center`}>
-                                                    {formData.theme === theme.id && <div className={`w-3 h-3 rounded-full ${theme.border.replace('border-', 'bg-').replace('500', '600')}`}></div>}
-                                                </div>
-                                                <span className={`${theme.color}`}>{theme.name}</span>
+                                            {/* We use a pseudo-overlay in class for basic bg, but style for patterns */}
+                                            <div className={`absolute inset-0 -z-10 ${theme.bg}`}></div>
+                                            
+                                            <div className="relative z-10 flex items-center justify-between w-full">
+                                                <span className={`${theme.color} bg-white/80 px-2 py-1 rounded backdrop-blur-sm shadow-sm`}>{theme.name}</span>
+                                                {formData.theme === theme.id && (
+                                                    <div className={`w-5 h-5 rounded-full ${theme.border.replace('border-', 'bg-').replace('500', '600')} flex items-center justify-center`}>
+                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </button>
                                     ))}
