@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer, ExternalLink, Flag, Smartphone, MessageCircle, Mail } from 'lucide-react';
+import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save, Download, Timer, ExternalLink, Flag, Smartphone, MessageCircle, Mail, ArrowRight } from 'lucide-react';
 import { getPotluck, addDish, removeDish, updatePotluckEvent } from '../services/potluckService';
 import type { PotluckEvent, PotluckCategory, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -162,9 +162,14 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const [showEditEventModal, setShowEditEventModal] = useState(false);
     const [lastAddedDishLink, setLastAddedDishLink] = useState('');
     
-    // View State for Admin - Default to 'list' based on feedback
+    // View State
+    const isAdmin = !!adminKey;
+    // Default to 'list' for admins (data dense), 'cards' for guests (easier to sign up)
     const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
     const [isAdminView, setIsAdminView] = useState(false); 
+    
+    // Welcome Gatekeeper State
+    const [hasEntered, setHasEntered] = useState(false);
     
     const [selectedCategory, setSelectedCategory] = useState<PotluckCategory | null>(null);
     const [dishForm, setDishForm] = useState({ name: '', dish: '', dietary: [] as string[], fulfillmentId: undefined as string | undefined });
@@ -179,14 +184,22 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const [timeLeft, setTimeLeft] = useState<{days: number, label: string} | null>(null);
 
     useEffect(() => {
+        // Admins bypass the welcome screen
+        if (adminKey) {
+            setHasEntered(true);
+            setViewMode('list');
+            setIsAdminView(true);
+        } else {
+            // Guests see cards by default
+            setViewMode('cards');
+        }
+
         const stored = localStorage.getItem(`potluck_keys_${publicId}`);
         if (stored) {
             try {
                 setMyDishKeys(JSON.parse(stored));
             } catch (e) {}
         }
-
-        if (adminKey) setIsAdminView(true);
 
         const hash = window.location.hash;
         if (hash.includes('claim=')) {
@@ -455,7 +468,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-orange-500" size={40}/></div>;
     if (error || !event) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
-    const isAdmin = !!adminKey;
     const styles = THEME_STYLES[event.theme || 'classic'] || THEME_STYLES.classic;
     const shareLink = window.location.href.split('#')[0] + `#id=${publicId}`;
     const organizerLink = window.location.href; // Since we are in the admin view, the current URL has the key
@@ -467,6 +479,39 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         return dish.guestName;
     };
 
+    // --- WELCOME SCREEN (GATEKEEPER) ---
+    if (!hasEntered) {
+        return (
+            <div 
+                className={`min-h-screen flex items-center justify-center p-4 ${styles.bg}`}
+                style={{ 
+                    backgroundImage: styles.pattern,
+                    backgroundSize: '40px 40px' 
+                }}
+            >
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-white/50 animate-fade-in">
+                    <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <Utensils className="text-white w-10 h-10" />
+                    </div>
+                    <h1 className="text-3xl font-black text-slate-800 font-serif mb-2">{event.title}</h1>
+                    <p className="text-slate-500 font-medium mb-6">Hosted by {event.hostName}</p>
+                    
+                    <div className="bg-slate-50 rounded-xl p-4 mb-8 border border-slate-100 text-sm text-slate-600">
+                        <p className="flex items-center justify-center gap-2 mb-2"><Calendar size={16}/> {new Date(event.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                        {event.time && <p className="flex items-center justify-center gap-2"><Clock size={16}/> {event.time}</p>}
+                    </div>
+
+                    <button 
+                        onClick={() => setHasEntered(true)}
+                        className={`w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:opacity-90 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 ${styles.accentBtn}`}
+                    >
+                         View Sign-Up Sheet <ArrowRight />
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div 
             className={`min-h-screen pb-24 ${styles.bg}`}
@@ -475,27 +520,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 backgroundSize: '40px 40px' 
             }}
         >
-            {/* ADMIN TOOLBAR - HIGH CONTRAST */}
-            {isAdmin && (
-                <div className="bg-[#1a1a1a] text-yellow-400 p-3 sticky top-0 z-50 shadow-md border-b-2 border-yellow-500">
-                    <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
-                        <div className="flex items-center gap-2">
-                            <span className="bg-yellow-500 text-black text-[11px] font-black px-2 py-0.5 rounded uppercase tracking-wider">ADMIN</span>
-                            <span className="font-bold text-white">You are the Organizer.</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <span className="hidden sm:inline text-white/70 text-xs">Save this link to manage your event.</span>
-                            <button 
-                                onClick={() => copyLink(organizerLink)}
-                                className="flex items-center gap-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 px-3 py-1.5 rounded border border-yellow-500/50 transition-colors text-xs font-bold"
-                            >
-                                <Lock size={12}/> {isCopied ? 'Link Saved!' : 'Copy Admin Link'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <div className="max-w-4xl mx-auto p-4 md:p-8 relative z-10">
                 
                 {toastMsg && (
@@ -565,16 +589,15 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     )}
                 </div>
 
-                {/* --- INVITE & SHARING CARD (For Everyone) --- */}
-                {/* Changed: Always visible but styled differently for admin/guest to encourage sharing */}
-                <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-slate-100 mb-10 transform hover:-translate-y-1 transition-transform duration-300">
+                {/* --- INVITE & SHARING CARD --- */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-slate-100 mb-6 transform hover:-translate-y-1 transition-transform duration-300">
                     <div className="flex flex-col md:flex-row items-center gap-6">
                         <div className={`flex-shrink-0 p-4 rounded-full text-white shadow-lg ${styles.headerBg}`}>
                             <Share2 size={24} />
                         </div>
                         <div className="flex-1 text-center md:text-left">
                             <h3 className="text-xl font-bold text-slate-800">Invite Your Guests</h3>
-                            <p className="text-slate-600 text-sm mt-1">Send this public link to your friends so they can sign up!</p>
+                            <p className="text-slate-600 text-sm mt-1">Send this public link to your guests so they can sign up!</p>
                         </div>
                         <button 
                             onClick={() => copyLink(shareLink)} 
@@ -602,6 +625,26 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     </div>
                 </div>
 
+                {/* --- ADMIN MASTER LINK (Only Visible to Admin) --- */}
+                {isAdmin && (
+                    <div className="bg-amber-50 border-2 border-amber-200 border-dashed rounded-xl p-5 mb-10 flex flex-col md:flex-row items-center gap-4 justify-between">
+                         <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1 text-amber-800 font-bold">
+                                <Lock size={18} /> Organizer Master Key
+                            </div>
+                            <p className="text-amber-700 text-sm">
+                                This is your private control panel link. <span className="font-extrabold underline">Do not share this.</span>
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2 w-full md:w-auto">
+                            <input type="text" readOnly value={organizerLink} className="flex-1 text-xs text-slate-500 border rounded p-2 bg-white truncate outline-none w-full md:w-64" />
+                            <button onClick={() => copyLink(organizerLink)} className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded text-xs font-bold flex items-center gap-1 whitespace-nowrap">
+                                <Copy size={14}/> Copy
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* --- MASTER LIST CONTROLS --- */}
                 <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4 mt-8">
                     <div>
@@ -615,29 +658,30 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     
                     <div className="flex items-center gap-3">
                         {isAdmin && (
-                            <button 
-                                onClick={() => setIsAdminView(!isAdminView)}
-                                className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100"
-                            >
-                                {isAdminView ? <EyeOff size={14} /> : <Eye size={14} />}
-                                {isAdminView ? 'View as Guest' : 'Back to Admin View'}
-                            </button>
+                            <>
+                                <button 
+                                    onClick={() => setIsAdminView(!isAdminView)}
+                                    className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100"
+                                >
+                                    {isAdminView ? <EyeOff size={14} /> : <Eye size={14} />}
+                                    {isAdminView ? 'View as Guest' : 'Back to Admin View'}
+                                </button>
+                                <div className="flex gap-2">
+                                     <button 
+                                        onClick={downloadCSV}
+                                        className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
+                                    >
+                                        <Download size={14} /> CSV
+                                    </button>
+                                    <button 
+                                        onClick={handlePdfDownload}
+                                        className="text-xs font-bold text-red-600 flex items-center gap-1 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
+                                    >
+                                        <Download size={14} /> PDF
+                                    </button>
+                                </div>
+                            </>
                         )}
-                        
-                        <div className="flex gap-2">
-                             <button 
-                                onClick={downloadCSV}
-                                className="text-xs font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
-                            >
-                                <Download size={14} /> CSV
-                            </button>
-                            <button 
-                                onClick={handlePdfDownload}
-                                className="text-xs font-bold text-red-600 flex items-center gap-1 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
-                            >
-                                <Download size={14} /> PDF
-                            </button>
-                        </div>
                     </div>
                     
                     <div className="flex bg-white rounded-lg border border-slate-200 p-1">
@@ -658,7 +702,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     </div>
                 </div>
 
-                {/* --- LIST VIEW (Default) --- */}
+                {/* --- LIST VIEW --- */}
                 {viewMode === 'list' && (
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
                         <table className="w-full text-sm text-left">
@@ -847,7 +891,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             >
                                 <Plus size={28} />
                             </button>
-                            {/* Category Quick Select Menu could go here, but keeping it simple for now */}
                         </div>
                      </div>
                 )}
