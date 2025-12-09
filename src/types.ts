@@ -3,7 +3,7 @@ import type React from 'react';
 
 // --- POTLUCK TYPES ---
 
-export type PotluckTheme = 'classic' | 'corporate' | 'picnic' | 'fiesta' | 'minimal' | 'thanksgiving' | 'christmas' | 'bbq' | 'spooky' | 'baby';
+export type PotluckTheme = 'classic' | 'corporate' | 'picnic' | 'fiesta' | 'minimal' | 'thanksgiving' | 'christmas' | 'bbq' | 'spooky' | 'baby' | 'easter' | 'july4' | 'gameday';
 
 export interface PotluckItemRequest {
     id: string;

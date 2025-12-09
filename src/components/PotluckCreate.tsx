@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar, ChefHat, Plus, Trash2, ArrowRight, Loader2, List, Settings, Palette, PlusCircle, X, MapPin, Clock, HelpCircle, AlertCircle, Minus, Infinity, Lock, Unlock } from 'lucide-react';
 import { createPotluck } from '../services/potluckService';
@@ -13,17 +14,21 @@ const DEFAULT_CATEGORIES: PotluckCategory[] = [
     { id: 'cutlery', name: 'Utensils & Napkins', limit: 0, requestedItems: [] },
 ];
 
-const THEMES: { id: PotluckTheme; name: string; color: string; border: string; bg: string; pattern?: string }[] = [
-    { id: 'classic', name: 'Classic Warmth', color: 'text-orange-900', border: 'border-orange-500', bg: 'bg-orange-50' },
-    { id: 'thanksgiving', name: 'Thanksgiving', color: 'text-amber-900', border: 'border-amber-600', bg: 'bg-amber-50', pattern: 'radial-gradient(circle, #fcd34d 1px, transparent 1px) 0 0/20px 20px' },
-    { id: 'christmas', name: 'Christmas', color: 'text-red-900', border: 'border-red-600', bg: 'bg-red-50', pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fef2f2 10px, #fef2f2 20px)' },
-    { id: 'picnic', name: 'Summer Picnic', color: 'text-emerald-900', border: 'border-emerald-500', bg: 'bg-emerald-50', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/40px 40px' },
-    { id: 'corporate', name: 'Corporate/Office', color: 'text-slate-900', border: 'border-slate-500', bg: 'bg-slate-50' },
-    { id: 'fiesta', name: 'Fiesta Party', color: 'text-pink-900', border: 'border-pink-500', bg: 'bg-pink-50', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(315deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px, linear-gradient(45deg, #fbcfe8 25%, transparent 25%) 0 0/20px 20px' },
-    { id: 'minimal', name: 'Modern Minimal', color: 'text-gray-900', border: 'border-gray-800', bg: 'bg-white' },
-    { id: 'bbq', name: 'BBQ / Cookout', color: 'text-red-800', border: 'border-red-700', bg: 'bg-red-50', pattern: 'repeating-linear-gradient(0deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px)' }, // Gingham
-    { id: 'spooky', name: 'Spooky / Halloween', color: 'text-purple-900', border: 'border-purple-800', bg: 'bg-slate-100', pattern: 'repeating-linear-gradient(45deg, #e2e8f0 0, #e2e8f0 10px, #f1f5f9 10px, #f1f5f9 20px)' },
-    { id: 'baby', name: 'Baby Shower', color: 'text-sky-700', border: 'border-sky-400', bg: 'bg-sky-50', pattern: 'radial-gradient(#e0f2fe 15%, transparent 16%) 0 0/20px 20px' },
+// Enhanced themes with award-winning visual patterns
+const THEMES: { id: PotluckTheme; name: string; color: string; border: string; bg: string; pattern?: string; icon?: string }[] = [
+    { id: 'classic', name: 'Classic Warmth', color: 'text-orange-900', border: 'border-orange-500', bg: 'bg-orange-50', icon: '🍲' },
+    { id: 'thanksgiving', name: 'Thanksgiving', color: 'text-amber-900', border: 'border-amber-600', bg: 'bg-amber-50', pattern: 'radial-gradient(#fbbf24 1.5px, transparent 1.5px) 0 0/24px 24px', icon: '🦃' },
+    { id: 'christmas', name: 'Christmas', color: 'text-red-900', border: 'border-red-600', bg: 'bg-red-50', pattern: 'repeating-linear-gradient(45deg, #fee2e2 0, #fee2e2 10px, #fecaca 10px, #fecaca 20px)', icon: '🎄' },
+    { id: 'easter', name: 'Easter Brunch', color: 'text-purple-900', border: 'border-purple-400', bg: 'bg-fuchsia-50', pattern: 'radial-gradient(circle at 50% 50%, #e879f9 1px, transparent 1px) 0 0/16px 16px, radial-gradient(circle at 0% 0%, #60a5fa 1px, transparent 1px) 0 0/16px 16px', icon: '🐰' },
+    { id: 'july4', name: '4th of July', color: 'text-blue-900', border: 'border-blue-600', bg: 'bg-white', pattern: 'repeating-linear-gradient(90deg, #fee2e2 0, #fee2e2 20px, #ffffff 20px, #ffffff 40px, #dbeafe 40px, #dbeafe 60px, #ffffff 60px, #ffffff 80px)', icon: '🎆' },
+    { id: 'gameday', name: 'Game Day', color: 'text-green-900', border: 'border-green-700', bg: 'bg-green-50', pattern: 'repeating-linear-gradient(180deg, #86efac 0, #86efac 2px, transparent 2px, transparent 40px)', icon: '🏈' },
+    { id: 'picnic', name: 'Summer Picnic', color: 'text-emerald-900', border: 'border-emerald-500', bg: 'bg-emerald-50', pattern: 'conic-gradient(#dcfce7 90deg, transparent 0 180deg, #dcfce7 0 270deg, transparent 0) 0 0/40px 40px', icon: '🍉' },
+    { id: 'bbq', name: 'BBQ / Cookout', color: 'text-red-800', border: 'border-red-700', bg: 'bg-red-50', pattern: 'repeating-linear-gradient(0deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #fee2e2 19px, #fee2e2 20px)', icon: '🍖' },
+    { id: 'fiesta', name: 'Fiesta Party', color: 'text-pink-900', border: 'border-pink-500', bg: 'bg-pink-50', pattern: 'linear-gradient(135deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px, linear-gradient(225deg, #fbcfe8 25%, transparent 25%) -10px 0/20px 20px', icon: '🌮' },
+    { id: 'baby', name: 'Baby Shower', color: 'text-sky-700', border: 'border-sky-400', bg: 'bg-sky-50', pattern: 'radial-gradient(#e0f2fe 15%, transparent 16%) 0 0/20px 20px', icon: '👶' },
+    { id: 'corporate', name: 'Corporate', color: 'text-slate-900', border: 'border-slate-500', bg: 'bg-slate-50', pattern: 'linear-gradient(#cbd5e1 1px, transparent 1px) 0 0/40px 40px, linear-gradient(90deg, #cbd5e1 1px, transparent 1px) 0 0/40px 40px', icon: '🏢' },
+    { id: 'minimal', name: 'Modern Minimal', color: 'text-gray-900', border: 'border-gray-800', bg: 'bg-white', icon: '✨' },
+    { id: 'spooky', name: 'Spooky', color: 'text-purple-900', border: 'border-purple-800', bg: 'bg-slate-100', pattern: 'repeating-linear-gradient(45deg, #e2e8f0 0, #e2e8f0 10px, #f1f5f9 10px, #f1f5f9 20px)', icon: '👻' },
 ];
 
 const CARD_COLORS = [
@@ -265,12 +270,16 @@ const PotluckCreate: React.FC = () => {
                                     <h3 className="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
                                         <Palette size={20} /> Choose a Theme
                                     </h3>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                         {THEMES.map(theme => (
                                             <button
                                                 key={theme.id}
                                                 onClick={() => setFormData({...formData, theme: theme.id})}
-                                                className={`relative overflow-hidden p-1 rounded-xl transition-all text-left group h-24 flex flex-col ${formData.theme === theme.id ? 'ring-2 ring-offset-2 ring-red-500 shadow-md' : 'hover:opacity-90 hover:shadow-sm'}`}
+                                                className={`relative overflow-hidden rounded-xl transition-all text-left group h-28 flex flex-col border-2 ${
+                                                    formData.theme === theme.id 
+                                                    ? `border-slate-900 ring-2 ring-offset-2 ring-slate-900 shadow-xl scale-105 z-10` 
+                                                    : 'border-slate-100 hover:border-slate-300 hover:shadow-md'
+                                                }`}
                                             >
                                                 <div 
                                                     className={`absolute inset-0 ${theme.bg}`} 
@@ -279,8 +288,11 @@ const PotluckCreate: React.FC = () => {
                                                         backgroundBlendMode: 'multiply' 
                                                     }}
                                                 ></div>
-                                                <div className="relative z-10 flex items-center justify-center h-full">
-                                                    <span className={`bg-white/90 px-3 py-1 rounded-md text-xs font-bold shadow-sm ${theme.color}`}>{theme.name}</span>
+                                                <div className="relative z-10 flex flex-col items-center justify-center h-full gap-1 p-2">
+                                                    <span className="text-2xl drop-shadow-md">{theme.icon}</span>
+                                                    <span className={`bg-white/90 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm uppercase tracking-wide text-center w-full truncate ${theme.color}`}>
+                                                        {theme.name}
+                                                    </span>
                                                 </div>
                                             </button>
                                         ))}

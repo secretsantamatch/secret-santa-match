@@ -151,6 +151,40 @@ const THEME_STYLES: Record<PotluckTheme, {
         iconColor: 'text-sky-500',
         progressBar: 'bg-sky-400'
     },
+    // --- NEW THEMES ---
+    easter: { 
+        bg: 'bg-purple-50', 
+        glass: 'bg-white/90 backdrop-blur-md border-purple-100/50',
+        headerGradient: 'bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400', 
+        headerText: 'text-purple-900', 
+        accentBtn: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-purple-500/30', 
+        cardBorder: 'border-purple-100', 
+        pattern: 'radial-gradient(circle at 10px 10px, #f472b6 2px, transparent 0), radial-gradient(circle at 30px 30px, #60a5fa 2px, transparent 0)', 
+        iconColor: 'text-purple-500',
+        progressBar: 'bg-purple-400'
+    },
+    july4: { 
+        bg: 'bg-blue-50', 
+        glass: 'bg-white/90 backdrop-blur-md border-blue-100/50',
+        headerGradient: 'bg-gradient-to-br from-blue-700 via-white to-red-600', 
+        headerText: 'text-blue-900', 
+        accentBtn: 'bg-gradient-to-r from-blue-700 to-red-700 hover:from-blue-800 hover:to-red-800 shadow-blue-500/30', 
+        cardBorder: 'border-blue-200', 
+        pattern: 'repeating-linear-gradient(90deg, #ef4444 0, #ef4444 20px, #ffffff 20px, #ffffff 40px, #3b82f6 40px, #3b82f6 60px, #ffffff 60px, #ffffff 80px)', 
+        iconColor: 'text-blue-700',
+        progressBar: 'bg-red-600'
+    },
+    gameday: { 
+        bg: 'bg-green-50', 
+        glass: 'bg-white/95 backdrop-blur-md border-green-200/50',
+        headerGradient: 'bg-gradient-to-b from-green-700 to-green-900', 
+        headerText: 'text-green-50', 
+        accentBtn: 'bg-stone-800 hover:bg-stone-900 text-white shadow-xl border-2 border-white/20', 
+        cardBorder: 'border-green-200', 
+        pattern: 'repeating-linear-gradient(180deg, #4ade80 0, #4ade80 48px, #ffffff 48px, #ffffff 50px)', 
+        iconColor: 'text-green-800',
+        progressBar: 'bg-green-700'
+    },
 };
 
 const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey }) => {
