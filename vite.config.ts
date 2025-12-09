@@ -30,6 +30,7 @@ export default defineConfig({
         'ultimate-guide-buying-gift-cards': resolve(__dirname, 'ultimate-guide-buying-gift-cards.html'),
         'best-skincare-gifts': resolve(__dirname, 'best-skincare-gifts.html'),
         'potluck-planner': resolve(__dirname, 'potluck-planner.html'),
+        'potluck-organizer-ideas-recipes-2026': resolve(__dirname, 'potluck-organizer-ideas-recipes-2026.html'),
       }
     }
   },
