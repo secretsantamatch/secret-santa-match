@@ -168,10 +168,19 @@ export interface WEGame {
 
 // --- POTLUCK TYPES ---
 
+export type PotluckTheme = 'classic' | 'corporate' | 'picnic' | 'fiesta' | 'minimal';
+
+export interface PotluckItemRequest {
+    id: string;
+    name: string;
+    takenByDishId?: string; // If null, it's still needed
+}
+
 export interface PotluckCategory {
     id: string;
     name: string;
     limit?: number;
+    requestedItems?: PotluckItemRequest[];
 }
 
 export interface PotluckDish {
@@ -181,6 +190,7 @@ export interface PotluckDish {
     dishName: string;
     dietary: string[]; // 'gf', 'v', 'vg', 'df', 'nf'
     timestamp: number;
+    fulfillmentId?: string; // ID of the PotluckItemRequest this satisfies
 }
 
 export interface PotluckEvent {
@@ -188,9 +198,12 @@ export interface PotluckEvent {
     publicId: string; // read key
     title: string;
     date: string;
+    time?: string;      // NEW
+    location?: string;  // NEW
     description: string;
     hostName: string;
+    theme: PotluckTheme;
+    dietaryNotes?: string; // e.g. "Nut-free facility", "Halal only"
     categories: PotluckCategory[];
     dishes: PotluckDish[];
     createdAt: string;
-}

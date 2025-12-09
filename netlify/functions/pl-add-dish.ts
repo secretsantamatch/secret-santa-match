@@ -14,7 +14,9 @@ export default async (req: Request, context: Context) => {
         if (!event) return new Response('Event not found', { status: 404 });
 
         // Validate Limits
-        const category = event.categories.find((c: any) => c.id === categoryId);
+        const categoryIndex = event.categories.findIndex((c: any) => c.id === categoryId);
+        const category = event.categories[categoryIndex];
+
         if (category && category.limit > 0) {
             const currentCount = event.dishes.filter((d: any) => d.categoryId === categoryId).length;
             if (currentCount >= category.limit) {
@@ -22,19 +24,34 @@ export default async (req: Request, context: Context) => {
             }
         }
 
+        const editKey = crypto.randomUUID(); // Secret key for the creator to edit/delete later
+
         const newDish = {
             id: crypto.randomUUID(),
             categoryId,
             guestName: dish.name,
             dishName: dish.dish,
             dietary: dish.dietary || [],
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            fulfillmentId: dish.fulfillmentId, // Store reference
+            editKey: editKey // Stored securely in database
         };
+
+        // If this dish fulfills a request, mark it in the category structure
+        if (dish.fulfillmentId && category && category.requestedItems) {
+            const reqIndex = category.requestedItems.findIndex((r: any) => r.id === dish.fulfillmentId);
+            if (reqIndex !== -1) {
+                // Mark request as taken by this dish ID
+                category.requestedItems[reqIndex].takenByDishId = newDish.id;
+                event.categories[categoryIndex] = category; // Update event object
+            }
+        }
 
         event.dishes.push(newDish);
         await store.setJSON(publicId, event);
 
-        return new Response(JSON.stringify(newDish), {
+        // Return the dish AND the secret key (only once)
+        return new Response(JSON.stringify({ ...newDish, editKey }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });

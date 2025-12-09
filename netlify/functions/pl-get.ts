@@ -14,12 +14,16 @@ export default async (req: Request, context: Context) => {
 
         if (!event) return new Response('Event not found', { status: 404 });
 
-        // Strip sensitive data (adminKey) before returning to public
-        // Unless we implement an admin fetch, but usually the frontend 
-        // just needs the read/write public capabilities for dishes.
-        // Delete functionality is the only thing needing adminKey verification.
-        
+        // Strip sensitive data (adminKey and editKeys) before returning to public
         const { adminKey, ...publicData } = event;
+        
+        // Remove editKey from all dishes to prevent unauthorized deletions
+        if (publicData.dishes) {
+            publicData.dishes = publicData.dishes.map((d: any) => {
+                const { editKey, ...safeDish } = d;
+                return safeDish;
+            });
+        }
 
         return new Response(JSON.stringify(publicData), {
             status: 200,

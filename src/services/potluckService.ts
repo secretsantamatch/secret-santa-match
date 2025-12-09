@@ -16,7 +16,7 @@ export const getPotluck = async (id: string): Promise<PotluckEvent> => {
     return res.json();
 };
 
-export const addDish = async (publicId: string, categoryId: string, dish: any): Promise<PotluckDish> => {
+export const addDish = async (publicId: string, categoryId: string, dish: any): Promise<PotluckDish & { editKey?: string }> => {
     const res = await fetch('/.netlify/functions/pl-add-dish', {
         method: 'POST',
         body: JSON.stringify({ publicId, categoryId, dish })
@@ -25,10 +25,10 @@ export const addDish = async (publicId: string, categoryId: string, dish: any): 
     return res.json();
 };
 
-export const removeDish = async (publicId: string, dishId: string, adminKey: string) => {
+export const removeDish = async (publicId: string, dishId: string, adminKey?: string | null, editKey?: string | null) => {
     const res = await fetch('/.netlify/functions/pl-remove-dish', {
         method: 'POST',
-        body: JSON.stringify({ id: publicId, dishId, adminKey })
+        body: JSON.stringify({ id: publicId, dishId, adminKey, editKey })
     });
     if (!res.ok) throw new Error('Failed to delete dish');
     return res.json();
