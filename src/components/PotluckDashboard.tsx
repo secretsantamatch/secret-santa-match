@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, Info, Flag, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid } from 'lucide-react';
-import { getPotluck, addDish, removeDish } from '../services/potluckService';
+import { Calendar, User, ChefHat, Plus, Copy, Lock, Utensils, X, Check, Loader2, Sparkles, AlertCircle, Trash2, Info, Flag, MapPin, Clock, CalendarCheck, Link as LinkIcon, Share2, List, Grid, Edit2, Eye, EyeOff, Save } from 'lucide-react';
+import { getPotluck, addDish, removeDish, updatePotluckEvent } from '../services/potluckService';
 import type { PotluckEvent, PotluckCategory, PotluckDish, PotluckTheme } from '../types';
 import { trackEvent } from '../services/analyticsService';
 import AdBanner from './AdBanner';
@@ -27,7 +27,6 @@ const SUGGESTIONS = [
     "Pulled Pork Sliders", "Pasta Salad", "Veggie Tray", "Cookies", "Sangria"
 ];
 
-// Theme Definitions (matching Create)
 const THEME_STYLES: Record<PotluckTheme, { bg: string, header: string, text: string, accent: string, card: string }> = {
     classic: { bg: 'bg-[#fff7ed]', header: 'bg-slate-900', text: 'text-orange-900', accent: 'bg-orange-600', card: 'border-orange-200' },
     picnic: { bg: 'bg-[#f0fdf4]', header: 'bg-emerald-900', text: 'text-emerald-900', accent: 'bg-emerald-600', card: 'border-emerald-200' },
@@ -42,26 +41,28 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     const [event, setEvent] = useState<PotluckEvent | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    // Stores dishId -> editKey
     const [myDishKeys, setMyDishKeys] = useState<Record<string, string>>({});
     
     // Modal State
     const [showAddModal, setShowAddModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showEditEventModal, setShowEditEventModal] = useState(false);
     const [lastAddedDishLink, setLastAddedDishLink] = useState('');
     
     // View State for Admin
     const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+    const [isAdminView, setIsAdminView] = useState(false); // Controls hiding/showing cards for admin
     
     const [selectedCategory, setSelectedCategory] = useState<PotluckCategory | null>(null);
-    // fulfillmentId tracks which "Requested Item" this dish fulfills
     const [dishForm, setDishForm] = useState({ name: '', dish: '', dietary: [] as string[], fulfillmentId: undefined as string | undefined });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
     const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+    // Edit Event Form
+    const [editForm, setEditForm] = useState<Partial<PotluckEvent>>({});
+
     useEffect(() => {
-        // 1. Load Local Keys
         const stored = localStorage.getItem(`potluck_keys_${publicId}`);
         if (stored) {
             try {
@@ -69,8 +70,9 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
             } catch (e) {}
         }
 
-        // 2. Check URL for Claim Token (Cross-Device Editing)
-        // Format: #id=PUBLIC_ID&claim=DISH_ID:EDIT_KEY
+        // Auto-switch to admin view if key present
+        if (adminKey) setIsAdminView(true);
+
         const hash = window.location.hash;
         if (hash.includes('claim=')) {
             const params = new URLSearchParams(hash.slice(1));
@@ -83,8 +85,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                         localStorage.setItem(`potluck_keys_${publicId}`, JSON.stringify(newKeys));
                         return newKeys;
                     });
-                    setToastMsg("Dish ownership restored! You can now edit.");
-                    // Clean URL
+                    setToastMsg("Dish ownership restored!");
                     window.history.replaceState(null, '', `#id=${publicId}${adminKey ? `&admin=${adminKey}` : ''}`);
                 }
             }
@@ -111,18 +112,15 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         try {
             const newDish = await addDish(event.publicId, selectedCategory.id, dishForm);
             
-            // Save ownership to local storage
             if (newDish.editKey) {
                 const newKeys = { ...myDishKeys, [newDish.id]: newDish.editKey };
                 setMyDishKeys(newKeys);
                 localStorage.setItem(`potluck_keys_${publicId}`, JSON.stringify(newKeys));
-                
-                // Generate Restore Link
                 const link = `${window.location.origin}${window.location.pathname}#id=${publicId}&claim=${newDish.id}:${newDish.editKey}`;
                 setLastAddedDishLink(link);
             }
 
-            // If this dish fulfilled a request, update local state immediately
+            // Optimistic Update
             let updatedCategories = event.categories;
             if (dishForm.fulfillmentId) {
                 updatedCategories = event.categories.map(cat => {
@@ -140,9 +138,9 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
             setEvent({ ...event, categories: updatedCategories, dishes: [...event.dishes, newDish] });
             setShowAddModal(false);
-            setShowSuccessModal(true); // Show success modal with edit link
+            setShowSuccessModal(true);
             setDishForm({ name: '', dish: '', dietary: [], fulfillmentId: undefined });
-            trackEvent('potluck_dish_added', { category: selectedCategory.name, is_fulfilled_request: !!dishForm.fulfillmentId });
+            trackEvent('potluck_dish_added', { category: selectedCategory.name });
         } catch (e) {
             alert("Failed to add dish.");
         } finally {
@@ -151,16 +149,13 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
     };
 
     const handleDeleteDish = async (dishId: string) => {
-        // Allow if admin OR if I have the key
         const editKey = myDishKeys[dishId];
         if (!adminKey && !editKey) return;
-        
         if (!confirm("Remove this dish from the list?")) return;
 
         try {
             await removeDish(event!.publicId, dishId, adminKey, editKey);
             
-            // Remove local key if it was mine
             if (editKey) {
                 const newKeys = { ...myDishKeys };
                 delete newKeys[dishId];
@@ -168,7 +163,6 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                 localStorage.setItem(`potluck_keys_${publicId}`, JSON.stringify(newKeys));
             }
             
-            // Revert fulfillment locally
             const updatedCategories = event!.categories.map(cat => {
                 if (cat.requestedItems) {
                     return {
@@ -185,6 +179,34 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
         } catch (e) {
             alert("Failed to delete.");
         }
+    };
+
+    const handleUpdateEvent = async () => {
+        if (!adminKey || !event) return;
+        setIsSubmitting(true);
+        try {
+            const updatedEvent = await updatePotluckEvent(event.publicId, adminKey, editForm);
+            // Merge response to keep dishes/categories populated if server returned partial
+            setEvent({ ...event, ...updatedEvent, dishes: event.dishes, categories: event.categories }); 
+            setShowEditEventModal(false);
+            setToastMsg("Event updated successfully!");
+        } catch (e) {
+            alert("Failed to update event.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const openEditModal = () => {
+        setEditForm({
+            title: event?.title,
+            date: event?.date,
+            time: event?.time,
+            location: event?.location,
+            description: event?.description,
+            dietaryNotes: event?.dietaryNotes
+        });
+        setShowEditEventModal(true);
     };
 
     const openAddModal = (cat: PotluckCategory, prefillItem?: { id: string, name: string }) => {
@@ -229,7 +251,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
     const isAdmin = !!adminKey;
     const styles = THEME_STYLES[event.theme || 'classic'] || THEME_STYLES.classic;
-    const shareLink = window.location.href.split('&')[0]; // Remove admin key for sharing
+    const shareLink = window.location.href.split('#')[0] + `#id=${publicId}`;
 
     return (
         <div className={`min-h-screen pb-24 ${styles.bg}`}>
@@ -243,7 +265,12 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
                 {/* --- HEADER CARD --- */}
                 <div className={`bg-white rounded-3xl shadow-xl overflow-hidden mb-8 border ${styles.card}`}>
-                    <div className={`${styles.header} p-8 text-center text-white relative`}>
+                    <div className={`${styles.header} p-8 text-center text-white relative group`}>
+                        {isAdmin && (
+                            <button onClick={openEditModal} className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-2 rounded-full text-white transition-colors" title="Edit Event Details">
+                                <Edit2 size={18} />
+                            </button>
+                        )}
                         <h1 className="text-3xl md:text-5xl font-black font-serif mb-4">{event.title}</h1>
                         <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-white/90 font-medium">
                             <span className="flex items-center gap-1.5"><Calendar size={18}/> {new Date(event.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
@@ -279,8 +306,13 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                         </div>
                     </div>
                     {event.description && (
-                        <div className={`p-6 ${styles.bg} ${styles.text} text-center border-b ${styles.card} italic`}>
+                        <div className={`p-6 ${styles.bg} ${styles.text} text-center border-b ${styles.card} italic relative group`}>
                             "{event.description}"
+                            {isAdmin && (
+                                <button onClick={openEditModal} className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Edit2 size={14} />
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
@@ -296,7 +328,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             </div>
                             <div className="flex-1 text-center md:text-left">
                                 <h3 className="text-xl font-bold text-slate-800">Invite Your Guests</h3>
-                                <p className="text-slate-600 text-sm mt-1">Share this link so guests can sign up. (Don't worry, they can't delete other people's dishes!)</p>
+                                <p className="text-slate-600 text-sm mt-1">Share this link so guests can sign up.</p>
                             </div>
                             <button 
                                 onClick={() => copyLink(shareLink)} 
@@ -309,29 +341,43 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
                         {/* MASTER LIST TOGGLE */}
                         <div className="flex justify-between items-end border-b border-slate-200 pb-2">
-                            <h3 className="font-bold text-slate-700 text-lg flex items-center gap-2">
-                                <ChefHat className="text-slate-400"/> Master Dish List
-                            </h3>
-                            <div className="flex bg-white rounded-lg border border-slate-200 p-1">
+                            <div className="flex items-center gap-4">
+                                <h3 className="font-bold text-slate-700 text-lg flex items-center gap-2">
+                                    <ChefHat className="text-slate-400"/> Master Dish List
+                                </h3>
+                                {/* Toggle View Mode */}
                                 <button 
-                                    onClick={() => setViewMode('cards')}
-                                    className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                                    title="Card View"
+                                    onClick={() => setIsAdminView(!isAdminView)}
+                                    className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline"
                                 >
-                                    <Grid size={18} />
-                                </button>
-                                <button 
-                                    onClick={() => setViewMode('list')}
-                                    className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                                    title="List View"
-                                >
-                                    <List size={18} />
+                                    {isAdminView ? <EyeOff size={14} /> : <Eye size={14} />}
+                                    {isAdminView ? 'View as Guest' : 'Back to Admin View'}
                                 </button>
                             </div>
+                            
+                            {/* Table/Card Toggle for Master List */}
+                            {isAdminView && (
+                                <div className="flex bg-white rounded-lg border border-slate-200 p-1">
+                                    <button 
+                                        onClick={() => setViewMode('cards')}
+                                        className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                                        title="Card View"
+                                    >
+                                        <Grid size={18} />
+                                    </button>
+                                    <button 
+                                        onClick={() => setViewMode('list')}
+                                        className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                                        title="List View"
+                                    >
+                                        <List size={18} />
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
-                        {/* MASTER LIST TABLE (ONLY VISIBLE IN LIST MODE) */}
-                        {viewMode === 'list' && (
+                        {/* MASTER LIST TABLE (ONLY VISIBLE IN LIST MODE + ADMIN VIEW) */}
+                        {isAdminView && viewMode === 'list' && (
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
@@ -377,8 +423,9 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
                 <AdBanner data-ad-client="ca-pub-3037944530219260" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true" />
 
-                {/* --- MENU CARDS (STANDARD VIEW) --- */}
-                {viewMode === 'cards' && (
+                {/* --- MENU CARDS (STANDARD VIEW / GUEST VIEW) --- */}
+                {/* Show if NOT admin, OR if admin turned off AdminView, OR if admin is in Card mode */}
+                {(!isAdmin || !isAdminView || viewMode === 'cards') && (
                     <div className="space-y-8">
                         {event.categories.map(category => {
                             const categoryDishes = event.dishes.filter(d => d.categoryId === category.id);
@@ -469,19 +516,22 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                         )}
                                     </div>
 
-                                    <div className="p-3 bg-slate-50/50 border-t border-slate-100">
-                                        <button 
-                                            onClick={() => openAddModal(category)}
-                                            disabled={isFull}
-                                            className={`w-full py-3 rounded-xl border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${
-                                                isFull 
-                                                ? 'border-slate-200 text-slate-400 cursor-not-allowed' 
-                                                : `border-slate-300 text-slate-500 hover:bg-white hover:border-${styles.accent.replace('bg-', '')} hover:text-slate-800`
-                                            }`}
-                                        >
-                                            {isFull ? <span className="flex items-center gap-2"><Lock size={16}/> Category Full</span> : <span className="flex items-center gap-2"><Plus size={18}/> Bring Something Else</span>}
-                                        </button>
-                                    </div>
+                                    {/* Hide the "Add Dish" button if we are in strict Admin View mode (unless toggled to view as guest) */}
+                                    {(!isAdmin || !isAdminView) && (
+                                        <div className="p-3 bg-slate-50/50 border-t border-slate-100">
+                                            <button 
+                                                onClick={() => openAddModal(category)}
+                                                disabled={isFull}
+                                                className={`w-full py-3 rounded-xl border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${
+                                                    isFull 
+                                                    ? 'border-slate-200 text-slate-400 cursor-not-allowed' 
+                                                    : `border-slate-300 text-slate-500 hover:bg-white hover:border-${styles.accent.replace('bg-', '')} hover:text-slate-800`
+                                                }`}
+                                            >
+                                                {isFull ? <span className="flex items-center gap-2"><Lock size={16}/> Category Full</span> : <span className="flex items-center gap-2"><Plus size={18}/> Bring Something Else</span>}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
@@ -597,6 +647,51 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             >
                                 Done
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* EDIT EVENT MODAL (ADMIN) */}
+                {showEditEventModal && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
+                            <div className="bg-slate-800 p-4 flex justify-between items-center text-white">
+                                <h3 className="font-bold flex items-center gap-2"><Edit2 size={20}/> Edit Event Details</h3>
+                                <button onClick={() => setShowEditEventModal(false)}><X size={24}/></button>
+                            </div>
+                            <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Title</label>
+                                    <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-2 border rounded" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
+                                    <input type="date" value={editForm.date} onChange={e => setEditForm({...editForm, date: e.target.value})} className="w-full p-2 border rounded" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Time</label>
+                                    <input type="text" value={editForm.time} onChange={e => setEditForm({...editForm, time: e.target.value})} className="w-full p-2 border rounded" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
+                                    <input type="text" value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})} className="w-full p-2 border rounded" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Welcome Message</label>
+                                    <textarea value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} className="w-full p-2 border rounded h-20" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dietary Notes</label>
+                                    <input type="text" value={editForm.dietaryNotes} onChange={e => setEditForm({...editForm, dietaryNotes: e.target.value})} className="w-full p-2 border rounded" />
+                                </div>
+                                <button 
+                                    onClick={handleUpdateEvent}
+                                    disabled={isSubmitting}
+                                    className="w-full bg-slate-900 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
+                                >
+                                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Save size={18} />} Save Changes
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

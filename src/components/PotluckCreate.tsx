@@ -134,7 +134,7 @@ const PotluckCreate: React.FC = () => {
     );
 
     return (
-        <div className="max-w-4xl mx-auto p-4 md:p-8">
+        <div className={`max-w-4xl mx-auto p-4 md:p-8 transition-colors duration-500 rounded-3xl mt-4 ${activeTheme.bg}`}>
             <div className="text-center mb-8">
                 <h1 className={`text-4xl md:text-5xl font-black font-serif mb-2 ${activeTheme.color}`}>Potluck Planner</h1>
                 <p className={`${activeTheme.color} opacity-80 text-lg`}>Create a beautiful, free sign-up sheet for your feast.</p>
