@@ -715,16 +715,18 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     <div className="space-y-8">
                         {event.categories.map(category => {
                             const categoryDishes = event.dishes.filter(d => d.categoryId === category.id);
-                            const isFull = category.limit ? categoryDishes.length >= category.limit : false;
+                            // Safely handle optional limit property
+                            const limit = category.limit || 0;
+                            const isFull = limit > 0 && categoryDishes.length >= limit;
                             
                             return (
                                 <div key={category.id} className={`bg-white rounded-2xl shadow-sm border ${styles.cardBorder} overflow-hidden`}>
                                     {/* Category Header */}
                                     <div className={`p-4 border-b ${styles.cardBorder} ${styles.bg} flex justify-between items-center`}>
                                         <h3 className={`font-bold text-xl font-serif ${styles.headerText}`}>{category.name}</h3>
-                                        {category.limit ? (
+                                        {limit > 0 ? (
                                             <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                                {categoryDishes.length} / {category.limit} Filled
+                                                {categoryDishes.length} / {limit} Filled
                                             </span>
                                         ) : (
                                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Unlimited</span>
@@ -834,7 +836,12 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                 className={`w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-white ${styles.accentBtn} transition-transform hover:scale-110`}
                                 onClick={() => {
                                     // Default to first non-full category
-                                    const firstOpenCat = event.categories.find(c => !c.limit || event.dishes.filter(d => d.categoryId === c.id).length < c.limit);
+                                    // Safe check for limit: (c.limit || 0)
+                                    const firstOpenCat = event.categories.find(c => {
+                                        const limit = c.limit || 0;
+                                        const count = event.dishes.filter(d => d.categoryId === c.id).length;
+                                        return limit === 0 || count < limit;
+                                    });
                                     if(firstOpenCat) openAddModal(firstOpenCat);
                                 }}
                             >
@@ -875,11 +882,16 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                             className="w-full p-3 border rounded-lg outline-none bg-slate-50"
                                             disabled={!!dishForm.fulfillmentId}
                                         >
-                                            {event.categories.map(c => (
-                                                <option key={c.id} value={c.id} disabled={c.limit > 0 && event.dishes.filter(d => d.categoryId === c.id).length >= c.limit}>
-                                                    {c.name} {c.limit > 0 ? `(${event.dishes.filter(d => d.categoryId === c.id).length}/${c.limit})` : ''}
-                                                </option>
-                                            ))}
+                                            {event.categories.map(c => {
+                                                const limit = c.limit || 0;
+                                                const currentCount = event.dishes.filter(d => d.categoryId === c.id).length;
+                                                const isFull = limit > 0 && currentCount >= limit;
+                                                return (
+                                                    <option key={c.id} value={c.id} disabled={isFull}>
+                                                        {c.name} {limit > 0 ? `(${currentCount}/${limit})` : ''}
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                     </div>
                                 )}
