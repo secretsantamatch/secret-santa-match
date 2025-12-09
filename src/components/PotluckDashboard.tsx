@@ -589,7 +589,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     backgroundSize: '40px 40px' 
                 }}
             >
-                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-white/50 animate-fade-in relative overflow-hidden">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-white/50 animate-fade-in relative overflow-hidden text-slate-800">
                     {event.theme === 'spooky' && (
                         <div className="absolute top-2 right-4 text-4xl animate-bounce opacity-80">👻</div>
                     )}
@@ -1116,7 +1116,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     {/* ADD/EDIT DISH MODAL */}
                     {showAddModal && selectedCategory && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
+                            <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in text-slate-800">
                                 <div className={`${styles.headerGradient} p-5 flex justify-between items-center text-white`}>
                                     <h3 className="font-bold flex items-center gap-2 text-lg">
                                         <Utensils size={20}/> {editingDishId ? 'Edit Dish' : dishForm.fulfillmentId ? 'I\'ll Bring This!' : 'Bring a Dish'}
@@ -1168,7 +1168,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                             type="text" 
                                             value={dishForm.name}
                                             onChange={e => setDishForm({...dishForm, name: e.target.value})}
-                                            className="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all font-medium"
+                                            className="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all font-medium text-slate-800"
                                             placeholder="e.g. Sarah"
                                         />
                                     </div>
@@ -1181,7 +1181,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                                     type="text" 
                                                     value={dishForm.dish}
                                                     onChange={e => setDishForm({...dishForm, dish: e.target.value})}
-                                                    className="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all font-medium"
+                                                    className="w-full p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all font-medium text-slate-800"
                                                     placeholder="e.g. Deviled Eggs"
                                                 />
                                                 <button 
@@ -1224,7 +1224,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     {/* SUCCESS MODAL */}
                     {showSuccessModal && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden transform transition-all scale-100">
+                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden transform transition-all scale-100 text-slate-800">
                                 <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
                                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5 text-green-600 shadow-sm">
                                     <Check size={40} strokeWidth={3} />
@@ -1266,7 +1266,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                     {/* EDIT EVENT MODAL */}
                     {showEditEventModal && isAdmin && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-                            <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                            <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] text-slate-800">
                                 <div className={`${styles.headerGradient} p-5 flex justify-between items-center text-white`}>
                                     <h3 className="font-bold text-lg">Edit Event Details</h3>
                                     <button onClick={() => setShowEditEventModal(false)} className="hover:bg-white/20 rounded-full p-1 transition-colors"><X size={24}/></button>
@@ -1277,25 +1277,25 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-4">Event Info</p>
                                         <div>
                                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Event Name</label>
-                                            <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all font-medium"/>
+                                            <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all font-medium text-slate-800"/>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Date</label>
-                                                <input type="date" value={editForm.date} onChange={e => setEditForm({...editForm, date: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all"/>
+                                                <input type="date" value={editForm.date} onChange={e => setEditForm({...editForm, date: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all text-slate-800"/>
                                             </div>
                                             <div>
                                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Time</label>
-                                                <input type="text" value={editForm.time} onChange={e => setEditForm({...editForm, time: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all"/>
+                                                <input type="text" value={editForm.time} onChange={e => setEditForm({...editForm, time: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all text-slate-800"/>
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Location</label>
-                                            <input type="text" value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all"/>
+                                            <input type="text" value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all text-slate-800"/>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Dietary Notes</label>
-                                            <input type="text" value={editForm.dietaryNotes} onChange={e => setEditForm({...editForm, dietaryNotes: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all"/>
+                                            <input type="text" value={editForm.dietaryNotes} onChange={e => setEditForm({...editForm, dietaryNotes: e.target.value})} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-slate-200 transition-all text-slate-800"/>
                                         </div>
                                     </div>
 
