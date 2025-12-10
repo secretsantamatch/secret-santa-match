@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 const Header: React.FC = () => {
@@ -16,8 +17,9 @@ const Header: React.FC = () => {
                     <nav className="hidden md:flex items-center gap-6">
                         <a href="/generator.html" className="font-semibold text-slate-600 hover:text-red-600 transition-colors">Generator</a>
                          <a href="/white-elephant-generator.html" className="font-semibold text-slate-600 hover:text-red-600 transition-colors">White Elephant</a>
-                         <a href="/free-printables.html" className="font-semibold text-slate-600 hover:text-red-600 transition-colors">Free Printables</a>
-                        <a href="/" className="font-semibold text-slate-600 hover:text-red-600 transition-colors">Blog</a>
+                         <a href="/potluck-planner.html" className="font-semibold text-slate-600 hover:text-red-600 transition-colors">Potluck</a>
+                         <a href="/kudos-exchange.html" className="font-semibold text-slate-600 hover:text-red-600 transition-colors flex items-center gap-1"><span className="text-yellow-500">★</span> Kudos</a>
+                         <a href="/free-printables.html" className="font-semibold text-slate-600 hover:text-red-600 transition-colors">Printables</a>
                     </nav>
 
                     {/* Mobile Menu Button */}
@@ -41,6 +43,8 @@ const Header: React.FC = () => {
                     <nav className="flex flex-col items-center gap-4 py-4">
                         <a href="/generator.html" className="font-semibold text-slate-600 hover:text-red-600">Secret Santa Generator</a>
                         <a href="/white-elephant-generator.html" className="font-semibold text-slate-600 hover:text-red-600">White Elephant</a>
+                        <a href="/potluck-planner.html" className="font-semibold text-slate-600 hover:text-red-600">Potluck Planner</a>
+                        <a href="/kudos-exchange.html" className="font-semibold text-slate-600 hover:text-red-600">Kudos Exchange</a>
                         <a href="/free-printables.html" className="font-semibold text-slate-600 hover:text-red-600">Free Printables</a>
                         <a href="/" className="font-semibold text-slate-600 hover:text-red-600">Blog & Guides</a>
                     </nav>

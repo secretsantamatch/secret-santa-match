@@ -1,5 +1,32 @@
 
+
 import type React from 'react';
+
+// --- KUDOS EXCHANGE TYPES ---
+
+export type KudosTheme = 'corporate' | 'celebration' | 'zen';
+export type KudosMode = 'open' | 'shuffle'; // open = board, shuffle = assigned pairs
+
+export interface KudosCard {
+    id: string;
+    from: string;
+    to: string; // "Everyone", "The Team", or specific name
+    message: string;
+    style: string; // e.g. "classic", "vibrant", "dark"
+    giftLink?: string; // The pasted affiliate/redemption link
+    giftType?: 'coffee' | 'amazon' | 'generic'; // Icon helper
+    timestamp: number;
+}
+
+export interface KudosBoard {
+    id: string; // publicId
+    adminKey: string;
+    title: string;
+    mode: KudosMode;
+    theme: KudosTheme;
+    cards: KudosCard[];
+    createdAt: string;
+}
 
 // --- POTLUCK TYPES ---
 

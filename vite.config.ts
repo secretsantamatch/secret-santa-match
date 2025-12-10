@@ -31,6 +31,7 @@ export default defineConfig({
         'best-skincare-gifts': resolve(__dirname, 'best-skincare-gifts.html'),
         'potluck-planner': resolve(__dirname, 'potluck-planner.html'),
         'potluck-organizer-ideas-recipes-2026': resolve(__dirname, 'potluck-organizer-ideas-recipes-2026.html'),
+         'kudos-exchange': resolve(__dirname, 'kudos-exchange.html'),
       }
     }
   },
