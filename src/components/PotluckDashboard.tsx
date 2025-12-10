@@ -635,7 +635,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
             
             {/* MAIN CONTENT CONTAINER */}
             <div className="max-w-5xl mx-auto p-4 md:p-8 relative z-10">
-                <div className={`rounded-[2rem] shadow-2xl p-6 md:p-10 border border-white/40 ${styles.glass}`}>
+                <div className={`rounded-[2rem] shadow-2xl p-6 md:p-10 border border-white/40 ${styles.glass} text-slate-800`}>
                 
                     {toastMsg && (
                         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl z-50 flex items-center gap-2 animate-fade-in">
@@ -713,6 +713,47 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                             </div>
                         )}
                     </div>
+                    
+                    {/* --- LEADERBOARD SECTION --- */}
+                    {event.votingEnabled && topDishes.length > 0 && (
+                         <div className="mb-8 animate-fade-in relative z-20">
+                            <div className="bg-gradient-to-br from-yellow-100 via-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200 shadow-lg relative overflow-hidden">
+                                <div className="absolute -top-6 -right-6 text-amber-200 opacity-50 rotate-12">
+                                    <Trophy size={140} />
+                                </div>
+                                <div className="relative z-10">
+                                    <h3 className="text-xl font-black text-amber-900 mb-6 flex items-center gap-2">
+                                        <Trophy className="text-yellow-600" fill="currentColor" /> Crowd Favorites
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {topDishes.map((dish, i) => {
+                                            const medals = [
+                                                { color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-200', icon: '🥇' },
+                                                { color: 'text-slate-500', bg: 'bg-slate-100', border: 'border-slate-200', icon: '🥈' },
+                                                { color: 'text-amber-700', bg: 'bg-orange-100', border: 'border-orange-200', icon: '🥉' }
+                                            ];
+                                            const style = medals[i];
+                                            
+                                            return (
+                                                <div key={dish.id} className={`bg-white p-4 rounded-xl border-2 ${style.border} shadow-sm flex items-center gap-4`}>
+                                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-inner ${style.bg}`}>
+                                                        {style.icon}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <div className="font-bold text-slate-900 truncate" title={dish.dishName}>{dish.dishName}</div>
+                                                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">{dish.guestName}</div>
+                                                        <div className="inline-flex items-center gap-1.5 bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full text-xs font-bold border border-rose-100">
+                                                            <Heart size={10} fill="currentColor" /> {dish.votes} votes
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                         </div>
+                    )}
 
                     {/* --- INVITE & SHARING CARD (Admin Only) --- */}
                     {isAdmin && (
@@ -1115,7 +1156,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
                     {/* ADD/EDIT DISH MODAL */}
                     {showAddModal && selectedCategory && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 text-slate-800">
                             <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in text-slate-800">
                                 <div className={`${styles.headerGradient} p-5 flex justify-between items-center text-white`}>
                                     <h3 className="font-bold flex items-center gap-2 text-lg">
@@ -1124,7 +1165,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                     <button onClick={() => setShowAddModal(false)} className="hover:bg-white/20 rounded-full p-1 transition-colors"><X size={24}/></button>
                                 </div>
                                 
-                                <div className="p-6 space-y-5">
+                                <div className="p-6 space-y-5 text-slate-800">
                                     {dishForm.fulfillmentId && !editingDishId && (
                                         <div className="bg-amber-50 text-amber-900 p-4 rounded-xl text-sm font-medium border border-amber-200 flex items-center gap-3">
                                             <div className="bg-amber-100 p-1.5 rounded-full"><Check size={16} /></div>
@@ -1223,7 +1264,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
                     {/* SUCCESS MODAL */}
                     {showSuccessModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in text-slate-800">
                             <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden transform transition-all scale-100 text-slate-800">
                                 <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
                                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5 text-green-600 shadow-sm">
@@ -1265,13 +1306,13 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
 
                     {/* EDIT EVENT MODAL */}
                     {showEditEventModal && isAdmin && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 text-slate-800">
                             <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] text-slate-800">
                                 <div className={`${styles.headerGradient} p-5 flex justify-between items-center text-white`}>
                                     <h3 className="font-bold text-lg">Edit Event Details</h3>
                                     <button onClick={() => setShowEditEventModal(false)} className="hover:bg-white/20 rounded-full p-1 transition-colors"><X size={24}/></button>
                                 </div>
-                                <div className="p-6 overflow-y-auto flex-1 space-y-6">
+                                <div className="p-6 overflow-y-auto flex-1 space-y-6 text-slate-800">
                                     {/* SECTION 1: BASICS */}
                                     <div className="space-y-4">
                                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-4">Event Info</p>
@@ -1310,7 +1351,7 @@ const PotluckDashboard: React.FC<PotluckDashboardProps> = ({ publicId, adminKey 
                                             <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
                                                 <div>
                                                     <span className="font-bold text-sm text-slate-700 block flex items-center gap-1.5"><Heart size={14} className="text-amber-500"/> Recipe Voting</span>
-                                                    <span className="text-xs text-slate-500">Enable "Best Dish" heart button</span>
+                                                    <span className="text-xs text-slate-500">Enable anonymous "Best Dish" voting</span>
                                                 </div>
                                                 <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
                                                     <input 
