@@ -42,7 +42,7 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
 
     // Derived state for the Admin Activity Log
     const participationStats = useMemo(() => {
-        if (!board) return { uniqueSenders: [], uniqueReceivers: [] };
+        if (!board) return { senders: [], receivers: [] };
         
         const senders = new Map<string, number>();
         const receivers = new Map<string, number>();
