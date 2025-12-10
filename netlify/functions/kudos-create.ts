@@ -20,6 +20,7 @@ export default async (req: Request, context: Context) => {
             title: data.title,
             mode: data.mode || 'open',
             theme: data.theme || 'corporate',
+            scheduledReveal: data.scheduledReveal || null, // Allow scheduled unlock
             cards: []
         };
 

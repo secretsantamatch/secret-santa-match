@@ -1,11 +1,16 @@
 
-
 import type React from 'react';
 
 // --- KUDOS EXCHANGE TYPES ---
 
-export type KudosTheme = 'corporate' | 'celebration' | 'zen';
-export type KudosMode = 'open' | 'shuffle'; // open = board, shuffle = assigned pairs
+export type KudosTheme = 'corporate' | 'celebration' | 'zen' | 'farewell';
+export type KudosMode = 'open' | 'shuffle' | 'signed_card'; // open = board, shuffle = assigned, signed = one big card
+
+export interface KudosReaction {
+    emoji: string;
+    count: number;
+    userHasReacted?: boolean; // Local state helper
+}
 
 export interface KudosCard {
     id: string;
@@ -15,6 +20,8 @@ export interface KudosCard {
     style: string; // e.g. "classic", "vibrant", "dark"
     giftLink?: string; // The pasted affiliate/redemption link
     giftType?: 'coffee' | 'amazon' | 'generic'; // Icon helper
+    gifUrl?: string; // Giphy URL
+    reactions?: Record<string, number>; // e.g. { 'heart': 5, 'clap': 2 }
     timestamp: number;
 }
 
@@ -25,6 +32,7 @@ export interface KudosBoard {
     mode: KudosMode;
     theme: KudosTheme;
     cards: KudosCard[];
+    scheduledReveal?: string; // ISO Date string. If present, content is hidden until then.
     createdAt: string;
 }
 

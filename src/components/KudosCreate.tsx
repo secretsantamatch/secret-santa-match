@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Sparkles, Users, Briefcase, Heart, ArrowRight, Loader2, Shuffle, HelpCircle, CheckCircle, Monitor, Gift } from 'lucide-react';
+import { Sparkles, Users, Briefcase, Heart, ArrowRight, Loader2, Shuffle, Gift, CheckCircle, Calendar, Clock, Plane } from 'lucide-react';
 import { createKudosBoard } from '../services/kudosService';
 import type { KudosTheme, KudosMode } from '../types';
 import { trackEvent } from '../services/analyticsService';
@@ -9,6 +9,7 @@ const THEMES: { id: KudosTheme; name: string; color: string; icon: any; bg: stri
     { id: 'corporate', name: 'Corporate Clean', color: 'text-slate-800', icon: Briefcase, bg: 'bg-slate-50', border: 'border-slate-200', activeBorder: 'border-slate-800 ring-1 ring-slate-800', desc: 'Professional and polished.' },
     { id: 'celebration', name: 'Party & Celebration', color: 'text-pink-600', icon: Sparkles, bg: 'bg-pink-50', border: 'border-pink-200', activeBorder: 'border-pink-500 ring-1 ring-pink-500', desc: 'Fun, confetti, and energy.' },
     { id: 'zen', name: 'Wellness & Zen', color: 'text-emerald-800', icon: Heart, bg: 'bg-emerald-50', border: 'border-emerald-200', activeBorder: 'border-emerald-600 ring-1 ring-emerald-600', desc: 'Calming and thoughtful.' },
+    { id: 'farewell', name: 'Farewell / Retirement', color: 'text-blue-800', icon: Plane, bg: 'bg-sky-50', border: 'border-sky-200', activeBorder: 'border-blue-600 ring-1 ring-blue-600', desc: 'Bon voyage and good luck.' },
 ];
 
 const KudosCreate: React.FC = () => {
@@ -16,13 +17,23 @@ const KudosCreate: React.FC = () => {
     const [theme, setTheme] = useState<KudosTheme>('corporate');
     const [mode, setMode] = useState<KudosMode>('open');
     const [isCreating, setIsCreating] = useState(false);
+    
+    // Scheduled Unlock
+    const [useSchedule, setUseSchedule] = useState(false);
+    const [scheduledDate, setScheduledDate] = useState('');
+    const [scheduledTime, setScheduledTime] = useState('');
 
     const handleCreate = async () => {
         if (!title.trim()) return;
         setIsCreating(true);
         try {
-            const result = await createKudosBoard({ title, theme, mode });
-            trackEvent('kudos_created', { theme, mode });
+            let scheduledReveal = null;
+            if (useSchedule && scheduledDate && scheduledTime) {
+                scheduledReveal = new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
+            }
+
+            const result = await createKudosBoard({ title, theme, mode, scheduledReveal });
+            trackEvent('kudos_created', { theme, mode, has_schedule: !!scheduledReveal });
             window.location.hash = `id=${result.publicId}&admin=${result.adminKey}`;
         } catch (error) {
             console.error(error);
@@ -67,17 +78,16 @@ const KudosCreate: React.FC = () => {
                                 <div className="flex items-center gap-2 font-bold text-slate-800 mb-1">
                                     <Users size={18} className="text-indigo-600"/> Open Board
                                 </div>
-                                <p className="text-xs text-slate-500 leading-relaxed">Everyone can write cards for anyone. Best for general team morale and birthdays.</p>
+                                <p className="text-xs text-slate-500 leading-relaxed">Everyone can write cards for anyone. Best for general team morale.</p>
                             </button>
                             <button 
-                                onClick={() => setMode('shuffle')}
-                                className={`p-4 rounded-xl border-2 text-left transition-all opacity-60 cursor-not-allowed border-slate-200 bg-slate-50`}
-                                disabled
+                                onClick={() => setMode('signed_card')}
+                                className={`p-4 rounded-xl border-2 text-left transition-all ${mode === 'signed_card' ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600' : 'border-slate-200 hover:border-slate-300'}`}
                             >
-                                <div className="flex items-center gap-2 font-bold text-slate-500 mb-1">
-                                    <Shuffle size={18} /> Appreciation Shuffle
+                                <div className="flex items-center gap-2 font-bold text-slate-800 mb-1">
+                                    <Gift size={18} className="text-pink-600"/> Signed by Everyone
                                 </div>
-                                <p className="text-xs text-slate-400 leading-relaxed">Coming Soon: Randomly assigns teammates to appreciate each other (Secret Santa style).</p>
+                                <p className="text-xs text-slate-500 leading-relaxed">Perfect for Birthdays or Farewells. One giant card that everyone signs.</p>
                             </button>
                         </div>
                     </div>
@@ -85,7 +95,7 @@ const KudosCreate: React.FC = () => {
                     {/* Theme Selection */}
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-3">Choose a Theme</label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {THEMES.map(t => (
                                 <button
                                     key={t.id}
@@ -101,6 +111,45 @@ const KudosCreate: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Scheduled Unlock */}
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div className="flex items-center gap-2 mb-3">
+                            <input 
+                                type="checkbox" 
+                                id="schedule" 
+                                checked={useSchedule} 
+                                onChange={(e) => setUseSchedule(e.target.checked)}
+                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                            />
+                            <label htmlFor="schedule" className="text-sm font-bold text-slate-700 flex items-center gap-2 cursor-pointer">
+                                <Clock size={16} /> Schedule Reveal? (Optional)
+                            </label>
+                        </div>
+                        {useSchedule && (
+                            <div className="grid grid-cols-2 gap-3 animate-fade-in pl-6">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500">Date</label>
+                                    <input 
+                                        type="date" 
+                                        value={scheduledDate} 
+                                        onChange={e => setScheduledDate(e.target.value)}
+                                        className="w-full p-2 border rounded text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500">Time</label>
+                                    <input 
+                                        type="time" 
+                                        value={scheduledTime} 
+                                        onChange={e => setScheduledTime(e.target.value)}
+                                        className="w-full p-2 border rounded text-sm"
+                                    />
+                                </div>
+                                <p className="col-span-2 text-[10px] text-slate-400">Board content will be hidden from guests until this time.</p>
+                            </div>
+                        )}
+                    </div>
+
                     <button 
                         onClick={handleCreate}
                         disabled={!title.trim() || isCreating}
@@ -112,43 +161,6 @@ const KudosCreate: React.FC = () => {
                     <p className="text-center text-xs text-slate-400">
                         No email or sign-up required. Your board is private to the link you share.
                     </p>
-                </div>
-            </div>
-
-            {/* How It Works Section */}
-            <div className="max-w-3xl w-full">
-                <h2 className="text-2xl font-bold text-slate-800 text-center mb-8 font-serif">How It Works</h2>
-                <div className="grid md:grid-cols-3 gap-6">
-                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm text-center">
-                        <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-xl">1</div>
-                        <h3 className="font-bold text-slate-700 mb-2">Create & Share</h3>
-                        <p className="text-sm text-slate-500">Name your board and get a shareable link. Send it to your team via Slack, Teams, or email.</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm text-center">
-                        <div className="w-12 h-12 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-xl">2</div>
-                        <h3 className="font-bold text-slate-700 mb-2">Team Adds Kudos</h3>
-                        <p className="text-sm text-slate-500">Colleagues visit the link to write appreciation notes. They can also attach digital gift cards!</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm text-center">
-                        <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-xl">3</div>
-                        <h3 className="font-bold text-slate-700 mb-2">Present & Celebrate</h3>
-                        <p className="text-sm text-slate-500">During your meeting, use "Slideshow Mode" to present the kudos with confetti effects.</p>
-                    </div>
-                </div>
-                
-                <div className="mt-12 bg-indigo-900 rounded-2xl p-8 text-white text-center">
-                    <h3 className="text-xl font-bold mb-4 flex items-center justify-center gap-2">
-                        <Gift className="text-yellow-400" /> Perfect for HR & Managers
-                    </h3>
-                    <p className="text-indigo-100 mb-6 max-w-xl mx-auto">
-                        Unlike other tools, we don't require your employees to create accounts or give us their email addresses. 
-                        It's the safest, fastest way to boost morale.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-4 text-sm font-bold">
-                        <span className="flex items-center gap-2 bg-indigo-800 px-3 py-1 rounded-full"><CheckCircle size={14}/> No Login</span>
-                        <span className="flex items-center gap-2 bg-indigo-800 px-3 py-1 rounded-full"><CheckCircle size={14}/> Mobile Friendly</span>
-                        <span className="flex items-center gap-2 bg-indigo-800 px-3 py-1 rounded-full"><CheckCircle size={14}/> Totally Free</span>
-                    </div>
                 </div>
             </div>
         </div>

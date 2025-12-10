@@ -16,6 +16,7 @@ export default async (req: Request, context: Context) => {
         const newCard = {
             id: crypto.randomUUID(),
             ...card,
+            reactions: {}, // Initialize reactions
             timestamp: Date.now()
         };
 
