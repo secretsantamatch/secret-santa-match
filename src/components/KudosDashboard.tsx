@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { getKudosBoard, reactToCard } from '../services/kudosService';
 import type { KudosBoard } from '../types';
-import { Loader2, Plus, Share2, Play, Copy, Check, Gift, Lock, MessageCircle, Mail, Trash2, Smartphone, Download, Activity, Heart, Clock, Utensils } from 'lucide-react';
+import { Loader2, Plus, Play, Copy, Check, Gift, Lock, MessageCircle, Mail, Download, Heart, Utensils, X, Shield, Users } from 'lucide-react';
 import KudosEditor from './KudosEditor';
 import KudosPresentation from './KudosPresentation';
 import { trackEvent } from '../services/analyticsService';
@@ -32,15 +32,29 @@ const CARD_COLORS = [
     'bg-amber-50 border-amber-100',
 ];
 
-// Simple word cloud generator
+// Smarter word cloud generator
 const WordCloud: React.FC<{ cards: any[] }> = ({ cards }) => {
     const words = useMemo(() => {
         const text = cards.map(c => c.message).join(' ').toLowerCase();
-        const stopWords = new Set(['the', 'and', 'a', 'to', 'for', 'is', 'in', 'of', 'you', 'your', 'with', 'that', 'it', 'on', 'are', 'so', 'this', 'always', 'how', 'really']);
+        
+        // Expanded stop words list
+        const stopWords = new Set([
+            'the', 'and', 'a', 'to', 'for', 'is', 'in', 'of', 'you', 'your', 'with', 'that', 'it', 'on', 'are', 'so', 'this', 'always', 'how', 'really', 'very', 'much', 'great', 'good', 'thanks', 'thank', 'team', 'work', 'working', 'help', 'helping', 'from', 'been', 'have', 'has', 'will', 'what', 'when', 'where', 'who', 'about', 'just', 'more', 'some', 'like', 'time', 'make', 'made', 'thing', 'things', 'think', 'know', 'want', 'being', 'best', 'doing', 'does', 'also', 'into', 'them', 'they', 'their', 'there', 'here', 'were', 'would', 'could', 'should'
+        ]);
+
         const counts: Record<string, number> = {};
         
-        text.replace(/[^\w\s]/g, '').split(/\s+/).forEach(word => {
-            if (word.length > 3 && !stopWords.has(word)) {
+        // Split by non-word characters
+        const rawWords = text.replace(/[^\w\s]/g, '').split(/\s+/);
+        
+        rawWords.forEach(word => {
+            // Filter out short words, stop words, and junk (repeating chars like "asdf" or "aaaa")
+            if (
+                word.length > 3 && 
+                !stopWords.has(word) && 
+                !/(.)\1{2,}/.test(word) && // Removes 'aaaaa'
+                !/^[b-df-hj-np-tv-z]+$/.test(word) // Removes 'asdf' (consonant strings mostly)
+            ) {
                 counts[word] = (counts[word] || 0) + 1;
             }
         });
@@ -53,13 +67,14 @@ const WordCloud: React.FC<{ cards: any[] }> = ({ cards }) => {
     if (words.length === 0) return null;
 
     return (
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 mb-6 text-center">
-            <h4 className="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Top Themes</h4>
-            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-slate-200 mb-8 text-center animate-fade-in">
+            <h4 className="text-xs font-bold text-slate-400 uppercase mb-4 tracking-wider">Trending Topics</h4>
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 items-baseline">
                 {words.map(([word, count]) => {
-                    const size = Math.min(1 + (count * 0.2), 2.5); // Scale font size
+                    const size = Math.min(1 + (count * 0.3), 3); // Scale font size
+                    const opacity = Math.min(0.5 + (count * 0.1), 1);
                     return (
-                        <span key={word} style={{ fontSize: `${size}em` }} className="font-bold text-indigo-600/80">
+                        <span key={word} style={{ fontSize: `${size}em`, opacity }} className="font-bold text-indigo-600 transition-all hover:scale-110 cursor-default">
                             {word}
                         </span>
                     );
@@ -76,26 +91,13 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
     const [showPresentation, setShowPresentation] = useState(false);
     const [hasEntered, setHasEntered] = useState(false);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+    const [showAdminModal, setShowAdminModal] = useState(false);
+    
+    // Track user reactions locally to prevent spam
+    const [userReactions, setUserReactions] = useState<Record<string, string[]>>({}); // { cardId: ['❤️', '🔥'] }
     
     // Copy States
     const [copyState, setCopyState] = useState<string | null>(null);
-
-    // Derived state for the Admin Activity Log
-    const participationStats = useMemo(() => {
-        if (!board) return { senders: [], receivers: [] };
-        const senders = new Map<string, number>();
-        const receivers = new Map<string, number>();
-        board.cards.forEach(card => {
-            const sName = card.from.trim();
-            const rName = card.to.trim();
-            senders.set(sName, (senders.get(sName) || 0) + 1);
-            receivers.set(rName, (receivers.get(rName) || 0) + 1);
-        });
-        return {
-            senders: Array.from(senders.entries()).sort((a, b) => b[1] - a[1]),
-            receivers: Array.from(receivers.entries()).sort((a, b) => b[1] - a[1]),
-        };
-    }, [board]);
 
     const fetchBoard = async () => {
         try {
@@ -109,7 +111,23 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
     };
 
     useEffect(() => {
-        if (adminKey) setHasEntered(true);
+        if (adminKey) {
+            setHasEntered(true);
+            // Show admin modal on first load if not seen this session
+            if (!sessionStorage.getItem(`kudos_admin_seen_${publicId}`)) {
+                setShowAdminModal(true);
+                sessionStorage.setItem(`kudos_admin_seen_${publicId}`, 'true');
+            }
+        }
+        
+        // Load local reactions history
+        const storedReactions = localStorage.getItem(`kudos_reactions_${publicId}`);
+        if (storedReactions) {
+            try {
+                setUserReactions(JSON.parse(storedReactions));
+            } catch (e) {}
+        }
+
         fetchBoard();
         const interval = setInterval(fetchBoard, 5000); 
         return () => clearInterval(interval);
@@ -124,7 +142,12 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
 
     const handleReaction = async (cardId: string, emoji: string) => {
         if (!board) return;
-        // Optimistic update
+
+        // Check limits
+        const cardReactions = userReactions[cardId] || [];
+        if (cardReactions.includes(emoji)) return; // Already reacted with this emoji
+
+        // Optimistic update UI
         const updatedCards = board.cards.map(c => {
             if (c.id === cardId) {
                 const newReactions = { ...c.reactions };
@@ -134,7 +157,15 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
             return c;
         });
         setBoard({ ...board, cards: updatedCards });
+
+        // Update local storage
+        const newUserReactions = { ...userReactions, [cardId]: [...cardReactions, emoji] };
+        setUserReactions(newUserReactions);
+        localStorage.setItem(`kudos_reactions_${publicId}`, JSON.stringify(newUserReactions));
+
+        // Send to backend
         await reactToCard(publicId, cardId, emoji);
+        trackEvent('kudos_react', { emoji });
     };
 
     const handleDownloadPdf = async () => {
@@ -142,7 +173,7 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
         const element = document.getElementById('kudos-grid');
         if (element) {
             try {
-                const canvas = await html2canvas(element, { scale: 1 });
+                const canvas = await html2canvas(element, { scale: 1, backgroundColor: '#ffffff' });
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -170,7 +201,8 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
 
     const bgClass = THEME_STYLES[board.theme] || 'bg-slate-50';
     const shareLink = window.location.href.split('#')[0] + `#id=${publicId}`;
-    const organizerLink = window.location.href;
+    const organizerLink = window.location.href; // Admin view has key in URL
+    const nudgeText = `Hey team, we have ${board.cards.length} kudos so far! Let's keep the appreciation going! Link: ${shareLink}`;
 
     // Check Schedule
     const isLocked = board.scheduledReveal && new Date() < new Date(board.scheduledReveal) && !adminKey;
@@ -198,6 +230,63 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
         <div className={`min-h-screen pb-20 ${bgClass} transition-colors duration-500`}>
             {showPresentation && <KudosPresentation board={board} onClose={() => setShowPresentation(false)} />}
             {showEditor && <KudosEditor boardId={publicId} onClose={() => { setShowEditor(false); fetchBoard(); }} theme={board.theme} />}
+            
+            {/* ADMIN WELCOME MODAL */}
+            {showAdminModal && adminKey && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[200] p-4 animate-fade-in" onClick={() => setShowAdminModal(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="bg-indigo-600 p-6 text-white text-center">
+                            <h2 className="text-2xl font-black font-serif">Organizer Kit</h2>
+                            <p className="text-indigo-200 text-sm mt-1">Everything you need to run this board.</p>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {/* Admin Key */}
+                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                <label className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-wide mb-2">
+                                    <Lock size={14} /> Admin Master Key
+                                </label>
+                                <div className="flex gap-2">
+                                    <input type="text" readOnly value={organizerLink} className="flex-1 p-2 bg-white border border-amber-200 rounded text-xs text-slate-500 truncate font-mono" />
+                                    <button onClick={() => handleCopy(organizerLink, 'modal_org')} className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded shadow-sm transition-colors">
+                                        {copyState === 'modal_org' ? 'Copied' : 'Copy'}
+                                    </button>
+                                </div>
+                                <p className="text-xs text-amber-700 mt-2"><strong>Save this!</strong> It's the only way to manage the board later.</p>
+                            </div>
+
+                            {/* Invite Link */}
+                            <div>
+                                <label className="flex items-center gap-2 text-indigo-800 font-bold text-sm uppercase tracking-wide mb-2">
+                                    <Users size={14} /> Invite Link (Public)
+                                </label>
+                                <div className="flex gap-2">
+                                    <input type="text" readOnly value={shareLink} className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded text-xs text-slate-600 truncate font-mono" />
+                                    <button onClick={() => handleCopy(shareLink, 'modal_share')} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded shadow-sm transition-colors">
+                                        {copyState === 'modal_share' ? 'Copied' : 'Copy'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Reminder Text */}
+                            <div>
+                                <label className="flex items-center gap-2 text-slate-600 font-bold text-sm uppercase tracking-wide mb-2">
+                                    <MessageCircle size={14} /> Copy & Paste Invite
+                                </label>
+                                <div className="relative">
+                                    <textarea readOnly value={nudgeText} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 h-24 resize-none focus:outline-none" />
+                                    <button onClick={() => handleCopy(nudgeText, 'modal_nudge')} className="absolute bottom-2 right-2 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded shadow-sm transition-colors">
+                                        {copyState === 'modal_nudge' ? 'Copied' : 'Copy Text'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button onClick={() => setShowAdminModal(false)} className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
+                                Got it, let's go!
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Header */}
             <div className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 shadow-sm">
@@ -211,12 +300,12 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
                     <div className="flex items-center gap-2">
                         {adminKey && (
                             <>
+                                <button onClick={() => setShowAdminModal(true)} className="p-2 rounded-lg border bg-amber-50 text-amber-600 hover:bg-amber-100" title="Admin Tools">
+                                    <Lock size={20} />
+                                </button>
                                 <button onClick={handleDownloadPdf} className="p-2 rounded-lg border bg-white text-slate-600 hover:bg-slate-50" title="Export PDF">
                                     {isGeneratingPdf ? <Loader2 className="animate-spin" size={20}/> : <Download size={20} />}
                                 </button>
-                                <a href="https://www.ubereats.com/gift-cards" target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg border bg-white text-emerald-600 hover:bg-emerald-50" title="Buy Team Lunch">
-                                    <Utensils size={20} />
-                                </a>
                             </>
                         )}
                         <button onClick={() => setShowPresentation(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold text-sm transition-colors shadow-md">
@@ -230,24 +319,7 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
             </div>
 
             <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-                {/* Admin Dashboard */}
-                {adminKey && (
-                    <div className="bg-amber-50 border-2 border-amber-200 border-dashed rounded-xl p-5 flex flex-col md:flex-row items-center gap-6 justify-between">
-                        <div className="flex-1 text-center md:text-left">
-                             <div className="flex items-center justify-center md:justify-start gap-2 mb-1 text-amber-800 font-bold text-lg"><Lock size={20} /> Admin Controls</div>
-                             <p className="text-amber-700/80 text-sm">Nudge the team: <button onClick={() => handleCopy("Hey team, we have " + board.cards.length + " kudos so far! Let's get those numbers up!", 'nudge')} className="underline font-bold">Copy Reminder Text</button></p>
-                        </div>
-                        <div className="flex gap-2">
-                             <button onClick={() => handleCopy(organizerLink, 'org')} className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded text-xs font-bold flex items-center gap-1">{copyState === 'org' ? <Check size={14}/> : <Copy size={14}/>} Admin Link</button>
-                             <div className="flex items-center gap-1 bg-white p-1 rounded border border-amber-200">
-                                 <button onClick={() => handleShare('whatsapp')} className="p-1.5 hover:bg-slate-100 rounded text-green-600"><MessageCircle size={16}/></button>
-                                 <button onClick={() => handleShare('email')} className="p-1.5 hover:bg-slate-100 rounded text-red-600"><Mail size={16}/></button>
-                                 <button onClick={() => handleCopy(shareLink, 'share')} className="p-1.5 hover:bg-slate-100 rounded text-slate-600"><Copy size={16}/></button>
-                             </div>
-                        </div>
-                    </div>
-                )}
-
+                
                 {/* Locked View for Guests */}
                 {isLocked ? (
                     <div className="text-center py-20 bg-white/50 backdrop-blur-sm rounded-3xl border-2 border-dashed border-slate-300">
@@ -264,6 +336,8 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
                         <div id="kudos-grid" className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
                             {board.cards.map((card, index) => {
                                 const colorClass = CARD_COLORS[index % CARD_COLORS.length];
+                                const hasReacted = userReactions[card.id]?.length > 0;
+                                
                                 return (
                                     <div key={card.id} className={`break-inside-avoid rounded-2xl shadow-sm border p-6 hover:shadow-md transition-shadow relative overflow-hidden group ${colorClass}`}>
                                         <div className="flex justify-between items-start mb-4">
@@ -292,11 +366,19 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
                                             </div>
                                             {/* Reactions */}
                                             <div className="flex gap-1">
-                                                {['❤️','👏','🔥'].map(emoji => (
-                                                    <button key={emoji} onClick={() => handleReaction(card.id, emoji)} className="text-sm hover:scale-125 transition-transform bg-white/50 hover:bg-white rounded-full px-2 py-1 border border-transparent hover:border-slate-200">
-                                                        {emoji} <span className="text-xs text-slate-400 font-bold ml-0.5">{card.reactions?.[emoji] || 0}</span>
-                                                    </button>
-                                                ))}
+                                                {['❤️','👏','🔥'].map(emoji => {
+                                                    const alreadyClicked = userReactions[card.id]?.includes(emoji);
+                                                    return (
+                                                        <button 
+                                                            key={emoji} 
+                                                            onClick={() => handleReaction(card.id, emoji)} 
+                                                            className={`text-sm transition-transform rounded-full px-2 py-1 border ${alreadyClicked ? 'bg-indigo-100 border-indigo-200 cursor-default' : 'bg-white/50 hover:bg-white border-transparent hover:border-slate-200 hover:scale-125'}`}
+                                                            disabled={alreadyClicked}
+                                                        >
+                                                            {emoji} <span className="text-xs text-slate-500 font-bold ml-0.5">{card.reactions?.[emoji] || 0}</span>
+                                                        </button>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     </div>
