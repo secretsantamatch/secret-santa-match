@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { getKudosBoard, reactToCard } from '../services/kudosService';
-import type { KudosBoard } from '../types';
+import type { KudosBoard, KudosBadge } from '../types';
 import { Loader2, Plus, Play, Copy, Check, Gift, Lock, MessageCircle, Mail, Download, Heart, Utensils, X, Shield, Users } from 'lucide-react';
 import KudosEditor from './KudosEditor';
 import KudosPresentation from './KudosPresentation';
@@ -22,6 +21,16 @@ const THEME_STYLES: Record<string, string> = {
     farewell: 'bg-sky-50',
 };
 
+// Badge display config
+const BADGE_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
+    team_player: { icon: '🤝', label: 'Team Player', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+    innovator: { icon: '💡', label: 'Innovator', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+    customer_hero: { icon: '⭐', label: 'Customer Hero', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+    mentor: { icon: '🌱', label: 'Mentor', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+    above_beyond: { icon: '🚀', label: 'Above & Beyond', color: 'bg-rose-100 text-rose-700 border-rose-200' },
+    problem_solver: { icon: '🔧', label: 'Problem Solver', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+};
+
 // Pastel card colors for visual variety
 const CARD_COLORS = [
     'bg-white border-slate-200',
@@ -32,28 +41,38 @@ const CARD_COLORS = [
     'bg-amber-50 border-amber-100',
 ];
 
+// Badge Display Component
+const BadgeDisplay: React.FC<{ badge: KudosBadge }> = ({ badge }) => {
+    if (!badge || badge === 'none') return null;
+    const config = BADGE_CONFIG[badge];
+    if (!config) return null;
+    
+    return (
+        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${config.color}`}>
+            <span>{config.icon}</span>
+            <span>{config.label}</span>
+        </div>
+    );
+};
+
 // Smarter word cloud generator
 const WordCloud: React.FC<{ cards: any[] }> = ({ cards }) => {
     const words = useMemo(() => {
         const text = cards.map(c => c.message).join(' ').toLowerCase();
         
-        // Expanded stop words list
         const stopWords = new Set([
             'the', 'and', 'a', 'to', 'for', 'is', 'in', 'of', 'you', 'your', 'with', 'that', 'it', 'on', 'are', 'so', 'this', 'always', 'how', 'really', 'very', 'much', 'great', 'good', 'thanks', 'thank', 'team', 'work', 'working', 'help', 'helping', 'from', 'been', 'have', 'has', 'will', 'what', 'when', 'where', 'who', 'about', 'just', 'more', 'some', 'like', 'time', 'make', 'made', 'thing', 'things', 'think', 'know', 'want', 'being', 'best', 'doing', 'does', 'also', 'into', 'them', 'they', 'their', 'there', 'here', 'were', 'would', 'could', 'should'
         ]);
 
         const counts: Record<string, number> = {};
-        
-        // Split by non-word characters
         const rawWords = text.replace(/[^\w\s]/g, '').split(/\s+/);
         
         rawWords.forEach(word => {
-            // Filter out short words, stop words, and junk (repeating chars like "asdf" or "aaaa")
             if (
                 word.length > 3 && 
                 !stopWords.has(word) && 
-                !/(.)\1{2,}/.test(word) && // Removes 'aaaaa'
-                !/^[b-df-hj-np-tv-z]+$/.test(word) // Removes 'asdf' (consonant strings mostly)
+                !/(.)\1{2,}/.test(word) &&
+                !/^[b-df-hj-np-tv-z]+$/.test(word)
             ) {
                 counts[word] = (counts[word] || 0) + 1;
             }
@@ -71,12 +90,48 @@ const WordCloud: React.FC<{ cards: any[] }> = ({ cards }) => {
             <h4 className="text-xs font-bold text-slate-400 uppercase mb-4 tracking-wider">Trending Topics</h4>
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 items-baseline">
                 {words.map(([word, count]) => {
-                    const size = Math.min(1 + (count * 0.3), 3); // Scale font size
+                    const size = Math.min(1 + (count * 0.3), 3);
                     const opacity = Math.min(0.5 + (count * 0.1), 1);
                     return (
                         <span key={word} style={{ fontSize: `${size}em`, opacity }} className="font-bold text-indigo-600 transition-all hover:scale-110 cursor-default">
                             {word}
                         </span>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+// Badge Stats Component
+const BadgeStats: React.FC<{ cards: any[] }> = ({ cards }) => {
+    const badgeCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        cards.forEach(card => {
+            if (card.badge && card.badge !== 'none') {
+                counts[card.badge] = (counts[card.badge] || 0) + 1;
+            }
+        });
+        return Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+    }, [cards]);
+
+    if (badgeCounts.length === 0) return null;
+
+    return (
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-slate-200 mb-8">
+            <h4 className="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Top Badges Awarded</h4>
+            <div className="flex flex-wrap gap-3 justify-center">
+                {badgeCounts.map(([badge, count]) => {
+                    const config = BADGE_CONFIG[badge];
+                    if (!config) return null;
+                    return (
+                        <div key={badge} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${config.color}`}>
+                            <span className="text-lg">{config.icon}</span>
+                            <span className="font-bold text-sm">{config.label}</span>
+                            <span className="bg-white/50 px-2 py-0.5 rounded-full text-xs font-bold">{count}</span>
+                        </div>
                     );
                 })}
             </div>
@@ -93,10 +148,7 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const [showAdminModal, setShowAdminModal] = useState(false);
     
-    // Track user reactions locally to prevent spam
-    const [userReactions, setUserReactions] = useState<Record<string, string[]>>({}); // { cardId: ['❤️', '🔥'] }
-    
-    // Copy States
+    const [userReactions, setUserReactions] = useState<Record<string, string[]>>({});
     const [copyState, setCopyState] = useState<string | null>(null);
 
     const fetchBoard = async () => {
@@ -113,14 +165,12 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
     useEffect(() => {
         if (adminKey) {
             setHasEntered(true);
-            // Show admin modal on first load if not seen this session
             if (!sessionStorage.getItem(`kudos_admin_seen_${publicId}`)) {
                 setShowAdminModal(true);
                 sessionStorage.setItem(`kudos_admin_seen_${publicId}`, 'true');
             }
         }
         
-        // Load local reactions history
         const storedReactions = localStorage.getItem(`kudos_reactions_${publicId}`);
         if (storedReactions) {
             try {
@@ -133,141 +183,111 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
         return () => clearInterval(interval);
     }, [publicId, adminKey]);
 
-    const handleCopy = (text: string, type: string) => {
+    const handleCopy = (text: string, key: string) => {
         navigator.clipboard.writeText(text);
-        setCopyState(type);
+        setCopyState(key);
+        trackEvent('kudos_link_copied');
         setTimeout(() => setCopyState(null), 2000);
-        trackEvent('kudos_copy', { type });
     };
 
     const handleReaction = async (cardId: string, emoji: string) => {
-        if (!board) return;
-
-        // Check limits
-        const cardReactions = userReactions[cardId] || [];
-        if (cardReactions.includes(emoji)) return; // Already reacted with this emoji
-
-        // Optimistic update UI
-        const updatedCards = board.cards.map(c => {
-            if (c.id === cardId) {
-                const newReactions = { ...c.reactions };
-                newReactions[emoji] = (newReactions[emoji] || 0) + 1;
-                return { ...c, reactions: newReactions };
-            }
-            return c;
-        });
-        setBoard({ ...board, cards: updatedCards });
-
-        // Update local storage
-        const newUserReactions = { ...userReactions, [cardId]: [...cardReactions, emoji] };
-        setUserReactions(newUserReactions);
-        localStorage.setItem(`kudos_reactions_${publicId}`, JSON.stringify(newUserReactions));
-
-        // Send to backend
-        await reactToCard(publicId, cardId, emoji);
-        trackEvent('kudos_react', { emoji });
+        if (userReactions[cardId]?.includes(emoji)) return;
+        
+        try {
+            await reactToCard(publicId, cardId, emoji);
+            setUserReactions(prev => {
+                const updated = { ...prev, [cardId]: [...(prev[cardId] || []), emoji] };
+                localStorage.setItem(`kudos_reactions_${publicId}`, JSON.stringify(updated));
+                return updated;
+            });
+            fetchBoard();
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleDownloadPdf = async () => {
-        setIsGeneratingPdf(true);
-        const element = document.getElementById('kudos-grid');
-        if (element) {
-            try {
-                const canvas = await html2canvas(element, { scale: 1, backgroundColor: '#ffffff' });
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                pdf.save(`${board?.title.replace(/\s+/g, '_')}_Keepsake.pdf`);
-                trackEvent('kudos_pdf_download');
-            } catch (e) {
-                alert("Failed to generate PDF.");
-            }
-        }
-        setIsGeneratingPdf(false);
-    };
-
-    const handleShare = (type: 'email' | 'whatsapp') => {
         if (!board) return;
-        const url = window.location.href.split('#')[0] + `#id=${publicId}`;
-        const msg = `Join our Kudos Board: ${board.title}! Write a note here: ${url}`;
-        if (type === 'whatsapp') window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-        if (type === 'email') window.open(`mailto:?subject=${encodeURIComponent("Join Kudos Board: " + board.title)}&body=${encodeURIComponent(msg)}`);
+        setIsGeneratingPdf(true);
+        trackEvent('kudos_pdf_download');
+        
+        try {
+            const grid = document.getElementById('kudos-grid');
+            if (!grid) return;
+            
+            const canvas = await html2canvas(grid, { scale: 2, useCORS: true });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF({
+                orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+                unit: 'px',
+                format: [canvas.width, canvas.height]
+            });
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`${board.title.replace(/\s+/g, '-')}-kudos.pdf`);
+        } catch (e) {
+            console.error('PDF generation failed:', e);
+            alert('Failed to generate PDF. Please try again.');
+        } finally {
+            setIsGeneratingPdf(false);
+        }
     };
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-indigo-600" size={40}/></div>;
-    if (!board) return <div className="min-h-screen flex items-center justify-center text-slate-500">Board not found.</div>;
-
-    const bgClass = THEME_STYLES[board.theme] || 'bg-slate-50';
-    const shareLink = window.location.href.split('#')[0] + `#id=${publicId}`;
-    const organizerLink = window.location.href; // Admin view has key in URL
-    const nudgeText = `Hey team, we have ${board.cards.length} kudos so far! Let's keep the appreciation going! Link: ${shareLink}`;
-
-    // Check Schedule
-    const isLocked = board.scheduledReveal && new Date() < new Date(board.scheduledReveal) && !adminKey;
-    const revealTime = board.scheduledReveal ? new Date(board.scheduledReveal) : null;
-
-    // --- WELCOME GATE ---
-    if (!hasEntered) {
+    if (loading) {
         return (
-            <div className={`min-h-screen flex items-center justify-center p-4 ${bgClass}`}>
-                <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-white/50">
-                    <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm text-indigo-600">
-                        <Gift size={40} />
-                    </div>
-                    <h1 className="text-2xl font-black text-slate-900 font-serif mb-2">{board.title}</h1>
-                    <p className="text-slate-500 mb-8">You've been invited to share appreciation!</p>
-                    <button onClick={() => setHasEntered(true)} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
-                         Enter Board
-                    </button>
-                </div>
+            <div className="min-h-screen flex items-center justify-center bg-slate-100">
+                <Loader2 className="animate-spin text-indigo-600" size={48} />
             </div>
         );
     }
 
-    return (
-        <div className={`min-h-screen pb-20 ${bgClass} transition-colors duration-500`}>
-            {showPresentation && <KudosPresentation board={board} onClose={() => setShowPresentation(false)} />}
-            {showEditor && <KudosEditor boardId={publicId} onClose={() => { setShowEditor(false); fetchBoard(); }} theme={board.theme} />}
-            
-            {/* ADMIN WELCOME MODAL */}
-            {showAdminModal && adminKey && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[200] p-4 animate-fade-in" onClick={() => setShowAdminModal(false)}>
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
-                        <div className="bg-indigo-600 p-6 text-white text-center">
-                            <h2 className="text-2xl font-black font-serif">Organizer Kit</h2>
-                            <p className="text-indigo-200 text-sm mt-1">Everything you need to run this board.</p>
-                        </div>
-                        <div className="p-6 space-y-6">
-                            {/* Admin Key */}
-                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
-                                <label className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-wide mb-2">
-                                    <Lock size={14} /> Admin Master Key
-                                </label>
-                                <div className="flex gap-2">
-                                    <input type="text" readOnly value={organizerLink} className="flex-1 p-2 bg-white border border-amber-200 rounded text-xs text-slate-500 truncate font-mono" />
-                                    <button onClick={() => handleCopy(organizerLink, 'modal_org')} className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded shadow-sm transition-colors">
-                                        {copyState === 'modal_org' ? 'Copied' : 'Copy'}
-                                    </button>
-                                </div>
-                                <p className="text-xs text-amber-700 mt-2"><strong>Save this!</strong> It's the only way to manage the board later.</p>
-                            </div>
+    if (!board) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-100">
+                <p className="text-slate-500">Board not found.</p>
+            </div>
+        );
+    }
 
-                            {/* Invite Link */}
+    const bgStyle = THEME_STYLES[board.theme] || THEME_STYLES.corporate;
+    const shareLink = `${window.location.origin}/kudos#id=${publicId}`;
+    const nudgeText = `Hey team! We're collecting kudos for "${board.title}". Add your message here: ${shareLink}`;
+
+    const isLocked = board.scheduledReveal && new Date(board.scheduledReveal) > new Date() && !adminKey;
+    const revealTime = board.scheduledReveal ? new Date(board.scheduledReveal) : null;
+
+    return (
+        <div className={`min-h-screen ${bgStyle} transition-colors`}>
+            {showEditor && <KudosEditor boardId={publicId} onClose={() => { setShowEditor(false); fetchBoard(); }} theme={board.theme} />}
+            {showPresentation && board.cards.length > 0 && <KudosPresentation board={board} onClose={() => setShowPresentation(false)} />}
+
+            {/* Admin Modal */}
+            {showAdminModal && adminKey && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in">
+                        <div className="p-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+                            <div className="flex items-center gap-3">
+                                <Shield size={32} />
+                                <div>
+                                    <h3 className="font-black text-xl">You're the Admin!</h3>
+                                    <p className="text-sm opacity-90">Save your admin link to manage this board.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-5">
                             <div>
-                                <label className="flex items-center gap-2 text-indigo-800 font-bold text-sm uppercase tracking-wide mb-2">
-                                    <Users size={14} /> Invite Link (Public)
+                                <label className="flex items-center gap-2 text-slate-600 font-bold text-sm uppercase tracking-wide mb-2">
+                                    <Users size={14} /> Share Link (for participants)
                                 </label>
-                                <div className="flex gap-2">
-                                    <input type="text" readOnly value={shareLink} className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded text-xs text-slate-600 truncate font-mono" />
+                                <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                    <input type="text" readOnly value={shareLink} className="flex-1 bg-transparent outline-none text-sm text-slate-700 font-mono" />
                                     <button onClick={() => handleCopy(shareLink, 'modal_share')} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded shadow-sm transition-colors">
                                         {copyState === 'modal_share' ? 'Copied' : 'Copy'}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Reminder Text */}
                             <div>
                                 <label className="flex items-center gap-2 text-slate-600 font-bold text-sm uppercase tracking-wide mb-2">
                                     <MessageCircle size={14} /> Copy & Paste Invite
@@ -330,6 +350,7 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
                     </div>
                 ) : (
                     <>
+                        <BadgeStats cards={board.cards} />
                         <WordCloud cards={board.cards} />
                         
                         {/* THE GRID */}
@@ -340,6 +361,13 @@ const KudosDashboard: React.FC<KudosDashboardProps> = ({ publicId, adminKey }) =
                                 
                                 return (
                                     <div key={card.id} className={`break-inside-avoid rounded-2xl shadow-sm border p-6 hover:shadow-md transition-shadow relative overflow-hidden group ${colorClass}`}>
+                                        {/* Badge Display - Top Right */}
+                                        {card.badge && card.badge !== 'none' && (
+                                            <div className="absolute top-4 right-4">
+                                                <BadgeDisplay badge={card.badge} />
+                                            </div>
+                                        )}
+                                        
                                         <div className="flex justify-between items-start mb-4">
                                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">To: <span className="text-slate-800 text-sm">{card.to}</span></p>
                                         </div>

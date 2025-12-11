@@ -18,12 +18,22 @@ export interface KudosCard {
     to: string; // "Everyone", "The Team", or specific name
     message: string;
     style: string; // e.g. "classic", "vibrant", "dark"
+    badge?: KudosBadge;      // <-- ADD THIS
     giftLink?: string; // The pasted affiliate/redemption link
     giftType?: 'coffee' | 'amazon' | 'generic'; // Icon helper
     gifUrl?: string; // Giphy URL
     reactions?: Record<string, number>; // e.g. { 'heart': 5, 'clap': 2 }
     timestamp: number;
 }
+
+export type KudosBadge = 
+    | 'none'
+    | 'team_player'
+    | 'innovator'
+    | 'customer_hero'
+    | 'mentor'
+    | 'above_beyond'
+    | 'problem_solver';
 
 export interface KudosBoard {
     id: string; // publicId

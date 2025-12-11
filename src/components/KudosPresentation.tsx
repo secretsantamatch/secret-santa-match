@@ -1,13 +1,22 @@
-
 import React, { useState, useEffect } from 'react';
-import type { KudosBoard } from '../types';
-import { X, ChevronLeft, ChevronRight, Maximize, Gift } from 'lucide-react';
+import type { KudosBoard, KudosBadge } from '../types';
+import { X, ChevronLeft, ChevronRight, Gift } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface KudosPresentationProps {
     board: KudosBoard;
     onClose: () => void;
 }
+
+// Badge display config
+const BADGE_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
+    team_player: { icon: '🤝', label: 'Team Player', color: 'bg-blue-100 text-blue-700' },
+    innovator: { icon: '💡', label: 'Innovator', color: 'bg-amber-100 text-amber-700' },
+    customer_hero: { icon: '⭐', label: 'Customer Hero', color: 'bg-purple-100 text-purple-700' },
+    mentor: { icon: '🌱', label: 'Mentor', color: 'bg-emerald-100 text-emerald-700' },
+    above_beyond: { icon: '🚀', label: 'Above & Beyond', color: 'bg-rose-100 text-rose-700' },
+    problem_solver: { icon: '🔧', label: 'Problem Solver', color: 'bg-slate-100 text-slate-700' },
+};
 
 const KudosPresentation: React.FC<KudosPresentationProps> = ({ board, onClose }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -46,6 +55,9 @@ const KudosPresentation: React.FC<KudosPresentationProps> = ({ board, onClose })
 
     if (!currentCard) return null;
 
+    const badge = currentCard.badge;
+    const badgeConfig = badge && badge !== 'none' ? BADGE_CONFIG[badge] : null;
+
     return (
         <div className="fixed inset-0 bg-slate-900 z-[100] flex flex-col text-white">
             {/* Toolbar */}
@@ -75,6 +87,14 @@ const KudosPresentation: React.FC<KudosPresentationProps> = ({ board, onClose })
 
                         <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">To</p>
                         <h3 className="text-3xl font-black text-indigo-600">{currentCard.to}</h3>
+
+                        {/* Badge Display */}
+                        {badgeConfig && (
+                            <div className={`mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${badgeConfig.color}`}>
+                                <span className="text-xl">{badgeConfig.icon}</span>
+                                <span>{badgeConfig.label}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Panel: Message */}
